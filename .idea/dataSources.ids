@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="dataSourceStorage">
-  <data-source source="LOCAL" name="Django default" product="MySQL" version="5.6.10" jdbc-version="4.0" driver-name="MySQL-AB JDBC Driver" driver-version="mysql-connector-java-5.1.18 ( Revision: tonci.grgin@oracle.com-20110930151701-jfj14ddfq48ifkfq )" uuid="395a5c61-9059-42ab-9c2f-39381a0bd19a">
+  <data-source source="LOCAL" name="Django default" product="MySQL" version="5.6.10" jdbc-version="4.0" driver-name="MySQL-AB JDBC Driver" driver-version="mysql-connector-java-5.1.18 ( Revision: tonci.grgin@oracle.com-20110930151701-jfj14ddfq48ifkfq )" uuid="64d9d4c1-0d67-439b-a3b3-70c132d3ccff">
     <extra-name-characters>#@</extra-name-characters>
     <identifier-quote-string>`</identifier-quote-string>
     <jdbc-driver>com.mysql.jdbc.Driver</jdbc-driver>
@@ -728,6 +728,182 @@
       <column name="SECURITY_TYPE" sqlType="VARCHAR" length="7" precision="0" nullable="false" jdbcType="12" def="Jyc="/>
       <column name="CHARACTER_SET_CLIENT" sqlType="VARCHAR" length="32" precision="0" nullable="false" jdbcType="12" def="Jyc="/>
       <column name="COLLATION_CONNECTION" sqlType="VARCHAR" length="32" precision="0" nullable="false" jdbcType="12" def="Jyc="/>
+    </table>
+    <table name="auth_group" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" length="80" precision="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="group_id_refs_id_f4b32aac" table="auth_group_permissions" schema="" catalog="joltem" columns="group_id"/>
+      <exported-key name="group_id_refs_id_274b862c" table="auth_user_groups" schema="" catalog="joltem" columns="group_id"/>
+      <index name="name" unique="true" columns="name"/>
+    </table>
+    <table name="auth_group_permissions" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="group_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="permission_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="group_id_refs_id_f4b32aac" columns="group_id" ref-table="auth_group" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="permission_id_refs_id_6ba0f519" columns="permission_id" ref-table="auth_permission" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="group_id" unique="true" columns="permission_id"/>
+      <index name="auth_group_permissions_5f412f9a" unique="false" columns="group_id"/>
+      <index name="auth_group_permissions_83d7f98b" unique="false" columns="permission_id"/>
+    </table>
+    <table name="auth_permission" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" length="50" precision="0" nullable="false" jdbcType="12"/>
+      <column name="content_type_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="codename" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="content_type_id_refs_id_d043b34a" columns="content_type_id" ref-table="django_content_type" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="permission_id_refs_id_6ba0f519" table="auth_group_permissions" schema="" catalog="joltem" columns="permission_id"/>
+      <exported-key name="permission_id_refs_id_35d9ac25" table="auth_user_user_permissions" schema="" catalog="joltem" columns="permission_id"/>
+      <index name="content_type_id" unique="true" columns="codename"/>
+      <index name="auth_permission_37ef4eb4" unique="false" columns="content_type_id"/>
+    </table>
+    <table name="auth_user" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="password" sqlType="VARCHAR" length="128" precision="0" nullable="false" jdbcType="12"/>
+      <column name="last_login" sqlType="DATETIME" length="19" precision="0" nullable="false" jdbcType="93"/>
+      <column name="is_superuser" sqlType="BIT" length="0" precision="0" nullable="false" jdbcType="-7"/>
+      <column name="username" sqlType="VARCHAR" length="30" precision="0" nullable="false" jdbcType="12"/>
+      <column name="first_name" sqlType="VARCHAR" length="30" precision="0" nullable="false" jdbcType="12"/>
+      <column name="last_name" sqlType="VARCHAR" length="30" precision="0" nullable="false" jdbcType="12"/>
+      <column name="email" sqlType="VARCHAR" length="75" precision="0" nullable="false" jdbcType="12"/>
+      <column name="is_staff" sqlType="BIT" length="0" precision="0" nullable="false" jdbcType="-7"/>
+      <column name="is_active" sqlType="BIT" length="0" precision="0" nullable="false" jdbcType="-7"/>
+      <column name="date_joined" sqlType="DATETIME" length="19" precision="0" nullable="false" jdbcType="93"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="user_id_refs_id_40c41112" table="auth_user_groups" schema="" catalog="joltem" columns="user_id"/>
+      <exported-key name="user_id_refs_id_4dc23c39" table="auth_user_user_permissions" schema="" catalog="joltem" columns="user_id"/>
+      <exported-key name="user_id_refs_id_11d02ceabfd735e2" table="joltem_permission" schema="" catalog="joltem" columns="user_id"/>
+      <exported-key name="user_id_refs_id_34a2b4598851488c" table="joltem_project_users" schema="" catalog="joltem" columns="user_id"/>
+      <index name="username" unique="true" columns="username"/>
+    </table>
+    <table name="auth_user_groups" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="user_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="group_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_id_refs_id_40c41112" columns="user_id" ref-table="auth_user" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="group_id_refs_id_274b862c" columns="group_id" ref-table="auth_group" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="user_id" unique="true" columns="group_id"/>
+      <index name="auth_user_groups_6340c63c" unique="false" columns="user_id"/>
+      <index name="auth_user_groups_5f412f9a" unique="false" columns="group_id"/>
+    </table>
+    <table name="auth_user_user_permissions" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="user_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="permission_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_id_refs_id_4dc23c39" columns="user_id" ref-table="auth_user" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="permission_id_refs_id_35d9ac25" columns="permission_id" ref-table="auth_permission" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="user_id" unique="true" columns="permission_id"/>
+      <index name="auth_user_user_permissions_6340c63c" unique="false" columns="user_id"/>
+      <index name="auth_user_user_permissions_83d7f98b" unique="false" columns="permission_id"/>
+    </table>
+    <table name="django_content_type" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
+      <column name="app_label" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
+      <column name="model" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="content_type_id_refs_id_d043b34a" table="auth_permission" schema="" catalog="joltem" columns="content_type_id"/>
+      <index name="app_label" unique="true" columns="app_label,model"/>
+    </table>
+    <table name="django_session" schema="" catalog="joltem" type="TABLE">
+      <column name="session_key" sqlType="VARCHAR" length="40" precision="0" nullable="false" jdbcType="12"/>
+      <column name="session_data" sqlType="LONGTEXT" length="2147483647" precision="0" nullable="false" jdbcType="-1"/>
+      <column name="expire_date" sqlType="DATETIME" length="19" precision="0" nullable="false" jdbcType="93"/>
+      <primary-key name="PRIMARY" columns="session_key"/>
+      <index name="django_session_b7b81f0c" unique="false" columns="expire_date"/>
+    </table>
+    <table name="django_site" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="domain" sqlType="VARCHAR" length="100" precision="0" nullable="false" jdbcType="12"/>
+      <column name="name" sqlType="VARCHAR" length="50" precision="0" nullable="false" jdbcType="12"/>
+      <primary-key name="PRIMARY" columns="id"/>
+    </table>
+    <table name="joltem_branch" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="reference" sqlType="VARCHAR" length="200" precision="0" nullable="false" jdbcType="12"/>
+      <column name="repository_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="task_branch_id" sqlType="INT" length="10" precision="0" nullable="true" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="repository_id_refs_id_1da5fde11960c8b9" columns="repository_id" ref-table="joltem_repository" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="task_branch_id_refs_id_2832912d1d4fe644" columns="task_branch_id" ref-table="joltem_taskbranch" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="branch_id_refs_id_4a206f535e9c3d98" table="joltem_permission" schema="" catalog="joltem" columns="branch_id"/>
+      <index name="joltem_branch_a322ed1e" unique="false" columns="repository_id"/>
+      <index name="joltem_branch_b9efd9f7" unique="false" columns="task_branch_id"/>
+    </table>
+    <table name="joltem_permission" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="can_read" sqlType="BIT" length="0" precision="0" nullable="false" jdbcType="-7"/>
+      <column name="can_write" sqlType="BIT" length="0" precision="0" nullable="false" jdbcType="-7"/>
+      <column name="user_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="branch_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="user_id_refs_id_11d02ceabfd735e2" columns="user_id" ref-table="auth_user" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="branch_id_refs_id_4a206f535e9c3d98" columns="branch_id" ref-table="joltem_branch" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="joltem_permission_6340c63c" unique="false" columns="user_id"/>
+      <index name="joltem_permission_9f21ec57" unique="false" columns="branch_id"/>
+    </table>
+    <table name="joltem_project" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" length="200" precision="0" nullable="false" jdbcType="12"/>
+      <column name="description" sqlType="LONGTEXT" length="2147483647" precision="0" nullable="true" jdbcType="-1"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <exported-key name="project_id_refs_id_65e35119c25ce3be" table="joltem_project_users" schema="" catalog="joltem" columns="project_id"/>
+      <exported-key name="project_id_refs_id_741cd938650ba7fb" table="joltem_repository" schema="" catalog="joltem" columns="project_id"/>
+      <exported-key name="project_id_refs_id_cda110852a77dcc" table="joltem_task" schema="" catalog="joltem" columns="project_id"/>
+    </table>
+    <table name="joltem_project_users" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="project_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <column name="user_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="project_id_refs_id_65e35119c25ce3be" columns="project_id" ref-table="joltem_project" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="user_id_refs_id_34a2b4598851488c" columns="user_id" ref-table="auth_user" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <index name="joltem_project_users_project_id_31d1e4e49452a5ab_uniq" unique="true" columns="project_id,user_id"/>
+      <index name="joltem_project_users_37952554" unique="false" columns="project_id"/>
+      <index name="joltem_project_users_6340c63c" unique="false" columns="user_id"/>
+    </table>
+    <table name="joltem_repository" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="path" sqlType="VARCHAR" length="200" precision="0" nullable="false" jdbcType="12"/>
+      <column name="project_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="project_id_refs_id_741cd938650ba7fb" columns="project_id" ref-table="joltem_project" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="repository_id_refs_id_1da5fde11960c8b9" table="joltem_branch" schema="" catalog="joltem" columns="repository_id"/>
+      <index name="joltem_repository_37952554" unique="false" columns="project_id"/>
+    </table>
+    <table name="joltem_task" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="title" sqlType="VARCHAR" length="200" precision="0" nullable="false" jdbcType="12"/>
+      <column name="description" sqlType="LONGTEXT" length="2147483647" precision="0" nullable="true" jdbcType="-1"/>
+      <column name="parent_id" sqlType="INT" length="10" precision="0" nullable="true" jdbcType="4"/>
+      <column name="project_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="parent_id_refs_id_3f1fd605a4aff247" columns="parent_id" ref-table="joltem_task" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <foreign-key name="project_id_refs_id_cda110852a77dcc" columns="project_id" ref-table="joltem_project" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="parent_id_refs_id_3f1fd605a4aff247" table="joltem_task" schema="" catalog="joltem" columns="parent_id"/>
+      <exported-key name="task_id_refs_id_414ad7a8d26928e3" table="joltem_taskbranch" schema="" catalog="joltem" columns="task_id"/>
+      <index name="joltem_task_410d0aac" unique="false" columns="parent_id"/>
+      <index name="joltem_task_37952554" unique="false" columns="project_id"/>
+    </table>
+    <table name="joltem_taskbranch" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="task_id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4"/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <foreign-key name="task_id_refs_id_414ad7a8d26928e3" columns="task_id" ref-table="joltem_task" ref-schema="" ref-catalog="joltem" ref-columns="id" update-rule="3" delete-rule="3" deferrability="2"/>
+      <exported-key name="task_branch_id_refs_id_2832912d1d4fe644" table="joltem_branch" schema="" catalog="joltem" columns="task_branch_id"/>
+      <index name="joltem_taskbranch_ef96c3b8" unique="false" columns="task_id"/>
+    </table>
+    <table name="south_migrationhistory" schema="" catalog="joltem" type="TABLE">
+      <column name="id" sqlType="INT" length="10" precision="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="app_name" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <column name="migration" sqlType="VARCHAR" length="255" precision="0" nullable="false" jdbcType="12"/>
+      <column name="applied" sqlType="DATETIME" length="19" precision="0" nullable="false" jdbcType="93"/>
+      <primary-key name="PRIMARY" columns="id"/>
     </table>
   </data-source>
 </component>
