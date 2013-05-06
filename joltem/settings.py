@@ -112,7 +112,6 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -124,9 +123,12 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    # Database migrations
+    'south',
     'joltem',
-    'south',  # for database migrations
+    'git',
 )
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
