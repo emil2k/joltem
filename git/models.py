@@ -11,6 +11,9 @@ class Repository(models.Model):
     # Relations
     project = models.ForeignKey(Project)
 
+    def __unicode__(self):
+        return self.path
+
 
 class Branch(models.Model):
     """
@@ -19,7 +22,10 @@ class Branch(models.Model):
     reference = models.CharField(max_length=200)
     #Relations
     repository = models.ForeignKey(Repository)
-    task_branch = models.ForeignKey(TaskBranch, null=True)
+    task_branch = models.ForeignKey(TaskBranch, null=True, blank=True)
+
+    def __unicode__(self):
+        return self.reference
 
 
 class Permission(models.Model):
@@ -31,3 +37,11 @@ class Permission(models.Model):
     # Relations
     user = models.ForeignKey(User)
     branch = models.ForeignKey(Branch)
+
+    def __unicode__(self):
+        permission = ""
+        if self.can_read:
+            permission += "R"
+        if self.can_write:
+            permission += "W"
+        return permission

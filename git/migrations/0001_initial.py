@@ -21,7 +21,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('reference', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
-            ('task_branch', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.TaskBranch'], null=True)),
+            ('task_branch', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.TaskBranch'], null=True, blank=True)),
         ))
         db.send_create_signal(u'git', ['Branch'])
 
@@ -89,7 +89,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'reference': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
-            'task_branch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.TaskBranch']", 'null': 'True'})
+            'task_branch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.TaskBranch']", 'null': 'True', 'blank': 'True'})
         },
         u'git.permission': {
             'Meta': {'object_name': 'Permission'},
@@ -116,12 +116,13 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Task'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Task']", 'null': 'True'}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Task']", 'null': 'True', 'blank': 'True'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Project']"}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
         u'joltem.taskbranch': {
             'Meta': {'object_name': 'TaskBranch'},
+            'assignees': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Task']"})
         }

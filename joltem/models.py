@@ -8,13 +8,19 @@ class Project(models.Model):
     # Relations
     users = models.ManyToManyField(User)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     # Relations
-    parent = models.ForeignKey('self', null=True)
+    parent = models.ForeignKey('self', null=True, blank=True)
     project = models.ForeignKey(Project)
+
+    def __unicode__(self):
+        return self.title
 
 
 class TaskBranch(models.Model):
@@ -29,3 +35,6 @@ class TaskBranch(models.Model):
     # Relations
     task = models.ForeignKey(Task)
     assignees = models.ManyToManyField(User)
+
+    def __unicode__(self):
+        return str(self.id)
