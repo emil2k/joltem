@@ -1,0 +1,29 @@
+
+    SETUP : GIT APPLICATION
+
+============================================================================================
+    GITOLITE
+============================================================================================
+
+-   Install gitolite under a new user named git.
+
+-   Make a gitolite folder in git app folder.
+
+-   Clone gitolite-admin repo into gitolite folder.
+
+-   Create symlink to keydir directory in git user's .gitolite folder from gitolite folder.
+
+-   Create symlink to repositories directory in git user's home folder from git app folder.
+
+-   Add a group git and give it permissions to read and write to keydir
+    and and repositories folders.
+
+    chgrp -Rv git repositories/ .gitolite/keydir/
+    chmod -Rv g+rw repositories/ .gitolite/keydir/
+
+
+============================================================================================
+    TODO : LIBGIT2, PYGIT2
+============================================================================================
+
+

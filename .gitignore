@@ -1,2 +1,4 @@
 *.pyc
 workspace.xml
+git/gitolite
+git/repositories
