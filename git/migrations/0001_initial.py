@@ -35,6 +35,14 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'git', ['Permission'])
 
+        # Adding model 'Authentication'
+        db.create_table(u'git_authentication', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('key', self.gf('django.db.models.fields.TextField')()),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+        ))
+        db.send_create_signal(u'git', ['Authentication'])
+
 
     def backwards(self, orm):
         # Deleting model 'Repository'
@@ -45,6 +53,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Permission'
         db.delete_table(u'git_permission')
+
+        # Deleting model 'Authentication'
+        db.delete_table(u'git_authentication')
 
 
     models = {
@@ -83,6 +94,12 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        u'git.authentication': {
+            'Meta': {'object_name': 'Authentication'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key': ('django.db.models.fields.TextField', [], {}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'git.branch': {
             'Meta': {'object_name': 'Branch'},

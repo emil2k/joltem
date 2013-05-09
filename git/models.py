@@ -45,3 +45,15 @@ class Permission(models.Model):
         if self.can_write:
             permission += "W"
         return permission
+
+
+class Authentication(models.Model):
+    """
+    A public authentication key for gitolite
+    """
+    key = models.TextField()
+    # Relations
+    user = models.ForeignKey(User)
+
+    def __unicode__(self):
+        return str(self.id)
