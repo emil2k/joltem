@@ -21,6 +21,7 @@
     chgrp -Rv git repositories/ .gitolite/keydir/
     chmod -Rv g+rw repositories/ .gitolite/keydir/
 
+-   Add project directory to $PYTHONPATH otherwise might get import errors in scripts.
 
 ============================================================================================
     TODO : LIBGIT2, PYGIT2
