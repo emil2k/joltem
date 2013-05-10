@@ -31,7 +31,8 @@ class Migration(SchemaMigration):
             ('can_read', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('can_write', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('branch', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Branch'])),
+            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
+            ('branch', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Branch'], null=True, blank=True)),
         ))
         db.send_create_signal(u'git', ['Permission'])
 
@@ -110,10 +111,11 @@ class Migration(SchemaMigration):
         },
         u'git.permission': {
             'Meta': {'object_name': 'Permission'},
-            'branch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Branch']"}),
+            'branch': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Branch']", 'null': 'True', 'blank': 'True'}),
             'can_read': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'can_write': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'git.repository': {

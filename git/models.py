@@ -36,7 +36,8 @@ class Permission(models.Model):
     can_write = models.BooleanField(default=False)
     # Relations
     user = models.ForeignKey(User)
-    branch = models.ForeignKey(Branch)
+    repository = models.ForeignKey(Repository)
+    branch = models.ForeignKey(Branch, null=True, blank=True)
 
     def __unicode__(self):
         permission = ""
