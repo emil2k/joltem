@@ -1,0 +1,7 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    <h3>{{ repository.path }}</h3>
+    {% for branch in repository.branch_set.all %}
+        <p>{{ branch.reference }}</p>
+    {% endfor %}
+{% endblock %}

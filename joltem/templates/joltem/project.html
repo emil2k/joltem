@@ -1,0 +1,14 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    <h3>{{ project.name }}</h3>
+    {% for repo in project.repository_set.all %}
+        <p><a href="{% url 'repository' repo.path %}">{{ repo.path }}</a></p>
+    {% endfor %}
+    <h4>Tasks</h4>
+    {% for task in project.task_set.all %}
+        <dl class="dl-horizontal">
+            <dt><a href="{% url 'task' task.id %}">{{ task.title }}</a></dt>
+            <dd>{{ task.description }}</dd>
+        </dl>
+    {% endfor %}
+{% endblock %}

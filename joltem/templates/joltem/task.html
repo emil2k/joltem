@@ -1,0 +1,12 @@
+{% extends 'joltem/base.html' %}
+{% block title %}{{ task.title }} - Joltem{% endblock %}
+{% block content %}
+    <h3>{{ task.title }}</h3>
+    <p>{{ task.description }}</p>
+    <h4>Task Branches</h4>
+    {% for task_branch in task.taskbranch_set.all %}
+        <dl class="dl-horizontal">
+            <dt><a href="{% url 'task_branch' task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
+        </dl>
+    {% endfor %}
+{% endblock %}

@@ -7,7 +7,7 @@ class Repository(models.Model):
     """
     Git repository
     """
-    path = models.CharField(max_length=200)
+    path = models.CharField(max_length=200)  # TODO make unique
     # Relations
     project = models.ForeignKey(Project)
 
