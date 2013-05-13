@@ -1,6 +1,7 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
     <h3>{{ project.name }}</h3>
+    <h4>Repositories</h4>
     {% for repo in project.repository_set.all %}
         <p><a href="{% url 'repository' repo.path %}">{{ repo.path }}</a></p>
     {% endfor %}

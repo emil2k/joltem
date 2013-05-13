@@ -33,12 +33,3 @@ def task_branch(request, task_id, task_branch_id):
         'task_branch': task_branch
     }
     return render(request, 'joltem/task_branch.html', context)
-
-
-def repository(request, repository_path):
-    repository = Repository.objects.get(path=repository_path)
-    context = {
-        'repository': repository
-    }
-    return render(request, 'joltem/repository.html', context)
-

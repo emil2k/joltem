@@ -1,6 +1,7 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
     <h3>{{ task_branch.task.title }}</h3>
+    <p>{{ task_branch.task.description }}</p>
     <p>
         <b>Assigned to : </b>
         {{ task_branch.assignees.all|join:", " }}
