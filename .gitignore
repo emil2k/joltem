@@ -1,4 +1,5 @@
 *.pyc
 workspace.xml
-git/gitolite
+git/gitolite/gitolite-admin
+git/gitolite/keydir
 git/repositories

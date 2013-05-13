@@ -30,10 +30,9 @@ def task(request, task_id):
 
 def task_branch(request, task_id, task_branch_id):
     task_branch = TaskBranch.objects.get(id=task_branch_id)
-
     context = {}
-
     if request.POST:
+        modified = False;
         if request.POST.get('action') == "assign":
             try:
                 assignee = User.objects.get(username=request.POST.get('assignee'))
@@ -44,6 +43,7 @@ def task_branch(request, task_id, task_branch_id):
                 task_branch.assignees.add(assignee)
                 task_branch.save()
                 context['assigned'] = assignee
+                modified = True
         if request.POST.get('remove') is not None:
             try:
                 remove = User.objects.get(username=request.POST.get('remove'))
@@ -54,7 +54,10 @@ def task_branch(request, task_id, task_branch_id):
                 task_branch.assignees.remove(remove)
                 task_branch.save()
                 context['removed'] = remove
+                modified = True
+        if modified:
+            from git.gitolite import permissions
+            permissions.update_permissions()
 
     context['task_branch'] = task_branch
-
     return render(request, 'joltem/task_branch.html', context)

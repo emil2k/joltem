@@ -28,6 +28,7 @@ class Branch(models.Model):
         return self.reference
 
 
+# TODO deprecated remove
 class Permission(models.Model):
     """
     Gitolite permissions for a branch and user
