@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 from joltem.models import Project, Task, TaskBranch
 from git.models import Repository, Branch
+from joltem.models import User
 
 
 def home(request):
@@ -29,7 +30,31 @@ def task(request, task_id):
 
 def task_branch(request, task_id, task_branch_id):
     task_branch = TaskBranch.objects.get(id=task_branch_id)
-    context = {
-        'task_branch': task_branch
-    }
+
+    context = {}
+
+    if request.POST:
+        if request.POST.get('action') == "assign":
+            try:
+                assignee = User.objects.get(username=request.POST.get('assignee'))
+            except User.DoesNotExist:
+                # do nothing
+                print "Trying to assign user that does not exist."
+            else:
+                task_branch.assignees.add(assignee)
+                task_branch.save()
+                context['assigned'] = assignee
+        if request.POST.get('remove') is not None:
+            try:
+                remove = User.objects.get(username=request.POST.get('remove'))
+            except User.DoesNotExist:
+                # do nothing
+                print "Trying to delete user that does not exist."
+            else:
+                task_branch.assignees.remove(remove)
+                task_branch.save()
+                context['removed'] = remove
+
+    context['task_branch'] = task_branch
+
     return render(request, 'joltem/task_branch.html', context)
