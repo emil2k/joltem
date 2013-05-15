@@ -1,0 +1,16 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    <h3>Keys</h3>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-warning" name="action" value="update" type="submit"><i class="icon-refresh icon-white"></i> Update <i>keydir</i> for gitolite.</button>
+    </form>
+    {% if keys %}
+        {% for key in keys %}
+            <p class="text-info"><i class="icon-user"></i> {{ key.user.username }}</p>
+            <pre>{{ key.key }}</pre>
+        {% endfor %}
+    {% else %}
+        <p>No keys at the moment.</p>
+    {% endif %}
+{% endblock %}

@@ -8,6 +8,10 @@
 
 -   Clone gitolite-admin repo into gitolite folder.
 
+-   Create file keys.log in gitolite-admin repo and put it under version control and push
+    it back, this will be used to log authentication keys changes, and force gitolite
+    to reload by pushing the gitolite-admin repo.
+
 -   Create symlink to keydir directory in git user's .gitolite folder from gitolite folder.
 
 -   Create symlink to repositories directory in git user's home folder from git app folder.
@@ -20,13 +24,31 @@
 
 -   Add project directory to $PYTHONPATH otherwise might get import errors in scripts.
 
-File structure should look something like this :
+FILE STRUCTURE EXAMPLE of git directory :
 
-git/gitolite/
-├── gitolite-admin
-│   └── conf
-│       └── gitolite.conf
-└── keydir -> /Users/git/.gitolite/keydir/
+.
+├── SETUP.txt
+├── __init__.py
+├── admin.py
+├── gitolite
+│   ├── __init__.py
+│   ├── gitolite-admin
+│   │   ├── conf
+│   │   │   └── gitolite.conf
+│   │   ├── keydir
+│   │   │   ├── bob@2.pub
+│   │   │   ├── emil@1.pub
+│   │   │   └── jill@3.pub
+│   │   └── keys.log
+│   ├── keydir -> /Users/git/.gitolite/keydir/
+│   ├── keys.py
+│   ├── permissions.py
+├── migrations
+├── models.py
+├── repositories -> /Users/git/repositories/
+├── tests.py
+├── urls.py
+└── views.py
 
 
 ============================================================================================

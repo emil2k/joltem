@@ -45,9 +45,8 @@ def update_permissions():
                 ))
 
     print "\n*** Wrote configuration file to %s, is closed : %s.\n" % (gitolite_conf_file_path, f.closed)
-    # Output config file to STDOUT
+    # Commit and push changes
     from subprocess import call
-    call("cat %s" % gitolite_conf_file_path, shell=True)
     print "\n*** Commit permission changes\n."
     call("git --git-dir=%s.git --work-tree=%s commit -v -am 'Permission changes.'" % (gitolite_admin_directory, gitolite_admin_directory), shell=True)
     print "\n*** Push permission changes.\n"
