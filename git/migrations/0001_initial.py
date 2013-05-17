@@ -11,10 +11,14 @@ class Migration(SchemaMigration):
         # Adding model 'Repository'
         db.create_table(u'git_repository', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('path', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Project'])),
         ))
         db.send_create_signal(u'git', ['Repository'])
+
+        # Adding unique constraint on 'Repository', fields ['name', 'project']
+        db.create_unique(u'git_repository', ['name', 'project_id'])
 
         # Adding model 'Branch'
         db.create_table(u'git_branch', (
@@ -46,6 +50,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Removing unique constraint on 'Repository', fields ['name', 'project']
+        db.delete_unique(u'git_repository', ['name', 'project_id'])
+
         # Deleting model 'Repository'
         db.delete_table(u'git_repository')
 
@@ -119,9 +126,10 @@ class Migration(SchemaMigration):
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'git.repository': {
-            'Meta': {'object_name': 'Repository'},
+            'Meta': {'unique_together': "(('name', 'project'),)", 'object_name': 'Repository'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'path': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Project']"})
         },
         u'joltem.project': {

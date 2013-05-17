@@ -17,6 +17,24 @@ def project(request, project_name):
     context = {
         'project': project
     }
+    if request.POST:
+        action = request.POST.get('action')
+        removed_id = request.POST.get('remove')
+        if action == 'create_repo':
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            if name is not None:
+                created = Repository(
+                    project=project,
+                    name=name,
+                    description=description
+                )
+                created.save()
+                context['created'] = created
+        if removed_id is not None:
+            removed = Repository.objects.get(id=removed_id)
+            removed.delete()
+            context['removed'] = removed
     return render(request, 'joltem/project.html', context)
 
 

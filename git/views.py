@@ -2,8 +2,8 @@ from django.shortcuts import render
 from git.models import Repository, Authentication
 
 
-def repository(request, repository_path):
-    repository = Repository.objects.get(path=repository_path)
+def repository(request, repository_name):
+    repository = Repository.objects.get(name=repository_name) # TODO should also have project name, which together is the unique key
     context = {
         'repository': repository
     }
