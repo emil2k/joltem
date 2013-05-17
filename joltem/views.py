@@ -19,22 +19,42 @@ def project(request, project_name):
     }
     if request.POST:
         action = request.POST.get('action')
-        removed_id = request.POST.get('remove')
+        # Create a repository
         if action == 'create_repo':
             name = request.POST.get('name')
             description = request.POST.get('description')
             if name is not None:
-                created = Repository(
+                created_repo = Repository(
                     project=project,
                     name=name,
                     description=description
                 )
-                created.save()
-                context['created'] = created
-        if removed_id is not None:
-            removed = Repository.objects.get(id=removed_id)
-            removed.delete()
-            context['removed'] = removed
+                created_repo.save()
+                context['created_repo'] = created_repo
+        # Create a task
+        if action == 'create_task':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            if title is not None:
+                created_task = Task(
+                    project=project,
+                    title=title,
+                    description=description
+                )
+                created_task.save()
+                context['created_task'] = created_task
+        # Remove repository
+        removed_repo_id = request.POST.get('remove_repo')
+        if removed_repo_id is not None:
+            removed_repo = Repository.objects.get(id=removed_repo_id)
+            removed_repo.delete()
+            context['removed_repo'] = removed_repo
+        # Remove task
+        removed_task_id = request.POST.get('remove_task')
+        if removed_task_id is not None:
+            removed_task = Task.objects.get(id=removed_task_id)
+            removed_task.delete()
+            context['removed_task'] = removed_task
     return render(request, 'joltem/project.html', context)
 
 
