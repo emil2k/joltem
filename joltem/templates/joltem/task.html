@@ -6,7 +6,7 @@
     <h4>Task Branches</h4>
     {% for task_branch in task.taskbranch_set.all %}
         <dl class="dl-horizontal">
-            <dt><a href="{% url 'task_branch' task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
+            <dt><a href="{% url 'project:task:task_branch' project.name task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
         </dl>
     {% endfor %}
 {% endblock %}

@@ -123,6 +123,8 @@ INSTALLED_APPS = (
     # Database migrations
     'south',
     'joltem',
+    'project',
+    'task',
     'git',
 )
 

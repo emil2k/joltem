@@ -2,6 +2,6 @@
 {% block content %}
     <h3>Projects</h3>
     {% for project in projects %}
-        <a href="{% url 'project' project.name %}">{{ project.name }}</a>
+        <a href="{% url 'project:project' project.name %}">{{ project.name }}</a>
     {% endfor %}
 {% endblock %}

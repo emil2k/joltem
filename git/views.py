@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from joltem.models import Project
 from git.models import Repository, Authentication
 
 
-def repository(request, repository_name):
-    repository = Repository.objects.get(name=repository_name) # TODO should also have project name, which together is the unique key
+def repository(request, project_name, repository_name):
+    project = Project.objects.get(name=project_name)
+    repository = Repository.objects.get(name=repository_name, project=project)
     context = {
         'repository': repository
     }

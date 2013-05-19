@@ -24,7 +24,7 @@
         {% for repo in project.repository_set.all %}
             <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_repo" value="{{ repo.id }}">Remove</button>
             <p class="offset1">
-                <a href="{% url 'repository' repo.name %}">{{ repo.name }}</a><br/>
+                <a href="{% url 'project:git:repository' project.name repo.name %}">{{ repo.name }}</a><br/>
                 {{ repo.description }}
             </p>
         {% endfor %}
@@ -54,7 +54,7 @@
         {% for task in project.task_set.all %}
             <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_task" value="{{ task.id }}">Remove</button>
             <p class="offset1">
-                <a href="{% url 'task' task.id %}">{{ task.title }}</a></br>
+                <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br>
                 {{ task.description }}
             </p>
         {% endfor %}
