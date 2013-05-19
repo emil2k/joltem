@@ -2,8 +2,14 @@ from django.shortcuts import render, redirect
 from joltem.models import User, Project, Task, TaskBranch
 
 
-def new_task(request, project_name):
+def new_task(request, project_name, parent_task_id):
     project = Project.objects.get(name=project_name)
+    context = {
+        'project': project
+    }
+    if parent_task_id is not None:
+        parent = Task.objects.get(id=parent_task_id)
+        context['parent'] = parent
     # Create a task
     if request.POST and request.POST.get('action') == 'create_task':
         title = request.POST.get('title')
@@ -11,20 +17,25 @@ def new_task(request, project_name):
         if title is not None:
             created_task = Task(
                 project=project,
+                parent=parent,
                 title=title,
                 description=description
             )
             created_task.save()
+            if parent is not None:
+                return redirect('project:task:task', project_name=project.name, task_id=parent_task_id)
             return redirect('project:project', project_name=project.name)
-    return render(request, 'task/new_task.html')
+    return render(request, 'task/new_task.html', context)
 
 
 def task(request, project_name, task_id):
     project = Project.objects.get(name=project_name)
     task = Task.objects.get(id=task_id)
+    sub_tasks = task.task_set.all()
     context = {
         'project': project,
-        'task': task
+        'task': task,
+        'sub_tasks': sub_tasks
     }
     return render(request, 'task/task.html', context)
 

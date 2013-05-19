@@ -1,11 +1,14 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
     <h4>New Task</h4>
+    {% if parent %}
+        <h5 class="muted">for <a href="{% url 'project:task:task' project.name parent.id %}">{{ parent.title }}</a></h5>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
         <p>
             <input class="span8" type="text" name="title" placeholder="Task title." /><br/>
-            <textarea class="span8" rows=3 name="description" placeholder="Task description."></textarea><br/>
+            <textarea class="span8" rows=5 name="description" placeholder="Task description."></textarea><br/>
             <button class="btn btn-success" name="action" value="create_task">Create</button>
         </p>
         <hr/>

@@ -3,10 +3,19 @@
 {% block content %}
     <h3>{{ task.title }}</h3>
     <p>{{ task.description }}</p>
-    <h4>Task Branches</h4>
-    {% for task_branch in task.taskbranch_set.all %}
-        <dl class="dl-horizontal">
-            <dt><a href="{% url 'project:task:task_branch' project.name task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
-        </dl>
-    {% endfor %}
+    <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name task.id %}">Create Task</a></p>
+    {% if sub_tasks %}
+        <h4>Tasks</h4>
+        {% for sub_task in sub_tasks %}
+            <p class="offset1"><a href="{% url 'project:task:task' project.name sub_task.id %}">{{ sub_task.title }}</a></p>
+        {% endfor %}
+    {% endif %}
+    {% if task.taskbranch_set.all %}
+        <h4>Task Branches</h4>
+        {% for task_branch in task.taskbranch_set.all %}
+            <dl class="dl-horizontal">
+                <dt><a href="{% url 'project:task:task_branch' project.name task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
+            </dl>
+        {% endfor %}
+    {% endif %}
 {% endblock %}
