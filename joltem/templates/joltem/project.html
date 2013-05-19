@@ -45,11 +45,7 @@
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        <p>
-            <input class="span8" type="text" name="title" placeholder="Task title." /><br/>
-            <textarea class="span8" rows=3 name="description" placeholder="Task description."></textarea><br/>
-            <button class="btn btn-success" name="action" value="create_task">Create</button>
-        </p>
+        <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name %}">Create Task</a></p>
         <hr/>
         {% for task in project.task_set.all %}
             <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_task" value="{{ task.id }}">Remove</button>

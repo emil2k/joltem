@@ -12,6 +12,8 @@ class Project(models.Model):
         return self.name
 
 
+# TODO move to task app Task and TaskBranch
+
 class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)

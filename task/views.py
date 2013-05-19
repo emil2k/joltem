@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from joltem.models import User, Project, Task, TaskBranch
 
 
@@ -15,8 +15,8 @@ def new_task(request, project_name):
                 description=description
             )
             created_task.save()
-            # TODO redirect to projects page
-    return render(request, 'joltem/new_task.html')
+            return redirect('project:project', project_name=project.name)
+    return render(request, 'task/new_task.html')
 
 
 def task(request, project_name, task_id):
@@ -26,7 +26,7 @@ def task(request, project_name, task_id):
         'project': project,
         'task': task
     }
-    return render(request, 'joltem/task.html', context)
+    return render(request, 'task/task.html', context)
 
 
 def task_branch(request, project_name, task_id, task_branch_id):
@@ -61,4 +61,4 @@ def task_branch(request, project_name, task_id, task_branch_id):
             permissions.update_permissions()
 
     context['task_branch'] = task_branch
-    return render(request, 'joltem/task_branch.html', context)
+    return render(request, 'task/task_branch.html', context)
