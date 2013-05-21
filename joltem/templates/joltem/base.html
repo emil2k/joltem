@@ -1,7 +1,7 @@
 {% load static from staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>{% block title %}Joltem{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,38 +10,41 @@
 
     <link href="{% static 'joltem/css/bootstrap.css' %}" rel="stylesheet" media="screen">
     <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
+        body {
+            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+        }
     </style>
+</head>
 
-  </head>
+<body>
 
-  <body>
-
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
         <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="{% url 'home' %}"><strong><i>Joltem</i></strong></a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li><a href="{% url 'keys' %}">Keys</a></li>
-              <li><a href="#">2</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="brand" href="{% url 'home' %}"><strong><i>Joltem</i></strong></a>
+            <div class="nav-collapse collapse">
+                <ul class="nav">
+                    <li><a href="{% url 'keys' %}">Keys</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>
+                    {% else %}
+                        <li><a href="{% url 'sign_in' %}">Sign in</a></li>
+                    {% endif %}
+                </ul>
+            </div><!--/.nav-collapse -->
         </div>
-      </div>
     </div>
+</div>
 
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div> <!-- /container -->
-    <script src="{% static 'joltem/js/jquery.js' %}"></script>
-    <script src="{% static 'joltem/js/bootstrap.js' %}"></script>
-  </body>
+<div class="container">
+    {% block content %}{% endblock %}
+</div> <!-- /container -->
+<script src="{% static 'joltem/js/jquery.js' %}"></script>
+<script src="{% static 'joltem/js/bootstrap.js' %}"></script>
+</body>
 </html>
