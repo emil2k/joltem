@@ -19,7 +19,11 @@ def sign_in(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return redirect('home')
+                next = request.GET.get('next')
+                if next is not None:
+                    return redirect(next)
+                else:
+                    return redirect('home')
             else:
                 context['error'] = "This account is disabled."
         else:

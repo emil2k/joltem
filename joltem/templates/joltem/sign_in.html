@@ -1,8 +1,8 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
     <h4>Sign In</h4>
-    {% if form.errors %}
-        <p class="alert alert-error">Your username and password didn't match. Please try again.</p>
+    {% if error %}
+        <p class="alert alert-error">{{ error }}</p>
     {% endif %}
 
     <form method="post">
