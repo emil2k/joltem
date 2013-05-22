@@ -34,4 +34,4 @@ def project(request, project_name):
             removed_task = Task.objects.get(id=removed_task_id)
             removed_task.delete()
             context['removed_task'] = removed_task
-    return render(request, 'joltem/project.html', context)
+    return render(request, 'project/project.html', context)
