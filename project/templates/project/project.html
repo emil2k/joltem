@@ -30,7 +30,7 @@
         {% endfor %}
     </form>
     <hr/>
-    <h4>Tasks</h4>
+    <h4><a href="{% url 'project:tasks' project.name %}">Tasks</a></h4>
     {% if created_task %}
         <p class="alert alert-success">
             <button type="button" class="close" data-dismiss="alert">&times;</button>

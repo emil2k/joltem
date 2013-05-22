@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from joltem.models import Project, Task  # TODO should these models be moved into this app
 from git.models import Repository
 
@@ -35,3 +35,11 @@ def project(request, project_name):
             removed_task.delete()
             context['removed_task'] = removed_task
     return render(request, 'project/project.html', context)
+
+
+def tasks(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    context = {
+        'project': project
+    }
+    return render(request, 'project/tasks.html', context)

@@ -10,6 +10,8 @@ def new_task(request, project_name, parent_task_id):
     if parent_task_id is not None:
         parent = Task.objects.get(id=parent_task_id)
         context['parent'] = parent
+    else:
+        parent = None
     # Create a task
     if request.POST and request.POST.get('action') == 'create_task':
         title = request.POST.get('title')
