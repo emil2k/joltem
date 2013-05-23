@@ -9,53 +9,32 @@
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>
     </div>
-    <hr/>
-    <h4><a href="#">Bob</a></h4>
-    <div class="row">
-        <div class="span2">
-            <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
-            <p><b>6K</b> impact</p>
-            <p><b>451</b> tasks</p>
-        </div>
-        <div class="span8">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse eu magna in tellus euismod pellentesque quis a ante. Donec sed velit vel nunc dapibus consectetur. Nam orci mauris, blandit et porttitor sed, sollicitudin eu justo. Donec nisi metus, vehicula quis lobortis id, blandit quis sem. Suspendisse at dapibus massa. Nulla malesuada tempus justo in ornare. Nullam velit eros, hendrerit eget fringilla a, consectetur quis ante. Cras non arcu felis. Donec vitae erat neque, in fermentum lacus. Sed eleifend, quam ac ultrices ullamcorper, sem velit interdum odio, id lobortis tortor mauris at neque. Ut dictum aliquet felis, eu semper nunc faucibus eu. Nullam ut velit placerat ligula vehicula condimentum. Donec molestie orci nec urna adipiscing interdum feugiat mauris varius. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse potenti. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;</p>
-            <pre>from django.http import Http404
 
-def my_view(request):
-    try:
-        my_object = MyModel.objects.get(pk=1)
-except MyModel.DoesNotExist:
-    raise Http404</pre>
-            <p>Nam scelerisque, dui ac eleifend condimentum, odio ipsum cursus neque, at tristique risus quam eget justo. Fusce vestibulum pharetra enim luctus ultrices. Vivamus feugiat placerat urna, et iaculis augue blandit sed. Fusce nulla sem, sollicitudin ac imperdiet nec, faucibus a ligula. Suspendisse vel massa vitae lorem tincidunt ornare et nec ligula. Cras vitae sem at est blandit sagittis non non mauris. Sed non sem nunc, eu fermentum nisi. Aliquam erat volutpat.</p>
-            <h4>Tasks</h4>
-            <h5><a href="#">Patch OpenSSH</a></h5>
-            <h5><a href="#">Python Wrappers</a></h5>
-        </div>
-        <div class="span2 text-center">
-            <h2 class="text-success">3</h2>
-            <div class="btn-group btn-group-vertical">
-                <button class="btn"><i class="icon-ok"></i></button>
-                <button class="btn"><i class="icon-remove"></i></button>
+    {% for solution in task.solution_set.all %}
+        <hr/>
+        <a href="{% url 'project:solution:solution' project.name solution.id %}" class="muted pull-right">{{ solution.time_posted|timesince }} ago.</a>
+        <h4>
+            <a href="#">{{ solution.user.first_name }}</a>
+        </h4>
+        <div class="row">
+            <div class="span2">
+                <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
+                <p><b>6K</b> impact</p>
+                <p><b>451</b> tasks</p>
+            </div>
+            <div class="span8">
+                {{ solution.description|markdown:"tables,fenced_code" }}
+                <h4>Tasks</h4>
+                <h5><a href="#">Patch OpenSSH</a></h5>
+                <h5><a href="#">Python Wrappers</a></h5>
+            </div>
+            <div class="span2 text-center">
+                <h2 class="text-success">3</h2>
+                <div class="btn-group btn-group-vertical">
+                    <button class="btn"><i class="icon-ok"></i></button>
+                    <button class="btn"><i class="icon-remove"></i></button>
+                </div>
             </div>
         </div>
-    </div>
-
-
-
-
-
-    {% if sub_tasks %}
-        <h4>Tasks</h4>
-        {% for sub_task in sub_tasks %}
-            <p><a href="{% url 'project:task:task' project.name sub_task.id %}">{{ sub_task.title }}</a></p>
-        {% endfor %}
-    {% endif %}
-    {% if task.taskbranch_set.all %}
-        <h4>Task Branches</h4>
-        {% for task_branch in task.taskbranch_set.all %}
-            <dl class="dl-horizontal">
-                <dt><a href="{% url 'project:task:task_branch' project.name task.id task_branch.id %}">{{ task_branch.id }}</a></dt>
-            </dl>
-        {% endfor %}
-    {% endif %}
+    {% endfor %}
 {% endblock %}

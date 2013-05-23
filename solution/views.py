@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from project.models import Project
 from task.models import Task
 from solution.models import Solution
-
+from datetime import datetime
 
 def new_solution(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)

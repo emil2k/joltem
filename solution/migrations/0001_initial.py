@@ -12,6 +12,8 @@ class Migration(SchemaMigration):
         db.create_table(u'solution_solution', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('description', self.gf('django.db.models.fields.TextField')()),
+            ('time_posted', self.gf('django.db.models.fields.DateTimeField')()),
+            ('time_edited', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
         ))
@@ -72,6 +74,8 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
+            'time_edited': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'task.task': {
