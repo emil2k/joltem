@@ -1,10 +1,11 @@
 {% extends 'joltem/base.html' %}
 {% load markup %}
 {% block content %}
-    <h3>Solution for {{ solution.task.title }}</h3>
+    <h3>Solution by {{ solution.user.first_name }}</h3>
     <div class="row">
         <p class="span2"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
         <div class="span8">
+            <p class="muted">Task : <a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a></p>
             {{ solution.description|markdown:"tables,fenced_code"}}
         </div>
     </div>
