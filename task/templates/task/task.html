@@ -4,7 +4,7 @@
 {% block content %}
     <h3>{{ task.title }}</h3>
     <div class="row">
-        <p class="span2"><a class="btn btn-success" href="#">Offer Solution</a> </p>
+        <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Offer Solution</a> </p>
         <div class="span8">
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>

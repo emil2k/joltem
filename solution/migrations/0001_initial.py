@@ -11,25 +11,16 @@ class Migration(SchemaMigration):
         # Adding model 'Solution'
         db.create_table(u'solution_solution', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('description', self.gf('django.db.models.fields.TextField')()),
             ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
         ))
         db.send_create_signal(u'solution', ['Solution'])
-
-        # Adding M2M table for field assignees on 'Solution'
-        db.create_table(u'solution_solution_assignees', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('solution', models.ForeignKey(orm[u'solution.solution'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
-        ))
-        db.create_unique(u'solution_solution_assignees', ['solution_id', 'user_id'])
 
 
     def backwards(self, orm):
         # Deleting model 'Solution'
         db.delete_table(u'solution_solution')
-
-        # Removing M2M table for field assignees on 'Solution'
-        db.delete_table('solution_solution_assignees')
 
 
     models = {
@@ -78,9 +69,10 @@ class Migration(SchemaMigration):
         },
         u'solution.solution': {
             'Meta': {'object_name': 'Solution'},
-            'assignees': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'}),
+            'description': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"})
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'task.task': {
             'Meta': {'object_name': 'Task'},

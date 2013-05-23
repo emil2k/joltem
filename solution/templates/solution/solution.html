@@ -1,4 +1,6 @@
 {% extends 'joltem/base.html' %}
+{% load markup %}
 {% block content %}
-SOLUTION
+    <h3>Solution for {{ project.name }}</h3>
+    <p>{{ solution.description|markdown:"tables,fenced_code"}}</p>
 {% endblock %}
