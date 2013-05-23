@@ -3,12 +3,16 @@
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block content %}
     <h3>{{ task.title }}</h3>
+    <ul class="breadcrumb">
+        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
+        {% if task.parent %}
+            <li><a href="{% url 'project:solution:solution' project.name task.parent_id %}">{{ task.parent.task.title }}</a> <span class="divider">/</span></li>
+        {% endif %}
+        <li class="active">{{ task.title }}</li>
+    </ul>
     <div class="row">
         <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Offer Solution</a> </p>
         <div class="span8">
-            {% if task.parent %}
-                <p class="muted">Parent : <a href="{% url 'project:solution:solution' project.name task.parent_id %}">{{ task.parent.task.title }}</a></p>
-            {% endif %}
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>
     </div>
@@ -16,9 +20,7 @@
     {% for solution in task.solution_set.all %}
         <hr/>
         <a href="{% url 'project:solution:solution' project.name solution.id %}" class="muted pull-right">{{ solution.time_posted|timesince }} ago.</a>
-        <h4>
-            <a href="#">{{ solution.user.first_name }}</a>
-        </h4>
+        <h4><a href="#">{{ solution.user.first_name }}</a></h4>
         <div class="row">
             <div class="span2">
                 <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>

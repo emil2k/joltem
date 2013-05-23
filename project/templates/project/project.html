@@ -52,7 +52,7 @@
             <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_task" value="{{ task.id }}">Remove</button>
             <div class="offset1">
                 <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br>
-                {{ task.description|markdown }}
+                {{ task.description|markdown:"tables,fenced_code" }}
             </div>
         {% endfor %}
     </form>

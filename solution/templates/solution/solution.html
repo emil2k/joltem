@@ -1,14 +1,29 @@
 {% extends 'joltem/base.html' %}
 {% load markup %}
 {% block content %}
-    <h3>Solution by {{ solution.user.first_name }}</h3>
+    <h3>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span> </h3>
+    <ul class="breadcrumb">
+        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
+        <li><a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a> <span class="divider">/</span></li>
+        <li class="active">Solution by {{ solution.user.first_name }}</li>
+    </ul>
+    <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
+    <h4><a href="#">{{ solution.user.first_name }}</a></h4>
     <div class="row">
-        <p class="span2"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+        <div class="span2">
+            <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
+            <p><b>6K</b> impact</p>
+            <p><b>451</b> tasks</p>
+        </div>
         <div class="span8">
-            <p class="muted">Task : <a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a></p>
             {{ solution.description|markdown:"tables,fenced_code"}}
         </div>
     </div>
     <h4>Tasks</h4>
-    {% include 'solution/solution_tasks.html' %}
+    <div class="row">
+        <p class="span2"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+        <div class="span8">
+            {% include 'solution/solution_tasks.html' %}
+        </div>
+    </div>
 {% endblock %}
