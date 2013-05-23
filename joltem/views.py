@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout as auth_logout
-from joltem.models import Project
+from project.models import Project
 
 
 def home(request):

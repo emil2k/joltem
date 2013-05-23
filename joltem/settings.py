@@ -124,12 +124,15 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'django.contrib.markup',
     # Database migrations
     'south',
+    # Project specific
     'joltem',
+    'git',
     'project',
     'task',
-    'git',
+    'solution',
 )
 
 

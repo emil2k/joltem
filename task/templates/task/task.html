@@ -1,10 +1,13 @@
 {% extends 'joltem/base.html' %}
+{% load markup %}
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block content %}
     <h3>{{ task.title }}</h3>
     <div class="row">
         <p class="span2"><a class="btn btn-success" href="#">Offer Solution</a> </p>
-        <p class="span8">{{ task.description }}</p>
+        <div class="span8">
+            {{ task.description|markdown:"tables,fenced_code" }}
+        </div>
     </div>
     <hr/>
     <h4><a href="#">Bob</a></h4>
@@ -31,8 +34,8 @@ except MyModel.DoesNotExist:
         <div class="span2 text-center">
             <h2 class="text-success">3</h2>
             <div class="btn-group btn-group-vertical">
-                <button class="btn"><i class="icon-plus"></i></button>
-                <button class="btn"><i class="icon-minus"></i></button>
+                <button class="btn"><i class="icon-ok"></i></button>
+                <button class="btn"><i class="icon-remove"></i></button>
             </div>
         </div>
     </div>

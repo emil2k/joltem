@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from joltem.models import Project, Task  # TODO should these models be moved into this app
+from project.models import Project
+from task.models import Task
 from git.models import Repository
 
 

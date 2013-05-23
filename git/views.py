@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from joltem.models import Project
+from project.models import Project
 from git.models import Repository, Authentication
 
 

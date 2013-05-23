@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect
-from joltem.models import User, Project, Task, TaskBranch
+from django.contrib.auth.models import User
+from project.models import Project
+from task.models import Task
+from solution.models import Solution
 
 
 def new_task(request, project_name, parent_task_id):
@@ -40,38 +43,3 @@ def task(request, project_name, task_id):
         'sub_tasks': sub_tasks
     }
     return render(request, 'task/task.html', context)
-
-
-def task_branch(request, project_name, task_id, task_branch_id):
-    task_branch = TaskBranch.objects.get(id=task_branch_id)
-    context = {}
-    if request.POST:
-        modified = False;
-        if request.POST.get('action') == "assign":
-            try:
-                assignee = User.objects.get(username=request.POST.get('assignee'))
-            except User.DoesNotExist:
-                # do nothing
-                print "Trying to assign user that does not exist."
-            else:
-                task_branch.assignees.add(assignee)
-                task_branch.save()
-                context['assigned'] = assignee
-                modified = True
-        if request.POST.get('remove') is not None:
-            try:
-                remove = User.objects.get(username=request.POST.get('remove'))
-            except User.DoesNotExist:
-                # do nothing
-                print "Trying to delete user that does not exist."
-            else:
-                task_branch.assignees.remove(remove)
-                task_branch.save()
-                context['removed'] = remove
-                modified = True
-        if modified:
-            from git.gitolite import permissions
-            permissions.update_permissions()
-
-    context['task_branch'] = task_branch
-    return render(request, 'task/task_branch.html', context)

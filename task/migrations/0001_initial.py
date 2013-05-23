@@ -8,48 +8,20 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Repository'
-        db.create_table(u'git_repository', (
+        # Adding model 'Task'
+        db.create_table(u'task_task', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'], null=True, blank=True)),
             ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['project.Project'])),
         ))
-        db.send_create_signal(u'git', ['Repository'])
-
-        # Adding unique constraint on 'Repository', fields ['name', 'project']
-        db.create_unique(u'git_repository', ['name', 'project_id'])
-
-        # Adding model 'Branch'
-        db.create_table(u'git_branch', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('reference', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
-            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'], null=True, blank=True)),
-        ))
-        db.send_create_signal(u'git', ['Branch'])
-
-        # Adding model 'Authentication'
-        db.create_table(u'git_authentication', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('key', self.gf('django.db.models.fields.TextField')()),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal(u'git', ['Authentication'])
+        db.send_create_signal(u'task', ['Task'])
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Repository', fields ['name', 'project']
-        db.delete_unique(u'git_repository', ['name', 'project_id'])
-
-        # Deleting model 'Repository'
-        db.delete_table(u'git_repository')
-
-        # Deleting model 'Branch'
-        db.delete_table(u'git_branch')
-
-        # Deleting model 'Authentication'
-        db.delete_table(u'git_authentication')
+        # Deleting model 'Task'
+        db.delete_table(u'task_task')
 
 
     models = {
@@ -89,38 +61,12 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'git.authentication': {
-            'Meta': {'object_name': 'Authentication'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'key': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
-        },
-        u'git.branch': {
-            'Meta': {'object_name': 'Branch'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'reference': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
-            'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']", 'null': 'True', 'blank': 'True'})
-        },
-        u'git.repository': {
-            'Meta': {'unique_together': "(('name', 'project'),)", 'object_name': 'Repository'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"})
-        },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
-        },
-        u'solution.solution': {
-            'Meta': {'object_name': 'Solution'},
-            'assignees': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"})
         },
         u'task.task': {
             'Meta': {'object_name': 'Task'},
@@ -132,4 +78,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['git']
+    complete_apps = ['task']

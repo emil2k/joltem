@@ -1,6 +1,6 @@
 from django.contrib import admin
-from joltem import models
+import project, task, solution
 
-admin.site.register(models.Project)
-admin.site.register(models.Task)
-admin.site.register(models.TaskBranch)
+admin.site.register(project.models.Project)
+admin.site.register(task.models.Task)
+admin.site.register(solution.models.Solution)
