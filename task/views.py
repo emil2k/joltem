@@ -1,20 +1,20 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from project.models import Project
 from task.models import Task
 from solution.models import Solution
 
 
-def new_task(request, project_name, parent_task_id):
-    project = Project.objects.get(name=project_name)
+def new_task(request, project_name, parent_solution_id):
+    project = get_object_or_404(Project, name=project_name)
     context = {
         'project': project
     }
-    if parent_task_id is not None:
-        parent = Task.objects.get(id=parent_task_id)
-        context['parent'] = parent
+    if parent_solution_id is not None:
+        parent_solution = Solution.objects.get(id=parent_solution_id)
+        context['parent_solution'] = parent_solution
     else:
-        parent = None
+        parent_solution = None
     # Create a task
     if request.POST and request.POST.get('action') == 'create_task':
         title = request.POST.get('title')
@@ -22,13 +22,13 @@ def new_task(request, project_name, parent_task_id):
         if title is not None:
             created_task = Task(
                 project=project,
-                parent=parent,
+                parent=parent_solution,
                 title=title,
                 description=description
             )
             created_task.save()
-            if parent is not None:
-                return redirect('project:task:task', project_name=project.name, task_id=parent_task_id)
+            if parent_solution is not None:
+                return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution_id)
             return redirect('project:project', project_name=project.name)
     return render(request, 'task/new_task.html', context)
 
@@ -36,10 +36,8 @@ def new_task(request, project_name, parent_task_id):
 def task(request, project_name, task_id):
     project = Project.objects.get(name=project_name)
     task = Task.objects.get(id=task_id)
-    sub_tasks = task.task_set.all()
     context = {
         'project': project,
-        'task': task,
-        'sub_tasks': sub_tasks
+        'task': task
     }
     return render(request, 'task/task.html', context)

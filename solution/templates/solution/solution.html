@@ -2,5 +2,12 @@
 {% load markup %}
 {% block content %}
     <h3>Solution for {{ solution.task.title }}</h3>
-    <p>{{ solution.description|markdown:"tables,fenced_code"}}</p>
+    <div class="row">
+        <p class="span2"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+        <div class="span8">
+            {{ solution.description|markdown:"tables,fenced_code"}}
+        </div>
+    </div>
+    <h4>Tasks</h4>
+    {% include 'solution/solution_tasks.html' %}
 {% endblock %}

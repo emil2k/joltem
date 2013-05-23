@@ -6,6 +6,9 @@
     <div class="row">
         <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Offer Solution</a> </p>
         <div class="span8">
+            {% if task.parent %}
+                <p class="muted">Parent : <a href="{% url 'project:solution:solution' project.name task.parent_id %}">{{ task.parent.task.title }}</a></p>
+            {% endif %}
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>
     </div>
@@ -25,8 +28,7 @@
             <div class="span8">
                 {{ solution.description|markdown:"tables,fenced_code" }}
                 <h4>Tasks</h4>
-                <h5><a href="#">Patch OpenSSH</a></h5>
-                <h5><a href="#">Python Wrappers</a></h5>
+                {% include 'solution/solution_tasks.html' %}
             </div>
             <div class="span2 text-center">
                 <h2 class="text-success">3</h2>

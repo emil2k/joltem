@@ -4,6 +4,7 @@ from task.models import Task
 
 from datetime import datetime
 
+
 class Solution(models.Model):
     """
     A single task can be worked on by multiple groups at the same time, in different branches for variation.
