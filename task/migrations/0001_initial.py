@@ -72,7 +72,12 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Solution'},
             'description': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completion_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
+            'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_completion_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_edited': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})

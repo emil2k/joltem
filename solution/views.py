@@ -27,9 +27,18 @@ def new_solution(request, project_name, task_id):
 def solution(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
+
+    if request.POST \
+        and request.POST.get('mark_complete') is not None \
+            and solution.is_owner(request.user):
+        from datetime import datetime
+        solution.is_completed = True
+        solution.time_completed = datetime.now()
+        solution.save()
+
     context = {
         'project': project,
         'solution': solution,
-        'is_owner': solution.user_id == request.user.id
+        'is_owner': solution.is_owner(request.user)
     }
     return render(request, 'solution/solution.html', context)

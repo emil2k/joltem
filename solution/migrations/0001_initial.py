@@ -12,8 +12,13 @@ class Migration(SchemaMigration):
         db.create_table(u'solution_solution', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('description', self.gf('django.db.models.fields.TextField')()),
-            ('time_posted', self.gf('django.db.models.fields.DateTimeField')()),
+            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_completed', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_completion_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('time_posted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('time_edited', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('time_completed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('time_completion_accepted', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
         ))
@@ -73,16 +78,21 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Solution'},
             'description': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completion_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
+            'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_completion_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_edited': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'task.task': {
             'Meta': {'object_name': 'Task'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']", 'null': 'True', 'blank': 'True'}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'tasks'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }

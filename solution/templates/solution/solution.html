@@ -20,7 +20,14 @@
         </div>
         <div class="span2">
             {% if is_owner %}
-                <p><a class="btn" href="#">Mark Complete</a></p>
+                {% if solution.is_completed %}
+                    <p class="text-right text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <p><button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete</button></p>
+                    </form>
+                {% endif %}
             {% endif %}
         </div>
     </div>
