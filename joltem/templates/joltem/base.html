@@ -29,6 +29,7 @@
             <a class="brand" href="{% url 'home' %}"><strong><i>Joltem</i></strong></a>
             <div class="nav-collapse collapse">
                 <ul class="nav">
+                    <li><a href="{% url 'solutions' %}">Solutions</a></li>
                     <li><a href="{% url 'keys' %}">Keys</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>

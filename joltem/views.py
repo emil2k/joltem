@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from project.models import Project
+from solution.models import Solution
 
 
 def home(request):
@@ -9,6 +10,13 @@ def home(request):
     }
     return render(request, 'joltem/home.html', context)
 
+
+def solutions(request):
+    solutions = Solution.objects.filter(user_id=request.user.id)
+    context = {
+        'solutions': solutions
+    }
+    return render(request, 'joltem/solutions.html', context)
 
 def sign_in(request):
     context = {}
