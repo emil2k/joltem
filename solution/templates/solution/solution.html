@@ -18,10 +18,19 @@
         <div class="span8">
             {{ solution.description|markdown:"tables,fenced_code"}}
         </div>
+        <div class="span2">
+            {% if is_owner %}
+                <p><a class="btn" href="#">Mark Complete</a></p>
+            {% endif %}
+        </div>
     </div>
     <h4>Tasks</h4>
     <div class="row">
-        <p class="span2"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+        <div class="span2">
+            {% if is_owner %}
+                <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+            {% endif %}
+        </div>
         <div class="span8">
             {% include 'solution/solution_tasks.html' %}
         </div>

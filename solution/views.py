@@ -29,6 +29,7 @@ def solution(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     context = {
         'project': project,
-        'solution': solution
+        'solution': solution,
+        'is_owner': solution.user_id == request.user.id
     }
     return render(request, 'solution/solution.html', context)
