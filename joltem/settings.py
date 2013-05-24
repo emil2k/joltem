@@ -13,6 +13,8 @@ LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
 
+AUTH_PROFILE_MODULE = 'joltem.Profile'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

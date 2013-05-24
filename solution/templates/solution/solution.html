@@ -18,17 +18,40 @@
         <div class="span8">
             {{ solution.description|markdown:"tables,fenced_code"}}
         </div>
-        <div class="span2">
-            {% if is_owner %}
+        <div class="span2 text-center">
                 {% if solution.is_completed %}
-                    <p class="text-right text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
+                    {% if not is_owner %}
+                        <form method="post">
+                            {% csrf_token %}
+                            {% if vote %}
+                                <h2 class="text-success">{{ solution.impact }}</h2>
+                            {% endif %}
+                            <div class="btn-group btn-group-vertical">
+                                {% if vote.vote == 1 %}
+                                    <button class="btn btn-success" type="submit" name="vote" value="good"><i class="icon-ok icon-white"></i></button>
+                                {% else %}
+                                    <button class="btn" type="submit" name="vote" value="good"><i class="icon-ok"></i></button>
+                                {% endif %}
+                                {% if vote.vote == -1 %}
+                                    <button class="btn btn-danger" type="submit" name="vote" value="bad"><i class="icon-remove icon-white"></i></button>
+                                {% else %}
+                                    <button class="btn" type="submit" name="vote" value="bad"><i class="icon-remove"></i></button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                    <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
                 {% else %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <p><button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete</button></p>
-                    </form>
+                    {% if is_owner %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <p>
+                                <button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete
+                                </button>
+                            </p>
+                        </form>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
         </div>
     </div>
     <h4>Tasks</h4>

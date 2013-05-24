@@ -28,8 +28,34 @@ class Solution(models.Model):
     def __unicode__(self):
         return str(self.id)
 
+    @property
+    def impact(self):
+        weighted_sum = 0
+        impact_sum = 0
+        for vote in self.completionvote_set.all():
+            weighted_sum += vote.voter_impact * vote.vote
+            impact_sum += vote.voter_impact
+        return (weighted_sum/impact_sum) * 10
+
     def is_owner(self, user):
         """
         Returns whether passed user is the person who posted this solution
         """
         return self.user_id == user.id
+
+
+class CompletionVote(models.Model):
+    """
+    Votes cast when solution is marked completed, code is reviewed
+    """
+    voter_impact = models.BigIntegerField()  # at time of vote
+    vote = models.SmallIntegerField()  # 1 or -1
+    # Relations
+    solution = models.ForeignKey(Solution)
+    voter = models.ForeignKey(User)
+
+    class Meta:
+        unique_together = ("solution","voter")
+
+    def __unicode__(self):
+        return str(self.vote)

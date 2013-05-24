@@ -24,10 +24,29 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'solution', ['Solution'])
 
+        # Adding model 'CompletionVote'
+        db.create_table(u'solution_completionvote', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('vote', self.gf('django.db.models.fields.SmallIntegerField')()),
+            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'])),
+            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+        ))
+        db.send_create_signal(u'solution', ['CompletionVote'])
+
+        # Adding unique constraint on 'CompletionVote', fields ['solution', 'voter']
+        db.create_unique(u'solution_completionvote', ['solution_id', 'voter_id'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'CompletionVote', fields ['solution', 'voter']
+        db.delete_unique(u'solution_completionvote', ['solution_id', 'voter_id'])
+
         # Deleting model 'Solution'
         db.delete_table(u'solution_solution')
+
+        # Deleting model 'CompletionVote'
+        db.delete_table(u'solution_completionvote')
 
 
     models = {
@@ -73,6 +92,14 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
+        },
+        u'solution.completionvote': {
+            'Meta': {'unique_together': "(('solution', 'voter'),)", 'object_name': 'CompletionVote'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
+            'vote': ('django.db.models.fields.SmallIntegerField', [], {}),
+            'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
         },
         u'solution.solution': {
             'Meta': {'object_name': 'Solution'},

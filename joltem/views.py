@@ -13,8 +13,10 @@ def home(request):
 
 def solutions(request):
     solutions = Solution.objects.filter(user_id=request.user.id)
+    solutions_to_review = Solution.objects.filter(is_completed=True).exclude(user_id=request.user.id)
     context = {
-        'solutions': solutions
+        'solutions': solutions,
+        'solutions_to_review': solutions_to_review,
     }
     return render(request, 'joltem/solutions.html', context)
 
