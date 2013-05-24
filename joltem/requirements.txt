@@ -2,3 +2,4 @@ django>=1.5.0
 south
 mysql-python
 markdown>=2.1
+django-mathfilters

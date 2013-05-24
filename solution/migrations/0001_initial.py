@@ -29,6 +29,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
             ('vote', self.gf('django.db.models.fields.SmallIntegerField')()),
+            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'])),
             ('voter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
         ))
@@ -97,6 +98,7 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "(('solution', 'voter'),)", 'object_name': 'CompletionVote'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
+            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'vote': ('django.db.models.fields.SmallIntegerField', [], {}),
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})

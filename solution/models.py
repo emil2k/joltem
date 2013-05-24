@@ -35,7 +35,7 @@ class Solution(models.Model):
         for vote in self.completionvote_set.all():
             weighted_sum += vote.voter_impact * vote.vote
             impact_sum += vote.voter_impact
-        return (weighted_sum/impact_sum) * 10
+        return int(round(10 * weighted_sum/float(impact_sum)))
 
     def is_owner(self, user):
         """
@@ -50,6 +50,7 @@ class CompletionVote(models.Model):
     """
     voter_impact = models.BigIntegerField()  # at time of vote
     vote = models.SmallIntegerField()  # 1 or -1
+    time_voted = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)
     voter = models.ForeignKey(User)
