@@ -1,79 +1,89 @@
 {% extends 'joltem/base.html' %}
 {% load markup %}
 {% block content %}
-    <h3>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span> </h3>
+    <h3>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span></h3>
     <ul class="breadcrumb">
-        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
-        <li><a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a> <span class="divider">/</span></li>
+        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span>
+        </li>
+        <li><a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a> <span
+                class="divider">/</span></li>
         <li class="active">Solution by {{ solution.user.first_name }}</li>
     </ul>
     <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
     <h4><a href="#">{{ solution.user.first_name }}</a></h4>
     <div class="row">
         <div class="span2">
-            <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
+            <p><img class="img-rounded"
+                    src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100"/></p>
+
             <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
+
             <p><b>451</b> tasks</p>
         </div>
         <div class="span8">
-            {{ solution.description|markdown:"tables,fenced_code"}}
+            {{ solution.description|markdown:"tables,fenced_code" }}
         </div>
         <div class="span2 text-center">
-                {% if solution.is_completed %}
+            {% if solution.is_completed %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% if vote or is_owner %}
+                        {% if solution.impact > 0 %}
+                            <h2 class="text-success">{{ solution.impact }}</h2>
+                        {% elif solution.impact < 0 %}
+                            {% load mathfilters %}
+                            <h2 class="text-error">{{ solution.impact|abs }}</h2>
+                        {% else %}
+                            <h2 class="muted">0</h2>
+                        {% endif %}
+                    {% endif %}
                     {% if not is_owner %}
-                        <form method="post">
-                            {% csrf_token %}
-                            {% if vote or is_owner %}
-                                {% if solution.impact > 0 %}
-                                    <h2 class="text-success">{{ solution.impact }}</h2>
-                                {% elif solution.impact < 0 %}
-                                    {% load mathfilters %}
-                                    <h2 class="text-error">{{ solution.impact|abs }}</h2>
-                                {% else %}
-                                    <h2 class="muted">0</h2>
-                                {% endif %}
-                            {% endif %}
-                            <p>
-                                <div class="btn-group btn-group-vertical">
-                                    {% if vote.vote == 1 %}
-                                        <button class="btn btn-success" type="submit" name="vote" value="good"><i class="icon-ok icon-white"></i></button>
-                                    {% else %}
-                                        <button class="btn" type="submit" name="vote" value="good"><i class="icon-ok"></i></button>
-                                    {% endif %}
-                                    {% if vote.vote == -1 %}
-                                        <button class="btn btn-danger" type="submit" name="vote" value="bad"><i class="icon-remove icon-white"></i></button>
-                                    {% else %}
-                                        <button class="btn" type="submit" name="vote" value="bad"><i class="icon-remove"></i></button>
-                                    {% endif %}
-                                </div>
-                            </p>
-                            {% if vote or is_owner %}
-                                <p class="muted">{{ solution.completionvote_set.count }} votes</p>
-                            {% endif %}
-                        </form>
-                    {% endif %}
-                    <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
-                {% else %}
-                    {% if is_owner %}
-                        <form method="post">
-                            {% csrf_token %}
-                            <p>
-                                <button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete
+                        <p>
+                        <div class="btn-group btn-group-vertical">
+                            {% if vote.vote == 1 %}
+                                <button class="btn btn-success" type="submit" name="vote" value="good"><i
+                                        class="icon-ok icon-white"></i></button>
+                            {% else %}
+                                <button class="btn" type="submit" name="vote" value="good"><i class="icon-ok"></i>
                                 </button>
-                            </p>
-                        </form>
+                            {% endif %}
+                            {% if vote.vote == -1 %}
+                                <button class="btn btn-danger" type="submit" name="vote" value="bad"><i
+                                        class="icon-remove icon-white"></i></button>
+                            {% else %}
+                                <button class="btn" type="submit" name="vote" value="bad"><i class="icon-remove"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                        </p>
                     {% endif %}
+                    {% if vote or is_owner %}
+                        <p class="muted">{{ solution.completionvote_set.count }} votes</p>
+                    {% endif %}
+                </form>
+                <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
+            {% else %}
+                {% if is_owner %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <p>
+                            <button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete
+                            </button>
+                        </p>
+                    </form>
                 {% endif %}
+            {% endif %}
         </div>
     </div>
-    <h4>Tasks</h4>
     <div class="row">
         <div class="span2">
             {% if is_owner %}
-                <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create Task</a></p>
+                <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create
+                    Task</a></p>
             {% endif %}
         </div>
         <div class="span8">
+            <h4>Tasks</h4>
             {% include 'solution/solution_tasks.html' %}
         </div>
     </div>
