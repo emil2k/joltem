@@ -1,12 +1,16 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
-    <h3>Offer Solution</h3>
-    <h5 class="muted">for <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></h5>
+    <h3>Apply <span class="muted">for {{ task.title }}</span></h3>
+    <ul class="breadcrumb">
+        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
+        <li><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a> <span class="divider">/</span></li>
+        <li class="active">Apply</li>
+    </ul>
     <form method="post">
         {% csrf_token %}
         <p>
-            <textarea class="span8" rows=5 name="description" placeholder="Describe the solution you will implement."></textarea><br/>
-            <button class="btn btn-success" type="submit">Offer Solution</button>
+            <textarea class="span8" rows=5 name="description" placeholder="Briefly describe how you plan to solve the task."></textarea><br/>
+            <button class="btn btn-success" type="submit">Apply</button>
         </p>
         <hr/>
     </form>

@@ -23,6 +23,7 @@ def new_task(request, project_name, parent_solution_id):
             created_task = Task(
                 project=project,
                 parent=parent_solution,
+                owner=request.user,
                 title=title,
                 description=description
             )
@@ -36,8 +37,28 @@ def new_task(request, project_name, parent_solution_id):
 def task(request, project_name, task_id):
     project = Project.objects.get(name=project_name)
     task = Task.objects.get(id=task_id)
+
+    if request.POST:
+        accept = request.POST.get('accept')
+        cancel = request.POST.get('cancel')
+        if accept is not None:
+            from datetime import datetime
+            solution = task.solution_set.get(id=accept)
+            solution.is_accepted = True
+            solution.time_accepted = datetime.now()
+            solution.save()
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+        if cancel is not None:
+            from datetime import datetime
+            solution = task.solution_set.get(id=cancel)
+            solution.is_accepted = False
+            solution.time_accepted = None
+            solution.save()
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+
     context = {
         'project': project,
-        'task': task
+        'task': task,
+        'is_owner': task.is_owner(request.user),
     }
     return render(request, 'task/task.html', context)

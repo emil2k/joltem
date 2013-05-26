@@ -9,7 +9,10 @@ class Solution(models.Model):
     """
     A single task can be worked on by multiple groups at the same time, in different branches for variation.
     """
-    description = models.TextField()
+    # Users application to solve task
+    application = models.TextField()
+    # Description of solution for all involved
+    description = models.TextField(null=True, blank=True)
     # Whether solution was accepted by creator of task
     is_accepted = models.BooleanField(default=False)
     # Whether solution was marked completed by creator of task
@@ -18,7 +21,7 @@ class Solution(models.Model):
     is_completion_accepted = models.BooleanField(default=False)
     # NOTE : No parenthesis on datetime.now because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=datetime.now)
-    time_edited = models.DateTimeField(null=True, blank=True)
+    time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     time_completion_accepted = models.DateTimeField(null=True, blank=True)
     # Relations

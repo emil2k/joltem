@@ -11,7 +11,7 @@
         <li class="active">{{ task.title }}</li>
     </ul>
     <div class="row">
-        <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Offer Solution</a> </p>
+        <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a> </p>
         <div class="span8">
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>
@@ -19,18 +19,35 @@
 
     {% for solution in task.solution_set.all %}
         <hr/>
-        <a href="{% url 'project:solution:solution' project.name solution.id %}" class="muted pull-right">{{ solution.time_posted|timesince }} ago.</a>
+        <div class="pull-right">
+            {% if solution.is_accepted %}
+                <a href="{% url 'project:solution:solution' project.name solution.id %}" class="text-success">Accepted {{ solution.time_accepted|timesince }} ago.</a>
+            {% else %}
+                <a href="{% url 'project:solution:solution' project.name solution.id %}" class="muted">{{ solution.time_posted|timesince }} ago.</a>
+            {% endif %}
+        </div>
+
         <h4><a href="#">{{ solution.user.first_name }}</a></h4>
         <div class="row">
             <div class="span2">
                 <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
-                <p><b>6K</b> impact</p>
+                <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
                 <p><b>451</b> tasks</p>
             </div>
             <div class="span8">
-                {{ solution.description|markdown:"tables,fenced_code" }}
-                <h4>Tasks</h4>
-                {% include 'solution/solution_tasks.html' %}
+                {{ solution.application|markdown:"tables,fenced_code" }}
+            </div>
+            <div class="span2 text-right">
+                {% if is_owner %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if solution.is_accepted %}
+                            <p><button class="btn btn-danger btn-small" type="submit" name="cancel" value="{{ solution.id }}">Revoke</button></p>
+                        {% else %}
+                            <p><button class="btn" type="submit" name="accept" value="{{ solution.id }}">Accept</button></p>
+                        {% endif %}
+                    </form>
+                {% endif %}
             </div>
         </div>
     {% endfor %}

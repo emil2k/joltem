@@ -17,7 +17,7 @@ def new_solution(request, project_name, task_id):
             solution = Solution(
                 user=request.user,
                 task=task,
-                description=description
+                application=description
             )
             solution.save()
             return redirect('project:task:task', project_name=project.name, task_id=task.id)
