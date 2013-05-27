@@ -15,7 +15,18 @@ class Repository(models.Model):
 
     @property
     def path(self):
-        return "git/repositories/%s/%s" % (self.project.name.lower(), self.name)
+        """
+        Relative path to repository from the repositories folder, without ending .git
+        """
+        return "%s/%s" % (self.project.name.lower(), self.name)
+
+
+    @property
+    def path_in_project(self):
+        """
+        Relative path to repository from the project folder, with ending .git
+        """
+        return "git/repositories/%s.git" % self.path
 
     class Meta:
         unique_together = ("name","project")
@@ -26,12 +37,15 @@ class Repository(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk:
             from pygit2 import init_repository
-            init_repository(self.path, bare=True)
+            init_repository(self.path_in_project, bare=True)
+            # Give git group write permissions to repository
+            import subprocess
+            subprocess.call(['chmod', '-R', 'g+w', self.path_in_project])
         super(Repository, self).save(force_insert, force_update, using, update_fields)
 
     def delete(self, using=None):
         from shutil import rmtree
-        rmtree(self.path)
+        rmtree(self.path_in_project)
         super(Repository, self).delete(using)
 
 

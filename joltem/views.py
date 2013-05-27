@@ -20,6 +20,7 @@ def solutions(request):
     }
     return render(request, 'joltem/solutions.html', context)
 
+
 def sign_in(request):
     context = {}
     if request.POST:

@@ -33,16 +33,17 @@ def update_permissions():
         for repo in repos:
             # Repository permissions
             f.write("repo\t%s\n" % repo.path)
-            # Branch permissions
-            branches = repo.branch_set.filter()
-            for branch in branches:
-                assignees = branch.task_branch.assignees.all()
-                f.write("\t%s\t^refs/heads/task/%d/%d$\t=\t%s\n" % (
-                    'RW',
-                    branch.task_branch.task_id,
-                    branch.task_branch_id,
-                    "\t".join(assignee.username for assignee in assignees)
-                ))
+            f.write("\tRW\t=\t@all\n")
+            # # Branch permissions
+            # branches = repo.branch_set.filter()
+            # for branch in branches:
+            #     assignees = branch.task_branch.assignees.all()
+            #     f.write("\t%s\t^refs/heads/task/%d/%d$\t=\t%s\n" % (
+            #         'RW',
+            #         branch.task_branch.task_id,
+            #         branch.task_branch_id,
+            #         "\t".join(assignee.username for assignee in assignees)
+            #     ))
 
     print "\n*** Wrote configuration file to %s, is closed : %s.\n" % (gitolite_conf_file_path, f.closed)
     # Commit and push changes
