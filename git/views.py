@@ -9,13 +9,11 @@ def repository(request, project_name, repository_name):
 
     # # TODO attempt to get a list of commits from 'master'
     from pygit2 import Repository as GitRepository, GIT_SORT_TIME, Reference
-    from datetime import datetime
     repo = GitRepository(repository.path_in_project)
-    # repo = GitRepository("/Users/emil/Projects/android/ClasPics/.git")
     commits = []
-    for commit in repo.walk(repo.head.target.hex, GIT_SORT_TIME):
-        commits.append(commit)
-
+    if not repo.is_empty:
+        for commit in repo.walk(repo.head.target.hex, GIT_SORT_TIME):
+            commits.append(commit)
     context = {
         'repository': repository,
         'loaded': repo,

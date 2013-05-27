@@ -41,6 +41,9 @@ class Repository(models.Model):
             # Give git group write permissions to repository
             import subprocess
             subprocess.call(['chmod', '-R', 'g+w', self.path_in_project])
+            # TODO Run gitolite setup or find way to add update hook
+            # TODO update permissions somewhere
+            # TODO add custom update hook for adding commits to database
         super(Repository, self).save(force_insert, force_update, using, update_fields)
 
     def delete(self, using=None):

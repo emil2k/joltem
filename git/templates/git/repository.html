@@ -10,8 +10,12 @@
         <p>{{ ref }}</p>
     {% endfor %}
     <h3>Commits</h3>
-    {% for commit in commits %}
-        <p>{{ commit.message }} by <b>{{ commit.author.name }}</b></p>
-        <p class="muted">Committed at {{ commit.commit_time }} offset {{ commit.commit_time_offset }} minutes from UTC</p>
-    {% endfor %}
+    {% if commits %}
+        {% for commit in commits %}
+            <p>{{ commit.message }} by <b>{{ commit.author.name }}</b></p>
+            <p class="muted">Committed at {{ commit.commit_time }} offset {{ commit.commit_time_offset }} minutes from UTC</p>
+        {% endfor %}
+    {% else %}
+        <p class="muted">No commits yet.</p>
+    {% endif %}
 {% endblock %}
