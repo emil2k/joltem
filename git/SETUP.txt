@@ -20,9 +20,9 @@
     and and repositories folders.
 
     chgrp -Rv git repositories/ .gitolite/keydir/
-    chmod -Rv g+rw repositories/ .gitolite/keydir/
+    chmod -Rv g+rX repositories/ .gitolite/keydir/
 
--   Might need to add project directory to $PYTHONPATH otherwise might get import errors in scripts.
+-   Inside git users home folder edit the .gitolite.rc file, changing the UMASK variable to 0022
 
 FILE STRUCTURE EXAMPLE of git directory :
 
