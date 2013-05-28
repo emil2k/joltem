@@ -1,6 +1,9 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
-    <h3>{{ repository.path }}</h3>
+    <h3>{{ repository.full_name }}</h3>
+    {% if error %}
+        <div class="alert alert-error"><b>Git error : </b>{{ error }}</div>
+    {% endif %}
     <p>MAIN_DIR : {{ main_dir }}</p>
     <p>Loaded repo : {{ loaded.path }}</p>
     <p>Loaded repo, working dir : {{ loaded.workdir }}</p>

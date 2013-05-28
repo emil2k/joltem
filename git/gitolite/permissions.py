@@ -1,5 +1,6 @@
 import os
 from git.models import Repository
+from solution.models import Solution
 
 # Configurations for the gitolite admin repo
 
@@ -17,6 +18,7 @@ repo\tgitolite-admin
 
 """
 
+
 def update_permissions():
     """
     Update gitolite permissions
@@ -33,17 +35,15 @@ def update_permissions():
         for repo in repos:
             # Repository permissions
             f.write("repo\t%s\n" % repo.full_name)
-            f.write("\tRW\t=\t@all\n")
-            # # Branch permissions
-            # branches = repo.branch_set.filter()
-            # for branch in branches:
-            #     assignees = branch.task_branch.assignees.all()
-            #     f.write("\t%s\t^refs/heads/task/%d/%d$\t=\t%s\n" % (
-            #         'RW',
-            #         branch.task_branch.task_id,
-            #         branch.task_branch_id,
-            #         "\t".join(assignee.username for assignee in assignees)
-            #     ))
+            f.write("\tR\t=\t@all\n")
+            f.write("\tRW\t=\t%s\n" % "\t".join(user.username for user in repo.project.users.all()) )
+            # Personal branches
+            # http://gitolite.com/gitolite/special.html
+            f.write("\tRW\tu/USER/\t=\t@all\n")
+            # Solution branch permission
+            for task in repo.project.task_set.all():
+                for solution in task.solution_set.all():
+                    f.write("\tRW\ts/%d$\t=\t%s\n" % (solution.id, solution.user.username))
 
     print "\n*** Wrote configuration file to %s, is closed : %s.\n" % (gitolite_conf_file_path, f.closed)
     # Commit and push changes
