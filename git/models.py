@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from project.models import Project
 from solution.models import Solution
-
+from joltem.settings import MAIN_DIR
 
 class Repository(models.Model):
     """
@@ -14,41 +14,42 @@ class Repository(models.Model):
     project = models.ForeignKey(Project)
 
     @property
-    def path(self):
+    def full_name(self):
         """
-        Relative path to repository from the repositories folder, without ending .git
+        Full name of repository, i.e. joltem/web
         """
         return "%s/%s" % (self.project.name.lower(), self.name)
 
 
     @property
-    def path_in_project(self):
+    def absolute_path(self):
         """
-        Relative path to repository from the project folder, with ending .git
+        Absolute path to repository
         """
-        return "git/repositories/%s.git" % self.path
+        return "%sgit/repositories/%s.git" % (MAIN_DIR, self.full_name)
 
     class Meta:
         unique_together = ("name","project")
 
     def __unicode__(self):
-        return self.path
+        return self.full_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk:
             from pygit2 import init_repository
-            init_repository(self.path_in_project, bare=True)
+            init_repository(self.absolute_path, bare=True)
             # Give git group write permissions to repository
             import subprocess
-            subprocess.call(['chmod', '-R', 'g+w', self.path_in_project])
-            # TODO Run gitolite setup or find way to add update hook
+            subprocess.call(['chmod', '-R', 'g+rwX', self.absolute_path])
+            # Add symbolic link to gitolite update hook, otherwise write permissions won't work
+            subprocess.call(['ln', '-s', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
             # TODO update permissions somewhere
             # TODO add custom update hook for adding commits to database
         super(Repository, self).save(force_insert, force_update, using, update_fields)
 
     def delete(self, using=None):
         from shutil import rmtree
-        rmtree(self.path_in_project)
+        rmtree(self.absolute_path)
         super(Repository, self).delete(using)
 
 

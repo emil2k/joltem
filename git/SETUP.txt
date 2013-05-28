@@ -16,6 +16,10 @@
 
 -   Create symlink to repositories directory in git user's home folder from git app folder.
 
+-   Create symlink to gitolite update hook in gitolite folder. We will make symbolic links
+    to this link from each repo.
+    i.e. gitolite-update -> /Users/git/.gitolite/hooks/common/update
+
 -   Add a group git and give it permissions to read and write to keydir
     and and repositories folders.
 

@@ -32,7 +32,7 @@ def update_permissions():
         repos = Repository.objects.all()
         for repo in repos:
             # Repository permissions
-            f.write("repo\t%s\n" % repo.path)
+            f.write("repo\t%s\n" % repo.full_name)
             f.write("\tRW\t=\t@all\n")
             # # Branch permissions
             # branches = repo.branch_set.filter()

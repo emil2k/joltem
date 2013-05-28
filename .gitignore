@@ -3,3 +3,4 @@ workspace.xml
 git/gitolite/gitolite-admin
 git/gitolite/keydir
 git/repositories
+gitolite-update
