@@ -9,8 +9,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-# Absolute path to main project directory containing all the apps
-MAIN_DIR = "/Users/emil/Sites/env/testenv/joltem/"  # TODO this shouldn't be hard coded
+import os
+# Absolute path to main project directory containing all the apps, with trailing slash
+# i.e. /Users/emil/Sites/env/testenv/joltem/
+MAIN_DIR = os.path.dirname(os.path.realpath(__name__))+'/'
 
 LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
