@@ -36,21 +36,27 @@ class Repository(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if not self.pk:
-            from pygit2 import init_repository
-            init_repository(self.absolute_path, bare=True)
-            # Give git group write permissions to repository
-            import subprocess
-            subprocess.call(['chmod', '-R', 'g+rwX', self.absolute_path])
-            # Add symbolic link to gitolite update hook, otherwise write permissions won't work
-            subprocess.call(['ln', '-s', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
-            # TODO update permissions somewhere
-            # TODO add custom update hook for adding commits to database
+            new = True
         super(Repository, self).save(force_insert, force_update, using, update_fields)
+        if new:
+            import subprocess
+            from pygit2 import init_repository
+            from git.gitolite.permissions import update_permissions
+            # Initiate bare repository on server
+            init_repository(self.absolute_path, bare=True)
+            # Give git group necessary permissions to repository
+            subprocess.call(['chmod', '-R', 'g+rwX', self.absolute_path])
+            # Add symbolic link to gitolite update hook, otherwise gitolite write permissions enforcement won't work
+            subprocess.call(['ln', '-s', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
+            # Update gitolite permissions to include new repository, must be done after actually saved to DB
+            update_permissions()
 
     def delete(self, using=None):
-        from shutil import rmtree
-        rmtree(self.absolute_path)
         super(Repository, self).delete(using)
+        from shutil import rmtree
+        from git.gitolite.permissions import update_permissions
+        rmtree(self.absolute_path)
+        update_permissions()
 
 
 class Branch(models.Model):

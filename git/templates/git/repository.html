@@ -13,7 +13,7 @@
     <h3>Commits</h3>
     {% if commits %}
         {% for commit in commits %}
-            <p>{{ commit.message }} by <b>{{ commit.author.name }}</b></p>
+            <p>{{ commit.message }} by <b>{{ commit.author.name }}</b> - <span class="muted">{{ commit.author.email }}</span></p>
             <p class="muted">Committed at {{ commit.commit_time }} offset {{ commit.commit_time_offset }} minutes from UTC</p>
         {% endfor %}
     {% else %}
