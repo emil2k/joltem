@@ -20,6 +20,22 @@
     chgrp -Rv git repositories/ .gitolite/keydir/
     chmod -Rv g+wrX repositories/ .gitolite/keydir/
 
+-   Change all locale-code file to git group, then give them execution permission.
+
+    chgrp -Rv git local-code/
+    chmod -Rv g+X local-code/
+
+-   Add LOCAL_CODE variable to the .gitolite.rc, more info here :
+    http://gitolite.com/gitolite/cust.html#ncloc
+    NOTE : No trailing slash.
+
+    i.e.
+
+        # customization to hooks, VREFs, and etc. stored in this folder
+        LOCAL_CODE                      =>  '/Users/emil/Sites/env/testenv/joltem/git/gitolite/local-code',
+
+
+
 -   Inside git users home folder edit the .gitolite.rc file, changing the UMASK variable to 0007
 
 FILE STRUCTURE EXAMPLE of git directory :
