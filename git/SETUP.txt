@@ -8,12 +8,6 @@
 
 -   Clone gitolite-admin repo into gitolite folder.
 
--   Create file keys.log in gitolite-admin repo and put it under version control and push
-    it back, this will be used to log authentication keys changes, and force gitolite
-    to reload by pushing the gitolite-admin repo.
-
--   Create symlink to keydir directory in git user's .gitolite folder from gitolite folder.
-
 -   Create symlink to repositories directory in git user's home folder from git app folder.
 
 -   Create symlink to gitolite update hook in gitolite folder. We will make symbolic links
