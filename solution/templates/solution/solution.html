@@ -47,19 +47,20 @@
                     {% if not is_owner %}
                         <p>
                         <div class="btn-group btn-group-vertical">
-                            {% if vote.vote == 1 %}
-                                <button class="btn btn-success" type="submit" name="vote" value="good"><i
-                                        class="icon-ok icon-white"></i></button>
+                            {% if vote.vote == 10 %}
+                                <button class="btn btn-warning" type="submit" name="vote" value="10"><i class="icon-star icon-white"></i></button>
                             {% else %}
-                                <button class="btn" type="submit" name="vote" value="good"><i class="icon-ok"></i>
-                                </button>
+                                <button class="btn" type="submit" name="vote" value="10"><i class="icon-star"></i></button>
+                            {% endif %}
+                            {% if vote.vote == 1 %}
+                                <button class="btn btn-success" type="submit" name="vote" value="1"><i class="icon-ok icon-white"></i></button>
+                            {% else %}
+                                <button class="btn" type="submit" name="vote" value="1"><i class="icon-ok"></i></button>
                             {% endif %}
                             {% if vote.vote == -1 %}
-                                <button class="btn btn-danger" type="submit" name="vote" value="bad"><i
-                                        class="icon-remove icon-white"></i></button>
+                                <button class="btn btn-danger" type="submit" name="vote" value="-1"><i class="icon-remove icon-white"></i></button>
                             {% else %}
-                                <button class="btn" type="submit" name="vote" value="bad"><i class="icon-remove"></i>
-                                </button>
+                                <button class="btn" type="submit" name="vote" value="-1"><i class="icon-remove"></i></button>
                             {% endif %}
                         </div>
                         </p>

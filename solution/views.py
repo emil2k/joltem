@@ -48,10 +48,7 @@ def solution(request, project_name, solution_id):
                     solution=solution,
                     voter=request.user
                 )
-            if vote == 'good':
-                completion_vote.vote = 1
-            elif vote == 'bad':
-                completion_vote.vote = -1
+            completion_vote.vote = vote
             completion_vote.voter_impact = request.user.get_profile().impact
             completion_vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
