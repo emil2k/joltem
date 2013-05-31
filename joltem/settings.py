@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 import os
 # Absolute path to main project directory containing all the apps, with trailing slash
 # i.e. /Users/emil/Sites/env/testenv/joltem/
-MAIN_DIR = os.path.dirname(os.path.realpath(__name__))+'/'
+MAIN_DIR = '/Users/emil/Sites/env/testenv/joltem/'  # TODO this needs to auto detect itsels and should not matter which user calls it
 
 LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'

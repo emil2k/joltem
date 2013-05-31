@@ -26,7 +26,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('sha', self.gf('django.db.models.fields.CharField')(unique=True, max_length=40)),
             ('message', self.gf('django.db.models.fields.TextField')()),
-            ('message_encoding', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('message_encoding', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('commit_time', self.gf('django.db.models.fields.BigIntegerField')()),
             ('commit_time_offset', self.gf('django.db.models.fields.IntegerField')()),
             ('author', self.gf('django.db.models.fields.related.ForeignKey')(related_name='author', to=orm['git.Signature'])),
@@ -114,7 +114,7 @@ class Migration(SchemaMigration):
             'committer': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'committer'", 'to': u"orm['git.Signature']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'message': ('django.db.models.fields.TextField', [], {}),
-            'message_encoding': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'message_encoding': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'parents': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'parents_rel_+'", 'to': u"orm['git.Commit']"}),
             'sha': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'})
         },

@@ -76,11 +76,12 @@ class Signature(models.Model):
 class Commit(models.Model):
     sha = models.CharField(max_length=40, unique=True)
     message = models.TextField()
-    message_encoding = models.CharField(max_length=200)
+    message_encoding = models.CharField(max_length=200, null=True, blank=True)
     commit_time = models.BigIntegerField()
     commit_time_offset = models.IntegerField()  # offset from UTC in minutes
     # Relations
     parents = models.ManyToManyField('self')
+    # TODO remove tie with Signature and just credit to a registered user
     author = models.ForeignKey(Signature, related_name="author")
     committer = models.ForeignKey(Signature, related_name="committer")
 

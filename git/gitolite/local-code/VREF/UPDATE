@@ -13,13 +13,64 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 python_paths = os.environ['PYTHONPATH'].split(os.pathsep)
 
 from datetime import datetime
-from git.models import Repository
+from git.models import Repository, Commit, Signature
+
+
+def save_signature(commit_sig):
+    """
+    Helper function to store commit signature in DB
+    """
+    sig = Signature(
+        name=commit_sig.name,
+        email=commit_sig.email,
+        time=commit_sig.time,
+        offset=commit_sig.offset
+    )
+    sig.save()
+    return sig
+
+
+def save_commit(commit):
+    """
+    Helper function to store commit in DB
+    """
+    commit = Commit(
+        sha=commit.hex,
+        message=commit.message,
+        message_encoding=commit.message_encoding,
+        commit_time=commit.commit_time,
+        commit_time_offset=commit.commit_time_offset,
+        author=save_signature(commit.author),
+        committer=save_signature(commit.committer),
+    )
+    # TODO add parent commits
+    commit.save()
+    return commit
 
 # Print out command line arguments
-with open(dir+'/test.log', "a") as log:
-    script = sys.argv.pop(0)
-    log.write("%s : %s : arguments : %s\n" % (datetime.now(), script, ", ".join(sys.argv)))
-    log.write("PYTHONPATH : \n%s\n" % "\n".join(python_paths))
-    repository_id = sys.argv.pop(7)
+with open(dir+'/test.log', "a") as log_file:
+    log = lambda line: log_file.write("%s\n" % line)
+    args = sys.argv
+    script = args.pop(0)
+    log("%s : %s : arguments : %s\n" % (datetime.now(), script, ", ".join(args)))
+    log("PYTHONPATH")
+    for path in python_paths:
+        log(path)
+    # Get VREF passed arguments
+    repository_id = args.pop(7)
+    old_sha = args.pop(1)
+    new_sha = args.pop(1)
+    log("Repository id : %s" % repository_id)
+    log("%s..%s" % (old_sha, new_sha))
     repo = Repository.objects.get(id=repository_id)
-    log.write("Loaded repo : %s" % repo.full_name)
+    log("Loaded repo : %s" % repo.full_name)
+    # Load commits
+    from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
+    repo = GitRepository(repo.absolute_path)
+    if not repo.is_empty:
+        # Walk from new sha to old sha
+        for commit in repo.walk(new_sha, GIT_SORT_TIME):
+            if commit.hex == old_sha:
+                break
+            save_commit(commit)
+            log("%s - %s" % (commit.hex, commit.message))
