@@ -23,7 +23,7 @@
 -   Change all locale-code file to git group, then give them execution permission.
 
     chgrp -Rv git local-code/
-    chmod -Rv g+X local-code/
+    chmod -Rv g+wrX local-code/
 
 -   Add LOCAL_CODE variable to the .gitolite.rc, more info here :
     http://gitolite.com/gitolite/cust.html#ncloc
@@ -34,7 +34,11 @@
         # customization to hooks, VREFs, and etc. stored in this folder
         LOCAL_CODE                      =>  '/Users/emil/Sites/env/testenv/joltem/git/gitolite/local-code',
 
+-   Add paths to Django and project directories to git user's PYTHONPATH in .bashrc file to have proper python paths
+    for running local code.
 
+    i.e.
+    export PYTHONPATH=/Users/emil/Sites/env/testenv/joltem:/Users/emil/Sites/env/testenv/lib/python2.7/site-packages
 
 -   Inside git users home folder edit the .gitolite.rc file, changing the UMASK variable to 0007
 

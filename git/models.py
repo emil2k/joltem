@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from project.models import Project
-from solution.models import Solution
 from joltem.settings import MAIN_DIR
+
 
 class Repository(models.Model):
     """
@@ -59,17 +59,33 @@ class Repository(models.Model):
         update_permissions()
 
 
-class Branch(models.Model):
+class Signature(models.Model):
     """
-    Git branch, created by a task branch
+    Commit signature objects
     """
-    reference = models.CharField(max_length=200)
-    #Relations
-    repository = models.ForeignKey(Repository)
-    solution = models.ForeignKey(Solution, null=True, blank=True)
+    name = models.CharField(max_length=200)
+    email = models.CharField(max_length=200)
+    # TODO convert these to one datetime set
+    time = models.BigIntegerField()
+    offset = models.IntegerField()  # offset from UTC in minutes
 
     def __unicode__(self):
-        return self.reference
+        return "%s (%s)" % (self.name, self.email)
+
+
+class Commit(models.Model):
+    sha = models.CharField(max_length=40, unique=True)
+    message = models.TextField()
+    message_encoding = models.CharField(max_length=200)
+    commit_time = models.BigIntegerField()
+    commit_time_offset = models.IntegerField()  # offset from UTC in minutes
+    # Relations
+    parents = models.ManyToManyField('self')
+    author = models.ForeignKey(Signature, related_name="author")
+    committer = models.ForeignKey(Signature, related_name="committer")
+
+    def __unicode__(self):
+        return self.sha
 
 
 class Authentication(models.Model):

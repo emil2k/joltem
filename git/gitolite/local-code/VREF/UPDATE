@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+"""
+Update VREF gitolite hook script
+takes new commits and places them in database
+"""
+
+import os
+import sys
+dir = os.path.dirname(os.path.realpath(__file__))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+
+python_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+
+from datetime import datetime
+from git.models import Repository
+
+# Print out command line arguments
+with open(dir+'/test.log', "a") as log:
+    script = sys.argv.pop(0)
+    log.write("%s : %s : arguments : %s\n" % (datetime.now(), script, ", ".join(sys.argv)))
+    log.write("PYTHONPATH : \n%s\n" % "\n".join(python_paths))
+    repository_id = sys.argv.pop(7)
+    repo = Repository.objects.get(id=repository_id)
+    log.write("Loaded repo : %s" % repo.full_name)

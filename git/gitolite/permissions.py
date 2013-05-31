@@ -44,7 +44,7 @@ def update_permissions():
             for task in repo.project.task_set.all():
                 for solution in task.solution_set.all():
                     # f.write("\tRW\ts/%d$\t=\t%s\n" % (solution.id, solution.user.username))
-                    f.write("\t-\tVREF/TEST/5\t=\t@all\n")
+                    f.write("\t-\tVREF/UPDATE/%d\t=\t@all\n" % repo.id)
 
     print "\n*** Wrote configuration file to %s, is closed : %s.\n" % (gitolite_conf_file_path, f.closed)
     # Commit and push changes
