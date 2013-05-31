@@ -1,0 +1,28 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    <h3>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span></h3>
+    <ul class="breadcrumb">
+        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span>
+        </li>
+        <li><a href="{% url 'project:task:task' project.name solution.task_id %}">{{ solution.task.title }}</a> <span
+                class="divider">/</span></li>
+        <li class="active">Solution by {{ solution.user.first_name }}</li>
+    </ul>
+    <ul class="nav nav-tabs">
+        <li><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>
+        <li class="active"><a href="{% url 'project:solution:commits' project.name solution.id %}">Commits</a></li>
+    </ul>
+    {% for repo in repos %}
+        <h3>{{ repo.repo.full_name }}</h3>
+        {% if repo.commits %}
+            {% for commit in repo.commits %}
+                <p>
+                    {{ commit.message }} by {{ commit.author.name }}<br/>
+                    <span class="muted">{{ commit.hex }}</span>
+                </p>
+            {% endfor %}
+        {% else %}
+            <p class="muted">No commits on this repo for this particular solution.</p>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

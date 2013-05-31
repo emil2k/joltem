@@ -9,6 +9,10 @@
                 class="divider">/</span></li>
         <li class="active">Solution by {{ solution.user.first_name }}</li>
     </ul>
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>
+        <li><a href="{% url 'project:solution:commits' project.name solution.id %}">Commits</a></li>
+    </ul>
     {% if not solution.is_accepted %}
         <div class="alert alert-danger">
             <b>This solution has not been accepted yet</b>, you can work on it but <i>impact</i> won't be awarded unless it is accepted.

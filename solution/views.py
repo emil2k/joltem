@@ -66,3 +66,37 @@ def solution(request, project_name, solution_id):
         'is_owner': solution.is_owner(request.user)
     }
     return render(request, 'solution/solution.html', context)
+
+
+def commits(request, project_name, solution_id):
+    project = get_object_or_404(Project, name=project_name)
+    solution = get_object_or_404(Solution, id=solution_id)
+
+    class RepoHolder(object):
+        def __init__(self, repo):
+            self.repo = repo
+            self.commits = None
+
+    repos = []
+    for repo in project.repository_set.all():
+        from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
+        git_repo = GitRepository(repo.absolute_path)
+        if not git_repo.is_empty:
+            try:
+                ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
+            except KeyError:
+                commits = None
+            else:
+                commits = []
+                for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
+                    commits.append(commit)
+            repo_holder = RepoHolder(repo)
+            repo_holder.commits = commits
+            repos.append(repo_holder)
+
+    context = {
+        'project': project,
+        'solution': solution,
+        'repos': repos,
+    }
+    return render(request, 'solution/commits.html', context)
