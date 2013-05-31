@@ -13,35 +13,23 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 python_paths = os.environ['PYTHONPATH'].split(os.pathsep)
 
 from datetime import datetime
-from git.models import Repository, Commit, Signature
+from git.models import Repository, Commit
 
 
-def save_signature(commit_sig):
-    """
-    Helper function to store commit signature in DB
-    """
-    sig = Signature(
-        name=commit_sig.name,
-        email=commit_sig.email,
-        time=commit_sig.time,
-        offset=commit_sig.offset
-    )
-    sig.save()
-    return sig
-
-
-def save_commit(commit):
+def save_commit(repository, commit):
     """
     Helper function to store commit in DB
     """
+    from datetime import datetime
+    commit_time = datetime.fromtimestamp(commit.commit_time+commit.commit_time_offset*60)
     commit = Commit(
         sha=commit.hex,
+        repository=repository,
         message=commit.message,
         message_encoding=commit.message_encoding,
-        commit_time=commit.commit_time,
-        commit_time_offset=commit.commit_time_offset,
-        author=save_signature(commit.author),
-        committer=save_signature(commit.committer),
+        commit_time=commit_time,
+        author=commit.author.email,
+        committer=commit.committer.email,
     )
     # TODO add parent commits
     commit.save()
@@ -66,11 +54,11 @@ with open(dir+'/test.log', "a") as log_file:
     log("Loaded repo : %s" % repo.full_name)
     # Load commits
     from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
-    repo = GitRepository(repo.absolute_path)
-    if not repo.is_empty:
+    git_repo = GitRepository(repo.absolute_path)
+    if not git_repo.is_empty:
         # Walk from new sha to old sha
-        for commit in repo.walk(new_sha, GIT_SORT_TIME):
+        for commit in git_repo.walk(new_sha, GIT_SORT_TIME):
             if commit.hex == old_sha:
                 break
-            save_commit(commit)
+            save_commit(repo, commit)
             log("%s - %s" % (commit.hex, commit.message))

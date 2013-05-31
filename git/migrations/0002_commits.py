@@ -11,26 +11,16 @@ class Migration(SchemaMigration):
         # Deleting model 'Branch'
         db.delete_table(u'git_branch')
 
-        # Adding model 'Signature'
-        db.create_table(u'git_signature', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('email', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('time', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('offset', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal(u'git', ['Signature'])
-
         # Adding model 'Commit'
         db.create_table(u'git_commit', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('sha', self.gf('django.db.models.fields.CharField')(unique=True, max_length=40)),
             ('message', self.gf('django.db.models.fields.TextField')()),
             ('message_encoding', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
-            ('commit_time', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('commit_time_offset', self.gf('django.db.models.fields.IntegerField')()),
-            ('author', self.gf('django.db.models.fields.related.ForeignKey')(related_name='author', to=orm['git.Signature'])),
-            ('committer', self.gf('django.db.models.fields.related.ForeignKey')(related_name='committer', to=orm['git.Signature'])),
+            ('commit_time', self.gf('django.db.models.fields.DateTimeField')()),
+            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
+            ('author', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('committer', self.gf('django.db.models.fields.CharField')(max_length=200)),
         ))
         db.send_create_signal(u'git', ['Commit'])
 
@@ -52,9 +42,6 @@ class Migration(SchemaMigration):
             ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'], null=True, blank=True)),
         ))
         db.send_create_signal(u'git', ['Branch'])
-
-        # Deleting model 'Signature'
-        db.delete_table(u'git_signature')
 
         # Deleting model 'Commit'
         db.delete_table(u'git_commit')
@@ -108,14 +95,14 @@ class Migration(SchemaMigration):
         },
         u'git.commit': {
             'Meta': {'object_name': 'Commit'},
-            'author': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'author'", 'to': u"orm['git.Signature']"}),
-            'commit_time': ('django.db.models.fields.BigIntegerField', [], {}),
-            'commit_time_offset': ('django.db.models.fields.IntegerField', [], {}),
-            'committer': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'committer'", 'to': u"orm['git.Signature']"}),
+            'author': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'commit_time': ('django.db.models.fields.DateTimeField', [], {}),
+            'committer': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'message': ('django.db.models.fields.TextField', [], {}),
             'message_encoding': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'parents': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'parents_rel_+'", 'to': u"orm['git.Commit']"}),
+            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
             'sha': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'})
         },
         u'git.repository': {
@@ -124,14 +111,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"})
-        },
-        u'git.signature': {
-            'Meta': {'object_name': 'Signature'},
-            'email': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'offset': ('django.db.models.fields.IntegerField', [], {}),
-            'time': ('django.db.models.fields.BigIntegerField', [], {})
         },
         u'project.project': {
             'Meta': {'object_name': 'Project'},

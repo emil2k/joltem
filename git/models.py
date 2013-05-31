@@ -59,31 +59,18 @@ class Repository(models.Model):
         update_permissions()
 
 
-class Signature(models.Model):
-    """
-    Commit signature objects
-    """
-    name = models.CharField(max_length=200)
-    email = models.CharField(max_length=200)
-    # TODO convert these to one datetime set
-    time = models.BigIntegerField()
-    offset = models.IntegerField()  # offset from UTC in minutes
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.name, self.email)
-
-
 class Commit(models.Model):
     sha = models.CharField(max_length=40, unique=True)
     message = models.TextField()
     message_encoding = models.CharField(max_length=200, null=True, blank=True)
-    commit_time = models.BigIntegerField()
-    commit_time_offset = models.IntegerField()  # offset from UTC in minutes
+    commit_time = models.DateTimeField()
     # Relations
+    repository = models.ForeignKey(Repository)
     parents = models.ManyToManyField('self')
     # TODO remove tie with Signature and just credit to a registered user
-    author = models.ForeignKey(Signature, related_name="author")
-    committer = models.ForeignKey(Signature, related_name="committer")
+    # just store emails for now
+    author = models.CharField(max_length=200)
+    committer = models.CharField(max_length=200)
 
     def __unicode__(self):
         return self.sha
