@@ -1,6 +1,6 @@
 import os
+from joltem.models import User
 from git.models import Repository
-from solution.models import Solution
 
 # Configurations for the gitolite admin repo
 
@@ -35,16 +35,13 @@ def update_permissions():
         for repo in repos:
             # Repository permissions
             f.write("repo\t%s\n" % repo.full_name)
-            f.write("\tR\t=\t@all\n")
-            f.write("\tRW\t=\t%s\n" % "\t".join(user.username for user in repo.project.users.all()) )
+            f.write("\tRW\t=\t@all\n")
             # Personal branches
             # http://gitolite.com/gitolite/special.html
-            f.write("\tRW\tu/USER/\t=\t@all\n")
-            # Solution branch permission
-            for task in repo.project.task_set.all():
-                for solution in task.solution_set.all():
-                    # f.write("\tRW\ts/%d$\t=\t%s\n" % (solution.id, solution.user.username))
-                    f.write("\t-\tVREF/UPDATE/%d\t=\t@all\n" % repo.id)
+            f.write("\tRW\tu/USER/\t=\t@all\n")  # TODO move this into update hook
+            # VREF for solution branch permission
+            for user in User.objects.all():
+                f.write("\t-\tVREF/UPDATE/%s/%d\t=\t%s\n" % (user.username, repo.id, user.username))
 
     print "\n*** Wrote configuration file to %s, is closed : %s.\n" % (gitolite_conf_file_path, f.closed)
     # Commit and push changes

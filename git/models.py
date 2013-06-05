@@ -59,6 +59,7 @@ class Repository(models.Model):
         update_permissions()
 
 
+# TODO deprecated, don't store commits in DB
 class Commit(models.Model):
     sha = models.CharField(max_length=40, unique=True)
     message = models.TextField()
