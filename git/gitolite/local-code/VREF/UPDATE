@@ -30,29 +30,31 @@ with open(dir+'/test.log', "a") as log_file:
     mode = args[5]
     username = args[7]
     repository_id = args[8]
+    # Retrieve objects
     user = User.objects.get(username=username)
     repository = Repository.objects.get(id=repository_id)
+    is_admin = user in repository.project.users.all()  # is user an administrator of the project?
     log("%s : %s to %s on %s by %s : %s..%s " % (datetime.now(), mode, reference, repository.full_name, user.first_name, old_sha, new_sha))
+    decline = lambda reason: print("VREF/UPDATE/%s/%d %s" % (user.username, repository.id, reason))
     if mode == 'W':
         split_reference = reference.split('/')
-        if split_reference[0] == 'refs' \
-            and split_reference[1] == 'heads' \
-                and split_reference[2] == 's':
-            solution_id = split_reference[3]
-            solution = Solution.objects.get(id=solution_id)
-            log("Solution : %s by %s" % (solution.task.title, solution.user.first_name))
-            decline = lambda reason: print("VREF/UPDATE/%s/%d %s" % (user.username, repository.id, reason))
-            if not solution.is_accepted:
-                decline("Solution is not accepted yet, you can start working on a personal branch if you wish.")
-                log("Denied.")
-            elif solution.user_id != user.id:
-                decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
-                log("Denied.")
-            else:
-                log("Accepted")
-
-    # TODO allow project administrators to push to master
-    # TODO deny access to personal branches
-
-
-
+        if split_reference[0] == 'refs' and split_reference[1] == 'heads':
+            namespace = split_reference[2]
+            if namespace == 's':  # Solution branches
+                solution_id = split_reference[3]
+                solution = Solution.objects.get(id=solution_id)
+                log("Solution : %s by %s" % (solution.task.title, solution.user.first_name))
+                if not is_admin:
+                    if not solution.is_accepted:
+                        decline("Solution is not accepted yet, you can start working on a personal branch if you wish.")
+                    elif solution.user_id != user.id:
+                        decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
+            elif namespace == 'u':  # User, personal branches
+                branch_username = split_reference[3]
+                if user.username != branch_username:
+                    decline("You cannot push to this personal branch it belongs to %s." % branch_username)
+            else:  # Other branches
+                if not is_admin:
+                    decline("You don't have permission to push to this reference.")
+        else:
+            decline("Not allowed to push refs, that don't start with refs/heads")
