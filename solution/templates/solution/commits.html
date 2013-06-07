@@ -12,17 +12,24 @@
         <li><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>
         <li class="active"><a href="{% url 'project:solution:commits' project.name solution.id %}">Commits</a></li>
     </ul>
-    {% for repo in repos %}
-        <h3>{{ repo.repo.full_name }}</h3>
-        {% if repo.commits %}
-            {% for commit in repo.commits %}
-                <p>
-                    {{ commit.message }} by {{ commit.author.name }}<br/>
-                    <span class="muted">{{ commit.hex }}</span>
-                </p>
+    <h3>{{ repository.full_name }}</h3>
+    <div class="tabbable tabs-left">
+        <ul class="nav nav-tabs">
+            {% for project_repository in project.repository_set.all %}
+                <li{% if project_repository.id == repository.id %} class="active"{% endif %}><a href="{% url 'project:solution:commits' project.name solution.id project_repository.name %}">{{ project_repository.name }}</a></li>
             {% endfor %}
-        {% else %}
-            <p class="muted">No commits on this repo for this particular solution.</p>
-        {% endif %}
-    {% endfor %}
+        </ul>
+        <div class="tab-content">
+            {% if commits %}
+                {% for commit in commits %}
+                    <p>
+                        {{ commit.message }} by {{ commit.author.name }}<br/>
+                        <span class="muted">{{ commit.hex }}</span>
+                    </p>
+                {% endfor %}
+            {% else %}
+                <p class="muted">No commits on this repo for this particular solution.</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

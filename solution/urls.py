@@ -6,5 +6,5 @@ urlpatterns = patterns(
     '',
     url(r'^(?P<task_id>(\d)+)/new/$', login_required(views.new_solution), name='new_solution'),
     url(r'^(?P<solution_id>(\d)+)/$', views.solution, name='solution'),
-    url(r'^(?P<solution_id>(\d)+)/commits/$', views.commits, name='commits'),
+    url(r'^(?P<solution_id>(\d)+)/commits/(?:(?P<repository_name>[-\w]+)/)?$', views.commits, name='commits'),
 )

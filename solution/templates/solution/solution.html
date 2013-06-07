@@ -25,14 +25,14 @@
     {% if solution.is_accepted and is_owner %}
         <div class="alert alert-info">
             <p>Checkout solution branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout from]</i></pre>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
             <p>Push to remote designated solution branch :</p>
             <pre>git push -u origin s/{{ solution.id }}</pre>
         </div>
     {% else %}
         <div class="alert alert-info">
             <p>Checkout solution branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout from]</i></pre>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
             <p>Push to remote personal branch :</p>
             <pre>git push -u origin s/{{ solution.id }}:u/{{ user.username }}/s/{{ solution.id }}</pre>
         </div>
