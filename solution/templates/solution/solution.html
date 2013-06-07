@@ -22,29 +22,13 @@
             <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
         </div>
     {% endif %}
-    {% if solution.is_accepted and is_owner %}
-        <div class="alert alert-info">
-            <p>Checkout solution branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Push to remote designated solution branch :</p>
-            <pre>git push -u origin s/{{ solution.id }}</pre>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            <p>Checkout solution branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Push to remote personal branch :</p>
-            <pre>git push -u origin s/{{ solution.id }}:u/{{ user.username }}/s/{{ solution.id }}</pre>
-        </div>
-    {% endif %}
     <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
     <h4><a href="#">{{ solution.user.first_name }}</a></h4>
     <div class="row">
         <div class="span2">
-            <p><img class="img-rounded"
-                    src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100"/></p>
+            <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=100" /></p>
             <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
-            <p><b>451</b> tasks</p>
+            <p><b>{{ solution.user.get_profile.completed }}</b> solutions</p>
         </div>
         <div class="span8">
             {% if solution.description %}
@@ -118,4 +102,20 @@
             {% include 'solution/solution_tasks.html' %}
         </div>
     </div>
+    <hr/>
+    {% if solution.is_accepted and is_owner %}
+        <div class="alert alert-info">
+            <p>Checkout solution branch :</p>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+            <p>Push to remote designated solution branch :</p>
+            <pre>git push -u origin s/{{ solution.id }}</pre>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>Checkout solution branch :</p>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+            <p>Push to remote personal branch :</p>
+            <pre>git push -u origin s/{{ solution.id }}:u/{{ user.username }}/s/{{ solution.id }}</pre>
+        </div>
+    {% endif %}
 {% endblock %}

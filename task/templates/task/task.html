@@ -30,9 +30,9 @@
         <h4><a href="#">{{ solution.user.first_name }}</a></h4>
         <div class="row">
             <div class="span2">
-                <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/08759e178c55c968a861367e55f56ad9?s=100" /></p>
+                <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=100" /></p>
                 <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
-                <p><b>451</b> tasks</p>
+                <p><b>{{ solution.user.get_profile.completed }}</b> solutions</p>
             </div>
             <div class="span8">
                 {{ solution.application|markdown:"tables,fenced_code" }}
