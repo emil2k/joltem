@@ -13,9 +13,28 @@
         <li class="active"><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>
         <li><a href="{% url 'project:solution:commits' project.name solution.id %}">Commits</a></li>
     </ul>
-    {% if not solution.is_accepted %}
+    {% if solution.is_accepted %}
+        <div class="alert alert-success">
+            <b>This solution has been accepted</b> on {{ solution.time_accepted|date }}, you may begin work.
+        </div>
+    {% else %}
         <div class="alert alert-danger">
-            <b>This solution has not been accepted yet</b>, you can work on it but <i>impact</i> won't be awarded unless it is accepted.
+            <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
+        </div>
+    {% endif %}
+    {% if solution.is_accepted and is_owner %}
+        <div class="alert alert-info">
+            <p>Checkout solution branch :</p>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout from]</i></pre>
+            <p>Push to remote designated solution branch :</p>
+            <pre>git push -u origin s/{{ solution.id }}</pre>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>Checkout solution branch :</p>
+            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout from]</i></pre>
+            <p>Push to remote personal branch :</p>
+            <pre>git push -u origin s/{{ solution.id }}:u/{{ user.username }}/s/{{ solution.id }}</pre>
         </div>
     {% endif %}
     <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>

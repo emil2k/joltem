@@ -95,6 +95,7 @@ def commits(request, project_name, solution_id):
             repos.append(repo_holder)
 
     context = {
+        'user': request.user,
         'project': project,
         'solution': solution,
         'repos': repos,
