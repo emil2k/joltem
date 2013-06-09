@@ -30,7 +30,7 @@ class Solution(models.Model):
 
     @property
     def impact(self):
-        votes = self.vote_set.all()
+        votes = self.vote_set.filter(voter_impact__gt=0)
         weighted_sum = 0
         impact_sum = 0
         for vote in votes:
