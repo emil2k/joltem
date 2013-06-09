@@ -7,10 +7,7 @@
     </ul>
     {% if solutions %}
         {% for solution in solutions %}
-            <p>
-                <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.task.title }}</a> by {{ solution.user.first_name }}<br/>
-                <span class="muted">{{ solution.time_posted|date }}</span>
-            </p>
+            {% include "project/solution_row.html" %}
         {% endfor %}
     {% else %}
         <p class="muted">No solutions to review :)</p>
