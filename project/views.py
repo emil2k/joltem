@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from project.models import Project
 from task.models import Task
+from solution.models import Solution, Vote
 from git.models import Repository
 
 
@@ -53,3 +54,30 @@ def repositories(request, project_name):
         'repositories': project.repository_set.all(),
     }
     return render(request, 'project/repositories.html', context)
+
+
+def solutions_my(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    context = {
+        'project': project,
+        'solutions': request.user.solution_set.filter(project_id=project.id)
+    }
+    return render(request, 'project/solutions_my.html', context)
+
+
+def solutions_review(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    need_review = []
+    for solution in Solution.objects.filter(project_id=project.id, is_completed=True):
+        if solution.user_id != request.user.id \
+                and Vote.objects.filter(solution_id=solution.id, voter_id=request.user.id).count() == 0:
+            need_review.append(solution)
+    context = {
+        'project': project,
+        'solutions': need_review
+    }
+    return render(request, 'project/solutions_review.html', context)
+
+
+def solutions(request, project_name):
+    return solutions_my(request, project_name)  # default to my solutions

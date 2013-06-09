@@ -19,6 +19,7 @@ def new_solution(request, project_name, task_id):
             solution = Solution(
                 user=request.user,
                 task=task,
+                project=project,
                 application=description
             )
             solution.save()

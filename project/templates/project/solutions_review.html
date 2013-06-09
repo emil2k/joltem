@@ -1,0 +1,18 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    <h3>Solutions</h3>
+    <ul class="nav nav-tabs">
+        <li><a href="{% url 'project:solutions_mine' project.name %}">My Solutions</a></li>
+        <li class="active"><a href="{% url 'project:solutions_need_review' project.name %}">Need Review</a></li>
+    </ul>
+    {% if solutions %}
+        {% for solution in solutions %}
+            <p>
+                <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.task.title }}</a> by {{ solution.user.first_name }}<br/>
+                <span class="muted">{{ solution.time_posted|date }}</span>
+            </p>
+        {% endfor %}
+    {% else %}
+        <p class="muted">No solutions to review :)</p>
+    {% endif %}
+{% endblock %}

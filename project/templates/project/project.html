@@ -2,6 +2,7 @@
 {% load markup  %}
 {% block content %}
     <h3>{{ project.name }}</h3>
+    <h4><a href="{% url 'project:solutions' project.name %}">Solutions</a></h4>
     <h4><a href="{% url 'project:repositories' project.name %}">Repositories</a></h4>
     {% if created_repo %}
         <p class="alert alert-success">

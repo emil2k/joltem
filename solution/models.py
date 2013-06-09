@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from task.models import Task
+from project.models import Project
 
 from datetime import datetime
 
@@ -22,6 +23,7 @@ class Solution(models.Model):
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     # Relations
+    project = models.ForeignKey(Project)
     task = models.ForeignKey(Task)
     user = models.ForeignKey(User)
 
