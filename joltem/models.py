@@ -10,8 +10,12 @@ class Profile(models.Model):
 
     @property
     def impact(self):
+        from project.models import Project
         # TODO this should later be switched to project specific impact, but it is fine for now as there is only one project
-        impact = 0 # the person who starts the project is awarded with an impact of 1 from which all other users impact will stem
+        impact = 0
+        # The admins of the project start with an impact of 1, for weighted voting to be effective
+        if self.user.project_set.count() > 0:
+            impact = 1
         for solution in self.user.solution_set.filter(is_accepted=True, is_completed=True):
             impact += solution.impact
         return impact
