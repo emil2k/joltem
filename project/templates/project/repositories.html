@@ -1,0 +1,9 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+<h3>Repositories</h3>
+<ul>
+{% for repository in repositories %}
+    <li><a href="{% url 'project:git:repository' project.name repository.name %}">{{ repository.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

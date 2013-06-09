@@ -2,7 +2,7 @@
 {% load markup  %}
 {% block content %}
     <h3>{{ project.name }}</h3>
-    <h4>Repositories</h4>
+    <h4><a href="{% url 'project:repositories' project.name %}">Repositories</a></h4>
     {% if created_repo %}
         <p class="alert alert-success">
             <button type="button" class="close" data-dismiss="alert">&times;</button>

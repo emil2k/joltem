@@ -44,3 +44,12 @@ def tasks(request, project_name):
         'project': project
     }
     return render(request, 'project/tasks.html', context)
+
+
+def repositories(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    context = {
+        'project': project,
+        'repositories': project.repository_set.all(),
+    }
+    return render(request, 'project/repositories.html', context)
