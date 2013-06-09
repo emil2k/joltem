@@ -33,12 +33,16 @@ class Solution(models.Model):
 
     @property
     def impact(self):
-        weighted_sum = 0
-        impact_sum = 0
-        for vote in self.completionvote_set.all():
-            weighted_sum += vote.voter_impact * vote.vote
-            impact_sum += vote.voter_impact
-        return int(round(10 * weighted_sum/float(impact_sum)))
+        votes = self.completionvote_set.all()
+        if votes:
+            weighted_sum = 0
+            impact_sum = 0
+            for vote in votes:
+                weighted_sum += vote.voter_impact * vote.vote
+                impact_sum += vote.voter_impact
+            return int(round(10 * weighted_sum/float(impact_sum)))
+        else:
+            return 0
 
     def is_owner(self, user):
         """
