@@ -17,13 +17,10 @@ class Solution(models.Model):
     is_accepted = models.BooleanField(default=False)
     # Whether solution was marked completed by creator of task
     is_completed = models.BooleanField(default=False)
-    # Whether solution completion was accepted by creator of task
-    is_completion_accepted = models.BooleanField(default=False)
     # NOTE : No parenthesis on datetime.now because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=datetime.now)
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
-    time_completion_accepted = models.DateTimeField(null=True, blank=True)
     # Relations
     task = models.ForeignKey(Task)
     user = models.ForeignKey(User)
@@ -33,16 +30,16 @@ class Solution(models.Model):
 
     @property
     def impact(self):
-        votes = self.completionvote_set.all()
-        if votes:
-            weighted_sum = 0
-            impact_sum = 0
-            for vote in votes:
-                weighted_sum += vote.voter_impact * vote.vote
-                impact_sum += vote.voter_impact
-            return int(round(10 * weighted_sum/float(impact_sum)))
-        else:
+        votes = self.vote_set.all()
+        weighted_sum = 0
+        impact_sum = 0
+        for vote in votes:
+            weighted_sum += vote.voter_impact * vote.vote
+            impact_sum += vote.voter_impact
+        if impact_sum == 0:
             return 0
+        else:
+            return int(round(10 * weighted_sum/float(impact_sum)))
 
     def is_owner(self, user):
         """
@@ -51,7 +48,7 @@ class Solution(models.Model):
         return self.user_id == user.id
 
 
-class CompletionVote(models.Model):
+class Vote(models.Model):
     """
     Votes cast when solution is marked completed, code is reviewed
     """

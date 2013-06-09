@@ -3,7 +3,7 @@ from django.http.response import HttpResponseNotFound
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, CompletionVote
+from solution.models import Solution, Vote
 
 
 def new_solution(request, project_name, task_id):
@@ -41,12 +41,12 @@ def solution(request, project_name, solution_id):
         if vote is not None:
             # Get or create with other parameters
             try:
-                completion_vote = CompletionVote.objects.get(
+                completion_vote = Vote.objects.get(
                     solution_id=solution.id,
                     voter_id=request.user.id
                 )
-            except CompletionVote.DoesNotExist:
-                completion_vote = CompletionVote(
+            except Vote.DoesNotExist:
+                completion_vote = Vote(
                     solution=solution,
                     voter=request.user
                 )
@@ -57,8 +57,8 @@ def solution(request, project_name, solution_id):
 
     # Get current users vote on this solution
     try:
-        vote = solution.completionvote_set.get(voter_id=request.user.id)
-    except CompletionVote.DoesNotExist:
+        vote = solution.vote_set.get(voter_id=request.user.id)
+    except Vote.DoesNotExist:
         vote = None
 
     context = {

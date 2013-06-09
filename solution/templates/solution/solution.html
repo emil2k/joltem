@@ -73,7 +73,7 @@
                         </p>
                     {% endif %}
                     {% if vote or is_owner %}
-                        <p class="muted">{{ solution.completionvote_set.count }} votes</p>
+                        <p class="muted">{{ solution.vote_set.count }} votes</p>
                     {% endif %}
                 </form>
                 <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>

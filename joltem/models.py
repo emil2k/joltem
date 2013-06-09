@@ -10,11 +10,12 @@ class Profile(models.Model):
 
     @property
     def impact(self):
-        impact = 1  # default to 1 to prevent divide by zero problems
+        # TODO this should later be switched to project specific impact, but it is fine for now as there is only one project
+        impact = 0 # the person who starts the project is awarded with an impact of 1 from which all other users impact will stem
         for solution in self.user.solution_set.filter(is_accepted=True, is_completed=True):
             impact += solution.impact
         return impact
 
     @property
     def completed(self):
-        return self.user.solution_set.filter(is_completion_accepted=True).count()
+        return self.user.solution_set.filter(is_completed=True).count()
