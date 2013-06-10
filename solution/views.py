@@ -32,28 +32,34 @@ def solution(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
 
     if request.POST:
-        if request.POST.get('mark_complete') is not None \
-                and solution.is_owner(request.user):
+        # Solution actions
+        if request.POST.get('complete') is not None \
+                and solution.is_owner(request.user) \
+                and solution.is_accepted:
             from datetime import datetime
             solution.is_completed = True
             solution.time_completed = datetime.now()
             solution.save()
-        vote = request.POST.get('vote')
-        if vote is not None:
+            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+        # TODO edit and delete
+        # Vote on completed solution
+        if request.POST.get('vote') is not None:
             # Get or create with other parameters
             try:
-                completion_vote = Vote.objects.get(
+                vote = Vote.objects.get(
                     solution_id=solution.id,
                     voter_id=request.user.id
                 )
             except Vote.DoesNotExist:
-                completion_vote = Vote(
+                vote = Vote(
                     solution=solution,
                     voter=request.user
                 )
-            completion_vote.vote = vote
-            completion_vote.voter_impact = request.user.get_profile().impact
-            completion_vote.save()
+            from datetime import datetime
+            vote.vote = request.POST.get('vote')
+            vote.time_voted = datetime.now()
+            vote.voter_impact = request.user.get_profile().impact
+            vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
 
     # Get current users vote on this solution

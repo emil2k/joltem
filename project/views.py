@@ -60,7 +60,7 @@ def solutions_my(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
         'project': project,
-        'solutions': request.user.solution_set.filter(project_id=project.id)
+        'solutions': request.user.solution_set.filter(project_id=project.id).order_by('-id')
     }
     return render(request, 'project/solutions_my.html', context)
 
@@ -68,7 +68,7 @@ def solutions_my(request, project_name):
 def solutions_review(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     need_review = []
-    for solution in Solution.objects.filter(project_id=project.id, is_completed=True):
+    for solution in Solution.objects.filter(project_id=project.id, is_completed=True).order_by('-id'):
         if solution.user_id != request.user.id \
                 and Vote.objects.filter(solution_id=solution.id, voter_id=request.user.id).count() == 0:
             need_review.append(solution)

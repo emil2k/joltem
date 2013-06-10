@@ -36,6 +36,23 @@
             {% else %}
                 <p class="muted">Solution has not been described yet.</p>
             {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="btn-group">
+                    {% if not solution.is_completed and solution.is_accepted and is_owner %}
+                        <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                    {% endif %}
+                    <button class="btn" type="submit" name="edit" value="1">edit</button>
+                    <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
+                </div>
+            </form>
+            <hr/>
+            {% if is_owner %}
+                <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">create task</a></p>
+            {% endif %}
+            <h4>Tasks</h4>
+            {% include 'solution/solution_tasks.html' %}
+            <hr/>
         </div>
         <div class="span2 text-center">
             {% if solution.is_completed %}
@@ -77,32 +94,9 @@
                     {% endif %}
                 </form>
                 <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
-            {% else %}
-                {% if is_owner %}
-                    <form method="post">
-                        {% csrf_token %}
-                        <p>
-                            <button class="btn" type="submit" name="mark_complete" value="complete">Mark Complete
-                            </button>
-                        </p>
-                    </form>
-                {% endif %}
             {% endif %}
         </div>
     </div>
-    <div class="row">
-        <div class="span2">
-            {% if is_owner %}
-                <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">Create
-                    Task</a></p>
-            {% endif %}
-        </div>
-        <div class="span8">
-            <h4>Tasks</h4>
-            {% include 'solution/solution_tasks.html' %}
-        </div>
-    </div>
-    <hr/>
     {% if solution.is_accepted and is_owner %}
         <div class="alert alert-info">
             <p>Checkout solution branch :</p>
