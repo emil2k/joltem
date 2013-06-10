@@ -39,11 +39,13 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="btn-group">
-                    {% if not solution.is_completed and solution.is_accepted and is_owner %}
-                        <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                    {% if is_owner %}
+                        {% if not solution.is_completed and solution.is_accepted %}
+                            <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                        {% endif %}
+                        <button class="btn" type="submit" name="edit" value="1">edit</button>
+                        <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
                     {% endif %}
-                    <button class="btn" type="submit" name="edit" value="1">edit</button>
-                    <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
                 </div>
             </form>
             <hr/>

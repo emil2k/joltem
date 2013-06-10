@@ -1,7 +1,6 @@
-{% extends 'joltem/base.html' %}
+{% extends 'project/base.html' %}
 {% load markup %}
-{% block content %}
-    <h4>Tasks for {{ project.name }}</h4>
+{% block project_content %}
     {% for task in project.task_set.all %}
         <p>
             <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br>

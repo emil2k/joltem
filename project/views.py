@@ -8,6 +8,7 @@ from git.models import Repository
 def project(request, project_name):
     project = Project.objects.get(name=project_name)
     context = {
+        'project_tab': "main",
         'project': project
     }
     if request.POST:
@@ -42,6 +43,7 @@ def project(request, project_name):
 def tasks(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
+        'project_tab': "tasks",
         'project': project
     }
     return render(request, 'project/tasks.html', context)
@@ -50,6 +52,7 @@ def tasks(request, project_name):
 def repositories(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
+        'project_tab': "repositories",
         'project': project,
         'repositories': project.repository_set.all(),
     }
@@ -59,6 +62,7 @@ def repositories(request, project_name):
 def solutions_my(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
+        'project_tab': "solutions",
         'project': project,
         'solutions': request.user.solution_set.filter(project_id=project.id).order_by('-id')
     }
@@ -73,6 +77,7 @@ def solutions_review(request, project_name):
                 and Vote.objects.filter(solution_id=solution.id, voter_id=request.user.id).count() == 0:
             need_review.append(solution)
     context = {
+        'project_tab': "solutions",
         'project': project,
         'solutions': need_review
     }

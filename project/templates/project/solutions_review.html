@@ -1,6 +1,5 @@
-{% extends 'joltem/base.html' %}
-{% block content %}
-    <h3>Solutions</h3>
+{% extends 'project/base.html' %}
+{% block project_content %}
     <ul class="nav nav-tabs">
         <li><a href="{% url 'project:solutions_mine' project.name %}">My Solutions</a></li>
         <li class="active"><a href="{% url 'project:solutions_need_review' project.name %}">Need Review</a></li>
