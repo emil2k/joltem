@@ -62,6 +62,7 @@ def repositories(request, project_name):
 def solutions_my(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
+        'solutions_tab': "my",
         'project_tab': "solutions",
         'project': project,
         'solutions': request.user.solution_set.filter(project_id=project.id).order_by('-id')
@@ -77,6 +78,7 @@ def solutions_review(request, project_name):
                 and Vote.objects.filter(solution_id=solution.id, voter_id=request.user.id).count() == 0:
             need_review.append(solution)
     context = {
+        'solutions_tab': "review",
         'project_tab': "solutions",
         'project': project,
         'solutions': need_review

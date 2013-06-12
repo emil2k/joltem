@@ -1,9 +1,5 @@
-{% extends 'project/base.html' %}
-{% block project_content %}
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="{% url 'project:solutions_mine' project.name %}">My Solutions</a></li>
-        <li><a href="{% url 'project:solutions_need_review' project.name %}">Need Review</a></li>
-    </ul>
+{% extends 'project/solutions_base.html' %}
+{% block solutions_content %}
     {% if solutions %}
         {% for solution in solutions %}
             {% include "project/solution_row.html" %}

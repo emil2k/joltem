@@ -8,8 +8,8 @@ urlpatterns = patterns(
     url(r'^tasks/$', views.tasks, name='tasks'),
     url(r'^repositories/$', views.repositories, name='repositories'),
     url(r'^solutions/$', views.solutions, name='solutions'),
-    url(r'^solutions/mine/$', views.solutions_my, name='solutions_mine'),
-    url(r'^solutions/need-review/$', views.solutions_review, name='solutions_need_review'),
+    url(r'^solutions/mine/$', views.solutions_my, name='solutions_my'),
+    url(r'^solutions/need-review/$', views.solutions_review, name='solutions_review'),
     url(r'^task/', include('task.urls', namespace='task')),
     url(r'^solution/', include('solution.urls', namespace='solution')),
 )
