@@ -70,6 +70,7 @@ def solution(request, project_name, solution_id):
 
     context = {
         'project': project,
+        'solution_tab': "solution",
         'solution': solution,
         'vote': vote,
         'is_owner': solution.is_owner(request.user)
@@ -104,6 +105,7 @@ def commits(request, project_name, solution_id, repository_name):
     context = {
         'user': request.user,
         'project': project,
+        'solution_tab': "commits",
         'solution': solution,
         'repository': repository,
         'commits': commits,

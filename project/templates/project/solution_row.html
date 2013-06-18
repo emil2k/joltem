@@ -1,10 +1,11 @@
+{% load mathfilters %}
 <div class="row">
     <div class="span1 text-center">
         {% if solution.is_completed %}
                 {% if solution.impact > 0 %}
                     <b><span class="text-success">{{ solution.impact }}</span></b>
                 {% elif solution.impact < 0 %}
-                    <b><span class="text-error">{{ solution.impact }}</span></b>
+                    <b><span class="text-error">{{ solution.impact|abs }}</span></b>
                 {% else %}
                     <b><span class="muted">{{ solution.impact }}</span></b>
                 {% endif %}
