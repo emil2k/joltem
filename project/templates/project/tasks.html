@@ -2,9 +2,7 @@
 {% load markup %}
 {% block project_content %}
     {% for task in project.task_set.all %}
-        <p>
-            <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br>
-            {{ task.description|markdown:"tables,fenced_code" }}
-        </p>
+        <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
+        {{ task.description|markdown:"tables,fenced_code" }}
     {% endfor %}
 {% endblock %}

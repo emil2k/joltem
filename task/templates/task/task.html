@@ -1,15 +1,7 @@
-{% extends 'joltem/base.html' %}
+{% extends 'task/base.html' %}
 {% load markup %}
 {% block title %}{{ task.title }} - Joltem{% endblock %}
-{% block content %}
-    <h3>{{ task.title }}</h3>
-    <ul class="breadcrumb">
-        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
-        {% if task.parent %}
-            <li><a href="{% url 'project:solution:solution' project.name task.parent_id %}">{{ task.parent.task.title }}</a> <span class="divider">/</span></li>
-        {% endif %}
-        <li class="active">{{ task.title }}</li>
-    </ul>
+{% block task_content %}
     <div class="row">
         <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a> </p>
         <div class="span8">
