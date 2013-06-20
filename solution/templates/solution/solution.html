@@ -32,7 +32,9 @@
                             <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
                         {% endif %}
                         <button class="btn" type="submit" name="edit" value="1">edit</button>
-                        <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
+                        {% if not solution.is_completed %}
+                            <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
+                        {% endif %}
                     {% endif %}
                 </div>
             </form>

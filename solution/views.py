@@ -41,7 +41,10 @@ def solution(request, project_name, solution_id):
             solution.time_completed = datetime.now()
             solution.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-        # TODO edit and delete
+        # TODO edit
+        if request.POST.get('delete') is not None:
+            solution.delete()
+            return redirect('project:solutions', project_name=project_name)
         # Vote on completed solution
         if request.POST.get('vote') is not None:
             # Get or create with other parameters
