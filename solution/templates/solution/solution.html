@@ -31,7 +31,7 @@
                         {% if not solution.is_completed and solution.is_accepted %}
                             <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
                         {% endif %}
-                        <button class="btn" type="submit" name="edit" value="1">edit</button>
+                        <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
                         {% if not solution.is_completed %}
                             <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
                         {% endif %}

@@ -1,0 +1,11 @@
+{% extends 'solution/base.html' %}
+{% load markup %}
+{% block solution_content %}
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <textarea class="span8" rows=5 name="description" placeholder="Briefly describe how you plan to solve the task.">{% if solution.description %}{{ solution.description }}{% endif %}</textarea><br/>
+            <button class="btn btn-success" type="submit">Edit</button>
+        </p>
+    </form>
+{% endblock %}

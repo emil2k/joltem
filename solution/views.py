@@ -81,6 +81,28 @@ def solution(request, project_name, solution_id):
     return render(request, 'solution/solution.html', context)
 
 
+def solution_edit(request, project_name, solution_id):
+    project = get_object_or_404(Project, name=project_name)
+    solution = get_object_or_404(Solution, id=solution_id)
+
+    is_owner = solution.is_owner(request.user)
+    if not is_owner:
+        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
+    if request.POST:
+        solution.description = request.POST.get('description')
+        solution.save()
+        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
+    context = {
+        'project': project,
+        'solution_tab': "solution",
+        'solution': solution,
+        'is_owner': solution.is_owner(request.user)
+    }
+    return render(request, 'solution/solution_edit.html', context)
+
+
 def commits(request, project_name, solution_id, repository_name):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
