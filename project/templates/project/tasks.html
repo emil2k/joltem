@@ -1,8 +1,17 @@
 {% extends 'project/base.html' %}
 {% load markup %}
 {% block project_content %}
-    {% for task in project.task_set.all %}
-        <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
-        {{ task.description|markdown:"tables,fenced_code" }}
-    {% endfor %}
+    <div class="row">
+        <div class="span2 text-center">
+            <a class="btn btn-success" href="{% url 'project:task:new_task' project.name %}">Create Task</a>
+        </div>
+        <div class="span8">
+            {% for task in project.task_set.all %}
+                <p>
+                    <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
+                    <span class="muted">by {{ task.owner.first_name }}</span>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}

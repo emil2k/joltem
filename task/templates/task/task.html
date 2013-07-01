@@ -3,7 +3,7 @@
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block task_content %}
     <div class="row">
-        <p class="span2"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a> </p>
+        <p class="span2 text-center"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a> </p>
         <div class="span8">
             {{ task.description|markdown:"tables,fenced_code" }}
         </div>

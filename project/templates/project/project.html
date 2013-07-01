@@ -29,30 +29,4 @@
             </p>
         {% endfor %}
     </form>
-    <hr/>
-    <h4><a href="{% url 'project:tasks' project.name %}">Tasks</a></h4>
-    {% if created_task %}
-        <p class="alert alert-success">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            Created : {{ created_task.title }}
-        </p>
-    {% endif %}
-    {% if removed_task %}
-        <p class="alert alert-danger">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            Removed : {{ removed_task.title }}
-        </p>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <p><a class="btn btn-success" href="{% url 'project:task:new_task' project.name %}">Create Task</a></p>
-        <hr/>
-        {% for task in project.task_set.all %}
-            <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_task" value="{{ task.id }}">Remove</button>
-            <div class="offset1">
-                <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br>
-                {{ task.description|markdown:"tables,fenced_code" }}
-            </div>
-        {% endfor %}
-    </form>
 {% endblock %}
