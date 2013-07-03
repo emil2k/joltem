@@ -1,15 +1,65 @@
 {% extends 'solution/base.html' %}
 {% load markup %}
+{% load filters %}
 {% block solution_content %}
-    {% if solution.is_accepted %}
-        <div class="alert alert-success">
-            <b>This solution has been accepted</b> on {{ solution.time_accepted|date }}, you may begin work.
+    {% if solution.is_completed %}
+        <div class="alert alert-info" xmlns="http://www.w3.org/1999/html">
+            <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
+        </div>
+    {% elif solution.is_accepted %}
+        <div class="alert alert-success" xmlns="http://www.w3.org/1999/html">
+            <b>This solution was accepted</b> on {{ solution.time_accepted|date }}, you may begin work.
         </div>
     {% else %}
         <div class="alert alert-danger">
             <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
         </div>
     {% endif %}
+    {% if solution.is_completed %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="span2 text-center">
+                    {% if vote or is_owner %}
+                        <small class="muted">{{ solution.vote_set.count }} votes</small>
+                        {% if solution.impact > 0 %}
+                            <h2 class="text-success">{{ solution.impact }}</h2>
+                        {% elif solution.impact < 0 %}
+                            {% load mathfilters %}
+                            <h2 class="text-error">{{ solution.impact|abs }}</h2>
+                        {% else %}
+                            <h2 class="muted">0</h2>
+                        {% endif %}
+                        <p class="{% if solution.acceptance < 80 %}text-error{% else %}muted{% endif %}">
+                            {{ solution.acceptance }}%<br/>
+                            <small>acceptance</small><br/>
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="span8">
+                    <p>
+                        <div class="btn-group">
+                            <button class="btn {{ vote.is_rejected|css_class:"btn-danger" }}" type="submit" name="vote" value="reject"><i class="icon-remove {{ vote.is_rejected|css_class:"icon-white" }}"></i></button>
+                            <button class="btn" type="submit" disabled><i>Impact</i></button>
+                            <button class="btn {{ vote.vote|vote:0 }}" type="submit" name="vote" value="0"><b>0</b></button>
+                            <button class="btn {{ vote.vote|vote:1 }}" type="submit" name="vote" value="1"><b>1</b></button>
+                            <button class="btn {{ vote.vote|vote:2 }}" type="submit" name="vote" value="2"><b>2</b></button>
+                            <button class="btn {{ vote.vote|vote:3 }}" type="submit" name="vote" value="3"><b>3</b></button>
+                            <button class="btn {{ vote.vote|vote:4 }}" type="submit" name="vote" value="4"><b>4</b></button>
+                            <button class="btn {{ vote.vote|vote:5 }}" type="submit" name="vote" value="5"><b>5</b></button>
+                            <button class="btn {{ vote.vote|vote:6 }}" type="submit" name="vote" value="6"><b>6</b></button>
+                            <button class="btn {{ vote.vote|vote:7 }}" type="submit" name="vote" value="7"><b>7</b></button>
+                            <button class="btn {{ vote.vote|vote:8 }}" type="submit" name="vote" value="8"><b>8</b></button>
+                            <button class="btn {{ vote.vote|vote:9 }}" type="submit" name="vote" value="9"><b>9</b></button>
+                            <button class="btn {{ vote.vote|vote:10 }}" type="submit" name="vote" value="10"><b>10</b></button>
+                        </div>
+                    </p>
+                    <textarea class="span8" rows=5 name="comment" placeholder="Comment about solution."></textarea><br/>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+    <hr/>
     <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
     <h4><a href="#">{{ solution.user.first_name }}</a></h4>
     <div class="row">
@@ -45,48 +95,6 @@
             <h4>Tasks</h4>
             {% include 'solution/solution_tasks.html' %}
             <hr/>
-        </div>
-        <div class="span2 text-center">
-            {% if solution.is_completed %}
-                <form method="post">
-                    {% csrf_token %}
-                    {% if vote or is_owner %}
-                        {% if solution.impact > 0 %}
-                            <h2 class="text-success">{{ solution.impact }}</h2>
-                        {% elif solution.impact < 0 %}
-                            {% load mathfilters %}
-                            <h2 class="text-error">{{ solution.impact|abs }}</h2>
-                        {% else %}
-                            <h2 class="muted">0</h2>
-                        {% endif %}
-                    {% endif %}
-                    {% if not is_owner %}
-                        <p>
-                        <div class="btn-group btn-group-vertical">
-                            {% if vote.vote == 10 %}
-                                <button class="btn btn-warning" type="submit" name="vote" value="10"><i class="icon-star icon-white"></i></button>
-                            {% else %}
-                                <button class="btn" type="submit" name="vote" value="10"><i class="icon-star"></i></button>
-                            {% endif %}
-                            {% if vote.vote == 1 %}
-                                <button class="btn btn-success" type="submit" name="vote" value="1"><i class="icon-ok icon-white"></i></button>
-                            {% else %}
-                                <button class="btn" type="submit" name="vote" value="1"><i class="icon-ok"></i></button>
-                            {% endif %}
-                            {% if vote.vote == -1 %}
-                                <button class="btn btn-danger" type="submit" name="vote" value="-1"><i class="icon-remove icon-white"></i></button>
-                            {% else %}
-                                <button class="btn" type="submit" name="vote" value="-1"><i class="icon-remove"></i></button>
-                            {% endif %}
-                        </div>
-                        </p>
-                    {% endif %}
-                    {% if vote or is_owner %}
-                        <p class="muted">{{ solution.vote_set.count }} votes</p>
-                    {% endif %}
-                </form>
-                <p class="text-info">Marked Completed<br/>{{ solution.time_completed|date }}</p>
-            {% endif %}
         </div>
     </div>
     {% if solution.is_accepted and is_owner %}

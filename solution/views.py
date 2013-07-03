@@ -46,7 +46,8 @@ def solution(request, project_name, solution_id):
             solution.delete()
             return redirect('project:solutions', project_name=project_name)
         # Vote on completed solution
-        if request.POST.get('vote') is not None:
+        vote_input = request.POST.get('vote')
+        if vote_input is not None:
             # Get or create with other parameters
             try:
                 vote = Vote.objects.get(
@@ -59,7 +60,15 @@ def solution(request, project_name, solution_id):
                     voter=request.user
                 )
             from datetime import datetime
-            vote.vote = request.POST.get('vote')
+            if vote_input == 'reject':
+                vote.is_accepted = False
+                vote.is_rejected = True
+                vote.vote = None
+            else:
+                vote.is_accepted = True
+                vote.is_rejected = False
+                vote.vote = vote_input
+            vote.comment = request.POST.get('comment')
             vote.time_voted = datetime.now()
             vote.voter_impact = request.user.get_profile().impact
             vote.save()

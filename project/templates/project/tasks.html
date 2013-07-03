@@ -2,8 +2,8 @@
 {% load markup %}
 {% block project_content %}
     <div class="row">
-        <div class="span2 text-center">
-            <a class="btn btn-success" href="{% url 'project:task:new_task' project.name %}">Create Task</a>
+        <div class="span1 text-center">
+            <a class="btn btn-success" href="{% url 'project:task:new_task' project.name %}">Create</a>
         </div>
         <div class="span8">
             {% for task in project.task_set.all %}

@@ -31,17 +31,36 @@ class Solution(models.Model):
         return str(self.id)
 
     @property
+    def acceptance(self):
+        '''
+        Impact-weighted percentage of acceptance amongst reviewers
+        '''
+        votes = self.vote_set.filter(voter_impact__gt=0)
+        weighted_sum = 0
+        impact_sum = 0
+        for vote in votes:
+            impact_sum += vote.voter_impact
+            if vote.is_accepted:
+                weighted_sum += vote.voter_impact
+        if impact_sum == 0:
+            return 0
+        else:
+            return int(round(100 * weighted_sum/float(impact_sum)))
+
+    @property
     def impact(self):
         votes = self.vote_set.filter(voter_impact__gt=0)
         weighted_sum = 0
         impact_sum = 0
         for vote in votes:
-            weighted_sum += vote.voter_impact * vote.vote
             impact_sum += vote.voter_impact
+            # TODO determine how to count rejected votes
+            if vote.is_accepted:
+                weighted_sum += vote.voter_impact * vote.vote
         if impact_sum == 0:
             return 0
         else:
-            return int(round(10 * weighted_sum/float(impact_sum)))
+            return int(round(weighted_sum/float(impact_sum)))
 
     def is_owner(self, user):
         """
@@ -55,7 +74,10 @@ class Vote(models.Model):
     Votes cast when solution is marked completed, code is reviewed
     """
     voter_impact = models.BigIntegerField()  # at time of vote
-    vote = models.SmallIntegerField()  # 1 or -1
+    is_accepted = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
+    vote = models.SmallIntegerField(null=True, blank=True)  # 0-10 scale of impact of task if accepted
+    comment = models.TextField(null=True, blank=True)
     time_voted = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)
