@@ -1,0 +1,102 @@
+{% extends 'solution/base.html' %}
+{% load markup %}
+{% load filters %}
+{% block solution_content %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="span2 text-center">
+                {% if vote or is_owner %}
+                    {% if solution.impact > 0 %}
+                        <h2 class="text-success">{{ solution.impact }}</h2>
+                    {% elif solution.impact < 0 %}
+                        {% load mathfilters %}
+                        <h2 class="text-error">{{ solution.impact|abs }}</h2>
+                    {% else %}
+                        <h2 class="muted">0</h2>
+                    {% endif %}
+                    <small class="muted">impact</small>
+                {% endif %}
+            </div>
+            <div class="span8 text-center">
+                <p>
+                    <div class="btn-group">
+                        <button class="btn {{ vote.is_rejected|css_class:"btn-danger" }}" type="submit" name="vote" value="reject"><i class="icon-remove {{ vote.is_rejected|css_class:"icon-white" }}"></i></button>
+                        <button class="btn" type="submit" disabled><i>Impact</i></button>
+                        <button class="btn {{ vote.vote|vote:0 }}" type="submit" name="vote" value="0"><b>0</b></button>
+                        <button class="btn {{ vote.vote|vote:1 }}" type="submit" name="vote" value="1"><b>1</b></button>
+                        <button class="btn {{ vote.vote|vote:2 }}" type="submit" name="vote" value="2"><b>2</b></button>
+                        <button class="btn {{ vote.vote|vote:3 }}" type="submit" name="vote" value="3"><b>3</b></button>
+                        <button class="btn {{ vote.vote|vote:4 }}" type="submit" name="vote" value="4"><b>4</b></button>
+                        <button class="btn {{ vote.vote|vote:5 }}" type="submit" name="vote" value="5"><b>5</b></button>
+                        <button class="btn {{ vote.vote|vote:6 }}" type="submit" name="vote" value="6"><b>6</b></button>
+                        <button class="btn {{ vote.vote|vote:7 }}" type="submit" name="vote" value="7"><b>7</b></button>
+                        <button class="btn {{ vote.vote|vote:8 }}" type="submit" name="vote" value="8"><b>8</b></button>
+                        <button class="btn {{ vote.vote|vote:9 }}" type="submit" name="vote" value="9"><b>9</b></button>
+                        <button class="btn {{ vote.vote|vote:10 }}" type="submit" name="vote" value="10"><b>10</b></button>
+                    </div>
+                </p>
+                <small class="muted">{{ solution.vote_set.count }} votes</small>
+            </div>
+            <div class="span2 text-center">
+                {% if vote or is_owner %}
+                    {% if solution.acceptance > 90 %}
+                        <h2 class="text-success">{{ solution.acceptance }}%</h2>
+                    {% else %}
+                        {% load mathfilters %}
+                        <h2 class="text-error">{{ solution.acceptance }}%</h2>
+                    {% endif %}
+                    <small class="muted">acceptance</small>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="offset2 span4 text-center" style="border-right: solid 1px #eeeeee">
+            {% for vote in accept_votes %}
+                <p>
+                    <i class="icon-ok"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+                    <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
+                </p>
+            {% endfor %}
+        </div>
+        <div class="span4 text-center">
+            {% for vote in reject_votes %}
+                <p>
+                    <i class="icon-remove"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+                    <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+    <hr/>
+    {% for comment in solution.votecomment_set.all %}
+        <div class="row">
+            <div class="span2 text-center">
+                <p>
+                    <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=75" /><br/>
+                </p>
+                <p>
+                    <b><a href="#">{{ comment.commenter.first_name }}</a></b><br/>
+                </p>
+            </div>
+            <div class="span8">
+                <p>
+                    <small class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</small>
+                </p>
+                {{ comment.comment|markdown:"tables,fenced_code" }}
+            </div>
+        </div>
+        <hr/>
+    {% endfor %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="offset2 span8">
+                <textarea class="offset2 span8" rows=5 name="comment" placeholder="Comment about solution."></textarea><br/>
+                <button class="btn" type="submit">Comment</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

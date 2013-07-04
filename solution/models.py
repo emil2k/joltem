@@ -60,7 +60,7 @@ class Solution(models.Model):
         if impact_sum == 0:
             return 0
         else:
-            return int(round(weighted_sum/float(impact_sum)))
+            return int(round(10 * weighted_sum/float(impact_sum)))
 
     def is_owner(self, user):
         """
@@ -88,3 +88,15 @@ class Vote(models.Model):
 
     def __unicode__(self):
         return str(self.vote)
+
+
+class VoteComment(models.Model):
+    """
+    Comments on votes in a solution review
+    """
+    comment = models.TextField(null=True, blank=True)
+    time_commented = models.DateTimeField(default=datetime.now)
+    # Relations
+    solution = models.ForeignKey(Solution)
+    commenter = models.ForeignKey(User)
+

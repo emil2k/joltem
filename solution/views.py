@@ -3,7 +3,7 @@ from django.http.response import HttpResponseNotFound
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, Vote
+from solution.models import Solution, Vote, VoteComment
 
 
 def new_solution(request, project_name, task_id):
@@ -41,7 +41,7 @@ def solution(request, project_name, solution_id):
             solution.time_completed = datetime.now()
             solution.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-        # TODO edit
+        # Delete solution
         if request.POST.get('delete') is not None:
             solution.delete()
             return redirect('project:solutions', project_name=project_name)
@@ -93,7 +93,6 @@ def solution(request, project_name, solution_id):
 def solution_edit(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
-
     is_owner = solution.is_owner(request.user)
     if not is_owner:
         return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
@@ -110,6 +109,61 @@ def solution_edit(request, project_name, solution_id):
         'is_owner': solution.is_owner(request.user)
     }
     return render(request, 'solution/solution_edit.html', context)
+
+
+def review(request, project_name, solution_id):
+    project = get_object_or_404(Project, name=project_name)
+    solution = get_object_or_404(Solution, id=solution_id)
+    is_owner = solution.is_owner(request.user)
+    try:
+        vote = Vote.objects.get(
+            solution_id=solution.id,
+            voter_id=request.user.id
+        )
+    except Vote.DoesNotExist:
+        vote = None
+    if request.POST:
+        from datetime import datetime
+        comment = request.POST.get('comment')
+        if comment is not None:
+            vote_comment = VoteComment(
+                time_commented=datetime.now(),
+                commenter=request.user,
+                solution=solution,
+                comment=comment
+            )
+            vote_comment.save()
+            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
+        vote_input = request.POST.get('vote')
+        if vote_input is not None:
+            if vote is None:
+                vote = Vote(
+                    solution=solution,
+                    voter=request.user
+                )
+            if vote_input == 'reject':
+                vote.is_accepted = False
+                vote.is_rejected = True
+                vote.vote = None
+            else:
+                vote.is_accepted = True
+                vote.is_rejected = False
+                vote.vote = vote_input
+            vote.comment = request.POST.get('comment')
+            vote.time_voted = datetime.now()
+            vote.voter_impact = request.user.get_profile().impact
+            vote.save()
+            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
+    context = {
+        'project': project,
+        'solution_tab': "review",
+        'solution': solution,
+        'accept_votes': solution.vote_set.filter(is_accepted=True),
+        'reject_votes': solution.vote_set.filter(is_rejected=True),
+        'vote': vote,
+        'is_owner': is_owner
+    }
+    return render(request, 'solution/review.html', context)
 
 
 def commits(request, project_name, solution_id, repository_name):
