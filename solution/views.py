@@ -140,7 +140,7 @@ def review(request, project_name, solution_id):
             vote_comment.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
         vote_input = request.POST.get('vote')
-        if vote_input is not None:
+        if vote_input is not None and not is_owner:
             if vote is None:
                 vote = Vote(
                     solution=solution,

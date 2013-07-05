@@ -1,0 +1,16 @@
+<div class="span4 text-center" style="border-right: solid 1px #eeeeee">
+    {% for vote in accept_votes %}
+        <p>
+            <i class="icon-ok"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+            <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
+        </p>
+    {% endfor %}
+</div>
+<div class="span4 text-center">
+    {% for vote in reject_votes %}
+        <p>
+            <i class="icon-remove"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+            <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
+        </p>
+    {% endfor %}
+</div>
