@@ -115,6 +115,11 @@ def review(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
+
+    # Redirect if solution is not ready for review
+    if not solution.is_completed:
+            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
     try:
         vote = Vote.objects.get(
             solution_id=solution.id,
