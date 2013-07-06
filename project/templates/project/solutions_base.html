@@ -3,6 +3,7 @@
 {% block project_content %}
     <div class="tabbable tabs-right">
         <ul class="nav nav-tabs">
+            <li class="{{ solutions_tab|active:"all" }}"><a href="{% url 'project:solutions' project.name %}">All</a></li>
             <li class="{{ solutions_tab|active:"my" }}"><a href="{% url 'project:solutions_my' project.name %}">My Solutions</a></li>
             <li class="{{ solutions_tab|active:"review" }}"><a href="{% url 'project:solutions_review' project.name %}">Need Review</a></li>
         </ul>

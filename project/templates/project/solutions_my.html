@@ -1,10 +1,8 @@
 {% extends 'project/solutions_base.html' %}
 {% block solutions_content %}
-    {% if solutions %}
-        {% for solution in solutions %}
-            {% include "project/solution_row.html" %}
-        {% endfor %}
-    {% else %}
+    {% for solution in solutions %}
+        {% include "project/solution_row.html" %}
+    {% empty %}
         <p class="muted">You have not provided any solutions to this project :(</p>
-    {% endif %}
+    {% endfor %}
 {% endblock %}

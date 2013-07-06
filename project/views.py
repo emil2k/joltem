@@ -59,6 +59,17 @@ def repositories(request, project_name):
     return render(request, 'project/repositories.html', context)
 
 
+def solutions(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    context = {
+        'solutions_tab': "all",
+        'project_tab': "solutions",
+        'project': project,
+        'solutions': project.solution_set.all().order_by('-id')
+    }
+    return render(request, 'project/solutions_all.html', context)
+
+
 def solutions_my(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     context = {
@@ -84,7 +95,3 @@ def solutions_review(request, project_name):
         'solutions': need_review
     }
     return render(request, 'project/solutions_review.html', context)
-
-
-def solutions(request, project_name):
-    return solutions_my(request, project_name)  # default to my solutions
