@@ -1,8 +1,0 @@
-{% extends 'project/base.html' %}
-{% block project_content %}
-<ul>
-{% for repository in repositories %}
-    <li><a href="{% url 'project:git:repository' project.name repository.name %}">{{ repository.name }}</a></li>
-{% endfor %}
-</ul>
-{% endblock %}

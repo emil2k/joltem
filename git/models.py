@@ -10,6 +10,7 @@ class Repository(models.Model):
     """
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    is_hidden = models.BooleanField(default=False)
     # Relations
     project = models.ForeignKey(Project)
 
@@ -35,8 +36,7 @@ class Repository(models.Model):
         return self.full_name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if not self.pk:
-            new = True
+        new = False if self.pk else True
         super(Repository, self).save(force_insert, force_update, using, update_fields)
         if new:
             import subprocess

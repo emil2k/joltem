@@ -8,5 +8,11 @@ class Project(models.Model):
     # Relations
     users = models.ManyToManyField(User)
 
+    def is_admin(self, user):
+        """
+        Check if user is an admin of the project
+        """
+        return self.users.filter(id=user.id).count() > 0
+
     def __unicode__(self):
         return self.name

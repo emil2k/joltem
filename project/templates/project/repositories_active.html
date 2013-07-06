@@ -1,0 +1,26 @@
+{% extends 'project/repositories_base.html' %}
+{% block repositories_content %}
+    <form method="post" class="form-inline">
+        {% csrf_token %}
+        {% for repo in repositories %}
+            <div class="row">
+                {% if is_admin %}
+                    <div class="span1 text-center">
+                        <button class="btn btn-mini" type="submit" name="hide_repo" value="{{ repo.id }}">Hide</button>
+                    </div>
+                {% endif %}
+                <div class="span8">
+                    <p>
+                        <a href="{% url 'project:git:repository' project.name repo.name %}">{{ repo.full_name }}</a>
+                        {% if repo.description %}
+                            <br/>
+                            {{ repo.description }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% empty %}
+            <p class="muted">There is no active repositories for this project.</p>
+        {% endfor %}
+    </form>
+{% endblock %}

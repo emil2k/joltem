@@ -1,32 +1,5 @@
 {% extends 'project/base.html' %}
-{% load markup  %}
 {% block project_content %}
-    <h4><a href="{% url 'project:repositories' project.name %}">Repositories</a></h4>
-    {% if created_repo %}
-        <p class="alert alert-success">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            Created : {{ created_repo.name }}
-        </p>
-    {% endif %}
-    {% if removed_repo %}
-        <p class="alert alert-danger">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            Removed : {{ removed_repo.name }}
-        </p>
-    {% endif %}
-    <form method="post" class="form-inline">
-        {% csrf_token %}
-        <p>
-            <input type="text" name="name" placeholder="Name, i.e. git-server"/>
-            <input type="text" class="input-xxlarge" name="description" placeholder="Description of repository."/>
-            <button class="btn btn-success" type="submit" name="action" value="create_repo">Create</button>
-        </p>
-        {% for repo in project.repository_set.all %}
-            <button class="btn btn-small btn-danger pull-left" type="submit" name="remove_repo" value="{{ repo.id }}">Remove</button>
-            <p class="offset1">
-                <a href="{% url 'project:git:repository' project.name repo.name %}">{{ repo.name }}</a><br/>
-                {{ repo.description }}
-            </p>
-        {% endfor %}
-    </form>
+    <p class="text-warning">Under construction, get on.</p>
 {% endblock %}
+
