@@ -17,9 +17,11 @@
     </div>
     <div class="span8">
         <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.task.title }}</a><br>
-        <span class="muted">by {{ solution.user.first_name }} on {{ solution.time_posted|date }}</span>
-        {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}
-        {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
+        <small class="muted">
+            by {{ solution.user.first_name }} on {{ solution.time_posted|date }}
+            {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}
+            {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
+        </small>
     </div>
 </div>
 
