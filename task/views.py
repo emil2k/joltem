@@ -70,18 +70,35 @@ def task(request, project_name, task_id):
     return render(request, 'task/task.html', context)
 
 
-def list(request, project_name):
+def list(request, project_name, parent_task_id):
     project = get_object_or_404(Project, name=project_name)
-    tasks = project.task_set.all().order_by('-id')
     is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "all",
         'project': project,
-        'tasks': tasks,
         'is_admin': is_admin,
     }
-    return render(request, 'task/list.html', context)
+    if parent_task_id is not None:
+        parent_task = get_object_or_404(Task, id=parent_task_id)
+        context['parent_task'] = parent_task
+
+        class SubtaskGroup:
+            def __init__(self, solution, tasks):
+                self.solution = solution
+                self.tasks = tasks
+        subtask_groups = []
+        for solution in parent_task.solution_set.all().order_by('-id'):
+            if solution.tasks.count() > 0:
+                subtask_group = SubtaskGroup(solution, solution.tasks.all().order_by('-id'))
+                subtask_groups.append(subtask_group)
+        context['subtask_groups'] = subtask_groups
+        return render(request, 'task/list_parent.html', context)
+    else:
+        tasks = project.task_set.all().order_by('-id')
+        context['tasks'] = tasks
+        return render(request, 'task/list.html', context)
+
 
 
 def browse(request, project_name):
