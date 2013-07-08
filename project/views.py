@@ -13,15 +13,6 @@ def project(request, project_name):
     return render(request, 'project/project.html', context)
 
 
-def tasks(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'project_tab': "tasks",
-        'project': project
-    }
-    return render(request, 'project/tasks.html', context)
-
-
 def repositories(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     is_admin = project.is_admin(request.user)

@@ -45,7 +45,7 @@
             </form>
             <hr/>
             {% if is_owner %}
-                <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new_task' project.name solution.id %}">create task</a></p>
+                <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
             {% endif %}
             <h4>Tasks</h4>
             {% include 'solution/solution_tasks.html' %}

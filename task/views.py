@@ -5,10 +5,11 @@ from task.models import Task
 from solution.models import Solution
 
 
-def new_task(request, project_name, parent_solution_id):
+def new(request, project_name, parent_solution_id):
     project = get_object_or_404(Project, name=project_name)
     context = {
         'project_tab': "tasks",
+        'tasks_tab': "new",
         'project': project
     }
     if parent_solution_id is not None:
@@ -31,7 +32,7 @@ def new_task(request, project_name, parent_solution_id):
             created_task.save()
             if parent_solution is not None:
                 return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution_id)
-            return redirect('project:tasks', project_name=project.name)
+            return redirect('project:task:list', project_name=project.name)
     return render(request, 'task/new_task.html', context)
 
 
@@ -63,3 +64,25 @@ def task(request, project_name, task_id):
         'is_owner': task.is_owner(request.user),
     }
     return render(request, 'task/task.html', context)
+
+
+def list(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    tasks = project.task_set.all().order_by('-id')
+    context = {
+        'project_tab': "tasks",
+        'tasks_tab': "all",
+        'project': project,
+        'tasks': tasks
+    }
+    return render(request, 'task/list.html', context)
+
+
+def browse(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    context = {
+        'project_tab': "tasks",
+        'tasks_tab': "browse",
+        'project': project
+    }
+    return render(request, 'task/browse.html', context)

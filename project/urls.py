@@ -5,7 +5,6 @@ urlpatterns = patterns(
     '',
     url(r'^$', views.project, name='project'),
     url(r'^git/', include('git.urls', namespace='git')),
-    url(r'^tasks/$', views.tasks, name='tasks'),
     url(r'^repositories/$', views.repositories, name='repositories'),
     url(r'^repositories/hidden/$', views.repositories_hidden, name='repositories_hidden'),
     url(r'^repositories/new/$', views.new_repository, name='new_repository'),
