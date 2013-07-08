@@ -17,7 +17,7 @@
         <li class="{{ solution_tab|active:"solution" }}"><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>
         <li class="{{ solution_tab|active:"commits" }}"><a href="{% url 'project:solution:commits' project.name solution.id %}">Commits</a></li>
         {% if solution.is_completed %}
-            <li class="{{ solution_tab|active:"review" }}"><a href="{% url 'project:solution:review' project.name solution.id %}">Review</a></li>
+            <li class="{{ solution_tab|active:"review" }}"><a href="{% url 'project:solution:solution_review' project.name solution.id %}">Review</a></li>
         {% endif %}
     </ul>
     {% block solution_content %}{% endblock %}
