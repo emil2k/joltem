@@ -7,6 +7,9 @@ from solution.models import Solution
 
 def new(request, project_name, parent_solution_id):
     project = get_object_or_404(Project, name=project_name)
+    is_admin = project.is_admin(request.user)
+    if not is_admin and parent_solution_id is None:
+        return redirect('project:task:list', project_name=project_name)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "new",
@@ -69,20 +72,24 @@ def task(request, project_name, task_id):
 def list(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     tasks = project.task_set.all().order_by('-id')
+    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "all",
         'project': project,
-        'tasks': tasks
+        'tasks': tasks,
+        'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)
 
 
 def browse(request, project_name):
     project = get_object_or_404(Project, name=project_name)
+    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "browse",
-        'project': project
+        'project': project,
+        'is_admin': is_admin,
     }
     return render(request, 'task/browse.html', context)
