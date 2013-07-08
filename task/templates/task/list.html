@@ -6,11 +6,15 @@
                 {{ task.solution_set.count }}<br/>
                 <small>solutions</small>
             </div>
-                <div class="span8">
+            <div class="span8">
                 <p>
                     <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
                     <small class="muted">by {{ task.owner.first_name }} on {{ task.time_posted|date }}</small>
                 </p>
+            </div>
+            <div class="span1 text-center muted">
+                {{ task.subtasks }}<br/>
+                <small>tasks</small>
             </div>
         </div>
     {% endfor %}

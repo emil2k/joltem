@@ -17,6 +17,16 @@ class Task(models.Model):
     def __unicode__(self):
         return self.title
 
+    @property
+    def subtasks(self):
+        """
+        Count of all subtasks stemming from this task
+        """
+        count = 0
+        for solution in self.solution_set.all():
+            count += solution.subtasks
+        return count
+
     def is_owner(self, user):
         """
         Whether the passed user is person who posted the task

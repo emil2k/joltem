@@ -13,7 +13,8 @@ def new(request, project_name, parent_solution_id):
     context = {
         'project_tab': "tasks",
         'tasks_tab': "new",
-        'project': project
+        'project': project,
+        'is_admin': is_admin,
     }
     if parent_solution_id is not None:
         parent_solution = Solution.objects.get(id=parent_solution_id)

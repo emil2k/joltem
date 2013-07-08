@@ -62,6 +62,16 @@ class Solution(models.Model):
         else:
             return int(round(10 * weighted_sum/float(impact_sum)))
 
+    @property
+    def subtasks(self):
+        """
+        Count of all subtasks stemming from this solution
+        """
+        count = self.tasks.all().count()
+        for subtask in self.tasks.all():
+            count += subtask.subtasks
+        return count
+
     def is_owner(self, user):
         """
         Returns whether passed user is the person who posted this solution
