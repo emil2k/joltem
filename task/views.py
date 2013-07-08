@@ -108,6 +108,7 @@ def browse(request, project_name):
         'project_tab': "tasks",
         'tasks_tab': "browse",
         'project': project,
+        'tasks': project.task_set.filter(parent=None),
         'is_admin': is_admin,
     }
-    return render(request, 'task/browse.html', context)
+    return render(request, 'task/list.html', context)
