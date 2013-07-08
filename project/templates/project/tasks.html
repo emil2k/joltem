@@ -9,7 +9,7 @@
             {% for task in project.task_set.all %}
                 <p>
                     <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
-                    <small class="muted">by {{ task.owner.first_name }}</small>
+                    <small class="muted">by {{ task.owner.first_name }} on {{ task.time_posted|date }}</small>
                 </p>
             {% endfor %}
         </div>
