@@ -16,14 +16,15 @@
         </div>
     {% endif %}
     <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
-    <h4><a href="#">{{ solution.user.first_name }}</a></h4>
     <div class="row">
         <div class="span2">
+            <h4><a href="#">{{ solution.user.first_name }}</a></h4>
             <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=100" /></p>
             <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
             <p><b>{{ solution.user.get_profile.completed }}</b> solutions</p>
         </div>
         <div class="span8">
+            <h4>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span></h4>
             {% if solution.description %}
                 {{ solution.description|markdown:"tables,fenced_code" }}
             {% else %}
