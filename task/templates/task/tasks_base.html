@@ -4,6 +4,7 @@
     <div class="tabbable tabs-right">
         <ul class="nav nav-tabs">
             <li class="{{ tasks_tab|active:"all" }}"><a href="{% url 'project:task:list' project.name %}">All</a></li>
+            <li class="{{ tasks_tab|active:"my" }}"><a href="{% url 'project:task:my' project.name %}">My Tasks</a></li>
             <li class="{{ tasks_tab|active:"browse" }}"><a href="{% url 'project:task:browse' project.name %}">Browse</a></li>
             {% if is_admin %}
                 <li class="{{ tasks_tab|active:"new" }}"><a href="{% url 'project:task:new' project.name %}">Create</a></li>

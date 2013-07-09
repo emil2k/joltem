@@ -100,7 +100,6 @@ def list(request, project_name, parent_task_id):
         return render(request, 'task/list.html', context)
 
 
-
 def browse(request, project_name):
     project = get_object_or_404(Project, name=project_name)
     is_admin = project.is_admin(request.user)
@@ -109,6 +108,19 @@ def browse(request, project_name):
         'tasks_tab': "browse",
         'project': project,
         'tasks': project.task_set.filter(parent=None),
+        'is_admin': is_admin,
+    }
+    return render(request, 'task/list.html', context)
+
+
+def my(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    is_admin = project.is_admin(request.user)
+    context = {
+        'project_tab': "tasks",
+        'tasks_tab': "my",
+        'project': project,
+        'tasks': project.task_set.filter(owner=request.user),
         'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)

@@ -8,4 +8,5 @@ urlpatterns = patterns(
     url(r'^(?P<task_id>(\d)+)/$', views.task, name='task'),
     url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.list, name='list'),
     url(r'^browse/$', views.browse, name='browse'),
+    url(r'^my/$', views.my, name='my'),
 )
