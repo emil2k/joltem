@@ -41,10 +41,12 @@ def new(request, project_name, parent_solution_id):
 
 
 def task(request, project_name, task_id):
-    project = Project.objects.get(name=project_name)
-    task = Task.objects.get(id=task_id)
-
+    project = get_object_or_404(Project, name=project_name)
+    task = get_object_or_404(Task, id=task_id)
+    is_owner = task.is_owner(request.user)
     if request.POST:
+        if not is_owner:
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
         accept = request.POST.get('accept')
         from datetime import datetime
         if accept is not None:
@@ -69,9 +71,32 @@ def task(request, project_name, task_id):
     context = {
         'project': project,
         'task': task,
-        'is_owner': task.is_owner(request.user),
+        'is_owner': is_owner,
     }
     return render(request, 'task/task.html', context)
+
+
+def edit(request, project_name, task_id):
+    project = get_object_or_404(Project, name=project_name)
+    task = get_object_or_404(Task, id=task_id)
+    is_owner = task.is_owner(request.user)
+    if request.POST:
+        if not is_owner:
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+        title = request.POST.get('title')
+        if title is not None:
+            task.title = title
+            task.description = request.POST.get('description')
+            task.save()
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+    context = {
+        'project_tab': "tasks",
+        'tasks_tab': "my",
+        'project': project,
+        'task': task,
+        'is_owner': is_owner,
+    }
+    return render(request, 'task/task_edit.html', context)
 
 
 def list(request, project_name, parent_task_id):

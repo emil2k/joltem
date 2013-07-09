@@ -22,7 +22,7 @@
                         {% if not task.is_closed %}
                             <button class="btn" type="submit" name="close" value="1">close</button>
                         {% endif %}
-                        <button class="btn" type="submit" name="edit" value="1">edit</button>
+                        <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     </div>
                 </form>
             {% endif %}
