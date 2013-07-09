@@ -1,7 +1,7 @@
 {% extends 'solution/solutions_base.html' %}
 {% block solutions_content %}
     {% for solution in solutions %}
-        {% include "project/solution_row.html" %}
+        {% include "solution/solution_row.html" %}
     {% empty %}
         <p class="muted">The project has no solutions, yet :(</p>
     {% endfor %}

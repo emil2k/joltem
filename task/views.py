@@ -69,8 +69,10 @@ def task(request, project_name, task_id):
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
     context = {
+        'project_tab': "tasks",
         'project': project,
         'task': task,
+        'solutions': task.solution_set.all().order_by('-id'),
         'is_owner': is_owner,
     }
     return render(request, 'task/task.html', context)
