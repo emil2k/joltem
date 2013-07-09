@@ -15,7 +15,6 @@
             <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
         </div>
     {% endif %}
-    <span class="muted pull-right">{{ solution.time_posted|timesince }} ago.</span>
     <div class="row">
         <div class="span2">
             <h4><a href="#">{{ solution.user.first_name }}</a></h4>
@@ -51,6 +50,9 @@
             <h4>Tasks</h4>
             {% include 'solution/solution_tasks.html' %}
             <hr/>
+        </div>
+        <div class="span2 muted text-right">
+            {{ solution.time_posted|timesince }} ago.
         </div>
     </div>
     {% if solution.is_accepted and is_owner %}

@@ -8,25 +8,29 @@
         </div>
     {% endif %}
     <div class="row">
-        <div class="span2 text-center">
-            {% if not task.is_closed %}
-                <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a>
-            {% endif %}
+        <div class="span2">
+            <h4><a href="#">{{ task.owner.first_name }}</a></h4>
+            <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=100" /></p>
+            <p><b>{{ task.owner.get_profile.impact }}</b> impact</p>
+            <p><b>{{ task.owner.get_profile.completed }}</b> solutions</p>
         </div>
         <div class="span8">
             <h4>{{ task.title }}</h4>
             {{ task.description|markdown:"tables,fenced_code" }}
-            {% if is_owner %}
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="btn-group">
+            <form method="post">
+                {% csrf_token %}
+                <div class="btn-group">
+                    {% if not task.is_closed %}
+                        <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">apply</a>
+                    {% endif %}
+                    {% if is_owner %}
                         {% if not task.is_closed %}
                             <button class="btn" type="submit" name="close" value="1">close</button>
                         {% endif %}
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
-                    </div>
-                </form>
-            {% endif %}
+                    {% endif %}
+                </div>
+            </form>
             <hr/>
         </div>
     </div>
