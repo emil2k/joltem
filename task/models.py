@@ -8,7 +8,9 @@ from datetime import datetime
 class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    is_closed = models.BooleanField(default=False)
     time_posted = models.DateTimeField(default=datetime.now)
+    time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     project = models.ForeignKey(Project)
     parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="tasks")
@@ -20,7 +22,7 @@ class Task(models.Model):
     @property
     def subtasks(self):
         """
-        Count of all subtasks stemming from this task
+        Count of open subtasks stemming from this task
         """
         count = 0
         for solution in self.solution_set.all():

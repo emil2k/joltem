@@ -46,20 +46,24 @@ def task(request, project_name, task_id):
 
     if request.POST:
         accept = request.POST.get('accept')
-        cancel = request.POST.get('cancel')
+        from datetime import datetime
         if accept is not None:
-            from datetime import datetime
             solution = task.solution_set.get(id=accept)
             solution.is_accepted = True
             solution.time_accepted = datetime.now()
             solution.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
+        cancel = request.POST.get('cancel')
         if cancel is not None:
-            from datetime import datetime
             solution = task.solution_set.get(id=cancel)
             solution.is_accepted = False
             solution.time_accepted = None
             solution.save()
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+        if request.POST.get('close'):
+            task.is_closed = True
+            task.time_closed = datetime.now()
+            task.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
     context = {
@@ -89,14 +93,14 @@ def list(request, project_name, parent_task_id):
                 self.tasks = tasks
         subtask_groups = []
         for solution in parent_task.solution_set.all().order_by('-id'):
-            if solution.tasks.count() > 0:
-                subtask_group = SubtaskGroup(solution, solution.tasks.all().order_by('-id'))
+            open_subtasks = solution.tasks.filter(is_closed=False).order_by('-id')
+            if open_subtasks.count() > 0:
+                subtask_group = SubtaskGroup(solution, open_subtasks)
                 subtask_groups.append(subtask_group)
         context['subtask_groups'] = subtask_groups
         return render(request, 'task/list_parent.html', context)
     else:
-        tasks = project.task_set.all().order_by('-id')
-        context['tasks'] = tasks
+        context['tasks'] = project.task_set.filter(is_closed=False).order_by('-id')
         return render(request, 'task/list.html', context)
 
 
@@ -107,7 +111,7 @@ def browse(request, project_name):
         'project_tab': "tasks",
         'tasks_tab': "browse",
         'project': project,
-        'tasks': project.task_set.filter(parent=None),
+        'tasks': project.task_set.filter(parent=None, is_closed=False),
         'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)

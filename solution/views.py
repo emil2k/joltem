@@ -9,6 +9,8 @@ from solution.models import Solution, Vote, VoteComment
 def new_solution(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
     task = get_object_or_404(Task, id=task_id)
+    if task.is_closed:
+        return redirect('project:task:task', project_name=project.name, task_id=task.id)
     context = {
         'project': project,
         'task': task

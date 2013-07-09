@@ -2,10 +2,30 @@
 {% load markup %}
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block task_content %}
+    {% if task.is_closed %}
+        <div class="alert alert-info">
+            <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
+        </div>
+    {% endif %}
     <div class="row">
-        <p class="span2 text-center"><a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a> </p>
+        <div class="span2 text-center">
+            {% if not task.is_closed %}
+                <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">Apply</a>
+            {% endif %}
+        </div>
         <div class="span8">
             {{ task.description|markdown:"tables,fenced_code" }}
+            {% if is_owner %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="btn-group">
+                        {% if not task.is_closed %}
+                            <button class="btn" type="submit" name="close" value="1">close</button>
+                        {% endif %}
+                        <button class="btn" type="submit" name="edit" value="1">edit</button>
+                    </div>
+                </form>
+            {% endif %}
         </div>
     </div>
 

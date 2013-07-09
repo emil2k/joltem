@@ -8,6 +8,9 @@
             <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
             <small class="muted">
                 by {{ task.owner.first_name }} on {{ task.time_posted|date }}
+                {% if task.is_closed %}
+                    / <span class="text-info">Closed on {{ task.time_closed|date }}</span>
+                {% endif %}
                 {% if task.subtasks > 0 %}
                     / <a href="{% url 'project:task:list' project.name task.id %}">{{ task.subtasks }} subtask{{ task.subtasks|pluralize }}</a>
                 {% endif %}

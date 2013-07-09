@@ -65,10 +65,11 @@ class Solution(models.Model):
     @property
     def subtasks(self):
         """
-        Count of all subtasks stemming from this solution
+        Count of open subtasks stemming from this solution
         """
-        count = self.tasks.all().count()
-        for subtask in self.tasks.all():
+        open_subtasks = self.tasks.filter(is_closed=False)
+        count = open_subtasks.count()
+        for subtask in open_subtasks:
             count += subtask.subtasks
         return count
 
