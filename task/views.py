@@ -79,7 +79,7 @@ def list(request, project_name, parent_task_id):
     is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
-        'tasks_tab': "all",
+        'tasks_tab': "open",
         'project': project,
         'is_admin': is_admin,
     }
@@ -125,6 +125,19 @@ def my(request, project_name):
         'tasks_tab': "my",
         'project': project,
         'tasks': project.task_set.filter(owner=request.user),
+        'is_admin': is_admin,
+    }
+    return render(request, 'task/list.html', context)
+
+
+def closed(request, project_name):
+    project = get_object_or_404(Project, name=project_name)
+    is_admin = project.is_admin(request.user)
+    context = {
+        'project_tab': "tasks",
+        'tasks_tab': "closed",
+        'project': project,
+        'tasks': project.task_set.filter(is_closed=True),
         'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)

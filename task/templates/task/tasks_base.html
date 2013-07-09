@@ -3,7 +3,8 @@
 {% block project_content %}
     <div class="tabbable tabs-right">
         <ul class="nav nav-tabs">
-            <li class="{{ tasks_tab|active:"all" }}"><a href="{% url 'project:task:list' project.name %}">All</a></li>
+            <li class="{{ tasks_tab|active:"open" }}"><a href="{% url 'project:task:list' project.name %}">Open</a></li>
+            <li class="{{ tasks_tab|active:"closed" }}"><a href="{% url 'project:task:closed' project.name %}">Closed</a></li>
             <li class="{{ tasks_tab|active:"my" }}"><a href="{% url 'project:task:my' project.name %}">My Tasks</a></li>
             <li class="{{ tasks_tab|active:"browse" }}"><a href="{% url 'project:task:browse' project.name %}">Browse</a></li>
             {% if is_admin %}
