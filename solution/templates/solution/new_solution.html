@@ -1,17 +1,20 @@
-{% extends 'joltem/base.html' %}
-{% block content %}
-    <h3>Apply <span class="muted">for {{ task.title }}</span></h3>
-    <ul class="breadcrumb">
-        <li><a href="{% url 'project:project' project.name %}">{{ project.name }}</a> <span class="divider">/</span></li>
-        <li><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a> <span class="divider">/</span></li>
-        <li class="active">Apply</li>
-    </ul>
-    <form method="post">
-        {% csrf_token %}
-        <p>
-            <textarea class="span8" rows=5 name="description" placeholder="Briefly describe how you plan to solve the task."></textarea><br/>
-            <button class="btn btn-success" type="submit">Apply</button>
-        </p>
-        <hr/>
-    </form>
+{% extends 'project/base.html' %}
+{% load markup %}
+{% block project_content %}
+    <div class="row">
+        <div class="offset1 span8 muted">
+            <h4>{{ task.title }}</h4>
+            {{ task.description|markdown:'tables,fenced_code' }}
+        </div>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="offset1 span8">
+            <form method="post">
+                {% csrf_token %}
+                <textarea class="input-block-level" rows=5 name="description" placeholder="Briefly describe how you plan to solve the task and if you have any pertinent experience."></textarea>
+                <button class="btn btn-success" type="submit">Apply</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}

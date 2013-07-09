@@ -13,6 +13,7 @@ def new_solution(request, project_name, task_id):
         return redirect('project:task:task', project_name=project.name, task_id=task.id)
     context = {
         'project': project,
+        'project_tab': "tasks",
         'task': task
     }
     if request.POST:
