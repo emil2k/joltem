@@ -204,6 +204,7 @@ def commits(request, project_name, solution_id, repository_name):
         'solution_tab': "commits",
         'solution': solution,
         'repository': repository,
+        'repositories': project.repository_set.filter(is_hidden=False).order_by('name'),
         'commits': commits,
     }
     return render(request, 'solution/commits.html', context)

@@ -1,23 +1,24 @@
 {% extends 'solution/base.html' %}
 {% block solution_content %}
-    <h4>{{ repository.name }}</h4>
-    <div class="tabbable tabs-right">
-        <ul class="nav nav-tabs">
-            {% for project_repository in project.repository_set.all %}
-                <li{% if project_repository.id == repository.id %} class="active"{% endif %}><a href="{% url 'project:solution:commits' project.name solution.id project_repository.name %}">{{ project_repository.name }}</a></li>
-            {% endfor %}
-        </ul>
-        <div class="tab-content">
-            {% if commits %}
-                {% for commit in commits %}
-                    <p>
-                        {{ commit.message }} by {{ commit.author.name }}<br/>
-                        <span class="muted">{{ commit.hex }}</span>
-                    </p>
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="nav-header">repositories</li>
+                {% for project_repository in repositories %}
+                    <li{% if project_repository.id == repository.id %} class="active"{% endif %}><a href="{% url 'project:solution:commits' project.name solution.id project_repository.name %}">{{ project_repository.name }}</a></li>
                 {% endfor %}
-            {% else %}
+            </ul>
+        </div>
+        <div class="span8">
+            <h4>{{ repository.full_name }}</h4>
+            {% for commit in commits %}
+                <p>
+                    {{ commit.message }} by {{ commit.author.name }}<br/>
+                    <span class="muted">{{ commit.hex }}</span>
+                </p>
+            {% empty %}
                 <p class="muted">No commits on this repo for this particular solution.</p>
-            {% endif %}
+            {% endfor %}
         </div>
     </div>
 {% endblock %}
