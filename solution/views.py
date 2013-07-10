@@ -188,13 +188,13 @@ def commits(request, project_name, solution_id, repository_name):
 
     from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
     git_repo = GitRepository(repository.absolute_path)
+    commits = []
     if not git_repo.is_empty:
         try:
             ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
         except KeyError:
             commits = None
         else:
-            commits = []
             for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
                 commits.append(commit)
 
