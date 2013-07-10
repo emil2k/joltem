@@ -48,7 +48,11 @@
                 <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
             {% endif %}
             <h4>Tasks</h4>
-            {% include 'solution/solution_tasks.html' %}
+            {% for task in solution.tasks.all %}
+                <p><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></p>
+            {% empty %}
+                <p class="muted">No delegated tasks.</p>
+            {% endfor %}
             <hr/>
         </div>
         <div class="span2 muted text-right">

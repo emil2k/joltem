@@ -1,7 +1,0 @@
-{% if solution.tasks.all %}
-    {% for task in solution.tasks.all %}
-        <p><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></p>
-    {% endfor %}
-{% else %}
-    <p class="muted">No delegated tasks.</p>
-{% endif %}
