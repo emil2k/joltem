@@ -67,6 +67,11 @@ def task(request, project_name, task_id):
             task.time_closed = datetime.now()
             task.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
+        if request.POST.get('reopen'):
+            task.is_closed = False
+            task.time_closed = None
+            task.save()
+            return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
     context = {
         'project_tab': "tasks",

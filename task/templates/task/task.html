@@ -26,6 +26,8 @@
                     {% if is_owner %}
                         {% if not task.is_closed %}
                             <button class="btn" type="submit" name="close" value="1">close</button>
+                        {% else %}
+                            <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                         {% endif %}
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     {% endif %}
