@@ -1,12 +1,12 @@
 {% extends 'joltem/base.html' %}
 {% load filters %}
 {% block title %}{{ project.name }}{% endblock %}
+{% block brand %}<a class="brand" href="{% url 'project:project' project.name %}"><strong><i>Joltem</i></strong></a>{% endblock %}
+{% block nav %}
+    <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:list' project.name %}">Tasks</a></li>
+    <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:solutions' project.name %}">Solutions</a></li>
+    <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.name %}">Repositories</a></li>
+{% endblock %}
 {% block content %}
-    <ul class="nav nav-tabs">
-        <li class="{{ project_tab|active:"main"}}"><a href="{% url 'project:project' project.name %}">Main</a></li>
-        <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:list' project.name %}">Tasks</a></li>
-        <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:solutions' project.name %}">Solutions</a></li>
-        <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.name %}">Repositories</a></li>
-    </ul>
     {% block project_content %}{% endblock %}
 {% endblock %}

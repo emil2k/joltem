@@ -1,6 +1,0 @@
-{% extends 'joltem/base.html' %}
-{% block content %}
-    {% for project in projects %}
-        <a href="{% url 'project:project' project.name %}">{{ project.name }}</a>
-    {% endfor %}
-{% endblock %}

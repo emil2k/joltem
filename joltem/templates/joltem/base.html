@@ -26,11 +26,12 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="{% url 'home' %}"><strong><i>Joltem</i></strong></a>
+            {% block brand %}<a class="brand" href="{% url 'home' %}"><strong><i>Joltem</i></strong></a>{% endblock %}
             <div class="nav-collapse collapse">
                 <ul class="nav">
-                    <li><a href="{% url 'solutions' %}">Solutions</a></li>
-                    <li><a href="{% url 'keys' %}">Keys</a></li>
+                    {% block nav %}{% endblock %}
+                    <li class="divider-vertical"></li>
+                    <li><a href="{% url 'keys' %}">Account</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>
                     {% else %}
