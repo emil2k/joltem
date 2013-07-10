@@ -2,17 +2,15 @@
 {% block content %}
     <h3>{{ repository.full_name }}</h3>
     <h4>Commits</h4>
-    {% if commits %}
-        {% for commit in commits %}
-            <p>
-                {{ commit.message }}
-                <span class="muted">by {{ commit.author }} at {{ commit.commit_time }} ago</span>
-            </p>
-            <p class="text-info">
-                {{ commit.sha }}
-            </p>
-        {% endfor %}
-    {% else %}
+    {% for commit in commits %}
+        <p>
+            {{ commit.message }}
+            <span class="muted">by {{ commit.author }} at {{ commit.commit_time }} ago</span>
+        </p>
+        <p class="text-info">
+            {{ commit.sha }}
+        </p>
+    {% empty %}
         <p class="muted">No commits yet.</p>
-    {% endif %}
+    {% endfor %}
 {% endblock %}
