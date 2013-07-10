@@ -33,7 +33,15 @@
                     {% endif %}
                 </div>
             </form>
+            {% if task.parent %}
+                <div class="alert alert-info">
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}
+                </div>
+            {% endif %}
             <hr/>
+        </div>
+        <div class="span2 muted text-right">
+            {{ task.time_posted|timesince }} ago.
         </div>
     </div>
     <form method="post">
