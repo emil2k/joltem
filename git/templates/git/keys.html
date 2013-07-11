@@ -1,17 +1,15 @@
-{% extends 'joltem/base.html' %}
-{% block content %}
-    <h3>Keys</h3>
+{% extends 'joltem/account_base.html' %}
+{% block account_content %}
+    <h4>Keys</h4>
     <form method="post" class="form-inline">
         {% csrf_token %}
         <button class="btn btn-warning" name="action" value="keys" type="submit"><i class="icon-refresh icon-white"></i> Update <i>keydir</i> for gitolite.</button>
         <button class="btn btn-primary" name="action" value="permissions" type="submit"><i class="icon-refresh icon-white"></i> Update <i>permissions</i> for gitolite.</button>
     </form>
-    {% if keys %}
-        {% for key in keys %}
-            <p class="text-info"><i class="icon-user"></i> {{ key.user.username }}</p>
-            <pre>{{ key.key }}</pre>
-        {% endfor %}
-    {% else %}
+    {% for key in keys %}
+        <p class="text-info"><i class="icon-user"></i> {{ key.user.username }}</p>
+        <pre>{{ key.key }}</pre>
+    {% empty %}
         <p>No keys at the moment.</p>
-    {% endif %}
+    {% endfor %}
 {% endblock %}

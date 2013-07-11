@@ -34,3 +34,34 @@ def sign_out(request):
     if request.user.is_authenticated():
         auth_logout(request)
     return render(request, 'joltem/sign_out.html')
+
+
+def account(request):
+    user = request.user
+    if request.POST:
+        first_name = request.POST.get('first_name') # Required
+        last_name = request.POST.get('last_name')
+        # TODO validate emails
+        email = request.POST.get('email')  # Required
+        gravatar_email = request.POST.get('gravatar_email')
+        if first_name and email:
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.save()
+            if gravatar_email is not None:
+                import hashlib
+                # Calculate gravatar hash
+                m = hashlib.md5(gravatar_email)
+
+                user_profile = user.get_profile()
+                user_profile.gravatar_email = gravatar_email
+                user_profile.gravatar_hash = m.hexdigest()
+                user_profile.save()
+        return redirect('account')
+
+    context = {
+        'account_tab': "account",
+        'user': user
+    }
+    return render(request, 'joltem/account.html', context)

@@ -31,7 +31,7 @@
                 <ul class="nav">
                     {% block nav %}{% endblock %}
                     <li class="divider-vertical"></li>
-                    <li><a href="{% url 'keys' %}">Account</a></li>
+                    <li><a href="{% url 'account' %}">Account</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>
                     {% else %}

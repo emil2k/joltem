@@ -8,6 +8,7 @@ from joltem.settings import MAIN_DIR
 def keys(request):
     keys = Authentication.objects.all()
     context = {
+        'account_tab': "keys",
         'keys': keys
     }
     if request.POST:
