@@ -8,7 +8,7 @@
                     <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
                 </div>
                 <div class="span8">
-                    <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
+                    <p class="text-info"><i class="icon-briefcases"></i> {{ key.name }}</p>
                     <pre>{{ key.key }}</pre>
                 </div>
             </div>
@@ -21,10 +21,14 @@
         <div class="row">
             <div class="offset1 span8">
                 <small class="help-block">
-                    What is a SSH authentication key?<br/>
-                    <span class="text-info">TODO explanation or link to explanation of what SSH keys are and why they are necessary</span>
+                    <i class="icon-question-sign"></i>
+                    Authentication keys are used to identify and authenticate your workstation,
+                    so you can push and pull commits without entering a password each time.<br/>
                 </small>
                 <input type="text" class="input-block-level" name="name" placeholder="Specify a name for this key, i.e. 'Jill's Macbook' "/>
+                <small class="help-block">
+                    <i class="icon-globe"></i> <a class="text-info" href="http://www.linuxproblem.org/art_9.html" target="_blank">How to get an SSH key?</a>
+                </small>
                 <textarea class="input-block-level" rows="10" name="key" placeholder="Paste SSH authentication key here."></textarea>
                 <button type="submit" class="btn btn-success">Add</button>
             </div>
