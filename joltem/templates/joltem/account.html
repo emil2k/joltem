@@ -13,6 +13,11 @@
         </div>
     </div>
     <hr/>
+    {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
     <div class="row">
         <div class="offset1 span8">
             <form method="post" class="form-horizontal">

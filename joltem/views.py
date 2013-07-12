@@ -41,7 +41,7 @@ def sign_up(request):
         elif not is_email_valid(email):
             error = "Email address is not valid."
         elif gravatar_email and not is_email_valid(gravatar_email):
-            error = "Your gravatar must have a valid email address is not valid."
+            error = "Your gravatar must have a valid email address."
         elif not re.match(r'^[A-Za-z0-9_]+$', username):
             error = "This username is not valid."
         elif User.objects.filter(username=username).count() > 0:
@@ -110,14 +110,23 @@ def sign_out(request):
 
 
 def account(request):
+    error = None
     user = request.user
     if request.POST:
         first_name = request.POST.get('first_name') # Required
         last_name = request.POST.get('last_name')
-        # TODO validate emails
         email = request.POST.get('email')  # Required
         gravatar_email = request.POST.get('gravatar_email')
-        if first_name and email:
+        # Validate inputs
+        if not first_name:
+            error = "First name is required."
+        elif not email:
+            error = "Email is required."
+        elif not is_email_valid(email):
+            error = "Email address (%s) is not valid." % email
+        elif gravatar_email and not is_email_valid(gravatar_email):
+            error = "Your gravatar (%s) must have a valid email address." % gravatar_email
+        else:
             user.first_name = first_name
             user.last_name = last_name
             user.email = email
@@ -125,12 +134,14 @@ def account(request):
             profile = user.get_profile()
             if profile.set_gravatar_email(gravatar_email):
                 profile.save()
-        return redirect('account')
+        if not error:
+            return redirect('account')
 
     context = {
         'nav_tab': "account",
         'account_tab': "account",
-        'user': user
+        'user': user,
+        'error': error,
     }
     return render(request, 'joltem/account.html', context)
 
