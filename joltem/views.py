@@ -61,6 +61,7 @@ def account(request):
         return redirect('account')
 
     context = {
+        'nav_tab': "account",
         'account_tab': "account",
         'user': user
     }
