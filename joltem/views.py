@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from project.models import Project
+from git.models import Authentication
 
 
 def home(request):
@@ -66,3 +67,32 @@ def account(request):
         'user': user
     }
     return render(request, 'joltem/account.html', context)
+
+
+def keys(request):
+    user = request.user
+    keys = user.authentication_set.all().order_by('name')
+
+    if request.POST:
+        remove_id = request.POST.get('remove')
+        name = request.POST.get('name')
+        key = request.POST.get('key')
+        if remove_id:
+            key = Authentication.objects.get(id=remove_id)
+            key.delete()
+        elif name and key:
+            key = Authentication(
+                user=user,
+                name=name,
+                key=key
+            )
+            key.save()
+        return redirect('account_keys')
+
+    context = {
+        'nav_tab': "account",
+        'account_tab': "keys",
+        'user': user,
+        'keys': keys,
+    }
+    return render(request, 'joltem/keys.html', context)

@@ -1,0 +1,33 @@
+{% extends 'joltem/account_base.html' %}
+{% block account_content %}
+    <form  method="post">
+        {% csrf_token %}
+        {% for key in keys %}
+            <div class="row">
+                <div class="span1">
+                    <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+                </div>
+                <div class="span8">
+                    <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
+                    <pre>{{ key.key }}</pre>
+                </div>
+            </div>
+        {% empty %}
+            <p class="muted">
+                You have not added any SSH authentication keys yet.
+            </p>
+        {% endfor %}
+        <hr>
+        <div class="row">
+            <div class="offset1 span8">
+                <small class="help-block">
+                    What is a SSH authentication key?<br/>
+                    <span class="text-info">TODO explanation or link to explanation of what SSH keys are and why they are necessary</span>
+                </small>
+                <input type="text" class="input-block-level" name="name" placeholder="Specify a name for this key, i.e. 'Jill's Macbook' "/>
+                <textarea class="input-block-level" rows="10" name="key" placeholder="Paste SSH authentication key here."></textarea>
+                <button type="submit" class="btn btn-success">Add</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

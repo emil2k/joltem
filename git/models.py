@@ -79,8 +79,9 @@ class Commit(models.Model):
 
 class Authentication(models.Model):
     """
-    A public authentication key for gitolite
+    A public authentication key for SSH
     """
+    name = models.CharField(max_length=200)
     key = models.TextField()
     # Relations
     user = models.ForeignKey(User)
