@@ -184,7 +184,7 @@ def commits(request, project_name, solution_id, repository_name):
         repository = get_object_or_404(Repository, project_id=project.id, name=repository_name)
     else:
         # Load the latest repository
-        repository = project.repository_set.all()[0]
+        repository = project.repository_set.all().order_by('name')[0]
 
     from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
     git_repo = GitRepository(repository.absolute_path)

@@ -4,33 +4,25 @@ from git.models import Repository, Authentication
 from joltem.settings import MAIN_DIR
 
 
-# TODO this should be moved out of here and into some account management app or page
-def keys(request):
-    keys = Authentication.objects.all()
-    context = {
-        'nav_tab': "account",
-        'account_tab': "keys",
-        'keys': keys
-    }
-    if request.POST:
-        action = request.POST.get('action')
-        if action == "keys":
-            from git.gitolite import keys
-            keys.update_keys()
-            return redirect('keys')
-        elif action == "permissions":
-            from git.gitolite import permissions
-            permissions.update_permissions()
-            return redirect('keys')
-    return render(request, 'git/keys.html', context)
-
-
 def repository(request, project_name, repository_name):
     project = get_object_or_404(Project, name=project_name)
     repository = get_object_or_404(Repository, name=repository_name, project=project)
+
+    from pygit2 import Repository as GitRepository, GIT_SORT_TIME
+    git_repo = GitRepository(repository.absolute_path)
+    commits = []
+    if not git_repo.is_empty:
+        try:
+            ref = git_repo.head
+        except KeyError:
+            commits = None
+        else:
+            for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
+                commits.append(commit)
+
     context = {
         'repository': repository,
-        'commits': repository.commit_set.order_by('-commit_time'),
+        'commits': commits,
     }
     return render(request, 'git/repository.html', context)
 

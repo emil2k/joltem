@@ -4,8 +4,8 @@
     <h4>Commits</h4>
     {% for commit in commits %}
         <p>
-            {{ commit.message }}
-            <span class="muted">by {{ commit.author }} at {{ commit.commit_time }} ago</span>
+            {{ commit.message }}<br/>
+            <small class="muted">by {{ commit.author.name }} at {{ commit.commit_time }}</small>
         </p>
         <p class="text-info">
             {{ commit.sha }}

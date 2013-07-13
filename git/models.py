@@ -59,24 +59,6 @@ class Repository(models.Model):
         update_permissions()
 
 
-# TODO deprecated, don't store commits in DB
-class Commit(models.Model):
-    sha = models.CharField(max_length=40, unique=True)
-    message = models.TextField()
-    message_encoding = models.CharField(max_length=200, null=True, blank=True)
-    commit_time = models.DateTimeField()
-    # Relations
-    repository = models.ForeignKey(Repository)
-    parents = models.ManyToManyField('self')
-    # TODO remove tie with Signature and just credit to a registered user
-    # just store emails for now
-    author = models.CharField(max_length=200)
-    committer = models.CharField(max_length=200)
-
-    def __unicode__(self):
-        return self.sha
-
-
 class Authentication(models.Model):
     """
     A public authentication key for SSH
