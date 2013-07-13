@@ -13,9 +13,16 @@
                 </div>
             </div>
         {% empty %}
-            <p class="muted">
-                You have not added any SSH authentication keys yet.
-            </p>
+            <div class="row">
+                <div class="offset1 span8">
+                    <div class="alert alert-info">
+                        <strong>Add an authentication key</strong> to get started.
+                    </div>
+                    <p class="muted">
+                        You have not added any SSH authentication keys yet, add an authentication key below to be able to push and pull commits.
+                    </p>
+                </div>
+            </div>
         {% endfor %}
         <hr>
         <div class="row">
