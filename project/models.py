@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 
 
 class Project(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)  # this is used in the domains, must be lowercase, and only contain a-z and 0-9
+    title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     # Relations
     users = models.ManyToManyField(User)
