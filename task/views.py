@@ -156,7 +156,7 @@ def my(request, project_name):
         'project_tab': "tasks",
         'tasks_tab': "my",
         'project': project,
-        'tasks': project.task_set.filter(owner=request.user),
+        'tasks': project.task_set.filter(owner_id=request.user.id).order_by('-id'),
         'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)

@@ -227,7 +227,7 @@ def solutions_my(request, project_name):
         'solutions_tab': "my",
         'project_tab': "solutions",
         'project': project,
-        'solutions': request.user.solution_set.filter(project_id=project.id).order_by('-id')
+        'solutions': Solution.objects.filter(user_id=request.user.id,project_id=project.id).order_by('-id')
     }
     return render(request, 'solution/solutions_my.html', context)
 
