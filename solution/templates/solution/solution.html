@@ -2,19 +2,6 @@
 {% load markup %}
 {% load filters %}
 {% block solution_content %}
-    {% if solution.is_completed %}
-        <div class="alert alert-info" xmlns="http://www.w3.org/1999/html">
-            <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
-        </div>
-    {% elif solution.is_accepted %}
-        <div class="alert alert-success" xmlns="http://www.w3.org/1999/html">
-            <b>This solution was accepted</b> on {{ solution.time_accepted|date }}, you may begin work.
-        </div>
-    {% else %}
-        <div class="alert alert-danger">
-            <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
-        </div>
-    {% endif %}
     <div class="row">
         <div class="span2">
             <h4><a href="#">{{ solution.user.first_name }}</a></h4>
@@ -43,6 +30,24 @@
                     {% endif %}
                 </div>
             </form>
+            {% if solution.is_completed %}
+                <div class="alert alert-info">
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
+                </div>
+            {% elif solution.is_accepted %}
+                <div class="alert alert-success">
+                    <b>This solution was accepted</b> on {{ solution.time_accepted|date }}, you may begin work.
+                </div>
+            {% else %}
+                <div class="alert alert-danger">
+                    <b>This solution has not been accepted yet</b>, if you wish you can start working on it on a personal branch.
+                </div>
+            {% endif %}
+            {% if solution.task %}
+                <div class="alert alert-info">
+                    <strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}
+                </div>
+            {% endif %}
             <hr/>
             {% if is_owner %}
                 <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
