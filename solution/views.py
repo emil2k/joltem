@@ -212,6 +212,7 @@ def review(request, project_name, solution_id):
         'solution_tab': "review",
         'solution': solution,
         'comments': comments,
+        'vote_count': solution.vote_set.count(),
         'accept_votes': solution.vote_set.filter(is_accepted=True),
         'reject_votes': solution.vote_set.filter(is_rejected=True),
         'vote': vote,

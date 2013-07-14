@@ -52,8 +52,8 @@ class Solution(models.Model):
             impact_sum += vote.voter_impact
             if vote.is_accepted:
                 weighted_sum += vote.voter_impact
-        if impact_sum == 0:
-            return 0
+        if impact_sum <= 0:
+            return None
         else:
             return int(round(100 * weighted_sum/float(impact_sum)))
 
