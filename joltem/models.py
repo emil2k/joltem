@@ -16,8 +16,14 @@ class Profile(models.Model):
         # The admins of the project start with an impact of 1, for weighted voting to be effective
         if self.user.project_set.count() > 0:
             impact = 1
-        for solution in self.user.solution_set.filter(is_accepted=True, is_completed=True):
-            impact += solution.impact
+        # Impact from solutions
+        for solution in self.user.solution_set.filter():
+            if solution.impact:
+                impact += solution.impact
+        # Impact from review comments
+        for comment in self.user.comment_set.filter():
+            if comment.impact:
+                impact += comment.impact
         return impact
 
     @property

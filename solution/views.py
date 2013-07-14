@@ -3,7 +3,7 @@ from django.http.response import HttpResponseNotFound
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, Vote, VoteComment
+from solution.models import Solution, Vote, Comment, CommentVote
 
 
 def new_solution(request, project_name, task_id):
@@ -119,6 +119,7 @@ def review(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
+    user = request.user
 
     # Redirect if solution is not ready for review
     if not solution.is_completed:
@@ -127,28 +128,56 @@ def review(request, project_name, solution_id):
     try:
         vote = Vote.objects.get(
             solution_id=solution.id,
-            voter_id=request.user.id
+            voter_id=user.id
         )
     except Vote.DoesNotExist:
         vote = None
     if request.POST:
         from datetime import datetime
-        comment = request.POST.get('comment')
-        if comment is not None:
-            vote_comment = VoteComment(
+        comment_vote_input = request.POST.get('comment_vote')
+        if comment_vote_input:
+            comment_id = request.POST.get('comment_id')
+            comment = Comment.objects.get(id=comment_id)
+            if comment.commenter.id == user.id:
+                return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
+            try:
+                comment_vote = CommentVote.objects.get(
+                    solution_id=solution.id,
+                    comment_id=comment.id,
+                    voter_id=user.id
+                )
+                if comment_vote.vote != comment_vote_input:
+                    comment_vote.vote = comment_vote_input
+                    comment_vote.voter_impact = user.get_profile().impact
+                    comment_vote.time_voted = datetime.now()
+                    comment_vote.save()
+            except CommentVote.DoesNotExist:
+                comment_vote = CommentVote(
+                    voter=user,
+                    voter_impact=user.get_profile().impact,
+                    comment=comment,
+                    solution=solution,
+                    vote=comment_vote_input,
+                    time_voted=datetime.now()
+                )
+                comment_vote.save()
+            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
+        comment_text = request.POST.get('comment')
+        if comment_text is not None:
+            review_comment = Comment(
                 time_commented=datetime.now(),
-                commenter=request.user,
+                commenter=user,
                 solution=solution,
-                comment=comment
+                comment=comment_text
             )
-            vote_comment.save()
+            review_comment.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
         vote_input = request.POST.get('vote')
         if vote_input is not None and not is_owner:
             if vote is None:
                 vote = Vote(
                     solution=solution,
-                    voter=request.user
+                    voter=user
                 )
             if vote_input == 'reject':
                 vote.is_accepted = False
@@ -160,13 +189,29 @@ def review(request, project_name, solution_id):
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
             vote.time_voted = datetime.now()
-            vote.voter_impact = request.user.get_profile().impact
+            vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
+
+    class CommentHolder:
+        def __init__(self, comment, user):
+            self.comment = comment
+            try:
+                self.vote = comment.commentvote_set.get(voter_id=user.id)
+            except CommentVote.DoesNotExist:
+                self.vote = None
+            self.is_author = user.id == comment.commenter.id
+            self.vote_count = comment.commentvote_set.count()
+
+    comments = []
+    for comment in solution.comment_set.all().order_by('time_commented'):
+        comments.append(CommentHolder(comment, user))
+
     context = {
         'project': project,
         'solution_tab': "review",
         'solution': solution,
+        'comments': comments,
         'accept_votes': solution.vote_set.filter(is_accepted=True),
         'reject_votes': solution.vote_set.filter(is_rejected=True),
         'vote': vote,

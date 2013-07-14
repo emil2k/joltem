@@ -41,23 +41,40 @@
         </div>
     {% endif %}
     <hr/>
-    {% for comment in solution.votecomment_set.all %}
-        <div class="row">
-            <div class="span2 text-center">
-                <p>
-                    <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=75" /><br/>
-                </p>
-                <p>
-                    <b><a href="#">{{ comment.commenter.first_name }}</a></b><br/>
-                </p>
+    {% for comment_holder in comments %}
+        {% with comment=comment_holder.comment %}
+            <div class="row">
+                <div class="span2 text-center">
+                    <p>
+                        <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=75" /><br/>
+                    </p>
+                    <p>
+                        <b><a href="#">{{ comment.commenter.first_name }}</a></b><br/>
+                    </p>
+                </div>
+                <div class="span8">
+                    <p>
+                        <small class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</small>
+                    </p>
+                    {{ comment.comment|markdown:"tables,fenced_code" }}
+                </div>
+                <div class="span2 text-center">
+                    <p>
+                        <small class="muted">
+                            {% if comment.impact %}
+                                {{ comment.impact }} impact,
+                                {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
+                            {% endif %}
+                        </small>
+                    </p>
+                    {% if not comment_holder.is_author %}
+                        {% with vote=comment_holder.vote %}
+                            {% include 'solution/review_comment_vote.html' %}
+                        {% endwith %}
+                    {% endif %}
+                </div>
             </div>
-            <div class="span8">
-                <p>
-                    <small class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</small>
-                </p>
-                {{ comment.comment|markdown:"tables,fenced_code" }}
-            </div>
-        </div>
+        {% endwith %}
         <hr/>
     {% endfor %}
     <form method="post">

@@ -59,16 +59,14 @@ class Solution(models.Model):
 
     @property
     def impact(self):
-        votes = self.vote_set.filter(voter_impact__gt=0)
+        votes = self.vote_set.filter(voter_impact__gt=0, is_accepted=True)
         weighted_sum = 0
         impact_sum = 0
         for vote in votes:
             impact_sum += vote.voter_impact
-            # TODO determine how to count rejected votes
-            if vote.is_accepted:
-                weighted_sum += vote.voter_impact * vote.vote
-        if impact_sum == 0:
-            return 0
+            weighted_sum += vote.voter_impact * vote.vote
+        if impact_sum <= 0:
+            return None
         else:
             return int(round(10 * weighted_sum/float(impact_sum)))
 
@@ -111,13 +109,51 @@ class Vote(models.Model):
         return str(self.vote)
 
 
-class VoteComment(models.Model):
+class Comment(models.Model):
     """
-    Comments on votes in a solution review
+    Comments in a solution review
     """
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)
     commenter = models.ForeignKey(User)
+
+    @property
+    def impact(self):
+        """
+        Impact of this comment
+        """
+        if self.commentvote_set.count() > 0:
+            raw_sum = 0
+            impact_sum = 0
+            for vote in self.commentvote_set.all():
+                impact_sum += vote.voter_impact
+                if vote.vote > 0:
+                    raw_sum += vote.voter_impact
+                else:
+                    raw_sum -= vote.voter_impact
+            if impact_sum > 0 and raw_sum > 0:
+                return int(10 * raw_sum / float(impact_sum))
+        return None
+
+
+class CommentVote(models.Model):
+    """
+    Votes on comments in a solution review
+    """
+    voter_impact = models.BigIntegerField()  # at time of vote
+    vote = models.SmallIntegerField()
+    time_voted = models.DateTimeField(default=datetime.now)
+    # Relations
+    solution = models.ForeignKey(Solution)
+    comment = models.ForeignKey(Comment)
+    voter = models.ForeignKey(User)
+
+    class Meta:
+        unique_together = ("comment","voter")
+
+
+
+
 
