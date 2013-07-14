@@ -10,7 +10,11 @@
             <p><b>{{ solution.user.get_profile.completed }}</b> solutions</p>
         </div>
         <div class="span8">
-            <h4>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span></h4>
+            {% if solution.title %}
+                <h4>{{ solution.title }}</h4>
+            {% else %}
+                <h4>{{ solution.task.title }} <span class="muted">by {{ solution.user.first_name }}</span></h4>
+            {% endif %}
             {% if solution.description %}
                 {{ solution.description|markdown:"tables,fenced_code" }}
             {% else %}
@@ -56,7 +60,7 @@
             {% for task in solution.tasks.all %}
                 <p><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></p>
             {% empty %}
-                <p class="muted">No delegated tasks.</p>
+                <p class="muted">No subtasks.</p>
             {% endfor %}
             <hr/>
         </div>

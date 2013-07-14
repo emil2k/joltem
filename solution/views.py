@@ -13,20 +13,21 @@ def new_solution(request, project_name, task_id):
         return redirect('project:task:task', project_name=project.name, task_id=task.id)
     context = {
         'project': project,
-        'project_tab': "tasks",
+        'project_tab': "solutions",
         'task': task
     }
     if request.POST:
+        title = request.POST.get('title')
         description = request.POST.get('description')
-        if description is not None:
-            solution = Solution(
-                user=request.user,
-                task=task,
-                project=project,
-                application=description
-            )
-            solution.save()
-            return redirect('project:task:task', project_name=project.name, task_id=task.id)
+        solution = Solution(
+            user=request.user,
+            task=task,
+            project=project,
+            title=title,
+            description=description
+        )
+        solution.save()
+        return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
     return render(request, 'solution/new_solution.html', context)
 
 
@@ -99,8 +100,8 @@ def solution_edit(request, project_name, solution_id):
     is_owner = solution.is_owner(request.user)
     if not is_owner:
         return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
     if request.POST:
+        solution.title = request.POST.get('title')
         solution.description = request.POST.get('description')
         solution.save()
         return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)

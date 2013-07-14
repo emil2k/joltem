@@ -10,8 +10,8 @@ class Solution(models.Model):
     """
     A single task can be worked on by multiple groups at the same time, in different branches for variation.
     """
-    # Users application to solve task
-    application = models.TextField()
+    # Optional custom title to solution
+    title = models.TextField(null=True, blank=True)
     # Description of solution for all involved
     description = models.TextField(null=True, blank=True)
     # Whether solution was accepted by creator of task
@@ -29,6 +29,16 @@ class Solution(models.Model):
 
     def __unicode__(self):
         return str(self.id)
+
+    @property
+    def default_title(self):
+        """
+        Returns either the custom title of the solution, or defaults down to the title of the task
+        """
+        if self.title:
+            return self.title
+        else:
+            return self.task.title
 
     @property
     def acceptance(self):

@@ -2,7 +2,7 @@
 {% load markup %}
 {% block project_content %}
     <div class="row">
-        <div class="offset1 span8 muted">
+        <div class="offset1 span8">
             <h4>{{ task.title }}</h4>
             {{ task.description|markdown:'tables,fenced_code' }}
         </div>
@@ -12,8 +12,9 @@
         <div class="offset1 span8">
             <form method="post">
                 {% csrf_token %}
-                <textarea class="input-block-level" rows=5 name="description" placeholder="Briefly describe how you plan to solve the task and if you have any pertinent experience."></textarea>
-                <button class="btn btn-success" type="submit">Apply</button>
+                <input class="input-block-level" type="text" name="title" placeholder="Optional. A title that describes your solution."/>
+                <textarea class="input-block-level" rows=10 name="description" placeholder="Optional. Briefly describe how you plan to solve the task and if you have any experience pertinent to the task."></textarea>
+                <button class="btn btn-success" type="submit">Solve</button>
             </form>
         </div>
     </div>

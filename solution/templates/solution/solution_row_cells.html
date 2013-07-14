@@ -16,7 +16,7 @@
 </div>
 <div class="span8">
     <p>
-        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.task.title }}</a><br>
+        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a><br>
         <small class="muted">
             by {{ solution.user.first_name }} on {{ solution.time_posted|date }}
             {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}

@@ -21,7 +21,7 @@
                 {% csrf_token %}
                 <div class="btn-group">
                     {% if not task.is_closed %}
-                        <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">apply</a>
+                        <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">solve</a>
                     {% endif %}
                     {% if is_owner %}
                         {% if not task.is_closed %}
@@ -59,11 +59,6 @@
                             <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
                         {% endif %}
                     {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="offset2 span8">
-                    <small>{{ solution.application|markdown:"tables,fenced_code" }}</small>
                 </div>
             </div>
         {% empty %}
