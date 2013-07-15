@@ -69,19 +69,21 @@
                     {{ comment.comment|markdown:"tables,fenced_code" }}
                 </div>
                 <div class="span2 text-center">
-                    <p>
-                        <small class="muted">
-                            {% if comment.impact %}
-                                {{ comment.impact }} impact,
-                                {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
-                            {% endif %}
-                        </small>
-                    </p>
-                    {% if not comment_holder.is_author %}
-                        {% with vote=comment_holder.vote %}
+                    {% with vote=comment_holder.vote %}
+                        {% if vote %}
+                            <p>
+                                <small class="muted">
+                                    {% if comment.impact %}
+                                        {{ comment.impact }} impact,
+                                        {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
+                                    {% endif %}
+                                </small>
+                            </p>
+                        {% endif %}
+                        {% if not comment_holder.is_author %}
                             {% include 'solution/review_comment_vote.html' %}
-                        {% endwith %}
-                    {% endif %}
+                        {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         {% endwith %}
