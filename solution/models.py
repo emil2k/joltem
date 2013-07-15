@@ -45,6 +45,7 @@ class Solution(models.Model):
         '''
         Impact-weighted percentage of acceptance amongst reviewers
         '''
+        # TODO don't count a negative vote if there is no comment from the person
         votes = self.vote_set.filter(voter_impact__gt=0)
         weighted_sum = 0
         impact_sum = 0
@@ -124,6 +125,7 @@ class Comment(models.Model):
         """
         Impact of this comment
         """
+        # TODO don't count negative vote if there is no comment older than this comment by the voter
         if self.commentvote_set.count() > 0:
             raw_sum = 0
             impact_sum = 0

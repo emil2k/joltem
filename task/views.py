@@ -7,20 +7,19 @@ from solution.models import Solution
 
 def new(request, project_name, parent_solution_id):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
-    if not is_admin and parent_solution_id is None:
-        return redirect('project:task:list', project_name=project_name)
+    user = request.user
+    if parent_solution_id is not None:
+        parent_solution = get_object_or_404(Solution, id=parent_solution_id)
+        if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user)):
+            return redirect('project:solution:solution', project_name=project_name, solution_id=parent_solution.id)
+
     context = {
         'project_tab': "tasks",
         'tasks_tab': "new",
         'project': project,
-        'is_admin': is_admin,
+        'parent_solution': parent_solution
     }
-    if parent_solution_id is not None:
-        parent_solution = Solution.objects.get(id=parent_solution_id)
-        context['parent_solution'] = parent_solution
-    else:
-        parent_solution = None
+
     # Create a task
     if request.POST and request.POST.get('action') == 'create_task':
         title = request.POST.get('title')
@@ -29,7 +28,7 @@ def new(request, project_name, parent_solution_id):
             created_task = Task(
                 project=project,
                 parent=parent_solution,
-                owner=request.user,
+                owner=user,
                 title=title,
                 description=description
             )
@@ -108,12 +107,10 @@ def edit(request, project_name, task_id):
 
 def list(request, project_name, parent_task_id):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "open",
-        'project': project,
-        'is_admin': is_admin,
+        'project': project
     }
     if parent_task_id is not None:
         parent_task = get_object_or_404(Task, id=parent_task_id)
@@ -138,38 +135,32 @@ def list(request, project_name, parent_task_id):
 
 def browse(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "browse",
         'project': project,
         'tasks': project.task_set.filter(parent=None, is_closed=False),
-        'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)
 
 
 def my(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "my",
         'project': project,
         'tasks': project.task_set.filter(owner_id=request.user.id).order_by('-id'),
-        'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)
 
 
 def closed(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
     context = {
         'project_tab': "tasks",
         'tasks_tab': "closed",
         'project': project,
         'tasks': project.task_set.filter(is_closed=True),
-        'is_admin': is_admin,
     }
     return render(request, 'task/list.html', context)

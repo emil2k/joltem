@@ -34,7 +34,7 @@ def new_solution(request, project_name, task_id):
 def solution(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
-
+    # TODO improve display of subtasks
     if request.POST:
         # Solution actions
         if request.POST.get('complete') is not None \

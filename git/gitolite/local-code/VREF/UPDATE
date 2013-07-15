@@ -45,9 +45,7 @@ with open(dir+'/test.log', "a") as log_file:
                 solution = Solution.objects.get(id=solution_id)
                 log("Solution : %s by %s" % (solution.task.title, solution.user.first_name))
                 if not is_admin:
-                    if not solution.is_accepted:
-                        decline("Solution is not accepted yet, you can start working on a personal branch if you wish.")
-                    elif solution.user_id != user.id:
+                    if solution.user_id != user.id:
                         decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
             elif namespace == 'u':  # User, personal branches
                 branch_username = split_reference[3]

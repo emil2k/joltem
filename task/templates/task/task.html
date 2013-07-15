@@ -16,7 +16,11 @@
         </div>
         <div class="span8">
             <h4>{{ task.title }}</h4>
-            {{ task.description|markdown:"tables,fenced_code" }}
+            {% if task.description %}
+                {{ task.description|markdown:"tables,fenced_code" }}
+            {% else %}
+                <p class="muted">Task has not been described yet.</p>
+            {% endif %}
             <form method="post">
                 {% csrf_token %}
                 <div class="btn-group">

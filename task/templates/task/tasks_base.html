@@ -7,9 +7,6 @@
             <li class="{{ tasks_tab|active:"closed" }}"><a href="{% url 'project:task:closed' project.name %}">Closed</a></li>
             <li class="{{ tasks_tab|active:"my" }}"><a href="{% url 'project:task:my' project.name %}">My Tasks</a></li>
             <li class="{{ tasks_tab|active:"browse" }}"><a href="{% url 'project:task:browse' project.name %}">Browse</a></li>
-            {% if is_admin %}
-                <li class="{{ tasks_tab|active:"new" }}"><a href="{% url 'project:task:new' project.name %}">Create</a></li>
-            {% endif %}
         </ul>
         <div class="tab-content">
             {% block tasks_content %}{% endblock %}
