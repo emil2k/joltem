@@ -50,7 +50,7 @@ def solution(request, project_name, solution_id):
         # Delete solution
         if request.POST.get('delete') is not None:
             solution.delete()
-            return redirect('project:solution:solutions', project_name=project_name)
+            return redirect('project:solution:all', project_name=project_name)
         # Vote on completed solution
         vote_input = request.POST.get('vote')
         if vote_input is not None:
