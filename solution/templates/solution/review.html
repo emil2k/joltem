@@ -22,13 +22,11 @@
                     <small class="muted">impact</small>
                 {% endif %}
             </div>
-            <div class="span8 text-center">
-                {% if is_owner %}
-                    {% include "solution/review_votes.html" %}
-                {% else %}
-                    {% include "solution/review_vote.html" %}
-                {% endif %}
-            </div>
+            {% if is_owner %}
+                {% include "solution/review_votes.html" %}
+            {% else %}
+                {% include "solution/review_vote.html" %}
+            {% endif %}
             <div class="span2 text-center">
                 {% if vote or is_owner %}
                     {% if not solution.acceptance %}

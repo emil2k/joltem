@@ -1,26 +1,28 @@
 {% load filters %}
-<form method="post">
-    {% csrf_token %}
-    <p>
-        <div class="btn-group">
-            <button class="btn {{ vote.is_rejected|css_class:"btn-danger" }}" type="submit" name="vote" value="reject"><i data-toggle="tooltip" title="Unsatisfactory, solution problematic." class="impact_vote icon-remove {{ vote.is_rejected|css_class:"icon-white" }}"></i></button>
-            <button class="btn" type="submit" disabled><i>Impact</i></button>
-            <button class="btn {{ vote.vote|vote:0 }}" type="submit" name="vote" value="0"><b data-toggle="tooltip" title="Trivial solution, minor alteration." class="impact_vote">0</b></button>
-            <button class="btn {{ vote.vote|vote:1 }}" type="submit" name="vote" value="1"><b data-toggle="tooltip" title="Satisfactory solution to a simple task." class="impact_vote">1</b></button>
-            <button class="btn {{ vote.vote|vote:2 }}" type="submit" name="vote" value="2"><b>2</b></button>
-            <button class="btn {{ vote.vote|vote:3 }}" type="submit" name="vote" value="3"><b>3</b></button>
-            <button class="btn {{ vote.vote|vote:4 }}" type="submit" name="vote" value="4"><b data-toggle="tooltip" title="Exceptional solution to a simple task." class="impact_vote">4</b></button>
-            <button class="btn {{ vote.vote|vote:5 }}" type="submit" name="vote" value="5"><b>5</b></button>
-            <button class="btn {{ vote.vote|vote:6 }}" type="submit" name="vote" value="6"><b>6</b></button>
-            <button class="btn {{ vote.vote|vote:7 }}" type="submit" name="vote" value="7"><b data-toggle="tooltip" title="Satisfactory solution to a difficult task." class="impact_vote">7</b></button>
-            <button class="btn {{ vote.vote|vote:8 }}" type="submit" name="vote" value="8"><b>8</b></button>
-            <button class="btn {{ vote.vote|vote:9 }}" type="submit" name="vote" value="9"><b>9</b></button>
-            <button class="btn {{ vote.vote|vote:10 }}" type="submit" name="vote" value="10"><b data-toggle="tooltip" title="Exceptional solution to a difficult task." class="impact_vote">10</b></button>
-        </div>
-    </p>
-    {% if vote.is_rejected and not has_commented %}
-        <div class="alert alert-danger">
-            <strong>Negative votes require an explanation to count,</strong> leave a comment.
-        </div>
-    {% endif %}
-</form>
+<div class="span8 text-center">
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <div class="btn-group">
+                <button class="btn {{ vote.is_rejected|css_class:"btn-danger" }}" type="submit" name="vote" value="reject"><i data-toggle="tooltip" title="Unsatisfactory, solution problematic." class="impact_vote icon-remove {{ vote.is_rejected|css_class:"icon-white" }}"></i></button>
+                <button class="btn" type="submit" disabled><i>Impact</i></button>
+                <button class="btn {{ vote.vote|vote:0 }}" type="submit" name="vote" value="0"><b data-toggle="tooltip" title="Trivial solution, minor alteration." class="impact_vote">0</b></button>
+                <button class="btn {{ vote.vote|vote:1 }}" type="submit" name="vote" value="1"><b data-toggle="tooltip" title="Satisfactory solution to a simple task." class="impact_vote">1</b></button>
+                <button class="btn {{ vote.vote|vote:2 }}" type="submit" name="vote" value="2"><b>2</b></button>
+                <button class="btn {{ vote.vote|vote:3 }}" type="submit" name="vote" value="3"><b>3</b></button>
+                <button class="btn {{ vote.vote|vote:4 }}" type="submit" name="vote" value="4"><b data-toggle="tooltip" title="Exceptional solution to a simple task." class="impact_vote">4</b></button>
+                <button class="btn {{ vote.vote|vote:5 }}" type="submit" name="vote" value="5"><b>5</b></button>
+                <button class="btn {{ vote.vote|vote:6 }}" type="submit" name="vote" value="6"><b>6</b></button>
+                <button class="btn {{ vote.vote|vote:7 }}" type="submit" name="vote" value="7"><b data-toggle="tooltip" title="Satisfactory solution to a difficult task." class="impact_vote">7</b></button>
+                <button class="btn {{ vote.vote|vote:8 }}" type="submit" name="vote" value="8"><b>8</b></button>
+                <button class="btn {{ vote.vote|vote:9 }}" type="submit" name="vote" value="9"><b>9</b></button>
+                <button class="btn {{ vote.vote|vote:10 }}" type="submit" name="vote" value="10"><b data-toggle="tooltip" title="Exceptional solution to a difficult task." class="impact_vote">10</b></button>
+            </div>
+        </p>
+        {% if vote.is_rejected and not has_commented %}
+            <div class="alert alert-danger">
+                <strong>Negative votes require an explanation to count,</strong> leave a comment.
+            </div>
+        {% endif %}
+    </form>
+</div>
