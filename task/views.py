@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import User
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from project.models import Project
 from task.models import Task
 from solution.models import Solution
@@ -81,7 +82,7 @@ def task(request, project_name, task_id):
     }
     return render(request, 'task/task.html', context)
 
-
+# TODO maybe put method_decorators on this for authorization
 def edit(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
     task = get_object_or_404(Task, id=task_id)
@@ -105,62 +106,99 @@ def edit(request, project_name, task_id):
     return render(request, 'task/task_edit.html', context)
 
 
-def list(request, project_name, parent_task_id):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'project_tab': "tasks",
-        'tasks_tab': "open",
-        'project': project
-    }
-    if parent_task_id is not None:
-        parent_task = get_object_or_404(Task, id=parent_task_id)
-        context['parent_task'] = parent_task
+# TODO working on GENERIC VIEWS
 
-        class SubtaskGroup:
-            def __init__(self, solution, tasks):
-                self.solution = solution
-                self.tasks = tasks
-        subtask_groups = []
-        for solution in parent_task.solution_set.all().order_by('-id'):
-            open_subtasks = solution.tasks.filter(is_closed=False).order_by('-id')
-            if open_subtasks.count() > 0:
-                subtask_group = SubtaskGroup(solution, open_subtasks)
-                subtask_groups.append(subtask_group)
-        context['subtask_groups'] = subtask_groups
-        return render(request, 'task/list_parent.html', context)
-    else:
-        context['tasks'] = project.task_set.filter(is_closed=False).order_by('-id')
-        return render(request, 'task/list.html', context)
+from django.views.generic import TemplateView, ListView, View
 
 
-def browse(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'project_tab': "tasks",
-        'tasks_tab': "browse",
-        'project': project,
-        'tasks': project.task_set.filter(parent=None, is_closed=False),
-    }
-    return render(request, 'task/list.html', context)
+class ArgumentsMixin:
+    """
+    Mixin for views to store request arguments
+    """
+    def store_arguments(self, request, *args, **kwargs):
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
 
 
-def my(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'project_tab': "tasks",
-        'tasks_tab': "my",
-        'project': project,
-        'tasks': project.task_set.filter(owner_id=request.user.id).order_by('-id'),
-    }
-    return render(request, 'task/list.html', context)
+class ProjectListView(ListView, ArgumentsMixin):
+    project_tab = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.store_arguments(request, *args, **kwargs)
+        project_name = kwargs.get('project_name')
+        self.project = get_object_or_404(Project, name=project_name)
+        return super(ProjectListView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectListView, self).get_context_data(**kwargs)
+        context['project_tab'] = self.project_tab
+        context['project'] = self.project
+        return context
 
 
-def closed(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'project_tab': "tasks",
-        'tasks_tab': "closed",
-        'project': project,
-        'tasks': project.task_set.filter(is_closed=True),
-    }
-    return render(request, 'task/list.html', context)
+class TaskListView(ProjectListView):
+    model = Task
+    template_name = 'task/list.html'
+    project_tab = 'tasks'
+    tasks_tab = None
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        parent_task_id = kwargs.get('parent_task_id')
+        if parent_task_id:
+            self.parent_task = get_object_or_404(Task, id=parent_task_id)
+        else:
+            self.parent_task = None
+        return super(TaskListView, self).dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.parent_task:
+            class SubtaskGroup:
+                def __init__(self, solution, tasks):
+                    self.solution = solution
+                    self.tasks = tasks
+            subtask_groups = []
+            for solution in self.parent_task.solution_set.all().order_by('-id'):
+                subtasks = solution.tasks.all().order_by('-id')
+                if subtasks.count() > 0:
+                    subtask_group = SubtaskGroup(solution, subtasks)
+                    subtask_groups.append(subtask_group)
+            return subtask_groups
+        else:
+            # TODO raise error if queryset not set
+            return self.queryset
+
+    def get_context_object_name(self, object_list):
+        if self.parent_task:
+            return 'subtask_groups'
+        else:
+            return 'tasks'
+
+    def get_template_names(self):
+        if self.parent_task:
+            return 'task/list_parent.html'
+        else:
+            return 'task/list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TaskListView, self).get_context_data(**kwargs)
+        context['tasks_tab'] = self.tasks_tab
+        context['parent_task'] = self.parent_task
+        return context
+
+
+# Various task lists
+
+def open():
+    return TaskListView.as_view(
+        tasks_tab="open",
+        queryset=Task.objects.filter(is_closed=False).order_by('-time_posted')
+    )
+
+
+def closed():
+    return TaskListView.as_view(
+        tasks_tab="closed",
+        queryset=Task.objects.filter(is_closed=True).order_by('-time_closed')
+    )

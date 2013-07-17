@@ -12,7 +12,7 @@
                     / <span class="text-info">Closed on {{ task.time_closed|date }}</span>
                 {% endif %}
                 {% if task.subtasks > 0 %}
-                    / <a href="{% url 'project:task:list' project.name task.id %}">{{ task.subtasks }} subtask{{ task.subtasks|pluralize }}</a>
+                    / <a href="{% url 'project:task:open' project.name task.id %}">{{ task.subtasks }} subtask{{ task.subtasks|pluralize }}</a>
                 {% endif %}
             </small>
         </p>
