@@ -9,17 +9,15 @@ from solution.models import Solution
 def new(request, project_name, parent_solution_id):
     project = get_object_or_404(Project, name=project_name)
     user = request.user
+    context = {
+        'tasks_tab': "new",
+        'project': project
+    }
     if parent_solution_id is not None:
         parent_solution = get_object_or_404(Solution, id=parent_solution_id)
         if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user)):
             return redirect('project:solution:solution', project_name=project_name, solution_id=parent_solution.id)
-
-    context = {
-        'tasks_tab': "new",
-        'project': project,
-        'parent_solution': parent_solution
-    }
-
+        context['parent_solution'] = parent_solution
     # Create a task
     if request.POST and request.POST.get('action') == 'create_task':
         title = request.POST.get('title')

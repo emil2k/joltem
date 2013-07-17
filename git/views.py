@@ -93,7 +93,6 @@ def new_repository(request, project_name):
 
     context = {
         'project_tab': "repositories",
-        'repositories_tab': "new",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=False),
         'is_admin': is_admin

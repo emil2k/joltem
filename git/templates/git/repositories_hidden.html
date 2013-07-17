@@ -4,12 +4,7 @@
         {% csrf_token %}
         {% for repo in repositories %}
             <div class="row">
-                {% if is_admin %}
-                    <div class="span1 text-center">
-                        <button class="btn btn-mini" type="submit" name="unhide_repo" value="{{ repo.id }}">unhide</button>
-                    </div>
-                {% endif %}
-                <div class="span8">
+                <div class="span6">
                     <p>
                         <a href="{% url 'project:git:repository' project.name repo.name %}">{{ repo.full_name }}</a>
                         {% if repo.description %}
@@ -18,6 +13,11 @@
                         {% endif %}
                     </p>
                 </div>
+                {% if is_admin %}
+                    <div class="span1 text-center">
+                        <button class="btn btn-mini" type="submit" name="unhide_repo" value="{{ repo.id }}">unhide</button>
+                    </div>
+                {% endif %}
             </div>
         {% empty %}
             <p class="muted">There is no hidden repositories for this project.</p>
