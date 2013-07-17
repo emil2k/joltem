@@ -3,9 +3,9 @@
 {% block project_content %}
     <div class="tabbable tabs-right">
         <ul class="nav nav-tabs">
-            <li class="{{ solutions_tab|active:"all" }}"><a href="{% url 'project:solution:solutions' project.name %}">All</a></li>
-            <li class="{{ solutions_tab|active:"my" }}"><a href="{% url 'project:solution:solutions_my' project.name %}">My Solutions</a></li>
-            <li class="{{ solutions_tab|active:"review" }}"><a href="{% url 'project:solution:solutions_review' project.name %}">Need Review</a></li>
+            <li class="{{ solutions_tab|active:"all" }}"><a href="{% url 'project:solution:all' project.name %}">All</a></li>
+            <li class="{{ solutions_tab|active:"accepted" }}"><a href="{% url 'project:solution:accepted' project.name %}">Accepted</a></li>
+            <li class="{{ solutions_tab|active:"completed" }}"><a href="{% url 'project:solution:completed' project.name %}">Completed</a></li>
         </ul>
         <div class="tab-content">
             {% block solutions_content %}{% endblock %}

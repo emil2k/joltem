@@ -1,6 +1,6 @@
-{% extends 'task/tasks_base.html' %}
+{% extends 'project/base.html' %}
 {% load markup %}
-{% block tasks_content %}
+{% block project_content %}
     <form method='post'>
         {% csrf_token %}
         <input class="span8" type="text" name="title" value="{{ task.title }}"/>

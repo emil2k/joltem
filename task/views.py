@@ -5,7 +5,7 @@ from project.models import Project
 from task.models import Task
 from solution.models import Solution
 
-
+@login_required
 def new(request, project_name, parent_solution_id):
     project = get_object_or_404(Project, name=project_name)
     user = request.user
@@ -15,7 +15,6 @@ def new(request, project_name, parent_solution_id):
             return redirect('project:solution:solution', project_name=project_name, solution_id=parent_solution.id)
 
     context = {
-        'project_tab': "tasks",
         'tasks_tab': "new",
         'project': project,
         'parent_solution': parent_solution
@@ -39,7 +38,7 @@ def new(request, project_name, parent_solution_id):
             return redirect('project:task:list', project_name=project.name)
     return render(request, 'task/new_task.html', context)
 
-
+@login_required
 def task(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
     task = get_object_or_404(Task, id=task_id)
@@ -74,7 +73,6 @@ def task(request, project_name, task_id):
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
     context = {
-        'project_tab': "tasks",
         'project': project,
         'task': task,
         'solutions': task.solution_set.all().order_by('-id'),
@@ -82,7 +80,7 @@ def task(request, project_name, task_id):
     }
     return render(request, 'task/task.html', context)
 
-# TODO maybe put method_decorators on this for authorization
+@login_required
 def edit(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
     task = get_object_or_404(Task, id=task_id)
@@ -97,8 +95,6 @@ def edit(request, project_name, task_id):
             task.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
     context = {
-        'project_tab': "tasks",
-        'tasks_tab': "my",
         'project': project,
         'task': task,
         'is_owner': is_owner,
@@ -106,40 +102,12 @@ def edit(request, project_name, task_id):
     return render(request, 'task/task_edit.html', context)
 
 
-# TODO working on GENERIC VIEWS
-
-from django.views.generic import TemplateView, ListView, View
-
-
-class ArgumentsMixin:
-    """
-    Mixin for views to store request arguments
-    """
-    def store_arguments(self, request, *args, **kwargs):
-        self.request = request
-        self.args = args
-        self.kwargs = kwargs
-
-
-class ProjectListView(ListView, ArgumentsMixin):
-    project_tab = None
-
-    def dispatch(self, request, *args, **kwargs):
-        self.store_arguments(request, *args, **kwargs)
-        project_name = kwargs.get('project_name')
-        self.project = get_object_or_404(Project, name=project_name)
-        return super(ProjectListView, self).dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(ProjectListView, self).get_context_data(**kwargs)
-        context['project_tab'] = self.project_tab
-        context['project'] = self.project
-        return context
+# Generic views
+from project.views import ProjectListView
 
 
 class TaskListView(ProjectListView):
     model = Task
-    template_name = 'task/list.html'
     project_tab = 'tasks'
     tasks_tab = None
 
@@ -177,9 +145,9 @@ class TaskListView(ProjectListView):
 
     def get_template_names(self):
         if self.parent_task:
-            return 'task/list_parent.html'
+            return 'task/tasks_list_parent.html'
         else:
-            return 'task/list.html'
+            return 'task/tasks_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(TaskListView, self).get_context_data(**kwargs)

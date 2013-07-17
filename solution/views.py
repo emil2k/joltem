@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
 from django.http.response import HttpResponseNotFound
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from git.models import Repository
 from project.models import Project
 from task.models import Task
 from solution.models import Solution, Vote, Comment, CommentVote
 
-
+@login_required
 def new_solution(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
     task = get_object_or_404(Task, id=task_id)
@@ -30,7 +32,7 @@ def new_solution(request, project_name, task_id):
         return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
     return render(request, 'solution/new_solution.html', context)
 
-
+@login_required
 def solution(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
@@ -93,7 +95,7 @@ def solution(request, project_name, solution_id):
     }
     return render(request, 'solution/solution.html', context)
 
-
+@login_required
 def solution_edit(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
@@ -114,7 +116,7 @@ def solution_edit(request, project_name, solution_id):
     }
     return render(request, 'solution/solution_edit.html', context)
 
-
+@login_required
 def review(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
@@ -220,7 +222,7 @@ def review(request, project_name, solution_id):
     }
     return render(request, 'solution/review.html', context)
 
-
+@login_required
 def commits(request, project_name, solution_id, repository_name):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
@@ -257,39 +259,43 @@ def commits(request, project_name, solution_id, repository_name):
     return render(request, 'solution/commits.html', context)
 
 
-def solutions(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'solutions_tab': "all",
-        'project_tab': "solutions",
-        'project': project,
-        'solutions': project.solution_set.all().order_by('-id')
-    }
-    return render(request, 'solution/solutions_all.html', context)
+# Generic views
+from project.views import ProjectListView
 
 
-def solutions_my(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    context = {
-        'solutions_tab': "my",
-        'project_tab': "solutions",
-        'project': project,
-        'solutions': Solution.objects.filter(user_id=request.user.id,project_id=project.id).order_by('-id')
-    }
-    return render(request, 'solution/solutions_my.html', context)
+class SolutionListView(ProjectListView):
+    model = Solution
+    template_name = 'solution/solutions_list.html'
+    project_tab = 'solutions'
+    solutions_tab = None
+    context_object_name = 'solutions'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SolutionListView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(SolutionListView, self).get_context_data(**kwargs)
+        context['solutions_tab'] = self.solutions_tab
+        return context
 
 
-def solutions_review(request, project_name):
-    project = get_object_or_404(Project, name=project_name)
-    need_review = []
-    for solution in Solution.objects.filter(project_id=project.id, is_completed=True).order_by('-id'):
-        if solution.user_id != request.user.id \
-                and Vote.objects.filter(solution_id=solution.id, voter_id=request.user.id).count() == 0:
-            need_review.append(solution)
-    context = {
-        'solutions_tab': "review",
-        'project_tab': "solutions",
-        'project': project,
-        'solutions': need_review
-    }
-    return render(request, 'solution/solutions_review.html', context)
+def all():
+    return SolutionListView.as_view(
+        solutions_tab='all',
+        queryset=Solution.objects.all().order_by('-time_posted')
+    )
+
+
+def accepted():
+    return SolutionListView.as_view(
+        solutions_tab='accepted',
+        queryset=Solution.objects.all().order_by('-time_accepted')
+    )
+
+
+def completed():
+    return SolutionListView.as_view(
+        solutions_tab='completed',
+        queryset=Solution.objects.all().order_by('-time_completed')
+    )
