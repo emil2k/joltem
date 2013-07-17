@@ -45,11 +45,13 @@ class Solution(models.Model):
         '''
         Impact-weighted percentage of acceptance amongst reviewers
         '''
-        # TODO don't count a negative vote if there is no comment from the person
         votes = self.vote_set.filter(voter_impact__gt=0)
         weighted_sum = 0
         impact_sum = 0
         for vote in votes:
+            # Don't count a negative vote if voter didn't provide a comment
+            if vote.is_rejected and not self.has_commented(vote.voter_id):
+                continue
             impact_sum += vote.voter_impact
             if vote.is_accepted:
                 weighted_sum += vote.voter_impact
@@ -88,6 +90,12 @@ class Solution(models.Model):
         """
         return self.user_id == user.id
 
+    def has_commented(self, user_id):
+        """
+        Returns whether passed user has commented on the solution
+        """
+        return Comment.objects.filter(solution_id=self.id, commenter_id=user_id).count() > 0
+
 
 class Vote(models.Model):
     """
@@ -125,7 +133,6 @@ class Comment(models.Model):
         """
         Impact of this comment
         """
-        # TODO don't count negative vote if there is no comment older than this comment by the voter
         if self.commentvote_set.count() > 0:
             raw_sum = 0
             impact_sum = 0

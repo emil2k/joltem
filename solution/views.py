@@ -36,11 +36,12 @@ def new_solution(request, project_name, task_id):
 def solution(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
+    user = request.user
     # TODO improve display of subtasks
     if request.POST:
         # Solution actions
         if request.POST.get('complete') is not None \
-                and solution.is_owner(request.user) \
+                and solution.is_owner(user) \
                 and solution.is_accepted:
             from datetime import datetime
             solution.is_completed = True
@@ -58,12 +59,12 @@ def solution(request, project_name, solution_id):
             try:
                 vote = Vote.objects.get(
                     solution_id=solution.id,
-                    voter_id=request.user.id
+                    voter_id=user.id
                 )
             except Vote.DoesNotExist:
                 vote = Vote(
                     solution=solution,
-                    voter=request.user
+                    voter=user
                 )
             from datetime import datetime
             if vote_input == 'reject':
@@ -76,13 +77,13 @@ def solution(request, project_name, solution_id):
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
             vote.time_voted = datetime.now()
-            vote.voter_impact = request.user.get_profile().impact
+            vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
 
     # Get current users vote on this solution
     try:
-        vote = solution.vote_set.get(voter_id=request.user.id)
+        vote = solution.vote_set.get(voter_id=user.id)
     except Vote.DoesNotExist:
         vote = None
 
@@ -91,7 +92,7 @@ def solution(request, project_name, solution_id):
         'solution_tab': "solution",
         'solution': solution,
         'vote': vote,
-        'is_owner': solution.is_owner(request.user)
+        'is_owner': solution.is_owner(user)
     }
     return render(request, 'solution/solution.html', context)
 
@@ -218,6 +219,7 @@ def review(request, project_name, solution_id):
         'accept_votes': solution.vote_set.filter(is_accepted=True),
         'reject_votes': solution.vote_set.filter(is_rejected=True),
         'vote': vote,
+        'has_commented': solution.has_commented(user.id),
         'is_owner': is_owner
     }
     return render(request, 'solution/review.html', context)

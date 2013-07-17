@@ -18,4 +18,9 @@
             <button class="btn {{ vote.vote|vote:10 }}" type="submit" name="vote" value="10"><b data-toggle="tooltip" title="Exceptional solution to a difficult task." class="impact_vote">10</b></button>
         </div>
     </p>
+    {% if vote.is_rejected and not has_commented %}
+        <div class="alert alert-danger">
+            <strong>Negative votes require an explanation to count,</strong> leave a comment.
+        </div>
+    {% endif %}
 </form>
