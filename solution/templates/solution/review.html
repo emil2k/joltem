@@ -9,13 +9,10 @@
         <div class="row">
             <div class="span2 text-center">
                 {% if vote or is_owner %}
-                    {% if not solution.impact %}
-                        <h2 class="muted">N/A</h2>
-                   {% elif solution.impact > 0 %}
+                    {% if solution.impact == None %}
+                        <h2 class="muted">~</h2>
+                    {% elif solution.impact > 0 %}
                         <h2 class="text-success">{{ solution.impact }}</h2>
-                    {% elif solution.impact < 0 %}
-                        {% load mathfilters %}
-                        <h2 class="text-error">{{ solution.impact|abs }}</h2>
                     {% else %}
                         <h2 class="muted">0</h2>
                     {% endif %}
@@ -29,12 +26,11 @@
             {% endif %}
             <div class="span2 text-center">
                 {% if vote or is_owner %}
-                    {% if not solution.acceptance %}
-                        <h2 class="muted">N/A</h2>
+                    {% if solution.acceptance == None %}
+                        <h2 class="muted">~</h2>
                     {% elif solution.acceptance > 90 %}
                         <h2 class="text-success">{{ solution.acceptance }}%</h2>
                     {% else %}
-                        {% load mathfilters %}
                         <h2 class="text-error">{{ solution.acceptance }}%</h2>
                     {% endif %}
                     <small class="muted">acceptance<br/>{{ vote_count }} votes</small>
