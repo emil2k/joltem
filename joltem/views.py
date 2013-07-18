@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from joltem.models import User, Profile
 from project.models import Project
 from git.models import Authentication
 
-
+@login_required
 def home(request):
     # Currently there is only one project so just redirect to it
     project = Project.objects.get()
@@ -109,6 +111,7 @@ def sign_out(request):
     return render(request, 'joltem/sign_out.html')
 
 
+@login_required
 def account(request):
     error = None
     user = request.user
@@ -145,7 +148,7 @@ def account(request):
     }
     return render(request, 'joltem/account.html', context)
 
-
+@login_required
 def keys(request):
     user = request.user
     keys = user.authentication_set.all().order_by('name')
