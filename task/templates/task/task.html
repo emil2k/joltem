@@ -52,7 +52,7 @@
         {% csrf_token %}
         {% for solution in solutions %}
             <div class="row">
-                {% with offset=1 %}
+                {% with offset="offset1" %}
                     {% include 'solution/solution_row_cells.html' %}
                 {% endwith %}
                 <div class="span1">

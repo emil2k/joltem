@@ -1,5 +1,5 @@
 {% load mathfilters %}
-<div class="offset{{ offset }} span1 text-center">
+<div class="{{ offset }} span1 text-center">
     {% if solution.is_completed %}
             {% if solution.impact == None %}
                 <b><span class="muted">~</span></b>

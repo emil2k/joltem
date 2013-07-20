@@ -49,28 +49,32 @@
                 </div>
             {% endif %}
             <hr/>
-            {% if is_owner and solution.is_accepted %}
-                <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
-            {% endif %}
-            {% if is_owner and not solution.is_accepted %}
-                <div class="alert alert-danger">
-                    <strong>Cannot create subtasks</strong> until the solution is accepted by parent task creator.
-                </div>
-            {% endif %}
-            <h5>Subtasks</h5>
-            {% for task in solution.tasks.all %}
-                <p><a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></p>
-            {% empty %}
-                {% if solution.is_accepted %}
-                    <p class="muted">No subtasks yet.</p>
-                {% endif %}
-            {% endfor %}
-            <hr/>
+
         </div>
         <div class="span2 muted text-right">
             {{ solution.time_posted|timesince }} ago.
         </div>
     </div>
+    {% if is_owner and solution.is_accepted %}
+        <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
+    {% endif %}
+    {% if is_owner and not solution.is_accepted %}
+        <div class="alert alert-danger">
+            <strong>Cannot create subtasks</strong> until the solution is accepted by parent task creator.
+        </div>
+    {% endif %}
+    {% for task in subtasks %}
+        <div class="row">
+            {% with offset="offset1" %}
+                {% include 'task/task_row_cells.html' %}
+            {% endwith %}
+        </div>
+    {% empty %}
+        {% if solution.is_accepted %}
+            <p class="muted">No subtasks yet.</p>
+        {% endif %}
+    {% endfor %}
+    <hr/>
     {% if solution.is_accepted and is_owner %}
         <div class="alert alert-info">
             <p>Checkout solution branch :</p>

@@ -37,7 +37,6 @@ def solution(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
     user = request.user
-    # TODO improve display of subtasks
     if request.POST:
         # Solution actions
         if request.POST.get('complete') is not None \
@@ -80,17 +79,16 @@ def solution(request, project_name, solution_id):
             vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
     # Get current users vote on this solution
     try:
         vote = solution.vote_set.get(voter_id=user.id)
     except Vote.DoesNotExist:
         vote = None
-
     context = {
         'project': project,
         'solution_tab': "solution",
         'solution': solution,
+        'subtasks': solution.tasks.all().order_by('-time_posted'),
         'vote': vote,
         'is_owner': solution.is_owner(user)
     }
