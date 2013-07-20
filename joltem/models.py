@@ -18,6 +18,9 @@ class Profile(models.Model):
             impact = 1
         # Impact from solutions
         for solution in self.user.solution_set.filter():
+            # A solutions weighted acceptance must be higher than 90% to count towards impact
+            if solution.acceptance < 90:
+                continue
             if solution.impact:
                 impact += solution.impact
         # Impact from review comments
