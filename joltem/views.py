@@ -176,3 +176,44 @@ def keys(request):
         'keys': keys,
     }
     return render(request, 'joltem/keys.html', context)
+
+
+@login_required
+def invite(request):
+    user = request.user
+    if not user.is_superuser:
+        return redirect('home')
+    from joltem.models import Invite
+    context = {
+        'nav_tab': "invite",
+        'invites': Invite.objects.all().order_by('-time_sent'),
+    }
+    if request.POST:
+        mark_sent_id = request.POST.get('mark_sent')
+        if mark_sent_id:
+            from datetime import datetime
+            mark_sent = Invite.objects.get(id=mark_sent_id)
+            mark_sent.is_sent = True
+            mark_sent.time_sent = datetime.now()
+            mark_sent.save()
+            return redirect('invite')
+        name = request.POST.get('name')
+        personal_message = request.POST.get('personal_message')
+        if name and personal_message:
+            email = request.POST.get('email')
+            personal_site = request.POST.get('personal_site')
+            twitter = request.POST.get('twitter')
+            facebook = request.POST.get('facebook')
+            stackoverflow = request.POST.get('stackoverflow')
+            invite = Invite(
+                name=name,
+                personal_message=personal_message,
+                email=email,
+                personal_site=personal_site,
+                twitter=twitter,
+                facebook=facebook,
+                stackoverflow=stackoverflow
+            )
+            invite.save()
+        return redirect('invite')
+    return render(request, 'joltem/invite.html', context)

@@ -32,6 +32,9 @@
                 <ul class="nav">
                     {% block nav %}{% endblock %}
                     <li class="divider-vertical"></li>
+                    {% if user.is_superuser %}
+                        <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invite' %}">Invite</a></li>
+                    {% endif %}
                     {% if user.is_authenticated %}
                         <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
                         <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>

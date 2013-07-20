@@ -10,10 +10,9 @@ class Profile(models.Model):
 
     @property
     def impact(self):
-        from project.models import Project
         # TODO this should later be switched to project specific impact, but it is fine for now as there is only one project
         impact = 0
-        # The admins of the project start with an impact of 1, for weighted voting to be effective
+        # The admins of the project start with an impact of 1, for weighted voting to be effective # TODO hackish missing project parameter, depends on fact that there is only one project
         if self.user.project_set.count() > 0:
             impact = 1
         # Impact from solutions
@@ -44,3 +43,26 @@ class Profile(models.Model):
             self.gravatar_hash = hashlib.md5(gravatar_email).hexdigest()
             return True
         return False
+
+
+class Invite(models.Model):
+    '''
+    A way to send out invitations and track invitations for developers in beta program
+    '''
+    invite_code = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
+    personal_message = models.TextField()
+    is_sent = models.BooleanField(default=False)  # whether user was contacted
+    is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
+    is_signed_up = models.BooleanField(default=False)  # whether user signed up
+    user = models.ForeignKey(User, null=True, blank=True)  # if the user registered, the associated user
+    from datetime import datetime
+    time_sent = models.DateTimeField(null=True, blank=True)
+    time_clicked = models.DateTimeField(null=True, blank=True)
+    time_signed_up = models.DateTimeField(null=True, blank=True)
+    # Various contact methods and profiles
+    email = models.CharField(max_length=200, null=True, blank=True)
+    twitter = models.CharField(max_length=200, null=True, blank=True)
+    facebook = models.CharField(max_length=200, null=True, blank=True)
+    stackoverflow = models.CharField(max_length=200, null=True, blank=True)  # full url
+    personal_site = models.CharField(max_length=200, null=True, blank=True)
