@@ -33,7 +33,7 @@
                     {% block nav %}{% endblock %}
                     <li class="divider-vertical"></li>
                     {% if user.is_superuser %}
-                        <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invite' %}">Invite</a></li>
+                        <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
                     {% endif %}
                     {% if user.is_authenticated %}
                         <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>

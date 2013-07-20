@@ -49,7 +49,7 @@ class Invite(models.Model):
     '''
     A way to send out invitations and track invitations for developers in beta program
     '''
-    invite_code = models.CharField(max_length=200)
+    invite_code = models.CharField(max_length=200, unique=True)
     name = models.CharField(max_length=200)
     personal_message = models.TextField()
     is_sent = models.BooleanField(default=False)  # whether user was contacted
@@ -66,3 +66,15 @@ class Invite(models.Model):
     facebook = models.CharField(max_length=200, null=True, blank=True)
     stackoverflow = models.CharField(max_length=200, null=True, blank=True)  # full url
     personal_site = models.CharField(max_length=200, null=True, blank=True)
+
+    @classmethod
+    def is_valid(cls, invite_code):
+        """
+        Check if invite code is valid, if valid returns Invite object and False if not
+        If already return False
+        """
+        try:
+            invite = cls.objects.get(invite_code=invite_code)
+            return False if invite.is_signed_up else invite
+        except cls.DoesNotExist:
+            return False

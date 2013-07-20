@@ -1,16 +1,27 @@
-from django.shortcuts import render, redirect
-from django.utils.decorators import method_decorator
+from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from joltem.models import User, Profile
 from project.models import Project
 from git.models import Authentication
+from joltem.models import Invite
+from datetime import datetime
 
-@login_required
+
 def home(request):
-    # Currently there is only one project so just redirect to it
-    project = Project.objects.get()
-    return redirect('project:project', project_name=project.name)
+    if request.user.is_authenticated():
+        # Currently there is only one project so just redirect to it
+        project = Project.objects.get()
+        return redirect('project:project', project_name=project.name)
+    elif 'invite_code' in request.COOKIES:
+        invite_code = request.COOKIES['invite_code']
+        invite = Invite.is_valid(invite_code)
+        if invite:
+            context = {
+                "invite": invite
+            }
+            return render(request, 'joltem/invitation.html', context)
+    return redirect('sign_in')
 
 
 def is_email_valid(email):
@@ -19,67 +30,81 @@ def is_email_valid(email):
 
 
 def sign_up(request):
-    error = None
-    if request.POST:
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        gravatar_email = request.POST.get('gravatar_email')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        # Check if username is available
-        import re
-        if not username:
-            error = "Username is required."
-        elif not first_name:
-            error = "First name is required."
-        elif not email:
-            error = "Email is required."
-        elif not password:
-            error = "Password is required."
-        elif not password_confirm:
-            error = "Confirming the password is required."
-        elif not is_email_valid(email):
-            error = "Email address is not valid."
-        elif gravatar_email and not is_email_valid(gravatar_email):
-            error = "Your gravatar must have a valid email address."
-        elif not re.match(r'^[A-Za-z0-9_]+$', username):
-            error = "This username is not valid."
-        elif User.objects.filter(username=username).count() > 0:
-            error = "This username already exists."
-        elif User.objects.filter(email=email).count() > 0:
-            error = "Somebody already has an account with this password. Did you forget your password?"
-        elif password != password_confirm:
-            error = "Passwords don't match."
-        elif len(password) < 8:
-            error = "Password must be at least 8 characters."
+    if not 'invite_code' in request.COOKIES:
+        return redirect('sign_in')
+    else:
+        invite_code = request.COOKIES['invite_code']
+        invite = Invite.is_valid(invite_code)
+        if not invite:
+            return redirect('sign_in')
         else:
-            user = User.objects.create_user(username, email, password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            # Setup profile
-            profile = Profile(
-                user=user
-            )
-            if profile.set_gravatar_email(gravatar_email):
-                profile.save()
-                # Login and redirect to authentication keys page
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('account_keys')
-    context = {
-        'nav_tab': "up",
-        'error': error,
-    }
-    if error:
-        context['username'] = username
-        context['email'] = email
-        context['first_name'] = first_name
-        context['last_name'] = last_name
-        context['gravatar_email'] = gravatar_email
-    return render(request, 'joltem/sign_up.html', context)
+            error = None
+            if request.POST:
+                username = request.POST.get('username')
+                email = request.POST.get('email')
+                first_name = request.POST.get('first_name')
+                last_name = request.POST.get('last_name')
+                gravatar_email = request.POST.get('gravatar_email')
+                password = request.POST.get('password')
+                password_confirm = request.POST.get('password_confirm')
+                # Check if username is available
+                import re
+                if not username:
+                    error = "Username is required."
+                elif not first_name:
+                    error = "First name is required."
+                elif not email:
+                    error = "Email is required."
+                elif not password:
+                    error = "Password is required."
+                elif not password_confirm:
+                    error = "Confirming the password is required."
+                elif not is_email_valid(email):
+                    error = "Email address is not valid."
+                elif gravatar_email and not is_email_valid(gravatar_email):
+                    error = "Your gravatar must have a valid email address."
+                elif not re.match(r'^[A-Za-z0-9_]+$', username):
+                    error = "This username is not valid."
+                elif User.objects.filter(username=username).count() > 0:
+                    error = "This username already exists."
+                elif User.objects.filter(email=email).count() > 0:
+                    error = "Somebody already has an account with this password. Did you forget your password?"
+                elif password != password_confirm:
+                    error = "Passwords don't match."
+                elif len(password) < 8:
+                    error = "Password must be at least 8 characters."
+                else:
+                    user = User.objects.create_user(username, email, password)
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    user.save()
+                    # Setup profile
+                    profile = Profile(
+                        user=user
+                    )
+                    if profile.set_gravatar_email(gravatar_email):
+                        profile.save()
+                        # Login and redirect to authentication keys page
+                    user = authenticate(username=username, password=password)
+                    login(request, user)
+                    # Track invite
+                    invite.is_signed_up = True
+                    invite.time_signed_up = datetime.now()
+                    invite.user = user
+                    invite.save()
+                    return redirect('account_keys')
+            context = {
+                'nav_tab': "up",
+                'error': error,
+                'invite': invite
+            }
+            if error:
+                context['username'] = username
+                context['email'] = email
+                context['first_name'] = first_name
+                context['last_name'] = last_name
+                context['gravatar_email'] = gravatar_email
+            return render(request, 'joltem/sign_up.html', context)
 
 
 def sign_in(request):
@@ -179,7 +204,7 @@ def keys(request):
 
 
 @login_required
-def invite(request):
+def invites(request):
     user = request.user
     if not user.is_superuser:
         return redirect('home')
@@ -191,21 +216,24 @@ def invite(request):
     if request.POST:
         mark_sent_id = request.POST.get('mark_sent')
         if mark_sent_id:
-            from datetime import datetime
             mark_sent = Invite.objects.get(id=mark_sent_id)
             mark_sent.is_sent = True
             mark_sent.time_sent = datetime.now()
             mark_sent.save()
-            return redirect('invite')
+            return redirect('invites')
         name = request.POST.get('name')
         personal_message = request.POST.get('personal_message')
         if name and personal_message:
+            from uuid import uuid4
             email = request.POST.get('email')
             personal_site = request.POST.get('personal_site')
             twitter = request.POST.get('twitter')
             facebook = request.POST.get('facebook')
             stackoverflow = request.POST.get('stackoverflow')
+            uuid = uuid4()
+            invite_code = uuid.hex
             invite = Invite(
+                invite_code=invite_code,
                 name=name,
                 personal_message=personal_message,
                 email=email,
@@ -215,5 +243,54 @@ def invite(request):
                 stackoverflow=stackoverflow
             )
             invite.save()
-        return redirect('invite')
+        return redirect('invites')
+    return render(request, 'joltem/invites.html', context)
+
+
+def invite(request, invite_id):
+    user = request.user
+    if not user.is_authenticated():
+        from django.http.response import HttpResponseRedirect
+        invitation_redirect = HttpResponseRedirect(resolve_url('home'))  # TODO change to redirect to home which is the invitation page
+        invite = Invite.is_valid(invite_id)
+        if invite:
+            invite.is_clicked = True
+            invite.time_clicked = datetime.now()
+            invite.save()
+            invitation_redirect.set_cookie('invite_code', invite_id)
+        return invitation_redirect
+    elif not user.is_superuser:
+        return redirect('home')
+    invite = get_object_or_404(Invite, id=invite_id)
+    context = {
+        'nav_tab': "invite",
+        'invite': invite
+    }
+    if request.POST:
+        action = request.POST.get('action')
+        if action == "delete":
+            invite.delete()
+            return redirect('invites')
+        elif action == "mark_sent":
+            invite.is_sent = True
+            invite.time_sent = datetime.now()
+            invite.save()
+            return redirect('invite', invite_id=invite_id)
+        name = request.POST.get('name')
+        personal_message = request.POST.get('personal_message')
+        if name and personal_message:
+            email = request.POST.get('email')
+            personal_site = request.POST.get('personal_site')
+            twitter = request.POST.get('twitter')
+            facebook = request.POST.get('facebook')
+            stackoverflow = request.POST.get('stackoverflow')
+            invite.name=name
+            invite.personal_message=personal_message
+            invite.email=email
+            invite.personal_site=personal_site
+            invite.twitter=twitter
+            invite.facebook=facebook
+            invite.stackoverflow=stackoverflow
+            invite.save()
+        return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)

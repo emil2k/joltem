@@ -1,58 +1,38 @@
 {% extends 'joltem/base.html' %}
+{% load markup %}
+{% block title %}{{ invite.name }} Invite - Joltem{% endblock %}
 {% block content %}
     <form method="post">
         {% csrf_token %}
-        {% for invite in invites %}
-            <div class="row">
-                <div class="span3">
-                    <p>
-                        <strong>{{ invite.name }}</strong>
-                    </p>
-                </div>
-                <div class="span6">
-                    {% if invite.email %}
-                        <a href="mailto:{{ invite.email }}" target="_blank" class="btn btn-mini"><i class="icon-envelope"></i></a>
-                    {% endif %}
-                    {% if invite.personal_site %}
-                        <a href="{{ invite.personal_site }}" target="_blank" class="btn btn-mini"><i class="icon-globe"></i></a>
-                    {% endif %}
-                    {% if invite.twitter %}
-                        <a href="{{ invite.twitter }}" target="_blank" class="btn btn-mini">twitter</a>
-                    {% endif %}
-                    {% if invite.facebook %}
-                        <a href="{{ invite.facebook }}" target="_blank" class="btn btn-mini">facebook</a>
-                    {% endif %}
-                    {% if invite.stackoverflow %}
-                        <a href="{{ invite.stackoverflow }}" target="_blank" class="btn btn-mini">stack</a>
-                    {% endif %}
-                </div>
-                <div class="span2 text-center">
-                    {% if invite.is_sent %}
-                        <small class="text-info">Sent on {{ invite.time_sent|date }}.</small>
-                    {% else %}
-                        <button class="btn btn-success btn-mini" name="mark_sent" value="{{ invite.id }}">mark sent</button>
-                    {% endif %}
-                </div>
-            </div>
-        {% empty %}
-            <p class="muted">No invites at the moment.</p>
-        {% endfor %}
-        <hr/>
         <div class="row">
-            <div class="span6">
-                <input type="text" placeholder="Name" name="name" class="input-block-level"/><br/>
-                <textarea placeholder="Personal message" name="personal_message" class="input-block-level" rows="10"></textarea>
+            <div class="offset1 span6">
+                <input type="text" placeholder="Name" name="name" class="input-block-level" value="{{ invite.name }}"/><br/>
+                <textarea placeholder="Personal message" name="personal_message" class="input-block-level" rows="10">{{ invite.personal_message }}</textarea>
             </div>
             <div class="span4">
-                <input type="text" placeholder="Email" name="email" class="input-block-level"/><br/>
-                <input type="text" placeholder="Personal site" name="personal_site" class="input-block-level"/><hr/>
-                <input type="text" placeholder="Twitter" name="twitter" class="input-block-level"/><br/>
-                <input type="text" placeholder="Facebook" name="facebook" class="input-block-level"/><br/>
-                <input type="text" placeholder="StackOverflow" name="stackoverflow" class="input-block-level"/><br/>
+                <input type="text" placeholder="Email" name="email" class="input-block-level" value="{{ invite.email }}"/><br/>
+                <input type="text" placeholder="Personal site" name="personal_site" class="input-block-level" value="{{ invite.personal_site }}"/><hr/>
+                <input type="text" placeholder="Twitter" name="twitter" class="input-block-level" value="{{ invite.twitter }}" /><br/>
+                <input type="text" placeholder="Facebook" name="facebook" class="input-block-level" value="{{ invite.facebook }}" /><br/>
+                <input type="text" placeholder="StackOverflow" name="stackoverflow" class="input-block-level" value="{{ invite.stackoverflow }}" /><br/>
             </div>
         </div>
-        <p>
-            <button type="submit" class="btn btn-success">Create invitation</button>
-        </p>
+        <div class="row">
+            <div class="offset1 span10">
+                <input class="input-block-level" type="text" value="http://joltem.com:8000{% url 'invite' invite.invite_code %}" disabled />
+            </div>
+        </div>
+        <div class="row">
+            <div class="offset1 btn-group">
+                <button type="submit" class="btn btn-success">Edit invitation</button>
+                <button type="submit" class="btn" name="action" value="delete">Delete</button>
+            </div>
+        </div>
     </form>
+    <hr/>
+    <div class="row">
+        <div class="offset1 span6">
+            {{ invite.personal_message|markdown }}
+        </div>
+    </div>
 {% endblock %}

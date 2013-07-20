@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'Invite'
         db.create_table(u'joltem_invite', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('invite_code', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('invite_code', self.gf('django.db.models.fields.CharField')(unique=True, max_length=200)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('personal_message', self.gf('django.db.models.fields.TextField')()),
             ('is_sent', self.gf('django.db.models.fields.BooleanField')(default=False)),
@@ -77,7 +77,7 @@ class Migration(SchemaMigration):
             'email': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'facebook': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'invite_code': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'invite_code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
             'is_clicked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_sent': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_signed_up': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),

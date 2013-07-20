@@ -9,6 +9,7 @@
         <div class="offset1 span8">
             <form method="post" class="form-horizontal">
                 {% csrf_token %}
+                <input type="hidden" name="invite_code" value="{{ invite.invite_code }}" />
                 <div class="control-group">
                     <label class="control-label" for="input_username">Username</label>
                     <div class="controls" id="input_username">
