@@ -39,8 +39,8 @@
                         <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
                         <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>
                     {% else %}
-                        <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign In</a></li>
-                        <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign Up</a></li>
+                        <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign in</a></li>
+                        <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign up</a></li>
                     {% endif %}
                 </ul>
             </div><!--/.nav-collapse -->
