@@ -70,3 +70,22 @@ class Authentication(models.Model):
 
     def __unicode__(self):
         return str(self.id)
+
+    @classmethod
+    def update(cls):
+        from git.gitolite.permissions import update_permissions
+        from git.gitolite.keys import update_keys
+        # Update gitolite permissions to include new user, must be done after actually saved to DB
+        update_permissions()
+        # Update gitolite keys to include new user
+        update_keys()
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        new = False if self.pk else True
+        super(Authentication, self).save(force_insert, force_update, using, update_fields)
+        if new:
+            Authentication.update()
+
+    def delete(self, using=None):
+        super(Authentication, self).delete(using)
+        Authentication.update()
