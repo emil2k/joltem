@@ -10,16 +10,6 @@
             {% endif %}
     {% endif %}
 </div>
-<div class="span8">
-    <p>
-        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a><br>
-        <small class="muted">
-            by {{ solution.user.first_name }} on {{ solution.time_posted|date }}
-            {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}
-            {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
-        </small>
-    </p>
-</div>
 <div class="span1 text-center hidden-phone">
     {% if solution.is_completed %}
         {% if solution.acceptance == None %}
@@ -27,9 +17,21 @@
         {% elif solution.acceptance > 90 %}
             <b><span class="text-success">{{ solution.acceptance }}<small>%</small></span></b>
         {% else %}
-            <b><span class="text-error">{{ solution.acceptance }}<small>%</small></span></b>
+            <b><span class="muted">{{ solution.acceptance }}<small>%</small></span></b>
         {% endif %}
         <br/>
         <small class="muted">{{ solution.vote_set.count }} votes</small>
     {% endif %}
+</div>
+<div class="span8">
+    <p>
+        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a><br>
+        <small class="muted">
+            by {{ solution.user.first_name }} on {{ solution.time_posted|date }}
+            <span class="hidden-phone">
+                {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}
+                {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
+            </span>
+        </small>
+    </p>
 </div>

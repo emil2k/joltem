@@ -59,10 +59,10 @@
         {% csrf_token %}
         {% for solution in solutions %}
             <div class="row">
-                {% with offset="offset1" %}
+                {% with offset="" %}
                     {% include 'solution/solution_row_cells.html' %}
                 {% endwith %}
-                <div class="span1">
+                <div class="span2">
                     {% if is_owner %}
                         {% if solution.is_accepted %}
                             <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>

@@ -1,13 +1,15 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <div class="tabbable tabs-left">
-        <ul class="nav nav-tabs">
-            <li class="{{ solutions_tab|active:"all" }}"><a href="{% url 'project:solution:all' project.name %}">All</a></li>
-            <li class="{{ solutions_tab|active:"accepted" }}"><a href="{% url 'project:solution:accepted' project.name %}">Accepted</a></li>
-            <li class="{{ solutions_tab|active:"completed" }}"><a href="{% url 'project:solution:completed' project.name %}">Completed</a></li>
-        </ul>
-        <div class="tab-content">
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="{{ solutions_tab|active:"all" }}"><a href="{% url 'project:solution:all' project.name %}">All</a></li>
+                <li class="{{ solutions_tab|active:"accepted" }}"><a href="{% url 'project:solution:accepted' project.name %}">Accepted</a></li>
+                <li class="{{ solutions_tab|active:"completed" }}"><a href="{% url 'project:solution:completed' project.name %}">Completed</a></li>
+            </ul>
+        </div>
+        <div class="span10">
             {% block solutions_content %}{% endblock %}
         </div>
     </div>
