@@ -9,14 +9,16 @@
         <div class="row">
             <div class="span2 text-center">
                 {% if vote or is_owner %}
-                    {% if solution.impact == None %}
-                        <h2 class="muted">~</h2>
-                    {% elif solution.impact > 0 %}
-                        <h2 class="text-success">{{ solution.impact }}</h2>
-                    {% else %}
-                        <h2 class="muted">0</h2>
-                    {% endif %}
-                    <small class="muted">impact</small>
+                    <p>
+                        {% if solution.impact == None %}
+                            <h2 class="muted">~</h2>
+                        {% elif solution.impact > 0 %}
+                            <h2 class="text-success">{{ solution.impact }}</h2>
+                        {% else %}
+                            <h2 class="muted">0</h2>
+                        {% endif %}
+                        <small class="muted">impact</small>
+                    </p>
                 {% endif %}
             </div>
             {% if is_owner %}
@@ -26,14 +28,16 @@
             {% endif %}
             <div class="span2 text-center">
                 {% if vote or is_owner %}
-                    {% if solution.acceptance == None %}
-                        <h2 class="muted">~</h2>
-                    {% elif solution.acceptance > 90 %}
-                        <h2 class="text-success">{{ solution.acceptance }}%</h2>
-                    {% else %}
-                        <h2 class="text-error">{{ solution.acceptance }}%</h2>
-                    {% endif %}
-                    <small class="muted">acceptance<br/>{{ vote_count }} votes</small>
+                    <p>
+                        {% if solution.acceptance == None %}
+                            <h2 class="muted">~</h2>
+                        {% elif solution.acceptance > 90 %}
+                            <h2 class="text-success">{{ solution.acceptance }}%</h2>
+                        {% else %}
+                            <h2 class="text-error">{{ solution.acceptance }}%</h2>
+                        {% endif %}
+                        <small class="muted">acceptance<br/>{{ vote_count }} votes</small>
+                    </p>
                 {% endif %}
             </div>
         </div>

@@ -1,16 +1,17 @@
 {% extends 'joltem/base.html' %}
 {% load static from staticfiles %}
 {% load markup %}
-{% block title %}What could a million people build together?{% endblock %}
+{% block title %}Invitation - Joltem{% endblock %}
 {% block content %}
-    <div class="row">
-        <div class="offset8 span4 text-right" style="position: fixed; height: 100%;">
+    <div class="row hidden-phone">
+        <div class="offset6 span6 text-right" style="position: fixed; height: 100%;">
             <h1 style="position: relative; top: 0em;">What could <span class="text-info">a million</span> people build together?</h1>
             <img class="img-circle" src="{% static 'joltem/img/shuttle.jpg' %}" style="position: relative; top: 3em;">
         </div>
     </div>
     <div class="row">
         <div class="span6">
+<h2 class="hidden-desktop">What could <span class="text-info">a million</span> people build together?</h2>
 
 <p>Technology is pushing us to collaborate.</p>
 
@@ -25,7 +26,7 @@
 <p>We hope to empower the world to dream ambitiously, and hope you will join us.</p>
 
 <p>
-    <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a> <span class="help-inline">or read more about the system below.</span>
+    <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a> <span class="help-inline">or read more below.</span>
 </p>
 
 <h4>Delegation of Work</h4>
@@ -34,9 +35,13 @@
 
 <p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. When a solution is complete a peer review determines the <em>impact</em> of the given solution, the work being done on each branch can be merged up at any point from any of the solutions, making the work asynchronous.</p>
 
+<p class="text-center"><img src="{% static 'joltem/img/vote.png' %}"></p>
+            
 <p>During the review process there are two votes : acceptance and rejection of the solution. Rejection is represented by a <i class="icon-remove"></i> icon and requires an explanatory comment to count. While acceptance is represented by a 0 to 10 <em>impact</em> scale. </p>
 
 <p>Votes are weighted by the users current <em>impact</em> and result in two important metrics : <em>impact</em> and acceptance of the solution. If acceptance is below a certain threshold, the user won’t be rewarded <em>impact</em> for the solution unless things are resolved. For a solution a user may be awarded an <em>impact</em> in the range from 0 to 100, by multiplying the weighted average by 10 and rounding to the nearest integer.</p>
+
+<p class="text-center"><img src="{% static 'joltem/img/votes.png' %}"></p>
 
 <p>To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the <em>impact</em> of each vote is held private. Only weighted average of the <em>impact</em> votes is revealed.</p>
 
