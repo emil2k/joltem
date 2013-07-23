@@ -5,23 +5,21 @@
     {% endif %}
     <form method="post" class="form-horizontal">
         {% csrf_token %}
-        <div class="row">
-            <div class="offset1 span8">
-                <div class="control-group">
-                    <label class="control-label" for="input_username">Username</label>
-                    <div class="controls" id="input_username">
-                        <input type="text" name="username" value="{{ username }}" placeholder="Username"/>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="input_password">Password</label>
-                    <div class="controls" id="input_password">
-                        <input type="password" name="password" placeholder="Password"/>
-                    </div>
-                </div>
-                <p class="offset2">
-                    <button type="submit" value="login" class="btn btn-success">Sign In</button>
-                </p>
+        <div class="control-group">
+            <label class="control-label" for="input_username">Username</label>
+            <div class="controls" id="input_username">
+                <input type="text" name="username" value="{{ username }}" placeholder="Username"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="input_password">Password</label>
+            <div class="controls" id="input_password">
+                <input type="password" name="password" placeholder="Password"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" value="login" class="btn btn-success">Sign In</button>
             </div>
         </div>
    </form>
