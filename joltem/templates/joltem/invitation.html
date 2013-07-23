@@ -1,6 +1,7 @@
 {% extends 'joltem/base.html' %}
 {% load static from staticfiles %}
 {% load markup %}
+{% block title %}What could a million people build together?{% endblock %}
 {% block content %}
     <div class="row">
         <div class="offset8 span4 text-right" style="position: fixed; height: 100%;">
@@ -10,41 +11,38 @@
     </div>
     <div class="row">
         <div class="span6">
-<p>The internet has scaled by orders of magnitude many of our interactions. In rare instances like Wikipedia it has shown us glimpses of what is possible if our workforces scale as well. However as it currently stands most startups are founded by groups of less than five and developers outside of places like Silicon Valley are often forced to work alone which leads to a general lack of ambition.</p>
 
-<p>We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with unimaginable ease. What we propose here is a company to make this real by first focusing on the people most capable of accepting this idea - programmers.</p>
+<p>Technology is pushing us to collaborate.</p>
 
-<p>We have developed a simple system that allows people to recursively divide up programming work into smaller tasks and delegate them to others. On completion of tasks peer review determines the <em>impact</em> of each solution. Accumulated <em>impact</em>, which is backed by a pool of company stock, can periodically be converted into stock. There is more details regarding the system below.</p>
+<p>We see signs everywhere from the plethora of mobile applications to large scale collaborative research at the LHC, but there is an antiquated fear holding us back.</p>
 
-{{ invite.personal_message|markdown }}
+<p>Massive collaboration requires openness. However companies fear open innovation, relegating collaboration to highly fragmented efforts and poorly funded nonprofits. If structured properly though companies could focus a large workforce to tackle immensely difficult problems. </p>
 
-<p>We hope you will join us in preparing the product for public release, but if this is not possible your feedback in discussions and code reviews would still be greatly appreciated so feel free to sign up and participate.</p>
+<p>Furthermore even as the whole world begins to adopt the internet majority of venture capital is still being distributed amongst companies founded in a few cities. We seek to put every individual in the world on an equal footing to reveal an idea and have a company manifest out if it.</p>
 
-<p>Thanks for your time.</p>
+<p>Our goal is to facilitate the launch of companies which innovate and operate openly. We have developed a simple model that would allow a company to quickly scale their workforce, reduce the need to raise capital, and easily attract talented and passionate people. The model is detailed on the rest of the page.</p>
+
+<p>We hope to empower the world to dream ambitiously, and hope you will join us.</p>
 
 <p>
     <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a> <span class="help-inline">or read more about the system below.</span>
 </p>
 
-<h3>Delegation of Work</h3>
+<h4>Delegation of Work</h4>
 
 <p>After a project idea is revealed publicly by the founders, work is split up into general tasks. Tasks are delegated to anyone who is willing to contribute a solution. Each solution may contain its own set of tasks, creating a tree of tasks and solutions. In order for a solution to create it’s own tasks it must be accepted by the parent task creator. Acceptance of a task is a mechanism to focus the efforts of the community, and took keep the task tree from sprawling out of control.</p>
 
 <p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. When a solution is complete a peer review determines the <em>impact</em> of the given solution, the work being done on each branch can be merged up at any point from any of the solutions, making the work asynchronous.</p>
 
-<p><img src="{% static 'joltem/img/vote.png' %}" class="img-polaroid" /></p>
-
 <p>During the review process there are two votes : acceptance and rejection of the solution. Rejection is represented by a <i class="icon-remove"></i> icon and requires an explanatory comment to count. While acceptance is represented by a 0 to 10 <em>impact</em> scale. </p>
 
 <p>Votes are weighted by the users current <em>impact</em> and result in two important metrics : <em>impact</em> and acceptance of the solution. If acceptance is below a certain threshold, the user won’t be rewarded <em>impact</em> for the solution unless things are resolved. For a solution a user may be awarded an <em>impact</em> in the range from 0 to 100, by multiplying the weighted average by 10 and rounding to the nearest integer.</p>
-
-<p><img src="{% static 'joltem/img/votes.png' %}" class="img-polaroid" /></p>
 
 <p>To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the <em>impact</em> of each vote is held private. Only weighted average of the <em>impact</em> votes is revealed.</p>
 
 <p>Comments left in reviews are also voted on with a simple binary vote of “helpful” or “not helpful” à la Amazon reviews and can be rewarded an <em>impact</em> from 0 to 10. All votes on comments are private.</p>
 
-<h3>Equity Compensation</h3>
+<h4>Equity Compensation</h4>
 
 <p>As work is completed on the project users will accumulate <em>impact</em> through the review process. The <em>impact</em> the user accumulates can be seen as the amount of work he or she has done for the company. The total <em>impact</em>, a sum of all the <em>impact</em>s accumulated by all the users on the project, can be viewed as the total amount of work to get the project to that particular state.</p>
 
@@ -56,15 +54,7 @@
 
 <p>When capital needs to be raised, it will be raised privately in two rounds. Firstly from people who have amassed <em>impact</em> then if necessary from accredited investors. To initiate a funding event, the company’s board, initially just the founders, must submit an general outline of what the funds are to be used for, the number of stocks they plan to newly allocate, and the minimum pre-money valuation of the company that they will accept. Bidders will blindly submit their own valuations of the company above the minimum declared by the board and the amount of stock they wish to purchase. The stock will be distributed amongst the bidders for maximum total value. If some of the provisioned stock remains, the board may decide whether to have a follow up round with outside accredited investors.</p>
 
-<p>For an example the Joltem project itself, is structured like so : 85% of the company’s equity is backing <em>impact</em>, the rest is designated to founders and angel investors. Annually on the anniversary of the public release of the site 25% of non-exchanged <em>impact</em> will be available for exchange.</p>
-
-<h3>The Vision</h3>
-
-<p>Technology is pushing us to collaborate. We see signs of it everywhere from the plethora of mobile applications developed by individuals to large scale collaborative research on data from the LHC but there is an antiquated fear holding us back. </p>
-
-<p>Companies fear open innovation, and massive collaboration requires openness. Collaborative efforts are therefore relegated to nonprofit, poorly funded groups stunting their abilities. Open innovation allows companies to leverage large workforces to work on ambitious problems. It also allows them to attract specialized and passionate people without cumbersome hiring processes greatly reducing the overall risk and the amount of capital necessary to raise. Our goal is to facilitate the launch of companies which innovate and operate openly. </p>
-
-<p>Furthermore technology seeks to democratize opportunity. As the whole world is adopting the internet most of the venture capital money is being given to companies founded in a couple of cities in the United States. We seek to break down this barrier of entry, putting every individual on equal footing to reveal their idea and have a company manifest out if it. Empowering the rest of the world to dream ambitiously.</p>
+<p>For an example the Joltem project itself, is structured like so : 85% of the company’s equity is backing <em>impact</em>, the rest is designated to founders and angel investors. Annually on the anniversary of the public release of the site 25% of non-exchanged <em>impact</em> will be available to exchange for stock.</p>
 
 <p>
     <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a>

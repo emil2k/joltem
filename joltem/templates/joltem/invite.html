@@ -32,7 +32,7 @@
     <hr/>
     <div class="row">
         <div class="offset1 span6">
-            {{ invite.personal_message|markdown }}
+            {% include 'joltem/invitation_text.html' %}
         </div>
     </div>
 {% endblock %}
