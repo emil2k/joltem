@@ -1,8 +1,5 @@
 {% extends 'task/tasks_base.html' %}
 {% block tasks_content %}
-    {% if is_admin %}
-        <a class="pull-right btn btn-success" href="{% url 'project:task:new' project.name %}">Create task</a>
-    {% endif %}
     {% for task in tasks %}
         {% include 'task/task_row.html' %}
     {% empty %}

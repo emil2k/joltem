@@ -1,12 +1,17 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <div class="tabbable tabs-left">
-        <ul class="nav nav-tabs">
-            <li class="{{ tasks_tab|active:"open" }}"><a href="{% url 'project:task:open' project.name %}">Open</a></li>
-            <li class="{{ tasks_tab|active:"closed" }}"><a href="{% url 'project:task:closed' project.name %}">Closed</a></li>
-        </ul>
-        <div class="tab-content">
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="{{ tasks_tab|active:"open" }}"><a href="{% url 'project:task:open' project.name %}">Open</a></li>
+                <li class="{{ tasks_tab|active:"closed" }}"><a href="{% url 'project:task:closed' project.name %}">Closed</a></li>
+                {% if is_admin %}
+                    <li><a href="{% url 'project:task:new' project.name %}">Create task</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="span10">
             {% block tasks_content %}{% endblock %}
         </div>
     </div>

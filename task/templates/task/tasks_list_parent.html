@@ -4,10 +4,9 @@
         <strong>Parent Task : </strong>{{ parent_task.title }}
     </div>
     {% for subtask_group in subtask_groups %}
-        <div class="text-center">
+        <div class="alert text-center">
             <a href="{% url 'project:solution:solution' project.name subtask_group.solution.id %}" class="muted">
                 Tasks for solution by {{ subtask_group.solution.user.first_name }}
-                posted on {{ subtask_group.solution.time_posted|date }}
             </a>
         </div>
         {% for task in subtask_group.tasks %}

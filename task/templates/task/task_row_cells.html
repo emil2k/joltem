@@ -8,7 +8,7 @@
         <small class="muted">
             by {{ task.owner.first_name }} on {{ task.time_posted|date }}
             {% if task.is_closed %}
-                / <span class="text-info">Closed on {{ task.time_closed|date }}</span>
+                <span class="hidden-phone">/ <span class="text-info">Closed on {{ task.time_closed|date }}</span></span>
             {% endif %}
             {% if task.subtasks > 0 %}
                 / <a href="{% url 'project:task:open' project.name task.id %}">{{ task.subtasks }} subtask{{ task.subtasks|pluralize }}</a>
