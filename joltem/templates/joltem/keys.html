@@ -4,7 +4,10 @@
         {% csrf_token %}
         {% for key in keys %}
             <div class="row">
-                <div class="span1">
+                <div class="pull-right hidden-desktop hidden-tablet">
+                    <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+                </div>
+                <div class="span1 hidden-phone">
                     <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
                 </div>
                 <div class="span8">

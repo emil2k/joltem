@@ -5,11 +5,11 @@
     <form method="post">
         {% csrf_token %}
         <div class="row">
-            <div class="offset1 span6">
+            <div class="span6">
                 <input type="text" placeholder="Name" name="name" class="input-block-level" value="{{ invite.name }}"/><br/>
                 <textarea placeholder="Personal message" name="personal_message" class="input-block-level" rows="10">{{ invite.personal_message }}</textarea>
             </div>
-            <div class="span4">
+            <div class="span6">
                 <input type="text" placeholder="Email" name="email" class="input-block-level" value="{{ invite.email }}"/><br/>
                 <input type="text" placeholder="Personal site" name="personal_site" class="input-block-level" value="{{ invite.personal_site }}"/><hr/>
                 <input type="text" placeholder="Twitter" name="twitter" class="input-block-level" value="{{ invite.twitter }}" /><br/>
@@ -18,20 +18,22 @@
             </div>
         </div>
         <div class="row">
-            <div class="offset1 span10">
+            <div class="span12">
                 <input class="input-block-level" type="text" value="http://joltem.com:8000{% url 'invite' invite.invite_code %}" disabled />
             </div>
         </div>
         <div class="row">
-            <div class="offset1 btn-group">
-                <button type="submit" class="btn btn-success">Edit invitation</button>
-                <button type="submit" class="btn" name="action" value="delete">Delete</button>
+            <div class="span12">
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-success">Edit invitation</button>
+                    <button type="submit" class="btn" name="action" value="delete">Delete</button>
+                </div>
             </div>
         </div>
     </form>
     <hr/>
     <div class="row">
-        <div class="offset1 span6">
+        <div class="span6">
             {% include 'joltem/invitation_text.html' %}
         </div>
     </div>

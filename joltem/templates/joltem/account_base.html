@@ -1,12 +1,14 @@
 {% extends 'joltem/base.html' %}
 {% load filters %}
 {% block content %}
-    <div class="tabbable tabs-right">
-        <ul class="nav nav-tabs">
-            <li class="{{ account_tab|active:"account" }}"><a href="{% url 'account' %}">Account</a></li>
-            <li class="{{ account_tab|active:"keys" }}"><a href="{% url 'account_keys' %}">Keys</a></li>
-        </ul>
-        <div class="tab-content">
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="{{ account_tab|active:"account" }}"><a href="{% url 'account' %}">Account</a></li>
+                <li class="{{ account_tab|active:"keys" }}"><a href="{% url 'account_keys' %}">Keys</a></li>
+            </ul>
+        </div>
+        <div class="span10">
             {% block account_content %}{% endblock %}
         </div>
     </div>
