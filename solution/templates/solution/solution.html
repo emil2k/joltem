@@ -2,18 +2,20 @@
 {% load markup %}
 {% load filters %}
 {% block solution_content %}
+    <div class="row hidden-desktop hidden-tablet">
+        <div class="span8">
+            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=50" /></p>
+            <h4><a href="#">{{ solution.user.first_name }}</a></h4>
+            <p><b>{{ solution.user.get_profile.impact }}</b> impact <b>{{ solution.user.get_profile.completed }}</b> solutions</p>
+            <hr class="clearfix"/>
+        </div>
+    </div>
     <div class="row">
         <div class="span2 hidden-phone">
             <h4><a href="#">{{ solution.user.first_name }}</a></h4>
             <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=100" /></p>
             <p><b>{{ solution.user.get_profile.impact }}</b> impact</p>
             <p><b>{{ solution.user.get_profile.completed }}</b> solutions</p>
-        </div>
-        <div class="span2 hidden-desktop">
-            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ solution.user.get_profile.gravatar_hash }}?s=50" /></p>
-            <h4><a href="#">{{ solution.user.first_name }}</a></h4>
-            <p><b>{{ solution.user.get_profile.impact }}</b> impact <b>{{ solution.user.get_profile.completed }}</b> solutions</p>
-            <hr class="clearfix"/>
         </div>
         <div class="span8">
             {% if solution.title %}
@@ -37,6 +39,9 @@
                         {% if not solution.is_completed %}
                             <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
                         {% endif %}
+                        {% if solution.is_accepted %}
+                            <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create subtask</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </form>
@@ -59,19 +64,21 @@
                     <strong>Cannot open subtasks</strong> until the solution is accepted by parent task.
                 </div>
             {% endif %}
-            <span class="hidden-desktop muted text-center">{{ solution.time_posted|timesince }} ago.</span>
+            <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
             <hr/>
         </div>
         <div class="span2 muted text-right hidden-phone">
             {{ solution.time_posted|timesince }} ago.
         </div>
     </div>
-    {% if is_owner and solution.is_accepted %}
-        <p class="pull-right"><a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a></p>
-    {% endif %}
+    <div class="row">
+        <div class="offset2 span8">
+            <h5>Subtasks</h5>
+        </div>
+    </div>
     {% for task in subtasks %}
         <div class="row">
-            {% with offset="offset1" %}
+            {% with offset="offset2" %}
                 {% include 'task/task_row_cells.html' %}
             {% endwith %}
         </div>
@@ -81,7 +88,7 @@
         {% endif %}
     {% endfor %}
     <hr/>
-    {% if solution.is_accepted and is_owner %}
+    {% if is_owner %}
         <div class="alert alert-info">
             <p>Checkout solution branch :</p>
             <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>

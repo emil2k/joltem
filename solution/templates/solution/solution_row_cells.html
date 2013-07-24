@@ -1,29 +1,4 @@
-{% load mathfilters %}
-<div class="{{ offset }} span1 text-center hidden-phone">
-    {% if solution.is_completed %}
-            {% if solution.impact == None %}
-                <b><span class="muted">~</span></b>
-            {% elif solution.impact > 0 %}
-                <b><span class="text-success">{{ solution.impact }}</span></b>
-            {% else %}
-                <b><span class="muted">0</span></b>
-            {% endif %}
-    {% endif %}
-</div>
-<div class="span1 text-center hidden-phone">
-    {% if solution.is_completed %}
-        {% if solution.acceptance == None %}
-            <b><span class="muted">~</span></b>
-        {% elif solution.acceptance > 90 %}
-            <b><span class="text-success">{{ solution.acceptance }}<small>%</small></span></b>
-        {% else %}
-            <b><span class="muted">{{ solution.acceptance }}<small>%</small></span></b>
-        {% endif %}
-        <br/>
-        <small class="muted">{{ solution.vote_set.count }} votes</small>
-    {% endif %}
-</div>
-<div class="span8">
+<div class="{{ offset }} span8">
     <p>
         <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a><br>
         <small class="muted">
@@ -35,3 +10,27 @@
         </small>
     </p>
 </div>
+{% if solution.is_completed %}
+    <div class="span1 text-center hidden-phone">
+        {% if solution.acceptance == None %}
+            <b><span class="muted">~</span></b>
+        {% elif solution.acceptance > 90 %}
+            <b><span class="text-success">{{ solution.acceptance }}<small>%</small></span></b>
+        {% else %}
+            <b><span class="muted">{{ solution.acceptance }}<small>%</small></span></b>
+        {% endif %}
+        <br/>
+        <small class="muted">{{ solution.vote_set.count }} votes</small>
+    </div>
+    <div class="span1 text-center hidden-phone">
+        {% if solution.impact == None %}
+            <b><span class="muted">~</span></b>
+        {% elif solution.impact > 0 %}
+            <b><span class="text-success">{{ solution.impact }}</span></b>
+        {% else %}
+            <b><span class="muted">0</span></b>
+        {% endif %}
+        <br/>
+        <small class="muted">impact</small>
+    </div>
+{% endif %}

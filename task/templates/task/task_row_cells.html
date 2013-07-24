@@ -1,8 +1,4 @@
-<div class="{{ offset }} span1 text-center muted hidden-phone">
-    {{ task.solution_set.count }}<br/>
-    <small>solutions</small>
-</div>
-<div class="span8">
+<div class="{{ offset }} span9">
     <p>
         <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
         <small class="muted">
@@ -15,4 +11,8 @@
             {% endif %}
         </small>
     </p>
+</div>
+<div class="span1 text-center muted hidden-phone">
+    {{ task.solution_set.count }}<br/>
+    <small>solutions</small>
 </div>

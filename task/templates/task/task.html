@@ -7,18 +7,20 @@
             <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
         </div>
     {% endif %}
+    <div class="row hidden-desktop hidden-tablet">
+        <div class="span8">
+            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=50" /></p>
+            <h4><a href="#">{{ task.owner.first_name }}</a></h4>
+            <p><b>{{ task.owner.get_profile.impact }}</b> impact <b>{{ task.owner.get_profile.completed }}</b> solutions</p>
+            <hr class="clearfix"/>
+        </div>
+    </div>
     <div class="row">
         <div class="span2 hidden-phone">
             <h4><a href="#">{{ task.owner.first_name }}</a></h4>
             <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=100" /></p>
             <p><b>{{ task.owner.get_profile.impact }}</b> impact</p>
             <p><b>{{ task.owner.get_profile.completed }}</b> solutions</p>
-        </div>
-        <div class="span2 hidden-desktop">
-            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=50" /></p>
-            <h4><a href="#">{{ task.owner.first_name }}</a></h4>
-            <p><b>{{ task.owner.get_profile.impact }}</b> impact <b>{{ task.owner.get_profile.completed }}</b> solutions</p>
-            <hr class="clearfix"/>
         </div>
         <div class="span8">
             <h4>{{ task.title }}</h4>
@@ -48,21 +50,23 @@
                     <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}
                 </div>
             {% endif %}
-            <span class="hidden-desktop muted text-center">{{ task.time_posted|timesince }} ago.</span>
+            <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
             <hr/>
         </div>
         <div class="span2 muted text-right hidden-phone">
             {{ task.time_posted|timesince }} ago.
         </div>
     </div>
+    <div class="row">
+        <div class="offset2 span8">
+            <h5>Solutions</h5>
+        </div>
+    </div>
     <form method="post">
         {% csrf_token %}
         {% for solution in solutions %}
             <div class="row">
-                {% with offset="" %}
-                    {% include 'solution/solution_row_cells.html' %}
-                {% endwith %}
-                <div class="span2">
+                <div class="hidden-desktop hidden-tablet pull-right">
                     {% if is_owner %}
                         {% if solution.is_accepted %}
                             <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
@@ -71,6 +75,18 @@
                         {% endif %}
                     {% endif %}
                 </div>
+                <div class="span2 text-center hidden-phone">
+                    {% if is_owner %}
+                        {% if solution.is_accepted %}
+                            <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
+                        {% else %}
+                            <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% with offset="" %}
+                    {% include 'solution/solution_row_cells.html' %}
+                {% endwith %}
             </div>
         {% empty %}
             <div class="row">
