@@ -52,7 +52,14 @@
     {% for comment_holder in comments %}
         {% with comment=comment_holder.comment %}
             <div class="row">
-                <div class="span2 text-center">
+                <div class="row hidden-desktop hidden-tablet">
+                    <div class="span8">
+                        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=50" /></p>
+                        <h4><a href="#">{{ comment.commenter.first_name }}</a></h4>
+                        <p><b>{{ comment.commenter.get_profile.impact }}</b> impact <b>{{ comment.commenter.get_profile.completed }}</b> solutions</p>
+                    </div>
+                </div>
+                <div class="span2 text-center hidden-phone">
                     <p>
                         <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=75" /><br/>
                     </p>
@@ -68,16 +75,14 @@
                 </div>
                 <div class="span2 text-center">
                     {% with vote=comment_holder.vote %}
-                        {% if vote %}
-                            <p>
-                                <small class="muted">
-                                    {% if comment.impact %}
-                                        {{ comment.impact }} impact,
-                                        {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
-                                    {% endif %}
-                                </small>
-                            </p>
-                        {% endif %}
+                        <p>
+                            <small class="muted">
+                                {% if comment.impact %}
+                                    {{ comment.impact }} impact,
+                                    {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
+                                {% endif %}
+                            </small>
+                        </p>
                         {% if not comment_holder.is_author %}
                             {% include 'solution/review_comment_vote.html' %}
                         {% endif %}

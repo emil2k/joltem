@@ -1,15 +1,15 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <div class="tabbable tabs-left">
-        <ul class="nav nav-tabs">
-            <li class="{{ repositories_tab|active:"active" }}"><a href="{% url 'project:git:repositories' project.name %}">Active</a></li>
-            <li class="{{ repositories_tab|active:"hidden" }}"><a href="{% url 'project:git:repositories_hidden' project.name %}">Hidden</a></li>
-        </ul>
-        <div class="tab-content">
-            {% if is_admin %}
-                <a class="pull-right btn btn-success" href="{% url 'project:git:new_repository' project.name %}">Create repository</a>
-            {% endif %}
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="{{ repositories_tab|active:"active" }}"><a href="{% url 'project:git:repositories' project.name %}">Active</a></li>
+                <li class="{{ repositories_tab|active:"hidden" }}"><a href="{% url 'project:git:repositories_hidden' project.name %}">Hidden</a></li>
+                <li><a href="{% url 'project:git:new_repository' project.name %}">Create</a></li>
+            </ul>
+        </div>
+        <div class="span10">
             {% block repositories_content %}{% endblock %}
         </div>
     </div>

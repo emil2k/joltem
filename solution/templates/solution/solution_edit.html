@@ -2,7 +2,7 @@
 {% load markup %}
 {% block project_content %}
     <div class="row">
-        <div class="offset1 span8">
+        <div class="span8">
             <form method="post">
                 {% csrf_token %}
                 <input class="input-block-level" type="text" name="title" placeholder="Optional. A title that describes your solution." value="{{ solution.title }}"/>

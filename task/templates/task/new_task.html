@@ -3,14 +3,22 @@
     <form method="post">
         {% csrf_token %}
         <div class="row">
-            <div class="offset1 span8">
+            <div class="span8">
                 {% if parent_solution %}
                     <div class="alert alert-info">
                         This task will be placed under parent solution : <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.task.title }}</a></strong>
                     </div>
                 {% endif %}
-                <input class="span8" type="text" name="title" placeholder="Task title." /><br/>
-                <textarea class="span8" rows=10 name="description" placeholder="Task description."></textarea><br/>
+                <input class="span8" type="text" name="title" placeholder="Task title." />
+            </div>
+        </div>
+        <div class="row">
+            <div class="span8">
+                <textarea class="span8" rows=10 name="description" placeholder="Task description."></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span8">
                 <button class="btn btn-success" name="action" value="create_task">Create task</button>
             </div>
         </div>

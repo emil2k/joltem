@@ -2,8 +2,12 @@
 {% block project_content %}
     <form method="post">
         {% csrf_token %}
-        <input class="span8" type="text" name="name" placeholder="Name, i.e. git-server"/><br/>
-        <textarea class="span8" rows=10 type="text" name="description" placeholder="Description of repository"></textarea><br/>
-        <button class="btn btn-success" type="submit" name="action" value="create_repo">Create repository</button>
+        <div class="row">
+            <div class="span8">
+                <input type="text" name="name" placeholder="Name, i.e. git-server" class="input-block-level"/>
+                <textarea rows=10 type="text" name="description" placeholder="Description of repository" class="input-block-level"></textarea>
+                <button class="btn btn-success" type="submit" name="action" value="create_repo">Create repository</button>
+            </div>
+        </div>
     </form>
 {% endblock %}

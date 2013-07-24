@@ -1,0 +1,11 @@
+{% extends 'git/repositories_base.html' %}
+{% block repositories_content %}
+    <form method="post" class="form-inline">
+        {% csrf_token %}
+        {% for repo in repositories %}
+            {% include 'git/repository_row.html' %}
+        {% empty %}
+            <p class="muted">There is no active repositories for this project.</p>
+        {% endfor %}
+    </form>
+{% endblock %}

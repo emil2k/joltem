@@ -7,22 +7,9 @@ from joltem.settings import MAIN_DIR
 def repository(request, project_name, repository_name):
     project = get_object_or_404(Project, name=project_name)
     repository = get_object_or_404(Repository, name=repository_name, project=project)
-
-    from pygit2 import Repository as GitRepository, GIT_SORT_TIME
-    git_repo = GitRepository(repository.absolute_path)
-    commits = []
-    if not git_repo.is_empty:
-        try:
-            ref = git_repo.head
-        except KeyError:
-            commits = None
-        else:
-            for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
-                commits.append(commit)
-
     context = {
-        'repository': repository,
-        'commits': commits,
+        'project': project,
+        'repository': repository
     }
     return render(request, 'git/repository.html', context)
 
@@ -44,9 +31,10 @@ def repositories(request, project_name):
         'repositories_tab': "active",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=False),
+        'action': "hide",
         'is_admin': is_admin
     }
-    return render(request, 'git/repositories_active.html', context)
+    return render(request, 'git/repositories_list.html', context)
 
 
 def repositories_hidden(request, project_name):
@@ -66,9 +54,10 @@ def repositories_hidden(request, project_name):
         'repositories_tab': "hidden",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=True),
+        'action': "unhide",
         'is_admin': is_admin
     }
-    return render(request, 'git/repositories_hidden.html', context)
+    return render(request, 'git/repositories_list.html', context)
 
 
 def new_repository(request, project_name):

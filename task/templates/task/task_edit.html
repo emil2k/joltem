@@ -3,8 +3,20 @@
 {% block project_content %}
     <form method='post'>
         {% csrf_token %}
-        <input class="span8" type="text" name="title" value="{{ task.title }}"/>
-        <textarea class="span8" rows='10' name='description'>{{ task.description }}</textarea><br/>
-        <button type='submit' class="btn btn-success">Edit</button>
+        <div class="row">
+            <div class="span8">
+                <input class="span8" type="text" name="title" value="{{ task.title }}"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span8">
+                <textarea class="span8" rows='10' name='description'>{{ task.description }}</textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span8">
+                <button type='submit' class="btn btn-success">Edit</button>
+            </div>
+        </div>
     </form>
 {% endblock %}

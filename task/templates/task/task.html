@@ -2,11 +2,6 @@
 {% load markup %}
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block project_content %}
-    {% if task.is_closed %}
-        <div class="alert alert-info">
-            <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
-        </div>
-    {% endif %}
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
             <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=50" /></p>
@@ -45,6 +40,11 @@
                     {% endif %}
                 </div>
             </form>
+            {% if task.is_closed %}
+                <div class="alert alert-info">
+                    <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
+                </div>
+            {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">
                     <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}

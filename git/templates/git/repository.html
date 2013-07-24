@@ -1,19 +1,7 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
-    <div class="alert">
-        <strong>Under construction.</strong>
+    <div class="alert alert">
+        <strong>To do : </strong>
+        browse repositories, commits, view patches, compare branches ....
     </div>
-    <h3>{{ repository.full_name }}</h3>
-    <h4>Commits</h4>
-    {% for commit in commits %}
-        <p>
-            {{ commit.message }}<br/>
-            <small class="muted">by {{ commit.author.name }} at {{ commit.commit_time }}</small>
-        </p>
-        <p class="text-info">
-            {{ commit.sha }}
-        </p>
-    {% empty %}
-        <p class="muted">No commits yet.</p>
-    {% endfor %}
 {% endblock %}
