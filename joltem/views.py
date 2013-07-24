@@ -137,6 +137,14 @@ def sign_out(request):
 
 
 @login_required
+def user(request, username):
+    user = get_object_or_404(User, username=username)
+    context = {
+        'user': user
+    }
+    return render(request, 'joltem/user.html', context)
+
+@login_required
 def account(request):
     error = None
     user = request.user

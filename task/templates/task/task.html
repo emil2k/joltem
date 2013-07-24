@@ -5,14 +5,14 @@
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
             <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=50" /></p>
-            <h4><a href="#">{{ task.owner.first_name }}</a></h4>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
             <p><b>{{ task.owner.get_profile.impact }}</b> impact <b>{{ task.owner.get_profile.completed }}</b> solutions</p>
             <hr class="clearfix"/>
         </div>
     </div>
     <div class="row">
         <div class="span2 hidden-phone">
-            <h4><a href="#">{{ task.owner.first_name }}</a></h4>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
             <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ task.owner.get_profile.gravatar_hash }}?s=100" /></p>
             <p><b>{{ task.owner.get_profile.impact }}</b> impact</p>
             <p><b>{{ task.owner.get_profile.completed }}</b> solutions</p>

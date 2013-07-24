@@ -12,6 +12,7 @@ urlpatterns = patterns(
     url(r'^up/', views.sign_up, name='sign_up'),
     url(r'^in/', views.sign_in, name='sign_in'),
     url(r'^out/', views.sign_out, name='sign_out'),
+    url(r'^user/(?P<username>([-\w])+)/$', views.user, name='user'),
     url(r'^account/$', views.account, name='account'),
     url(r'^account/keys/$', views.keys, name='account_keys'),
     url(r'^invite/$', views.invites, name='invites'),
