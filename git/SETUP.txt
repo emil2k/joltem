@@ -12,25 +12,23 @@
 
 -   Create symlink to gitolite update hook in gitolite folder. We will make symbolic links
     to this link from each repo.
-    i.e. gitolite-update -> /Users/git/.gitolite/hooks/common/update
+        i.e. gitolite-update -> /Users/git/.gitolite/hooks/common/update
 
--   Add a group git and give it permissions to read and write to keydir
-    and and repositories folders.
+-   TODO Add a group git and add user to git group
 
-    chgrp -Rv git repositories/ .gitolite/keydir/
-    chmod -Rv g+wrX repositories/ .gitolite/keydir/
+-   Give git group permissions to repositories and locale-code folders.
 
--   Change all locale-code file to git group, then give them execution permission.
+    chgrp -Rv git repositories/
+    chmod -Rv g+wrX repositories/
 
     chgrp -Rv git local-code/
-    chmod -Rv g+wrX local-code/
+    chmod -Rv g+rX local-code/
 
 -   Add LOCAL_CODE variable to the .gitolite.rc, more info here :
     http://gitolite.com/gitolite/cust.html#ncloc
     NOTE : No trailing slash.
 
     i.e.
-
         # customization to hooks, VREFs, and etc. stored in this folder
         LOCAL_CODE                      =>  '/Users/emil/Sites/env/testenv/joltem/git/gitolite/local-code',
 
@@ -38,35 +36,56 @@
     for running local code.
 
     i.e.
-    export PYTHONPATH=/Users/emil/Sites/env/testenv/joltem:/Users/emil/Sites/env/testenv/lib/python2.7/site-packages
+        export PYTHONPATH=/Users/emil/Sites/env/testenv/joltem:/Users/emil/Sites/env/testenv/lib/python2.7/site-packages
 
 -   Inside git users home folder edit the .gitolite.rc file, changing the UMASK variable to 0007
 
 FILE STRUCTURE EXAMPLE of git directory :
 
-.
+git/
 ├── SETUP.txt
 ├── __init__.py
+├── __init__.pyc
 ├── admin.py
+├── admin.pyc
 ├── gitolite
 │   ├── __init__.py
+│   ├── __init__.pyc
 │   ├── gitolite-admin
 │   │   ├── conf
 │   │   │   └── gitolite.conf
-│   │   ├── keydir
-│   │   │   ├── bob@2.pub
-│   │   │   ├── emil@1.pub
-│   │   │   └── jill@3.pub
-│   │   └── keys.log
-│   ├── keydir -> /Users/git/.gitolite/keydir/
+│   │   └── keydir
+│   │       ├── bob@2.pub
+│   │       ├── emil.pub
+│   │       ├── emil@1.pub
+│   │       ├── emil@10.pub
+│   │       ├── emil@4.pub
+│   │       ├── emil@6.pub
+│   │       ├── emil@8.pub
+│   │       ├── jill@3.pub
+│   │       └── jill@9.pub
+│   ├── gitolite-update -> /Users/git/.gitolite/hooks/common/update
 │   ├── keys.py
+│   ├── keys.pyc
+│   ├── local-code
+│   │   └── VREF
+│   │       ├── UPDATE
+│   │       └── test.log
 │   ├── permissions.py
+│   └── permissions.pyc
 ├── migrations
+│   ├── ...
 ├── models.py
+├── models.pyc
 ├── repositories -> /Users/git/repositories/
+├── templates
+│   └── git
+│       ├── ...
 ├── tests.py
 ├── urls.py
-└── views.py
+├── urls.pyc
+├── views.py
+└── views.pyc
 
 
 ============================================================================================
