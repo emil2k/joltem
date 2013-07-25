@@ -229,10 +229,11 @@ def invites(request):
             mark_sent.time_sent = datetime.now()
             mark_sent.save()
             return redirect('invites')
-        name = request.POST.get('name')
+        first_name = request.POST.get('first_name')
         personal_message = request.POST.get('personal_message')
-        if name and personal_message:
+        if first_name and personal_message:
             from uuid import uuid4
+            last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             personal_site = request.POST.get('personal_site')
             twitter = request.POST.get('twitter')
@@ -242,7 +243,8 @@ def invites(request):
             invite_code = uuid.hex
             invite = Invite(
                 invite_code=invite_code,
-                name=name,
+                first_name=first_name,
+                last_name=last_name,
                 personal_message=personal_message,
                 email=email,
                 personal_site=personal_site,
@@ -284,21 +286,23 @@ def invite(request, invite_id):
             invite.time_sent = datetime.now()
             invite.save()
             return redirect('invite', invite_id=invite_id)
-        name = request.POST.get('name')
+        first_name = request.POST.get('first_name')
         personal_message = request.POST.get('personal_message')
-        if name and personal_message:
+        if first_name and personal_message:
+            last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             personal_site = request.POST.get('personal_site')
             twitter = request.POST.get('twitter')
             facebook = request.POST.get('facebook')
             stackoverflow = request.POST.get('stackoverflow')
-            invite.name=name
-            invite.personal_message=personal_message
-            invite.email=email
-            invite.personal_site=personal_site
-            invite.twitter=twitter
-            invite.facebook=facebook
-            invite.stackoverflow=stackoverflow
+            invite.first_name = first_name
+            invite.last_name = last_name
+            invite.personal_message = personal_message
+            invite.email = email
+            invite.personal_site = personal_site
+            invite.twitter = twitter
+            invite.facebook = facebook
+            invite.stackoverflow = stackoverflow
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)

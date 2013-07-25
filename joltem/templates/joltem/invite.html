@@ -6,7 +6,8 @@
         {% csrf_token %}
         <div class="row">
             <div class="span6">
-                <input type="text" placeholder="Name" name="name" class="input-block-level" value="{{ invite.name }}"/><br/>
+                <input type="text" placeholder="First name" name="first_name" class="input-block-level" value="{{ invite.first_name }}" /><br/>
+                <input type="text" placeholder="Last name" name="last_name" class="input-block-level" value="{{ invite.last_name }}" /><br/>
                 <textarea placeholder="Personal message" name="personal_message" class="input-block-level" rows="10">{{ invite.personal_message }}</textarea>
             </div>
             <div class="span6">
