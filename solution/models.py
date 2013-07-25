@@ -78,7 +78,7 @@ class Solution(models.Model):
         """
         Count of open subtasks stemming from this solution
         """
-        open_subtasks = self.tasks.filter(is_closed=False)
+        open_subtasks = self.tasks.all()
         count = open_subtasks.count()
         for subtask in open_subtasks:
             count += subtask.subtasks

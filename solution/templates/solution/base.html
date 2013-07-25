@@ -1,6 +1,7 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% load markup %}
+{% block title %}{{ solution.default_title }} - Joltem{% endblock %}
 {% block project_content %}
     <ul class="nav nav-tabs">
         <li class="{{ solution_tab|active:"solution" }}"><a href="{% url 'project:solution:solution' project.name solution.id %}">Solution</a></li>

@@ -1,6 +1,6 @@
 {% extends 'joltem/base.html' %}
 {% load markup %}
-{% block title %}{{ invite.name }} Invite - Joltem{% endblock %}
+{% block title %}{{ invite.full_name }} Invite - Joltem{% endblock %}
 {% block content %}
     <form method="post">
         {% csrf_token %}
