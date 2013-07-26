@@ -274,7 +274,8 @@ def invite(request, invite_id):
     invite = get_object_or_404(Invite, id=invite_id)
     context = {
         'nav_tab': "invite",
-        'invite': invite
+        'invite': invite,
+        'host': request.get_host(),
     }
     if request.POST:
         action = request.POST.get('action')

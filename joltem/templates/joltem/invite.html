@@ -20,7 +20,7 @@
         </div>
         <div class="row">
             <div class="span12">
-                <input class="input-block-level" type="text" value="http://joltem.com:8000{% url 'invite' invite.invite_code %}" disabled />
+                <input class="input-block-level" type="text" value="http://{{ host }}{% url 'invite' invite.invite_code %}" disabled />
             </div>
         </div>
         <div class="row">
