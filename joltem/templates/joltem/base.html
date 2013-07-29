@@ -13,7 +13,9 @@
     <link href="{% static 'joltem/css/bootstrap-responsive.css' %}" rel="stylesheet">
 
     <style>
-
+        .brand {
+            padding: 5px 5px 5px 15px !important;
+        }
         @media (max-width: 767px) {
             .span1,.span2,.span3,.span4,.span5,.span6,.span7,.span8,.span9,.span10,.span11,.span12 {
                 margin-bottom: 10px;
@@ -38,7 +40,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            {% block brand %}<a class="brand" href="{% url 'home' %}" style="padding: 5px 0px"><img src="{% static 'joltem/img/icon-brand.png' %}" alt="Joltem" /></a>{% endblock %}
+            {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/icon-brand.png' %}" alt="Joltem" /></a>{% endblock %}
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
