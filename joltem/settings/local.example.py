@@ -54,5 +54,9 @@ DEPLOYMENT_ELASTIC_IP = ''
 DEPLOYMENT_USER = ''
 # PEM file for accessing EC2 instance to deploy to
 DEPLOYMENT_KEY_FILE = ''
-# Path on the EC2 instance to deploy to
+# Path on the EC2 instance to deploy to, with trailing slash
 DEPLOYMENT_PATH = ''
+# Path to python virtualenv activate script on the EC2 instance
+DEPLOYMENT_VIRTUALENV_ACTIVATE = ''
+# Command to reload UWSGI process on the EC2 instance
+DEPLOYMENT_UWSGI_RELOAD_COMMAND = ''
