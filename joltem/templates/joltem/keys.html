@@ -10,14 +10,14 @@
                 <div class="span1 hidden-phone">
                     <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
                 </div>
-                <div class="span8">
+                <div class="span9">
                     <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
                     <pre>{{ key.key }}</pre>
                 </div>
             </div>
         {% empty %}
             <div class="row">
-                <div class="offset1 span8">
+                <div class="span10">
                     <div class="alert alert-info">
                         <strong>Add an authentication key</strong> to get started.
                     </div>
@@ -29,7 +29,7 @@
         {% endfor %}
         <hr>
         <div class="row">
-            <div class="offset1 span8">
+            <div class="span10">
                 <small class="help-block">
                     <i class="icon-question-sign"></i>
                     Authentication keys are used to identify and authenticate your workstation,
