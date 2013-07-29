@@ -79,9 +79,7 @@ def sign_up(request):
                     user.last_name = last_name
                     user.save()
                     # Setup profile
-                    profile = Profile(
-                        user=user
-                    )
+                    profile = user.get_profile()
                     if profile.set_gravatar_email(gravatar_email):
                         profile.save()
                         # Login and redirect to authentication keys page

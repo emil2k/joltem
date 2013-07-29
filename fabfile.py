@@ -49,7 +49,7 @@ def deploy(branch='master', remote='origin'):
             sudo('python manage.py collectstatic --noinput')  # make sure static folder has write permissions
             # Sync the database
             info('Synchronizing database.')
-            run('python manage.py syncdb')
+            run('python manage.py syncdb --noinput')  # create superuser later if it is the first time
             # Migrate the database
             info('Migrating database.')
             run('python manage.py migrate')

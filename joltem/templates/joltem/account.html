@@ -52,7 +52,7 @@
                 <div class="control-group">
                     <label class="control-label" for="input_gravatar_email">Gravatar</label>
                     <div class="controls" id="input_gravatar_email">
-                        <input type="text" name="gravatar_email" value="{{ user.get_profile.gravatar_email }}" placeholder="Gravatar Email"/>
+                        <input type="text" name="gravatar_email" {% if user.get_profile.gravatar_email %}value="{{ user.get_profile.gravatar_email }}"{% endif %} placeholder="Gravatar Email"/>
                         <small class="help-inline">For avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i> </small>
                     </div>
                 </div>

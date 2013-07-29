@@ -1,12 +1,22 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
 
 class Profile(models.Model):
-    gravatar_email = models.CharField(max_length=200, null=True,blank=True)
-    gravatar_hash = models.CharField(max_length=200, null=True,blank=True)
+    gravatar_email = models.CharField(max_length=200, null=True, blank=True)
+    gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
     # Relations
     user = models.OneToOneField(User, related_name="profile")
+
+    # Create profile when user is created
+    def create_profile(sender, **kw):
+        user = kw["instance"]
+        if kw["created"]:
+            profile = Profile(user=user)
+            profile.save()
+
+    post_save.connect(create_profile, sender=User)
 
     @property
     def impact(self):
