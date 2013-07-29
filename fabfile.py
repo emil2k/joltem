@@ -43,7 +43,7 @@ def deploy(branch='master', remote='origin'):
         with(prefix('source %s' % DEPLOYMENT_VIRTUALENV_ACTIVATE)):
             # Install requirements
             info('Installing requirements.')
-            run('pip install -r %sjoltem/requirements.txt' % DEPLOYMENT_PATH)
+            sudo('pip install -r %sjoltem/requirements.txt' % DEPLOYMENT_PATH)
             # Collect static files
             info('Collecting static files.')
             sudo('python manage.py collectstatic --noinput')  # make sure static folder has write permissions
