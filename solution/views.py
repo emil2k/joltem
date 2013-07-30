@@ -7,6 +7,7 @@ from project.models import Project
 from task.models import Task
 from solution.models import Solution, Vote, Comment, CommentVote
 
+
 @login_required
 def new_solution(request, project_name, task_id):
     project = get_object_or_404(Project, name=project_name)
@@ -31,6 +32,7 @@ def new_solution(request, project_name, task_id):
         solution.save()
         return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
     return render(request, 'solution/new_solution.html', context)
+
 
 @login_required
 def solution(request, project_name, solution_id):
@@ -93,6 +95,7 @@ def solution(request, project_name, solution_id):
         'is_owner': solution.is_owner(user)
     }
     return render(request, 'solution/solution.html', context)
+
 
 @login_required
 def solution_edit(request, project_name, solution_id):
@@ -222,20 +225,21 @@ def review(request, project_name, solution_id):
     }
     return render(request, 'solution/review.html', context)
 
+
 @login_required
 def commits(request, project_name, solution_id, repository_name):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
+    repository_set = project.repository_set.filter(is_hidden=False).order_by('name')
 
     if project.repository_set.count() == 0:
         return HttpResponseNotFound()
     elif repository_name is not None:
         repository = get_object_or_404(Repository, project_id=project.id, name=repository_name)
     else:
-        # Load the latest repository
-        repository = project.repository_set.all().order_by('name')[0]
+        repository = repository_set[0]  # load the default active repository
 
-    from pygit2 import Repository as GitRepository, GitError, GIT_SORT_TIME
+    from pygit2 import Repository as GitRepository, GIT_SORT_TIME
     git_repo = GitRepository(repository.absolute_path)
     commits = []
     if not git_repo.is_empty:
@@ -253,7 +257,7 @@ def commits(request, project_name, solution_id, repository_name):
         'solution_tab': "commits",
         'solution': solution,
         'repository': repository,
-        'repositories': project.repository_set.filter(is_hidden=False).order_by('name'),
+        'repositories': repository_set,
         'commits': commits,
     }
     return render(request, 'solution/commits.html', context)
