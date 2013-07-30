@@ -83,9 +83,11 @@
             {% endwith %}
         </div>
     {% empty %}
-        {% if solution.is_accepted %}
-            <p class="muted">No subtasks yet.</p>
-        {% endif %}
+        <div class="row">
+            <div class="offset2 span8">
+                <p class="muted">No subtasks yet.</p>
+            </div>
+        </div>
     {% endfor %}
     <hr/>
     {% if is_owner %}
