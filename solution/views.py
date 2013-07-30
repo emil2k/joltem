@@ -274,6 +274,14 @@ class SolutionListView(ProjectListView):
     def dispatch(self, request, *args, **kwargs):
         return super(SolutionListView, self).dispatch(request, *args, **kwargs)
 
+    def get_queryset(self):
+        if self.solutions_tab == 'completed':
+            return self.project.solution_set.filter(is_completed=True).order_by('-time_completed')
+        elif self.solutions_tab == 'accepted':
+            return self.project.solution_set.filter(is_accepted=True).order_by('-time_accepted')
+        else:
+            return self.project.solution_set.all().order_by('-time_posted')
+
     def get_context_data(self, **kwargs):
         context = super(SolutionListView, self).get_context_data(**kwargs)
         context['solutions_tab'] = self.solutions_tab
@@ -282,20 +290,17 @@ class SolutionListView(ProjectListView):
 
 def all():
     return SolutionListView.as_view(
-        solutions_tab='all',
-        queryset=Solution.objects.all().order_by('-time_posted')
+        solutions_tab='all'
     )
 
 
 def accepted():
     return SolutionListView.as_view(
-        solutions_tab='accepted',
-        queryset=Solution.objects.all().order_by('-time_accepted')
+        solutions_tab='accepted'
     )
 
 
 def completed():
     return SolutionListView.as_view(
-        solutions_tab='completed',
-        queryset=Solution.objects.all().order_by('-time_completed')
+        solutions_tab='completed'
     )

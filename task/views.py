@@ -13,6 +13,7 @@ def new(request, project_name, parent_solution_id):
         'tasks_tab': "new",
         'project': project
     }
+    parent_solution = None
     if parent_solution_id is not None:
         parent_solution = get_object_or_404(Solution, id=parent_solution_id)
         if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user)):
@@ -33,7 +34,7 @@ def new(request, project_name, parent_solution_id):
             created_task.save()
             if parent_solution is not None:
                 return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution_id)
-            return redirect('project:task:list', project_name=project.name)
+            return redirect('project:task:open', project_name=project.name)
     return render(request, 'task/new_task.html', context)
 
 @login_required
@@ -131,9 +132,10 @@ class TaskListView(ProjectListView):
                     subtask_group = SubtaskGroup(solution, subtasks)
                     subtask_groups.append(subtask_group)
             return subtask_groups
+        elif self.tasks_tab == 'closed':
+            return self.project.task_set.filter(is_closed=True).order_by('-time_posted')
         else:
-            # TODO raise error if queryset not set
-            return self.queryset
+            return self.project.task_set.filter(is_closed=False).order_by('-time_posted')
 
     def get_context_object_name(self, object_list):
         if self.parent_task:
@@ -158,13 +160,11 @@ class TaskListView(ProjectListView):
 
 def open():
     return TaskListView.as_view(
-        tasks_tab="open",
-        queryset=Task.objects.filter(is_closed=False).order_by('-time_posted')
+        tasks_tab="open"
     )
 
 
 def closed():
     return TaskListView.as_view(
-        tasks_tab="closed",
-        queryset=Task.objects.filter(is_closed=True).order_by('-time_closed')
+        tasks_tab="closed"
     )
