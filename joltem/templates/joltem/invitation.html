@@ -17,9 +17,9 @@
 
 <p>We see signs everywhere from the plethora of mobile applications to large scale collaborative research at the LHC, but there is an antiquated fear holding us back.</p>
 
-<p>Massive collaboration requires openness. However companies fear open innovation, relegating collaboration to highly fragmented efforts and poorly funded nonprofits. If structured properly though companies could focus a large workforce to tackle immensely difficult problems. </p>
+<p>Massive collaboration requires openness. However companies fear open innovation, relegating collaboration to highly fragmented efforts and poorly funded nonprofits. If structured properly though companies could focus a large workforce to tackle immensely difficult problems.</p>
 
-<p>Furthermore even as the whole world begins to adopt the internet majority of venture capital is still being distributed amongst companies founded in a few cities. We seek to put every individual in the world on an equal footing to reveal an idea and have a company manifest out if it.</p>
+<p>Furthermore technology seeks to democratize, but currently the majority of venture capital is distributed in a few cities, hoarding opportunity for those who reside there.  Collaborative efforts where people are able to invest with their work could greatly reduce the need for early stage venture capital, leveling the playing field.</p>
 
 <p>Our goal is to facilitate the launch of companies which innovate and operate openly. We have developed a simple model that would allow a company to quickly scale their workforce, reduce the need to raise capital, and easily attract talented and passionate people. The model is detailed on the rest of the page.</p>
 
@@ -31,44 +31,37 @@
 
 <h4>Work</h4>
 
-<p>After a project idea is revealed publicly by the founders, work is split up into general tasks. Tasks are delegated to anyone who is willing to contribute a solution. Each solution may contain its own set of tasks, creating a tree of tasks and solutions. In order for a solution to create it’s own tasks it must be accepted by the parent task creator. Acceptance of a task is a mechanism to focus the efforts of the community, and took keep the task tree from sprawling out of control.</p>
+<p>As a project idea is revealed publicly by the founders, work is split up into general tasks. Tasks are delegated to anyone who is willing to contribute a solution. Each solution may contain its own set of tasks, creating a tree of tasks and solutions. In order for a solution to create it’s own tasks it must be accepted by the parent task. Acceptance of a task is a mechanism to focus the efforts of the community, and took keep the task tree from sprawling out of control.</p>
 
-<p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. When a solution is complete a peer review determines the <em>impact</em> of the given solution, the work being done on each branch can be merged up at any point from any of the solutions, making the work asynchronous.</p>
+<p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. When a solution is complete a peer review determines the impact of the given solution. The work being done on each branch can be merged up at any point from any of the solutions, making the work largely asynchronous.</p>
 
-<p class="text-center"><img src="{% static 'joltem/img/vote.png' %}"></p>
-            
-<p>During the review process there are two votes : acceptance and rejection of the solution. Rejection is represented by a <i class="icon-remove"></i> icon and requires an explanatory comment to count. While acceptance is represented by a 0 to 10 <em>impact</em> scale. </p>
-
-<p>Votes are weighted by the users current <em>impact</em> and result in two important metrics : <em>impact</em> and acceptance of the solution. If acceptance is below a certain threshold, the user won’t be rewarded <em>impact</em> for the solution unless things are resolved. For a solution a user may be awarded an <em>impact</em> in the range from 0 to 100, by multiplying the weighted average by 10 and rounding to the nearest integer.</p>
+<p>Votes are weighted by the users current impact and result in two important metrics : impact and acceptance of the solution. If acceptance is below a certain threshold, the user won’t be rewarded impact for the solution unless things are resolved. To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the impact of each vote is held private. Only weighted average of the impact votes is revealed.</p>
 
 <p class="text-center"><img src="{% static 'joltem/img/votes.png' %}"></p>
 
-<p>To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the <em>impact</em> of each vote is held private. Only weighted average of the <em>impact</em> votes is revealed.</p>
-
-<p>Comments left in reviews are also voted on with a simple binary vote of “helpful” or “not helpful” à la Amazon reviews and can be rewarded an <em>impact</em> from 0 to 10. All votes on comments are private.</p>
+<p>Comments left in code reviews and discussions are also voted on, determining an impact for each contribution in the development process.</p>
 
 <h4>Compensation</h4>
 
-<p>As work is completed on the project users will accumulate <em>impact</em> through the review process. The <em>impact</em> the user accumulates can be seen as the amount of work he or she has done for the company. The total <em>impact</em>, a sum of all the <em>impact</em>s accumulated by all the users on the project, can be viewed as the total amount of work to get the project to that particular state.</p>
+<p>As work is completed on the project users will accumulate impact through the review process. The impact the user accumulates can be seen as the amount of work he or she has done for the company. The total impact, a sum of all the impacts accumulated by all the users on the project, can be viewed as the total amount of work to get the project to that particular state.</p>
 
-<p><em>Impact</em> will always be backed by a pool of company stock, like an employee pool in regular companies. Periodically users will be able to exchange a portion of their <em>impact</em> for company stock, analogous to vesting plans. </p>
+<p>Impact will always be backed by a pool of company stock, like an employee pool in regular companies. Periodically users will be able to exchange a portion of their impact for company stock, analogous to vesting plans.</p>
 
-<p>The exchange rate is determined by dividing size of the backing stock pool by total non-exchanged <em>impact</em> at the time of the exchange event. </p>
+<p>The exchange rate is determined by dividing size of the remaining backing stock pool by the total non-exchanged impact at the time of the exchange event.</p>
 
-<p>The periodicity of the exchange events rewards people who accumulated the most <em>impact</em> earliest in the project’s development by allowing them to exchange at higher rates. At any point the company’s board can decide to exchange the remaining backing pool at the current exchange rate, like in case of an acquisition, or to allocate more stock for the backing pool. The board cannot perform any action that would reduce the total value of the backing pool, disregarding the stock price fluctuations.</p>
+<p>The periodicity of the exchange events rewards people who accumulated the most impact earliest in the project’s development by allowing them to exchange at higher rates. At any point the company’s board, which is initially just the founders, can decide to exchange the remaining backing pool at the current exchange rate or to allocate more stock for the backing pool. The board cannot perform any action that would reduce the total value of the backing pool.</p>
 
 <h4>Financing</h4>
 
+<p>To initiate a round of financing the board, must submit a plan with the amount of stock that will be sold and the minimum acceptable pre-money valuation for the company. A simple yay or nay vote from the project participants will determine an impact-weighted acceptance for the financing round.</p>
 
-<p>To initiate a round of financing the company’s board, which initially is just the founders, must submit a plan with the amount of stock that will be sold and the minimum acceptable pre-money valuation for the company. A simple <em>yay</em> or <em>nay</em> vote from the project participants will determine an <em>impact-weighted acceptance</em> for the financing round.</p>
-
-<p>If financing is approved, project participants will bid blindly by submitting valuations coupled with the amount of stock they wish to purchase. With <em>impact</em> act as a tiebreaker, the stock will be distributed amongst the bidders to provide the maximum valuation possible. Afterwards if some of the originally provisioned stock remains, the board may decide to have a follow up round with outside investors.</p>
+<p>If financing is approved, project participants will bid blindly by submitting valuations coupled with the amount of stock they wish to purchase. With impact act as a tiebreaker, the stock will be distributed amongst the bidders to provide the maximum valuation possible. Afterwards if some of the originally provisioned stock remains, the board may decide to have a follow up round with outside investors.</p>
 
 <h4>Specifics</h4>
 
-<p>This project, which you have been invited to join, is structured like so : </p>
+<p>This project, which you have been invited to join, is structured like so :</p>
 
-<p>85% of the company’s equity is backing <em>impact</em>, the other 15% is designated to founders and angel investors. Annually on the anniversary of the public release of the site 25% of non-exchanged <em>impact</em> will be available to exchange for stock.</p>
+<p>85% of the company’s equity is backing impact, the other 15% is designated to founders and angel investors. Annually on the anniversary of the public release of the site 25% of non-exchanged impact will be available to exchange for stock.</p>
 
 <p>Before the public release, as an early participant, you will also have the opportunity to submit your own ideas and become founders.</p>
 

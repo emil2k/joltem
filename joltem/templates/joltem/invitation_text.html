@@ -1,22 +1,24 @@
 {% load markup %}
-<p>Hello {{ invite.first_name }},</p>
+<h4>What could a million people build together?</h4>
 
-<p>We would like to invite you to join our new company.</p>
+<p>Hello {{ invite.first_name }},</p></p>
 
-<p>Let me first start out by defining the problem we are looking to solve :
-<em>How can a workforce scale into the millions?</em></p>
+<p>We are a recently founded startup and we would like to invite you to join our new company.
+Let us first start out by defining the problem we are looking to solve :</p>
+
+<p><em>How can a workforce scale into the millions?</em></p>
 
 <p>The internet has scaled by orders of magnitude many of our interactions. In rare instances like Wikipedia it has shown us glimpses of what is possible if our workforces scale as well. However as it currently stands most startups are founded by groups of less than five and developers outside of places like Silicon Valley are often forced to work alone which leads to a general lack of ambition.</p>
 
 <p>We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with unimaginable ease. What we propose here is a company to make this real by first focusing on the people most capable of accepting this idea - programmers.</p>
 
-<p>As a proof of concept we have invited a select few to prepare the project for public release. You are one of the first ten that have received an invitation.</p>
+<p>As a proof of concept we have invited a select few to prepare our base system for public release. You are one of the first ten that have received an invitation.</p>
 
-{{ invite.personal_message|markdown }}
+<p>{{ invite.personal_message|markdown }}</p>
 
 <p>We hope you will join us in preparing the product, but if this is not possible your feedback in discussions and code reviews would still be greatly appreciated.</p>
 
 <p>You can read more and sign up here through your personal invitation link :<br/>
-    http://{{ host }}{% url 'invite' invite.invite_code %}/</p>
+http://{{ host }}{% url 'invite' invite.invite_code %}</p>
 
 <p>Thanks for your time.</p>
