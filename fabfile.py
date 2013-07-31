@@ -53,9 +53,6 @@ def deploy(branch='master', remote='origin'):
             # Migrate the database
             info('Migrating database.')
             run('python manage.py migrate')
-            # Load initial data into database
-            info('Load initial data.')
-            run('python manage.py loaddata initial_data.yaml')
         # Restart UWSGI process
         info('Restarting UWSGI process.')
         run(DEPLOYMENT_UWSGI_RELOAD_COMMAND)
