@@ -35,11 +35,11 @@ def deploy(branch='master', remote='origin'):
         run('pwd')
         # Fetch branches from the remote
         info('Fetch remote branches from %s.' % remote)
-        sudo('git remote show %s' % remote)
-        sudo('git fetch -v %s' % remote)
+        run('git remote show %s' % remote)
+        run('git fetch -v %s' % remote)
         # Checkout remote branch, throws away local changes, if already exists reset to this
         info('Checkout local remote branch %s/%s.' % (remote, branch))
-        sudo('git checkout -fB {0} {1}/{0}'.format(branch, remote))
+        run('git checkout -fB {0} {1}/{0}'.format(branch, remote))
         with(prefix('source %s' % DEPLOYMENT_VIRTUALENV_ACTIVATE)):
             # Install requirements
             info('Installing requirements.')
