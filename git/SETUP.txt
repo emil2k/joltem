@@ -2,7 +2,7 @@
     GITOLITE
 ============================================================================================
 
--   Install gitolite under a new user named git.
+-   Install gitolite under a new user named git, put the main user i.e. ec2-user pub id as admin.pub of gitolite.
 
 -   Make a gitolite folder in git app folder.
 
@@ -24,13 +24,18 @@
     chgrp -Rv git local-code/
     chmod -Rv g+rX local-code/
 
+    Add permissions for checked out gitolite admin repository :
+
+    chgrp -Rv git gitolite-admin/
+    chmod -Rv g+wrX gitolite-admin/
+
 -   Add LOCAL_CODE variable to the .gitolite.rc, more info here :
     http://gitolite.com/gitolite/cust.html#ncloc
     NOTE : No trailing slash.
 
     i.e.
         # customization to hooks, VREFs, and etc. stored in this folder
-        LOCAL_CODE                      =>  '/Users/emil/Sites/env/testenv/joltem/git/gitolite/local-code',
+        LOCAL_CODE                      =>  '/var/www/joltem/git/gitolite/local-code',
 
 -   Add paths to Django and project directories to git user's PYTHONPATH in .bashrc file to have proper python paths
     for running local code.

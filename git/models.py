@@ -68,7 +68,7 @@ GITOLITE_CONFIG_PREFIX = """
 #===========================
 
 repo\tgitolite-admin
-\tRW\t=\temil
+\tRW\t=\tadmin
 
 #===========================
 # Repositories
