@@ -13,43 +13,39 @@
         <div class="span6">
 <h2 class="hidden-desktop">What could <span class="text-info">a million</span> people build together?</h2>
 
-<p>Technology is pushing us to collaborate.</p>
+<p>Technology is urging us to collaborate, however there is an antiquated fear holding us back.</p>
 
-<p>We see signs everywhere from the plethora of mobile applications to large scale collaborative research at the LHC, but there is an antiquated fear holding us back.</p>
+<p>Massive collaboration requires openness, and companies fear open innovation. This relegates collaboration to highly fragmented efforts and poorly funded nonprofits.</p>
 
-<p>Massive collaboration requires openness. However companies fear open innovation, relegating collaboration to highly fragmented efforts and poorly funded nonprofits. If structured properly though companies could focus a large workforce to tackle immensely difficult problems.</p>
+<p>Openly collaborative efforts democratize the process of innovation and lower its costs. These efforts firstmost seek investments of labor not capital. Led by convictions in their mission they create transcendent companies.</p>
 
-<p>Furthermore technology seeks to democratize, but currently the majority of venture capital is distributed in a few cities, hoarding opportunity for those who reside there.  Collaborative efforts where people are able to invest with their work could greatly reduce the need for early stage venture capital, leveling the playing field.</p>
+<p>Our goal is to facilitate the launch of companies which innovate openly. We have developed a simple system to make this happen and it is detailed on the rest of the page.</p>
 
-<p>Our goal is to facilitate the launch of companies which innovate and operate openly. We have developed a simple model that would allow a company to quickly scale their workforce, reduce the need to raise capital, and easily attract talented and passionate people. The model is detailed on the rest of the page.</p>
+<p>We hope to empower the world to dream ambitiously, and we want you to join us.</p>
 
-<p>We hope to empower the world to dream ambitiously, and hope you will join us.</p>
+<p><a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a></p>
 
-<p>
-    <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a> <span class="help-inline">or read more below.</span>
-</p>
+<h4>Inception</h4>
+
+<p>At the inception of an idea, the founder writes out a detailed proposal of the project. He or she then may privately invite co-founders to polish off the idea and prepare the project for others to work on. When ready the founders proceed to attracting a workforce.</p>
 
 <h4>Work</h4>
 
-<p>As a project idea is revealed publicly by the founders, work is split up into general tasks. Tasks are delegated to anyone who is willing to contribute a solution. Each solution may contain its own set of tasks, creating a tree of tasks and solutions. In order for a solution to create it’s own tasks it must be accepted by the parent task. Acceptance of a task is a mechanism to focus the efforts of the community, and took keep the task tree from sprawling out of control.</p>
+<p>When a project is revealed publicly its work is split up into general <em>tasks</em>. Tasks are delegated to anyone who is willing to contribute a <em>solution</em>. Each solution may contain its own set of tasks, creating a tree of tasks and solutions. In order for a solution to create its own tasks it must be accepted by the parent task. Acceptance of a solution is meant to focus the efforts of the community, and to keep the task tree from sprawling out of control.</p>
 
-<p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. When a solution is complete a peer review determines the impact of the given solution. The work being done on each branch can be merged up at any point from any of the solutions, making the work largely asynchronous.</p>
+<p>A solution is designated a branch name in each of the repositories of the project, and only the solution creator has push access to the particular branch. On completion, a peer review determines the value of a given solution. The work being done on each branch can be merged up at any point from any of the solutions, making the work largely asynchronous.</p>
 
-<p>Votes are weighted by the users current impact and result in two important metrics : impact and acceptance of the solution. If acceptance is below a certain threshold, the user won’t be rewarded impact for the solution unless things are resolved. To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the impact of each vote is held private. Only weighted average of the impact votes is revealed.</p>
-
-<p class="text-center"><img src="{% static 'joltem/img/votes.png' %}"></p>
+<p>The review results in two important metrics : <em>impact</em> and <em>acceptance</em>. Impact is analogous to value and acceptance is an impact-weighted percentage of acceptance. If acceptance is below a certain threshold, the user won’t be rewarded impact for the solution unless things are resolved. To the person being reviewed votes are visible only as rejections and acceptances by a particular user, the details of each vote is held private.</p>
 
 <p>Comments left in code reviews and discussions are also voted on, determining an impact for each contribution in the development process.</p>
 
 <h4>Compensation</h4>
 
-<p>As work is completed on the project users will accumulate impact through the review process. The impact the user accumulates can be seen as the amount of work he or she has done for the company. The total impact, a sum of all the impacts accumulated by all the users on the project, can be viewed as the total amount of work to get the project to that particular state.</p>
+<p>Impact will always be backed by a pool of company stock, like an employee pool in regular companies. As work is completed on the project, users will accumulate impact through the review process. The impact the user accumulates can be seen as the amount of work he or she has done for the company. The total impact, a sum of all the impacts accumulated by all the users on the project, can be viewed as the total amount of work to get the project to that particular state.</p>
 
-<p>Impact will always be backed by a pool of company stock, like an employee pool in regular companies. Periodically users will be able to exchange a portion of their impact for company stock, analogous to vesting plans.</p>
+<p>Periodically users will be able to exchange a portion of their impact for company stock. The exchange rate is determined by dividing the size of the remaining backing stock pool by the total non-exchanged impact at the time of the exchange event. The periodicity of the exchange events rewards people who accumulated the most impact earliest in the project’s development by allowing them to exchange at higher rates.</p>
 
-<p>The exchange rate is determined by dividing size of the remaining backing stock pool by the total non-exchanged impact at the time of the exchange event.</p>
-
-<p>The periodicity of the exchange events rewards people who accumulated the most impact earliest in the project’s development by allowing them to exchange at higher rates. At any point the company’s board, which is initially just the founders, can decide to exchange the remaining backing pool at the current exchange rate or to allocate more stock for the backing pool. The board cannot perform any action that would reduce the total value of the backing pool.</p>
+<p>At any point the company’s board, which is initially just the founders, can decide to exchange the remaining backing pool at the current exchange rate or to allocate more stock for the backing pool. The board cannot perform any action that would reduce the total value of the backing pool.</p>
 
 <h4>Financing</h4>
 
@@ -57,17 +53,18 @@
 
 <p>If financing is approved, project participants will bid blindly by submitting valuations coupled with the amount of stock they wish to purchase. With impact act as a tiebreaker, the stock will be distributed amongst the bidders to provide the maximum valuation possible. Afterwards if some of the originally provisioned stock remains, the board may decide to have a follow up round with outside investors.</p>
 
+<p>There are currently SEC regulations preventing the sale of stock in privately held companies to non-accredited investors, so the first round of financing described above may not be possible, however we will investigate legal ways around this. If all else fails capital will be raised from a network of accredited investors.</p>
+
 <h4>Specifics</h4>
 
 <p>This project, which you have been invited to join, is structured like so :</p>
 
-<p>85% of the company’s equity is backing impact, the other 15% is designated to founders and angel investors. Annually on the anniversary of the public release of the site 25% of non-exchanged impact will be available to exchange for stock.</p>
+<p><em>85%</em> of the company’s equity is backing impact, the other <em>15</em>% is designated to founders and angel investors. Annually on the anniversary of the public release of the site <em>25%</em> of non-exchanged impact will be available to exchange for stock.</p>
 
 <p>Before the public release, as an early participant, you will also have the opportunity to submit your own ideas and become founders.</p>
 
-<p>
-    <a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a>
-</p>
+<p><a href="{% url 'sign_up' %}" class="btn btn-success btn-large">Sign up</a></p>
+
 
     </div>
 </div>
