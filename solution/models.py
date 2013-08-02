@@ -104,8 +104,7 @@ class Vote(models.Model):
     voter_impact = models.BigIntegerField()  # at time of vote
     is_accepted = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
-    vote = models.SmallIntegerField(null=True, blank=True)  # 0-10 scale of impact of task if accepted
-    comment = models.TextField(null=True, blank=True)
+    magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
     time_voted = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)

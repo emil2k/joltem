@@ -1,4 +1,4 @@
-<div class="span4 text-center">
+<div class="span6 text-center">
     {% for vote in accept_votes %}
         <p>
             <i class="icon-ok"></i> <b>from {{ vote.voter.first_name }}</b><br/>
@@ -6,7 +6,7 @@
         </p>
     {% endfor %}
 </div>
-<div class="span4 text-center">
+<div class="span6 text-center">
     {% for vote in reject_votes %}
         <p>
             <i class="icon-remove"></i> <b>from {{ vote.voter.first_name }}</b><br/>

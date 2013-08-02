@@ -6,47 +6,50 @@
             <strong>Review in progress,</strong> no votes have been submitted yet for this solution.
         </div>
     {% else %}
-        <div class="row">
-            <div class="span2 text-center">
-                {% if vote or is_owner %}
-                    <p>
-                        {% if solution.impact == None %}
-                            <h2 class="muted">~</h2>
-                        {% elif solution.impact > 0 %}
-                            <h2 class="text-success">{{ solution.impact }}</h2>
-                        {% else %}
-                            <h2 class="muted">0</h2>
-                        {% endif %}
-                        <small class="muted">impact</small>
-                    </p>
-                {% endif %}
+        {% if vote.is_rejected and not has_commented %}
+            <div class="alert alert-danger">
+                <strong>Unsatisfactory votes require an explanation to count,</strong> leave a comment.
             </div>
-            {% if is_owner %}
-                {% include "solution/review_votes.html" %}
-            {% else %}
-                {% include "solution/review_vote.html" %}
+        {% endif %}
+        <div class="row">
+            {% if vote or is_owner %}
+                <div class="span4 text-center">
+                    {% if solution.impact == None %}
+                        <h2 class="muted">~</h2>
+                    {% elif solution.impact > 0 %}
+                        <h2 class="text-success">{{ solution.impact }}</h2>
+                    {% else %}
+                        <h2 class="muted">0</h2>
+                    {% endif %}
+                    <small class="muted">impact</small>
+                </div>
+                <div class="span4 text-center">
+                    {% if solution.acceptance == None %}
+                        <h2 class="muted">~</h2>
+                    {% elif solution.acceptance > 90 %}
+                        <h2 class="text-success">{{ solution.acceptance }}%</h2>
+                    {% else %}
+                        <h2 class="text-error">{{ solution.acceptance }}%</h2>
+                    {% endif %}
+                    <small class="muted">acceptance</small>
+                </div>
+                <div class="span4 text-center">
+                    <h2 class="muted">{{ vote_count }}</h2>
+                    <small class="muted">votes</small>
+                </div>
             {% endif %}
-            <div class="span2 text-center">
-                {% if vote or is_owner %}
-                    <p>
-                        {% if solution.acceptance == None %}
-                            <h2 class="muted">~</h2>
-                        {% elif solution.acceptance > 90 %}
-                            <h2 class="text-success">{{ solution.acceptance }}%</h2>
-                        {% else %}
-                            <h2 class="text-error">{{ solution.acceptance }}%</h2>
-                        {% endif %}
-                        <small class="muted">acceptance<br/>{{ vote_count }} votes</small>
-                    </p>
+        </div>
+        <div class="row">
+            <div class="span12 text-center">
+                {% if not is_owner %}
+                    {% include "solution/review_vote.html" %}
                 {% endif %}
             </div>
         </div>
-        {% if not is_owner %}
-            <div class="row">
-                <div class="span2"></div>
-                {% include "solution/review_votes.html" %}
-            </div>
-        {% endif %}
+        <hr/>
+        <div class="row">
+            {% include "solution/review_votes.html" %}
+        </div>
     {% endif %}
     <hr/>
     {% for comment_holder in comments %}

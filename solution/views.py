@@ -176,22 +176,16 @@ def review(request, project_name, solution_id):
             )
             review_comment.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-        vote_input = request.POST.get('vote')
+        vote_input = int(request.POST.get('vote'))
         if vote_input is not None and not is_owner:
             if vote is None:
                 vote = Vote(
                     solution=solution,
                     voter=user
                 )
-            if vote_input == 'reject':
-                vote.is_accepted = False
-                vote.is_rejected = True
-                vote.vote = None
-            else:
-                vote.is_accepted = True
-                vote.is_rejected = False
-                vote.vote = vote_input
-            vote.comment = request.POST.get('comment')
+            vote.is_accepted = vote_input > 0
+            vote.is_rejected = vote_input == 0
+            vote.magnitude = vote_input
             vote.time_voted = datetime.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
