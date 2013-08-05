@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
 from django.http.response import HttpResponseNotFound
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from git.models import Repository
 from project.models import Project
@@ -44,9 +45,8 @@ def solution(request, project_name, solution_id):
         if request.POST.get('complete') is not None \
                 and solution.is_owner(user) \
                 and solution.is_accepted:
-            from datetime import datetime
             solution.is_completed = True
-            solution.time_completed = datetime.now()
+            solution.time_completed = timezone.now()
             solution.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
         # Delete solution
@@ -67,7 +67,7 @@ def solution(request, project_name, solution_id):
                     solution=solution,
                     voter=user
                 )
-            from datetime import datetime
+
             if vote_input == 'reject':
                 vote.is_accepted = False
                 vote.is_rejected = True
@@ -77,7 +77,7 @@ def solution(request, project_name, solution_id):
                 vote.is_rejected = False
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
-            vote.time_voted = datetime.now()
+            vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
@@ -137,7 +137,6 @@ def review(request, project_name, solution_id):
     except Vote.DoesNotExist:
         vote = None
     if request.POST:
-        from datetime import datetime
         comment_vote_input = request.POST.get('comment_vote')
         if comment_vote_input:
             comment_id = request.POST.get('comment_id')
@@ -153,7 +152,7 @@ def review(request, project_name, solution_id):
                 if comment_vote.vote != comment_vote_input:
                     comment_vote.vote = comment_vote_input
                     comment_vote.voter_impact = user.get_profile().impact
-                    comment_vote.time_voted = datetime.now()
+                    comment_vote.time_voted = timezone.now()
                     comment_vote.save()
             except CommentVote.DoesNotExist:
                 comment_vote = CommentVote(
@@ -162,14 +161,14 @@ def review(request, project_name, solution_id):
                     comment=comment,
                     solution=solution,
                     vote=comment_vote_input,
-                    time_voted=datetime.now()
+                    time_voted=timezone.now()
                 )
                 comment_vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             review_comment = Comment(
-                time_commented=datetime.now(),
+                time_commented=timezone.now(),
                 commenter=user,
                 solution=solution,
                 comment=comment_text
@@ -186,7 +185,7 @@ def review(request, project_name, solution_id):
             vote.is_accepted = vote_input > 0
             vote.is_rejected = vote_input == 0
             vote.magnitude = vote_input
-            vote.time_voted = datetime.now()
+            vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)

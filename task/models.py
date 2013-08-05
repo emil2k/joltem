@@ -1,15 +1,14 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from project.models import Project
-
-from datetime import datetime
 
 
 class Task(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_closed = models.BooleanField(default=False)
-    time_posted = models.DateTimeField(default=datetime.now)
+    time_posted = models.DateTimeField(default=timezone.now)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     project = models.ForeignKey(Project)

@@ -67,7 +67,6 @@ class Invite(models.Model):
     is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
     is_signed_up = models.BooleanField(default=False)  # whether user signed up
     user = models.ForeignKey(User, null=True, blank=True)  # if the user registered, the associated user
-    from datetime import datetime
     time_sent = models.DateTimeField(null=True, blank=True)
     time_clicked = models.DateTimeField(null=True, blank=True)
     time_signed_up = models.DateTimeField(null=True, blank=True)
