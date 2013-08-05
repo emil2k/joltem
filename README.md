@@ -168,10 +168,9 @@ root > source venv/bin/activate
 Now lets sync ( *and create a Django superuser* ) and migrate the database.
 
 ```
-(venv) ec2-user > python manage.py syncdb
-(venv) ec2-user > python manage.py migrate project
-(venv) ec2-user > python manage.py migrate git
+(venv) ec2-user > python manage.py syncdb --noinput
 (venv) ec2-user > python manage.py migrate
+(venv) ec2-user > python manage.py createsuperuser
 ```
 
 The site and git server should be setup now. To begin serving pages up you will need to congfigure and start up a webserver, refer to one of the many tutorials on how to deploy a Django application or if you are using the PyCharm IDE you just need to setup a run configuration.

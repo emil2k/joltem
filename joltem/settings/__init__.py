@@ -77,8 +77,8 @@ INSTALLED_APPS = (
     'south',
     # Project specific
     'joltem',
-    'git',
     'project',
+    'git',
     'task',
     'solution',
 )
