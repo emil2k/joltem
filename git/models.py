@@ -167,8 +167,7 @@ def git_command(command):
         p = Popen("git --git-dir={0}.git --work-tree={0} {1}".format(GITOLITE_ADMIN_DIRECTORY, command), shell=True, stdout=PIPE, stderr=PIPE)
         (out, error) = p.communicate()
         logger.debug(out)
-        if error:
-            logger.error("Error during git command : \n\n%s\n***\n" % error)
+        logger.debug(error)  # even if git command is fine, returns in stderr for some reason
 
 
 def commit_push():
