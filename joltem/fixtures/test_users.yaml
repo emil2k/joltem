@@ -1,0 +1,105 @@
+- fields:
+    date_joined: 2013-08-04 20:47:18+00:00
+    email: ''
+    first_name: Emil
+    groups: []
+    is_active: true
+    is_staff: true
+    is_superuser: true
+    last_login: 2013-08-05 10:07:13+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$NFpoDrnytEa3$LxFS1IWv++su5EHtovvk9QPMMamO1M+SRpkUNGpIlo4=
+    user_permissions: []
+    username: emil
+  model: auth.user
+  pk: 1
+- fields:
+    date_joined: 2013-08-05 09:43:32+00:00
+    email: ''
+    first_name: Bob
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 09:43:33+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$IZbMkVqgFqUj$eHrdWiC1spVIMOcehD4fDsYnKwoDJz3qsAxcmQ4yFq0=
+    user_permissions: []
+    username: bob
+  model: auth.user
+  pk: 2
+- fields:
+    date_joined: 2013-08-05 14:07:54+00:00
+    email: ''
+    first_name: Jill
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 14:07:54+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$5t99bBynT4C5$iAwNbJKqERduszB7OXXhKaromJv6gDSJqlGyx1NnrcA=
+    user_permissions: []
+    username: jill
+  model: auth.user
+  pk: 3
+- fields:
+    date_joined: 2013-08-05 14:08:18+00:00
+    email: ''
+    first_name: Kate
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 14:08:18+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$vB2BxdJMsSWX$y1M1RMXxSnfYeVhOTkOOuTENL2m+/zwJzH54sfZF6TM=
+    user_permissions: []
+    username: kate
+  model: auth.user
+  pk: 4
+- fields:
+    date_joined: 2013-08-05 14:08:33+00:00
+    email: ''
+    first_name: Ian
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 14:08:33+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$QjRAHrIUohR7$mnUtZILP2cX49PuQ8QON3gR16yyI1jboPrkGNYIPPdw=
+    user_permissions: []
+    username: ian
+  model: auth.user
+  pk: 5
+- fields:
+    date_joined: 2013-08-05 14:09:07+00:00
+    email: ''
+    first_name: Will
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 14:09:07+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$6sYclU2zF2W0$tKgNBoLQzAnNol4kOUDdYLmI0tIM9XFU1LH4uUezugk=
+    user_permissions: []
+    username: will
+  model: auth.user
+  pk: 6
+- fields:
+    date_joined: 2013-08-05 14:09:53+00:00
+    email: ''
+    first_name: Becky
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2013-08-05 14:09:53+00:00
+    last_name: ''
+    password: pbkdf2_sha256$10000$hyp6zyZsresT$TSNlxYBCd2OwJwri6UGvO13W1PjFw0UxVGyeygH0znQ=
+    user_permissions: []
+    username: becky
+  model: auth.user
+  pk: 7
