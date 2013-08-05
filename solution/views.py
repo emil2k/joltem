@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, Vote, Comment, CommentVote
+from solution.models import Solution, SolutionVote, Comment, CommentVote
 
 
 @login_required
@@ -58,23 +58,21 @@ def solution(request, project_name, solution_id):
         if vote_input is not None:
             # Get or create with other parameters
             try:
-                vote = Vote.objects.get(
+                vote = SolutionVote.objects.get(
                     solution_id=solution.id,
                     voter_id=user.id
                 )
-            except Vote.DoesNotExist:
-                vote = Vote(
+            except SolutionVote.DoesNotExist:
+                vote = SolutionVote(
                     solution=solution,
                     voter=user
                 )
 
             if vote_input == 'reject':
                 vote.is_accepted = False
-                vote.is_rejected = True
                 vote.vote = None
             else:
                 vote.is_accepted = True
-                vote.is_rejected = False
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
             vote.time_voted = timezone.now()
@@ -83,8 +81,8 @@ def solution(request, project_name, solution_id):
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
     # Get current users vote on this solution
     try:
-        vote = solution.vote_set.get(voter_id=user.id)
-    except Vote.DoesNotExist:
+        vote = solution.solutionvote_set.get(voter_id=user.id)
+    except SolutionVote.DoesNotExist:
         vote = None
     context = {
         'project': project,
@@ -130,11 +128,11 @@ def review(request, project_name, solution_id):
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
 
     try:
-        vote = Vote.objects.get(
+        vote = SolutionVote.objects.get(
             solution_id=solution.id,
             voter_id=user.id
         )
-    except Vote.DoesNotExist:
+    except SolutionVote.DoesNotExist:
         vote = None
     if request.POST:
         comment_vote_input = request.POST.get('comment_vote')
@@ -178,12 +176,11 @@ def review(request, project_name, solution_id):
         vote_input = int(request.POST.get('vote'))
         if vote_input is not None and not is_owner:
             if vote is None:
-                vote = Vote(
+                vote = SolutionVote(
                     solution=solution,
                     voter=user
                 )
             vote.is_accepted = vote_input > 0
-            vote.is_rejected = vote_input == 0
             vote.magnitude = vote_input
             vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
@@ -209,9 +206,9 @@ def review(request, project_name, solution_id):
         'solution_tab': "review",
         'solution': solution,
         'comments': comments,
-        'vote_count': solution.vote_set.count(),
-        'accept_votes': solution.vote_set.filter(is_accepted=True),
-        'reject_votes': solution.vote_set.filter(is_rejected=True),
+        'vote_count': solution.solutionvote_set.count(),
+        'accept_votes': solution.solutionvote_set.filter(is_accepted=True),
+        'reject_votes': solution.solutionvote_set.filter(is_accepted=False),
         'vote': vote,
         'has_commented': solution.has_commented(user.id),
         'is_owner': is_owner

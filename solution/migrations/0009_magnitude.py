@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import datetime
+from django.utils import timezone
+
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,31 +9,75 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'Vote.comment'
-        db.delete_column(u'solution_vote', 'comment')
+        # Removing unique constraint on 'CommentVote', fields ['comment', 'voter']
+        db.delete_unique(u'solution_commentvote', ['comment_id', 'voter_id'])
 
-        # Deleting field 'Vote.vote'
-        db.delete_column(u'solution_vote', 'vote')
+        # Removing unique constraint on 'Vote', fields ['solution', 'voter']
+        db.delete_unique(u'solution_vote', ['solution_id', 'voter_id'])
 
-        # Adding field 'Vote.magnitude'
-        db.add_column(u'solution_vote', 'magnitude',
+        # Deleting model 'Vote'
+        db.delete_table(u'solution_vote')
+
+        # Adding model 'SolutionVote'
+        db.create_table(u'solution_solutionvote', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('magnitude', self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True)),
+            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=timezone.now)),
+            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'])),
+        ))
+        db.send_create_signal(u'solution', ['SolutionVote'])
+
+        # Deleting field 'CommentVote.vote'
+        db.delete_column(u'solution_commentvote', 'vote')
+
+        # Adding field 'CommentVote.is_accepted'
+        db.add_column(u'solution_commentvote', 'is_accepted',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'CommentVote.magnitude'
+        db.add_column(u'solution_commentvote', 'magnitude',
                       self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Adding field 'Vote.comment'
-        db.add_column(u'solution_vote', 'comment',
-                      self.gf('django.db.models.fields.TextField')(null=True, blank=True),
+        # Adding model 'Vote'
+        db.create_table(u'solution_vote', (
+            ('comment', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('vote', self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True)),
+            ('is_rejected', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=timezone.now)),
+            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'])),
+        ))
+        db.send_create_signal(u'solution', ['Vote'])
+
+        # Adding unique constraint on 'Vote', fields ['solution', 'voter']
+        db.create_unique(u'solution_vote', ['solution_id', 'voter_id'])
+
+        # Deleting model 'SolutionVote'
+        db.delete_table(u'solution_solutionvote')
+
+        # Adding field 'CommentVote.vote'
+        db.add_column(u'solution_commentvote', 'vote',
+                      self.gf('django.db.models.fields.SmallIntegerField')(default=1),
                       keep_default=False)
 
-        # Adding field 'Vote.vote'
-        db.add_column(u'solution_vote', 'vote',
-                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
-                      keep_default=False)
+        # Deleting field 'CommentVote.is_accepted'
+        db.delete_column(u'solution_commentvote', 'is_accepted')
 
-        # Deleting field 'Vote.magnitude'
-        db.delete_column(u'solution_vote', 'magnitude')
+        # Deleting field 'CommentVote.magnitude'
+        db.delete_column(u'solution_commentvote', 'magnitude')
+
+        # Adding unique constraint on 'CommentVote', fields ['comment', 'voter']
+        db.create_unique(u'solution_commentvote', ['comment_id', 'voter_id'])
 
 
     models = {
@@ -51,7 +96,7 @@ class Migration(SchemaMigration):
         },
         u'auth.user': {
             'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
@@ -59,7 +104,7 @@ class Migration(SchemaMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
@@ -86,15 +131,16 @@ class Migration(SchemaMigration):
             'commenter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
-            'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
+            'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'})
         },
         u'solution.commentvote': {
-            'Meta': {'unique_together': "(('comment', 'voter'),)", 'object_name': 'CommentVote'},
+            'Meta': {'object_name': 'CommentVote'},
             'comment': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Comment']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
-            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'vote': ('django.db.models.fields.SmallIntegerField', [], {}),
+            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
         },
@@ -108,18 +154,17 @@ class Migration(SchemaMigration):
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
             'time_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'title': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
-        u'solution.vote': {
-            'Meta': {'unique_together': "(('solution', 'voter'),)", 'object_name': 'Vote'},
+        u'solution.solutionvote': {
+            'Meta': {'object_name': 'SolutionVote'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_rejected': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
-            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
         },
@@ -132,7 +177,7 @@ class Migration(SchemaMigration):
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'tasks'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }

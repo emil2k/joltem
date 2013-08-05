@@ -6,7 +6,7 @@
             <strong>Review in progress,</strong> no votes have been submitted yet for this solution.
         </div>
     {% else %}
-        {% if vote.is_rejected and not has_commented %}
+        {% if not vote.is_accepted and not has_commented %}
             <div class="alert alert-danger">
                 <strong>Unsatisfactory votes require an explanation to count,</strong> leave a comment.
             </div>

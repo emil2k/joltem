@@ -14,8 +14,8 @@
                     <i data-toggle="tooltip" title="Multiply by 10" class="impact_vote icon-plus"></i>
                 </button>
             {% else %}
-                <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
-                    <i data-toggle="tooltip" title="Unsatisfactory = 0" class="impact_vote icon-remove {{ vote.is_rejected|is_true:"icon-white" }}"></i>
+                <button class="btn {{ vote.is_accepted|is_false:"btn-danger" }}" type="submit" name="vote" value="0" {{ vote.is_accepted|is_false:"disabled" }}>
+                    <i data-toggle="tooltip" title="Unsatisfactory = 0" class="impact_vote icon-remove {{ vote.is_accepted|is_false:"icon-white" }}"></i>
                 </button>
                 <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
                     <i data-toggle="tooltip" title="Satisfactory = 10" class="impact_vote icon-ok {{ vote.magnitude|icon_white:1 }}"></i>

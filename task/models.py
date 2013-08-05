@@ -25,7 +25,7 @@ class Task(models.Model):
         """
         count = 0
         for solution in self.solution_set.all():
-            count += solution.subtasks
+            count += solution.subtask_set
         return count
 
     def is_owner(self, user):

@@ -1,12 +1,45 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from task.models import Task
 from project.models import Project
 
-from datetime import datetime
+
+class Voteable(models.Model):
+    """
+    An object that can be voted on for impact determination
+    """
+
+    class Meta:
+        abstract = True
+
+    @property
+    def acceptance(self):
+        """
+        Impact-weighted percentage of acceptance amongst reviewers
+        """
+        votes = self.vote_set.filter(voter_impact__gt=0)
+        weighted_sum = 0
+        impact_sum = 0
+        for vote in votes:
+            # Don't count a negative vote if voter didn't provide a comment
+            if not vote.is_accepted and not self.has_commented(vote.voter_id):
+                continue
+            impact_sum += vote.voter_impact
+            if vote.is_accepted:
+                weighted_sum += vote.voter_impact
+        if impact_sum <= 0:
+            return None
+        else:
+            return int(round(100 * float(weighted_sum)/impact_sum))
+
+    @property
+    def impact(self):
+        # TODO calculate impact
+        return self.vote_set.count()
 
 
-class Solution(models.Model):
+class Solution(Voteable):
     """
     A single task can be worked on by multiple groups at the same time, in different branches for variation.
     """
@@ -18,8 +51,8 @@ class Solution(models.Model):
     is_accepted = models.BooleanField(default=False)
     # Whether solution was marked completed by creator of task
     is_completed = models.BooleanField(default=False)
-    # NOTE : No parenthesis on datetime.now because I'm passing the function not the current value
-    time_posted = models.DateTimeField(default=datetime.now)
+    # NOTE : No parenthesis on timezone.now because I'm passing the function not the current value
+    time_posted = models.DateTimeField(default=timezone.now)
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     # Relations
@@ -41,40 +74,7 @@ class Solution(models.Model):
             return self.task.title
 
     @property
-    def acceptance(self):
-        '''
-        Impact-weighted percentage of acceptance amongst reviewers
-        '''
-        votes = self.vote_set.filter(voter_impact__gt=0)
-        weighted_sum = 0
-        impact_sum = 0
-        for vote in votes:
-            # Don't count a negative vote if voter didn't provide a comment
-            if vote.is_rejected and not self.has_commented(vote.voter_id):
-                continue
-            impact_sum += vote.voter_impact
-            if vote.is_accepted:
-                weighted_sum += vote.voter_impact
-        if impact_sum <= 0:
-            return None
-        else:
-            return int(round(100 * weighted_sum/float(impact_sum)))
-
-    @property
-    def impact(self):
-        votes = self.vote_set.filter(voter_impact__gt=0, is_accepted=True)
-        weighted_sum = 0
-        impact_sum = 0
-        for vote in votes:
-            impact_sum += vote.voter_impact
-            weighted_sum += vote.voter_impact * vote.vote
-        if impact_sum <= 0:
-            return None
-        else:
-            return int(round(10 * weighted_sum/float(impact_sum)))
-
-    @property
-    def subtasks(self):
+    def subtask_set(self):
         """
         Count of open subtasks stemming from this solution
         """
@@ -97,70 +97,50 @@ class Solution(models.Model):
         return Comment.objects.filter(solution_id=self.id, commenter_id=user_id).count() > 0
 
 
+class Comment(Voteable):
+    """
+    Comments in a solution review
+    """
+    comment = models.TextField(null=True, blank=True)
+    time_commented = models.DateTimeField(default=timezone.now)
+    # Relations
+    solution = models.ForeignKey(Solution)
+    commenter = models.ForeignKey(User)
+
+
 class Vote(models.Model):
     """
-    Votes cast when solution is marked completed, code is reviewed
+    Vote, abstract class
     """
     voter_impact = models.BigIntegerField()  # at time of vote
     is_accepted = models.BooleanField(default=False)
-    is_rejected = models.BooleanField(default=False)
     magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
-    time_voted = models.DateTimeField(default=datetime.now)
+    time_voted = models.DateTimeField(default=timezone.now)
     # Relations
-    solution = models.ForeignKey(Solution)
     voter = models.ForeignKey(User)
 
     class Meta:
-        unique_together = ("solution","voter")
+        abstract = True
 
     def __unicode__(self):
         return str(self.vote)
 
 
-class Comment(models.Model):
+class SolutionVote(Vote):
     """
-    Comments in a solution review
+    Vote on a solution review
     """
-    comment = models.TextField(null=True, blank=True)
-    time_commented = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)
-    commenter = models.ForeignKey(User)
-
-    @property
-    def impact(self):
-        """
-        Impact of this comment
-        """
-        if self.commentvote_set.count() > 0:
-            raw_sum = 0
-            impact_sum = 0
-            for vote in self.commentvote_set.all():
-                impact_sum += vote.voter_impact
-                if vote.vote > 0:
-                    raw_sum += vote.voter_impact
-                else:
-                    raw_sum -= vote.voter_impact
-            if impact_sum > 0 and raw_sum > 0:
-                return int(10 * raw_sum / float(impact_sum))
-        return None
 
 
-class CommentVote(models.Model):
+class CommentVote(Vote):
     """
     Votes on comments in a solution review
     """
-    voter_impact = models.BigIntegerField()  # at time of vote
-    vote = models.SmallIntegerField()
-    time_voted = models.DateTimeField(default=datetime.now)
     # Relations
     solution = models.ForeignKey(Solution)
     comment = models.ForeignKey(Comment)
-    voter = models.ForeignKey(User)
-
-    class Meta:
-        unique_together = ("comment","voter")
-
 
 
 

@@ -27,6 +27,14 @@ def is_true(boolean, string):
         return string
 
 
+@register.filter
+def is_false(boolean, string):
+    """
+    Outputs a string if false
+    """
+    if not boolean:
+        return string
+
 
 def is_match(string, actual, expected):
     """
