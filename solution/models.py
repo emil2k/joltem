@@ -1,14 +1,36 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.auth.models import User
 from task.models import Task
 from project.models import Project
+
+
+class Vote(models.Model):
+    """
+    Vote, abstract class
+    """
+    voter_impact = models.BigIntegerField()  # at time of vote
+    is_accepted = models.BooleanField(default=False)
+    magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
+    time_voted = models.DateTimeField(default=timezone.now)
+    # Relations
+    voter = models.ForeignKey(User)
+    # Generic relations
+    voteable_type = models.ForeignKey(content_type_models.ContentType)
+    voteable_id = models.PositiveIntegerField()
+    voteable = generic.GenericForeignKey('voteable_type', 'voteable_id')
+
+    def __unicode__(self):
+        return str(self.id)
 
 
 class Voteable(models.Model):
     """
     An object that can be voted on for impact determination
     """
+    # Generic relations
+    vote_set = generic.GenericRelation(Vote, content_type_field='voteable_type', object_id_field='voteable_id')
 
     class Meta:
         abstract = True
@@ -37,6 +59,12 @@ class Voteable(models.Model):
     def impact(self):
         # TODO calculate impact
         return self.vote_set.count()
+
+    def get_impact_distribution(self):
+        d = [0, 0, 0, 0, 0, 0]
+        for vote in self.vote_set.all():
+            d[vote.magnitude] += vote.voter_impact
+        return d
 
 
 class Solution(Voteable):
@@ -101,47 +129,9 @@ class Comment(Voteable):
     """
     Comments in a solution review
     """
+    # TODO make comments more generic
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
     solution = models.ForeignKey(Solution)
     commenter = models.ForeignKey(User)
-
-
-class Vote(models.Model):
-    """
-    Vote, abstract class
-    """
-    voter_impact = models.BigIntegerField()  # at time of vote
-    is_accepted = models.BooleanField(default=False)
-    magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
-    time_voted = models.DateTimeField(default=timezone.now)
-    # Relations
-    voter = models.ForeignKey(User)
-
-    class Meta:
-        abstract = True
-
-    def __unicode__(self):
-        return str(self.vote)
-
-
-class SolutionVote(Vote):
-    """
-    Vote on a solution review
-    """
-    # Relations
-    solution = models.ForeignKey(Solution)
-
-
-class CommentVote(Vote):
-    """
-    Votes on comments in a solution review
-    """
-    # Relations
-    solution = models.ForeignKey(Solution)
-    comment = models.ForeignKey(Comment)
-
-
-
-

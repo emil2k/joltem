@@ -3,10 +3,11 @@ from django.http.response import HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, SolutionVote, Comment, CommentVote
+from solution.models import Solution, Comment, Vote
 
 
 @login_required
@@ -58,12 +59,12 @@ def solution(request, project_name, solution_id):
         if vote_input is not None:
             # Get or create with other parameters
             try:
-                vote = SolutionVote.objects.get(
+                vote = Vote.objects.get(
                     solution_id=solution.id,
                     voter_id=user.id
                 )
-            except SolutionVote.DoesNotExist:
-                vote = SolutionVote(
+            except Vote.DoesNotExist:
+                vote = Vote(
                     solution=solution,
                     voter=user
                 )
@@ -81,8 +82,8 @@ def solution(request, project_name, solution_id):
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
     # Get current users vote on this solution
     try:
-        vote = solution.solutionvote_set.get(voter_id=user.id)
-    except SolutionVote.DoesNotExist:
+        vote = solution.vote_set.get(voter_id=user.id)
+    except Vote.DoesNotExist:
         vote = None
     context = {
         'project': project,
@@ -122,17 +123,17 @@ def review(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
     user = request.user
-
     # Redirect if solution is not ready for review
     if not solution.is_completed:
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
+    solution_type = ContentType.objects.get_for_model(solution)
     try:
-        vote = SolutionVote.objects.get(
-            solution_id=solution.id,
+        vote = Vote.objects.get(
+            voteable_type_id=solution_type.id,
+            voteable_id=solution.id,
             voter_id=user.id
         )
-    except SolutionVote.DoesNotExist:
+    except Vote.DoesNotExist:
         vote = None
     if request.POST:
         comment_vote_input = request.POST.get('comment_vote')
@@ -142,7 +143,7 @@ def review(request, project_name, solution_id):
             if comment.commenter.id == user.id:
                 return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
             try:
-                comment_vote = CommentVote.objects.get(
+                comment_vote = Vote.objects.get(
                     solution_id=solution.id,
                     comment_id=comment.id,
                     voter_id=user.id
@@ -152,8 +153,8 @@ def review(request, project_name, solution_id):
                     comment_vote.voter_impact = user.get_profile().impact
                     comment_vote.time_voted = timezone.now()
                     comment_vote.save()
-            except CommentVote.DoesNotExist:
-                comment_vote = CommentVote(
+            except Vote.DoesNotExist:
+                comment_vote = Vote(
                     voter=user,
                     voter_impact=user.get_profile().impact,
                     comment=comment,
@@ -176,8 +177,8 @@ def review(request, project_name, solution_id):
         vote_input = int(request.POST.get('vote'))
         if vote_input is not None and not is_owner:
             if vote is None:
-                vote = SolutionVote(
-                    solution=solution,
+                vote = Vote(
+                    voteable=solution,
                     voter=user
                 )
             vote.is_accepted = vote_input > 0
@@ -191,11 +192,11 @@ def review(request, project_name, solution_id):
         def __init__(self, comment, user):
             self.comment = comment
             try:
-                self.vote = comment.commentvote_set.get(voter_id=user.id)
-            except CommentVote.DoesNotExist:
+                self.vote = comment.vote_set.get(voter_id=user.id)
+            except Vote.DoesNotExist:
                 self.vote = None
             self.is_author = user.id == comment.commenter.id
-            self.vote_count = comment.commentvote_set.count()
+            self.vote_count = comment.vote_set.count()
 
     comments = []
     for comment in solution.comment_set.all().order_by('time_commented'):
@@ -206,9 +207,9 @@ def review(request, project_name, solution_id):
         'solution_tab': "review",
         'solution': solution,
         'comments': comments,
-        'vote_count': solution.solutionvote_set.count(),
-        'accept_votes': solution.solutionvote_set.filter(is_accepted=True),
-        'reject_votes': solution.solutionvote_set.filter(is_accepted=False),
+        'vote_count': solution.vote_set.count(),
+        'accept_votes': solution.vote_set.filter(is_accepted=True),
+        'reject_votes': solution.vote_set.filter(is_accepted=False),
         'vote': vote,
         'has_commented': solution.has_commented(user.id),
         'is_owner': is_owner
