@@ -16,7 +16,7 @@ def new(request, project_name, parent_solution_id):
     parent_solution = None
     if parent_solution_id is not None:
         parent_solution = get_object_or_404(Solution, id=parent_solution_id)
-        if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user)):
+        if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user.id)):
             return redirect('project:solution:solution', project_name=project_name, solution_id=parent_solution.id)
         context['parent_solution'] = parent_solution
     # Create a task

@@ -7,13 +7,13 @@ class Project(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     # Relations
-    users = models.ManyToManyField(User)
+    admin_set = models.ManyToManyField(User)
 
-    def is_admin(self, user):
+    def is_admin(self, user_id):
         """
         Check if user is an admin of the project
         """
-        return self.users.filter(id=user.id).count() > 0
+        return self.admin_set.filter(id=user_id).exists()
 
     def __unicode__(self):
         return self.name

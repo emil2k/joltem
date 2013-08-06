@@ -16,7 +16,7 @@ def repository(request, project_name, repository_name):
 
 def repositories(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
+    is_admin = project.is_admin(request.user.id)
     if is_admin and request.POST:
         # Hide repository
         hidden_repo_id = request.POST.get('hide_repo')
@@ -39,7 +39,7 @@ def repositories(request, project_name):
 
 def repositories_hidden(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
+    is_admin = project.is_admin(request.user.id)
     if is_admin and request.POST:
         # Unhide repository
         unhidden_repo_id = request.POST.get('unhide_repo')
@@ -62,7 +62,7 @@ def repositories_hidden(request, project_name):
 
 def new_repository(request, project_name):
     project = get_object_or_404(Project, name=project_name)
-    is_admin = project.is_admin(request.user)
+    is_admin = project.is_admin(request.user.id)
     if not is_admin:
         return redirect('project:git:repositories', project_name=project_name)
     if is_admin and request.POST:
