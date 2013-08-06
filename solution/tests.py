@@ -9,30 +9,45 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core import management
 from project.models import Project
-from solution.models import Solution, Vote
+from task.models import Task
+from solution.models import Solution, Comment, Vote
 
 import logging
 logger = logging.getLogger('tests')
 
 
 def setup():
-    management.call_command('loaddata', 'test_users.json', verbosity=0)
-    management.call_command('loaddata', 'test_tasks.json', verbosity=0)
+    management.call_command('loaddata', 'test_users_small.json', verbosity=0)
+    management.call_command('loaddata', 'test_task.json', verbosity=0)
 
 
 def teardown():
     management.call_command('flush', verbosity=0, interactive=False)
 
 
-class SimpleTest(TestCase):
+class SolutionTestCase(TestCase):
 
     def setUp(self):
         self.project = Project.objects.get(id=1)
         self.emil = User.objects.get(id=1)
         self.bob = User.objects.get(id=2)
         self.jill = User.objects.get(id=3)
+        self.task = Task.objects.get(id=1)
+        self.solution = Solution(
+            project=self.project,
+            user=self.bob,
+            task=self.task
+        )
+        self.solution.save()
 
-    def get_mock_vote(self, voter, voteable, voter_impact, magnitude):
+    def debug_votes(self):
+        logger.debug("DEBUG VOTES")
+        for vote in self.solution.vote_set.all():
+            logger.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
+
+
+    @classmethod
+    def get_mock_vote(cls, voter, voteable, voter_impact, magnitude):
         return Vote(
             voter_impact=voter_impact,  # mock the voter's impact
             is_accepted=magnitude > 0,
@@ -41,38 +56,42 @@ class SimpleTest(TestCase):
             voteable=voteable,
         )
 
-    def test_fixture(self):
-        user = User.objects.get(id=1)
-        self.assertEqual(user.username, "emil")
+    @classmethod
+    def reload_votable(cls, votable_model, votable):
+        """
+        Reload votable to check if metrics updated properly
+        """
+        if votable:
+            return votable_model.objects.get(id=votable.id)
 
-    def test_admin_initial_impact(self):
-        project_admins = self.project.admin_set.all()
-        self.assertTrue(self.project.admin_set.count() > 0, "Main project has no admins.")
-        for project_admin in project_admins:
-            self.assertEqual(project_admin.get_profile().impact, 1)  # for the project admin the initial
+    # Test chain of signals
+    # 1. Vote added to Votable
+    # 2. Voteable update project impacts
+    # 3. Project impacts update user impacts
 
-    def test_solution_votes(self):
-        task = self.project.task_set.get(id=2)
-        solution = Solution(
+    def test_solution_impact(self):
+        s = Solution(
             project=self.project,
             user=self.bob,
-            task=task
+            task=self.task
         )
-        solution.save()
-        # No votes, should be none
-        self.assertEqual(solution.impact, None)
-        # Add a vote from someone who has no impact
-        self.get_mock_vote(self.emil, solution, 0, 1).save()
-        for vote in solution.vote_set.all():
-            logger.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
-        self.assertEqual(solution.impact, None)
-        # Add a check vote
-        self.get_mock_vote(self.emil, solution, 500, 1).save()
-        self.assertEqual(solution.impact, 10)
-        # Add a exceptional vote
-        self.get_mock_vote(self.jill, solution, 100, 2).save()
-        self.assertEqual(solution.impact, 10)
-        for vote in solution.vote_set.all():
-            logger.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
+        s.save()
+        SolutionTestCase.get_mock_vote(self.emil, s, 100, 1).save()
+        s = SolutionTestCase.reload_votable(Solution, s)
+        self.assertTrue(s.impact > 0)
+
+    def test_comment_impact(self):
+        c = Comment(
+            project=self.project,
+            user=self.bob,
+            solution_id=1
+        )
+        c.save()
+        SolutionTestCase.get_mock_vote(self.emil, c, 100, 1).save()
+        c = SolutionTestCase.reload_votable(Comment, c)
+        self.assertTrue(c.impact > 0)
+
+
+    # TODO test admin initial impact
 
 

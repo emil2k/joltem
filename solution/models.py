@@ -65,7 +65,15 @@ class Voteable(models.Model):
 
     def get_impact(self):
         # TODO calculate impact
-        return self.vote_set.count()
+        total_impact = 0
+        weighted_sum = 0
+        for vote in self.vote_set.all():
+            total_impact += vote.voter_impact
+            if vote.is_accepted:
+                weighted_sum += vote.voter_impact * pow(10, vote.magnitude)
+        if total_impact == 0:
+            return None
+        return int(weighted_sum / float(total_impact))
 
     def get_impact_distribution(self):
         d = [0, 0, 0, 0, 0, 0]
@@ -80,7 +88,7 @@ def update_metrics(sender, **kwargs):
     Update vote metrics (acceptance and impact) and save to DB
     """
     vote = kwargs.get('instance')
-    logger.debug("UPDATE METRICS : vote : %s" % vote.magnitude)
+    logger.info("UPDATE METRICS from vote : %s" % vote.magnitude)
     if vote and vote.voteable:
         voteable = vote.voteable
         voteable.acceptance = voteable.get_acceptance()
@@ -153,3 +161,6 @@ class Comment(Voteable):
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
     solution = models.ForeignKey(Solution)
+
+    def __unicode__(self):
+        return str(self.id)

@@ -22,7 +22,7 @@ class Profile(models.Model):
         """
         self.impact = self.get_impact()
         self.completed = self.get_completed()
-        self.save()
+        return self  # to chain calls
 
     def get_impact(self):
         impact = 0
@@ -55,14 +55,14 @@ def create_profile(sender, **kw):
     logger.info("CREATE PROFILE for %s" % user.username)
     if kw["created"]:
         profile = Profile(user=user)
-        profile.save()
+        profile.update().save()
 
 @receiver([post_save, post_delete], sender=Impact)
 def update_from_project_impact(sender, **kwargs):
     project_impact = kwargs.get('instance')
     logger.info("UPDATE USER STATS from project impact : %s on %s" % (project_impact.user.username, project_impact.project.name))
     if project_impact:
-        project_impact.user.get_profile().update()
+        project_impact.user.get_profile().update().save()
 
 
 @receiver([post_save, post_delete], sender=Project)
@@ -72,7 +72,9 @@ def update_from_project(sender, **kwargs):
     logger.info("UPDATE USER STATS from project : %s" % project.name)
     if project:
         for admin in project.admin_set.all():
-            admin.get_profile().update()
+            profile = admin.get_profile()
+            if profile:
+                profile.update().save()
 
 
 class Invite(models.Model):
