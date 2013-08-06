@@ -4,3 +4,4 @@ mysql-python
 markdown>=2.1
 django-mathfilters
 pyyaml
+django-nose

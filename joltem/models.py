@@ -52,6 +52,7 @@ def create_profile(sender, **kw):
     Create user profile when user created
     """
     user = kw["instance"]
+    logger.info("CREATE PROFILE for %s" % user.username)
     if kw["created"]:
         profile = Profile(user=user)
         profile.save()

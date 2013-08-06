@@ -72,6 +72,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.markup',
+    'django_nose',
     'mathfilters',
     # Database migrations
     'south',
@@ -82,6 +83,8 @@ INSTALLED_APPS = (
     'task',
     'solution',
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
