@@ -1,9 +1,14 @@
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.auth.models import User
 from task.models import Task
 from project.models import Project
+
+import logging
+logger = logging.getLogger('django')
 
 
 class Vote(models.Model):
@@ -29,14 +34,15 @@ class Voteable(models.Model):
     """
     An object that can be voted on for impact determination
     """
+    impact = models.BigIntegerField(null=True, blank=True)
+    acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
     # Generic relations
     vote_set = generic.GenericRelation(Vote, content_type_field='voteable_type', object_id_field='voteable_id')
 
     class Meta:
         abstract = True
 
-    @property
-    def acceptance(self):
+    def get_acceptance(self):
         """
         Impact-weighted percentage of acceptance amongst reviewers
         """
@@ -55,8 +61,7 @@ class Voteable(models.Model):
         else:
             return int(round(100 * float(weighted_sum)/impact_sum))
 
-    @property
-    def impact(self):
+    def get_impact(self):
         # TODO calculate impact
         return self.vote_set.count()
 
@@ -65,6 +70,20 @@ class Voteable(models.Model):
         for vote in self.vote_set.all():
             d[vote.magnitude] += vote.voter_impact
         return d
+
+
+@receiver([post_save, post_delete], sender=Vote, weak=False)
+def update_metrics(sender, **kwargs):
+    """
+    Update vote metrics, acceptance and impact and save to DB
+    """
+    vote = kwargs.get('instance')
+    logger.debug("UPDATE METRICS : vote : %s" % vote.magnitude)
+    if vote:
+        voteable = vote.voteable
+        voteable.acceptance = voteable.get_acceptance()
+        voteable.impact = voteable.get_impact()
+        voteable.save()
 
 
 class Solution(Voteable):
