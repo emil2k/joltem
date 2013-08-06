@@ -23,12 +23,12 @@ class Migration(SchemaMigration):
 
         # Adding field 'Comment.project'
         db.add_column(u'solution_comment', 'project',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['project.Project']),
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
                       keep_default=False)
 
         # Adding field 'Comment.user'
         db.add_column(u'solution_comment', 'user',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['auth.User']),
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['auth.User']),
                       keep_default=False)
 
         # Adding field 'Solution.impact'
