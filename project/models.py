@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+import logging
+logger = logging.getLogger('django')
 
 
 class Project(models.Model):
@@ -17,3 +22,57 @@ class Project(models.Model):
 
     def __unicode__(self):
         return self.name
+
+# Must be above this threshold to count towards impact
+SOLUTION_ACCEPTANCE_THRESHOLD = 0.90
+COMMENT_ACCEPTANCE_THRESHOLD = 0.60
+
+
+class Impact(models.Model):
+    """
+    Stores project specific impact
+    """
+    impact = models.BigIntegerField(null=True, blank=True)
+    # Relations
+    project = models.ForeignKey(Project)
+    user = models.ForeignKey(User)
+
+    class Meta:
+        unique_together = ['project', 'user']
+
+    def get_impact(self):
+        impact = 0
+        # The admins of the project start with an impact of 1, for weighted voting to start
+        if self.project.is_admin(self.user.id):
+            impact += 1
+        # Impact from solutions
+        for solution in self.user.solution_set.filter(project_id=self.project.id):
+            # Solution acceptance must be higher than this threshold to count towards impact
+            if solution.acceptance < SOLUTION_ACCEPTANCE_THRESHOLD:
+                continue
+            if solution.impact:
+                impact += solution.impact
+        # Impact from review comments
+        for comment in self.user.comment_set.filter(project_id=self.project.id):
+            # Comment acceptance must be higher than this threshold to count towards impact
+            if comment.acceptance < COMMENT_ACCEPTANCE_THRESHOLD:
+                continue
+            if comment.impact:
+                impact += comment.impact
+        return impact
+
+@receiver([post_save, post_delete], sender='vote.Voteable')
+def update_project_impact(sender, **kwargs):
+    """
+    Update project specific impact due to vote on solution
+    """
+    voteable = kwargs.get('instance')
+    logger.info("UPDATE PROJECT IMPACT : %s by %s" % (voteable.id, voteable.user.username))
+    if voteable:
+        (project_impact, create) = Impact.objects.get_or_create(
+            project_id=voteable.project.id,
+            user_id=voteable.user.id
+        )
+        project_impact.impact = project_impact.get_impact()
+        project_impact.save()
+

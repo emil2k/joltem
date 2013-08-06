@@ -2,6 +2,6 @@
     description: ''
     name: joltem
     title: Joltem
-    users: [1]
+    admin_set: [1]
   model: project.project
   pk: 1

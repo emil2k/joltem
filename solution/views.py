@@ -168,7 +168,8 @@ def review(request, project_name, solution_id):
         if comment_text is not None:
             review_comment = Comment(
                 time_commented=timezone.now(),
-                commenter=user,
+                project=project,
+                user=user,
                 solution=solution,
                 comment=comment_text
             )
@@ -195,7 +196,7 @@ def review(request, project_name, solution_id):
                 self.vote = comment.vote_set.get(voter_id=user.id)
             except Vote.DoesNotExist:
                 self.vote = None
-            self.is_author = user.id == comment.commenter.id
+            self.is_author = user.id == comment.user.id
             self.vote_count = comment.vote_set.count()
 
     comments = []

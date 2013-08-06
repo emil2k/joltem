@@ -1,45 +1,37 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from project.models import Impact, Project
+
+import logging
+logger = logging.getLogger('django')
 
 
 class Profile(models.Model):
     gravatar_email = models.CharField(max_length=200, null=True, blank=True)
     gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
+    impact = models.BigIntegerField(default=0)
+    completed = models.IntegerField(default=0)
     # Relations
     user = models.OneToOneField(User, related_name="profile")
 
-    # Create profile when user is created
-    def create_profile(sender, **kw):
-        user = kw["instance"]
-        if kw["created"]:
-            profile = Profile(user=user)
-            profile.save()
+    def update(self):
+        """
+        Update user stats
+        """
+        self.impact = self.get_impact()
+        self.completed = self.get_completed()
+        self.save()
 
-    post_save.connect(create_profile, sender=User)
-
-    @property
-    def impact(self):
-        # TODO this should later be switched to project specific impact, but it is fine for now as there is only one project
+    def get_impact(self):
         impact = 0
-        # The admins of the project start with an impact of 1, for weighted voting to be effective # TODO hackish missing project parameter, depends on fact that there is only one project
-        if self.user.project_set.count() > 0:
-            impact = 1
-        # Impact from solutions
-        for solution in self.user.solution_set.filter():
-            # A solutions weighted acceptance must be higher than 90% to count towards impact
-            if solution.acceptance < 90:
-                continue
-            if solution.impact:
-                impact += solution.impact
-        # Impact from review comments
-        for comment in self.user.comment_set.filter():
-            if comment.impact:
-                impact += comment.impact
+        for project_impact in self.user.impact_set.all():
+            if project_impact and project_impact.impact:
+                impact += project_impact.impact
         return impact
 
-    @property
-    def completed(self):
+    def get_completed(self):
         return self.user.solution_set.filter(is_completed=True).count()
 
     def set_gravatar_email(self, gravatar_email):
@@ -53,6 +45,33 @@ class Profile(models.Model):
             self.gravatar_hash = hashlib.md5(gravatar_email).hexdigest()
             return True
         return False
+
+@receiver(post_save, sender=User)
+def create_profile(sender, **kw):
+    """
+    Create user profile when user created
+    """
+    user = kw["instance"]
+    if kw["created"]:
+        profile = Profile(user=user)
+        profile.save()
+
+@receiver([post_save, post_delete], sender=Impact)
+def update_from_project_impact(sender, **kwargs):
+    project_impact = kwargs.get('instance')
+    logger.info("UPDATE USER STATS from project impact : %s on %s" % (project_impact.user.username, project_impact.project.name))
+    if project_impact:
+        project_impact.user.get_profile().update()
+
+
+@receiver([post_save, post_delete], sender=Project)
+def update_from_project(sender, **kwargs):
+    # this is because the admins of the project start off with an impact of 1
+    project = kwargs.get('instance')
+    logger.info("UPDATE USER STATS from project : %s" % project.name)
+    if project:
+        for admin in project.admin_set.all():
+            admin.get_profile().update()
 
 
 class Invite(models.Model):

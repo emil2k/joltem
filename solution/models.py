@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.auth.models import User
 from task.models import Task
-from project.models import Project
 
 import logging
 logger = logging.getLogger('django')
@@ -36,6 +35,9 @@ class Voteable(models.Model):
     """
     impact = models.BigIntegerField(null=True, blank=True)
     acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
+    # Relations
+    project = models.ForeignKey('project.Project')
+    user = models.ForeignKey(User)
     # Generic relations
     vote_set = generic.GenericRelation(Vote, content_type_field='voteable_type', object_id_field='voteable_id')
 
@@ -72,14 +74,14 @@ class Voteable(models.Model):
         return d
 
 
-@receiver([post_save, post_delete], sender=Vote, weak=False)
+@receiver([post_save, post_delete], sender=Vote)
 def update_metrics(sender, **kwargs):
     """
-    Update vote metrics, acceptance and impact and save to DB
+    Update vote metrics (acceptance and impact) and save to DB
     """
     vote = kwargs.get('instance')
     logger.debug("UPDATE METRICS : vote : %s" % vote.magnitude)
-    if vote:
+    if vote and vote.voteable:
         voteable = vote.voteable
         voteable.acceptance = voteable.get_acceptance()
         voteable.impact = voteable.get_impact()
@@ -103,9 +105,7 @@ class Solution(Voteable):
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     # Relations
-    project = models.ForeignKey(Project)
     task = models.ForeignKey(Task)
-    user = models.ForeignKey(User)
 
     def __unicode__(self):
         return str(self.id)
@@ -141,7 +141,7 @@ class Solution(Voteable):
         """
         Returns whether passed user has commented on the solution
         """
-        return Comment.objects.filter(solution_id=self.id, commenter_id=user_id).count() > 0
+        return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
 
 
 class Comment(Voteable):
@@ -153,4 +153,3 @@ class Comment(Voteable):
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
     solution = models.ForeignKey(Solution)
-    commenter = models.ForeignKey(User)
