@@ -64,7 +64,7 @@ class Impact(models.Model):
 
 @receiver([post_save, post_delete], sender=Comment)
 @receiver([post_save, post_delete], sender=Solution)
-def update_project_impact(sender, **kwargs):
+def update_project_impact_from_voteable(sender, **kwargs):
     """
     Update project specific impact due to vote on solution
     """
@@ -78,3 +78,20 @@ def update_project_impact(sender, **kwargs):
         project_impact.impact = project_impact.get_impact()
         project_impact.save()
 
+
+@receiver([post_save, post_delete], sender=Project)
+def update_project_impact_from_project(sender, **kwargs):
+    """
+    Update project specific impact due project modification, mainly change to the admin set
+    """
+    project = kwargs.get('instance')
+    logger.info("UPDATE PROJECT IMPACT from project : %s" % sender)
+    if project:
+        for admin in project.admin_set.all():
+            logger.info("UPDATE PROJECT IMPACT for %s" % admin.username)
+            (project_impact, create) = Impact.objects.get_or_create(
+                project_id=project.id,
+                user_id=admin.id
+            )
+            project_impact.impact = project_impact.get_impact()
+            project_impact.save()

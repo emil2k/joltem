@@ -7,7 +7,7 @@ Replace this with more appropriate tests for your application.
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from django.core import management
+from joltem.models import Profile
 from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution, Comment, Vote
@@ -73,12 +73,20 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     return v
 
 
-def reload_votable(votable_model, votable):
+def load_votable(votable_model, votable):
     """
-    Reload votable to check if metrics updated properly
+    Load votable to check if metrics updated properly
     """
     if votable:
         return votable_model.objects.get(id=votable.id)
+
+
+def load_project_impact(project, user):
+    """
+    Reload votable to check if metrics updated properly
+    """
+    if project and user:
+        return Impact.objects.get(user_id=user.id, project_id=project.id)
 
 
 def debug_votes(voteable):
@@ -87,7 +95,9 @@ def debug_votes(voteable):
         logger.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
 
 
-class ImpactSignalsTests(TestCase):
+# *********
+
+class ImpactTestCase(TestCase):
 
     def setUp(self):
         logger.debug("\n\n///* SETUP : %s\n" % self.id())
@@ -96,6 +106,22 @@ class ImpactSignalsTests(TestCase):
 
     def tearDown(self):
         logger.debug("\n\n*/// TEARDOWN\n")
+
+    # Custom assertions
+
+    def assertImpactEqual(self, user, expected):
+        profile = Profile.objects.get(user_id=user.id)  # don't use get_profile it uses cached results which cause tests to fail
+        self.assertEqual(profile.impact, expected)
+
+    def assertProjectImpactEqual(self, project, user, expected):
+        pi = load_project_impact(project, user)
+        self.assertEqual(pi.impact, expected)
+
+    def assertProjectImpactExistence(self, project, user, expected):
+        self.assertEqual(Impact.objects.filter(user_id=user.id, project_id=project.id).exists(), expected)
+
+
+class ImpactSignalsTests(ImpactTestCase):
 
     # Test chain of signals
     # 1. Vote added to Votable
@@ -109,7 +135,7 @@ class ImpactSignalsTests(TestCase):
         t = get_mock_task(p, jill)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
-        s = reload_votable(Solution, s)
+        s = load_votable(Solution, s)
         self.assertTrue(s.impact > 0)
 
     def test_comment_impact(self):
@@ -120,7 +146,7 @@ class ImpactSignalsTests(TestCase):
         s = get_mock_solution(p, ted, t)
         c = get_mock_comment(p, jill, s)
         get_mock_vote(ted, c, 100, 1)
-        c = reload_votable(Comment, c)
+        c = load_votable(Comment, c)
         self.assertTrue(c.impact > 0)
 
     def test_project_impact(self):
@@ -131,17 +157,33 @@ class ImpactSignalsTests(TestCase):
         jill = get_mock_user("jill")
         ted = get_mock_user("ted")
         t = get_mock_task(p, jill)
-        self.assertFalse(Impact.objects.filter(user_id=ted.id, project_id=p.id).exists())
+        self.assertProjectImpactExistence(p, ted, False)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
-        self.assertTrue(Impact.objects.filter(user_id=ted.id, project_id=p.id).exists())
+        self.assertProjectImpactExistence(p, ted, True)
         # Now test from vote on comment
-        self.assertFalse(Impact.objects.filter(user_id=jill.id, project_id=p.id).exists())
+        self.assertProjectImpactExistence(p, jill, False)
         c = get_mock_comment(p, jill, s)
         get_mock_vote(ted, c, 100, 1)
-        self.assertTrue(Impact.objects.filter(user_id=jill.id, project_id=p.id).exists())
+        self.assertProjectImpactExistence(p, jill, True)
 
-
-    # TODO test admin initial impact
-
+    def test_project_admin_initial_impact(self):
+        """
+        A project admin should start out with an impact of 1 for the specific project to seed the weighted voting
+        """
+        p = get_mock_project("terminus")
+        hari = get_mock_user("hari")
+        # Project impact should not exist as there is no affiliation yet
+        self.assertProjectImpactExistence(p, hari, False)
+        self.assertImpactEqual(hari, 0)
+        # Now if we add a solution, without any votes, the project impact row should be inserted and impact should be 0
+        t = get_mock_task(p, hari)
+        get_mock_solution(p, hari, t)
+        self.assertProjectImpactEqual(p, hari, 0)
+        self.assertImpactEqual(hari, 0)
+        # Now lets make admin
+        p.admin_set.add(hari)
+        p.save()
+        self.assertProjectImpactEqual(p, hari, 1)
+        self.assertImpactEqual(hari, 1)
 

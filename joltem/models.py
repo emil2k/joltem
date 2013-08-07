@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from project.models import Impact, Project
+from project.models import Impact
 
 import logging
 logger = logging.getLogger('django')
@@ -60,21 +60,9 @@ def create_profile(sender, **kw):
 @receiver([post_save, post_delete], sender=Impact)
 def update_from_project_impact(sender, **kwargs):
     project_impact = kwargs.get('instance')
-    logger.info("UPDATE USER STATS from project impact : %s on %s" % (project_impact.user.username, project_impact.project.name))
+    logger.info("UPDATE USER STATS from project impact : %s : %d for %s" % (sender, project_impact.project.id, project_impact.user.username))
     if project_impact:
         project_impact.user.get_profile().update().save()
-
-
-@receiver([post_save, post_delete], sender=Project)
-def update_from_project(sender, **kwargs):
-    # this is because the admins of the project start off with an impact of 1
-    project = kwargs.get('instance')
-    logger.info("UPDATE USER STATS from project : %s" % project.name)
-    if project:
-        for admin in project.admin_set.all():
-            profile = admin.get_profile()
-            if profile:
-                profile.update().save()
 
 
 class Invite(models.Model):
