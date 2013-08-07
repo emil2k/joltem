@@ -24,10 +24,6 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
-# Must be above this threshold to count towards impact
-SOLUTION_ACCEPTANCE_THRESHOLD = 0.90
-COMMENT_ACCEPTANCE_THRESHOLD = 0.60
-
 
 class Impact(models.Model):
     """
@@ -37,6 +33,10 @@ class Impact(models.Model):
     # Relations
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
+
+    # Must be above this threshold to count towards impact
+    SOLUTION_ACCEPTANCE_THRESHOLD = 0.75
+    COMMENT_ACCEPTANCE_THRESHOLD = 0.75
 
     class Meta:
         unique_together = ['project', 'user']
@@ -49,14 +49,14 @@ class Impact(models.Model):
         # Impact from solutions
         for solution in self.user.solution_set.filter(project_id=self.project.id):
             # Solution acceptance must be higher than this threshold to count towards impact
-            if solution.acceptance < SOLUTION_ACCEPTANCE_THRESHOLD:
+            if solution.acceptance < Impact.SOLUTION_ACCEPTANCE_THRESHOLD:
                 continue
             if solution.impact:
                 impact += solution.impact
         # Impact from review comments
         for comment in self.user.comment_set.filter(project_id=self.project.id):
             # Comment acceptance must be higher than this threshold to count towards impact
-            if comment.acceptance < COMMENT_ACCEPTANCE_THRESHOLD:
+            if comment.acceptance < Impact.COMMENT_ACCEPTANCE_THRESHOLD:
                 continue
             if comment.impact:
                 impact += comment.impact

@@ -181,9 +181,13 @@ class ImpactTestCase(TestCase):
         """
         A test of the impact calculation for a voteable
         """
+
         # Test assumptions
         self.assertEqual(Vote.MAXIMUM_MAGNITUDE, 5, "Maximum magnitude changed.")
         self.assertEqual(Voteable.MAGNITUDE_THRESHOLD, 0.159, "Magnitude threshold changed.")
+        self.assertEqual(Impact.SOLUTION_ACCEPTANCE_THRESHOLD, 0.75, "Solution acceptance threshold changed.")
+        self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 0.75, "Comment acceptance threshold changed.")
+
         p = get_mock_project("sonics")
         gary = get_mock_user("gary")
         t = get_mock_task(p, gary)
@@ -193,25 +197,41 @@ class ImpactTestCase(TestCase):
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 0, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [0, 0, 0, 0, 0, 0])
 
-        get_mock_vote(get_mock_user("kate"), s, 100, 2)
+        v = get_mock_vote(get_mock_user("kate"), s, 100, 2)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 100, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [100, 100, 100, 0, 0, 0])
+        self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [0, 0, 0, 0, 0, 0])
+        self.assertEqual(s.get_vote_value(v), 10)
+        self.assertEqual(s.get_impact(), 10)
 
-        get_mock_vote(get_mock_user("janet"), s, 100, 2)
+        v = get_mock_vote(get_mock_user("janet"), s, 100, 2)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [200, 200, 200, 0, 0, 0])
+        self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [100, 100, 100, 0, 0, 0])
+        self.assertEqual(s.get_vote_value(v), 100)
+        self.assertEqual(s.get_impact(), 100)
 
-        get_mock_vote(get_mock_user("bill"), s, 500, 3)
+        v = get_mock_vote(get_mock_user("bill"), s, 500, 3)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 500, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [700, 700, 700, 500, 0, 0])
+        self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [200, 200, 200, 0, 0, 0])
+        self.assertEqual(s.get_vote_value(v), 100)
+        self.assertEqual(s.get_impact(), 100)
 
-        get_mock_vote(get_mock_user("susan"), s, 100, 4)
+        v = get_mock_vote(get_mock_user("susan"), s, 100, 4)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 500, 100, 0])
         self.assertListEqual(s.get_impact_integrals(), [800, 800, 800, 600, 100, 0])
+        self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [700, 700, 700, 500, 0, 0])
+        self.assertEqual(s.get_vote_value(v), 1000)
+        w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
+        self.assertEqual(s.get_impact(), int(w_sum / float(800)))
 
-        get_mock_vote(get_mock_user("jill"), s, 100, 0)  # rejection vote
+        v = get_mock_vote(get_mock_user("jill"), s, 100, 0)  # rejection vote
         self.assertListEqual(s.get_impact_distribution(), [100, 0, 200, 500, 100, 0])
         self.assertListEqual(s.get_impact_integrals(), [900, 800, 800, 600, 100, 0])
+        self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [800, 800, 800, 600, 100, 0])
+        w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
+        self.assertEqual(s.get_impact(), int(w_sum / float(900)))
 
 
 

@@ -69,7 +69,6 @@ class Voteable(models.Model):
         """
         Calculate impact, analogous to value of contribution
         """
-        # TODO determine proper vote for each vote
         total_impact = 0
         weighted_sum = 0
         for vote in self.vote_set.all():
@@ -103,18 +102,44 @@ class Voteable(models.Model):
                 ii[magnitude] += d[x]
         return ii
 
-    # If vote was within one standard deviation of the actual magnitude,
-    # a minimum of 15.9% of the rest of distribution would be between it and the maximum
-    # TODO should this go the other way too?
+    def get_impact_integrals_excluding_vote(self, vote):
+        """
+        Calculate impact integrals, excluding the specified vote
+        """
+        ii = self.get_impact_integrals()
+        for x in range(1 + vote.magnitude):
+            ii[x] -= vote.voter_impact
+        return ii
+
+    """
+    Thought process ...
+    If vote is less than one standard deviation above of the actual magnitude,
+    a minimum of 15.9% of the rest of distribution would be between it and the maximum.
+
+    If there is no support at that magnitude it goes down a level to the minimum of 1
+    for an accepted vote
+    TODO should this go the other way too?
+    """
     MAGNITUDE_THRESHOLD = 0.159  # minimum supporting impact integral
 
     def get_vote_value(self, vote):
         """
         Determines vote value based on the impact distribution of the other votes
+        Assumes vote is accepted, so magnitude is greater than 0
         """
-        # TODO determine effective magnitude
-        return pow(10, vote.magnitude)
-
+        assert vote.magnitude > 0
+        logger.info("* GET VOTE VALUE : %d : %d" % (vote.magnitude, vote.voter_impact))
+        excluding_total = sum(self.get_impact_distribution()) - vote.voter_impact
+        ie = self.get_impact_integrals_excluding_vote(vote)
+        if excluding_total > 0:
+            for magnitude in reversed(range(1 + vote.magnitude)):
+                excluding_integral = ie[magnitude]
+                p = float(excluding_integral) / excluding_total
+                logger.info("** %d : %.3f : %d" % (magnitude, p, excluding_integral))
+                if p > Voteable.MAGNITUDE_THRESHOLD:
+                    return pow(10, magnitude)
+        logger.info("** VOTE : defaulted to 10")
+        return 10  # default
 
 @receiver([post_save, post_delete], sender=Vote)
 def update_metrics(sender, **kwargs):
