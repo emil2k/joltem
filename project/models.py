@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from solution.models import Solution, Comment
 
 import logging
 logger = logging.getLogger('django')
@@ -61,7 +62,8 @@ class Impact(models.Model):
                 impact += comment.impact
         return impact
 
-@receiver([post_save, post_delete], sender='vote.Voteable')
+@receiver([post_save, post_delete], sender=Comment)
+@receiver([post_save, post_delete], sender=Solution)
 def update_project_impact(sender, **kwargs):
     """
     Update project specific impact due to vote on solution

@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from project.models import Project
 
 
 class Task(models.Model):
@@ -11,7 +10,7 @@ class Task(models.Model):
     time_posted = models.DateTimeField(default=timezone.now)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey('project.Project')
     parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="tasks") # TODO rename related to subtask_set
     owner = models.ForeignKey(User)
 

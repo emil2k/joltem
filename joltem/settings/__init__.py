@@ -72,10 +72,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.markup',
-    'django_nose',
     'mathfilters',
     # Database migrations
     'south',
+    # Test suite
+    'django_nose',
     # Project specific
     'joltem',
     'project',

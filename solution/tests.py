@@ -8,7 +8,7 @@ Replace this with more appropriate tests for your application.
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core import management
-from project.models import Project
+from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution, Comment, Vote
 
@@ -17,7 +17,7 @@ logger = logging.getLogger('tests')
 
 
 def setup():
-    management.call_command('loaddata', 'test_users_small.json', verbosity=0)
+    management.call_command('loaddata', 'test_users', verbosity=0)
     management.call_command('loaddata', 'test_task.json', verbosity=0)
 
 
@@ -32,6 +32,7 @@ class SolutionTestCase(TestCase):
         self.emil = User.objects.get(id=1)
         self.bob = User.objects.get(id=2)
         self.jill = User.objects.get(id=3)
+        self.kate = User.objects.get(id=4)
         self.task = Task.objects.get(id=1)
         self.solution = Solution(
             project=self.project,
@@ -90,6 +91,28 @@ class SolutionTestCase(TestCase):
         SolutionTestCase.get_mock_vote(self.emil, c, 100, 1).save()
         c = SolutionTestCase.reload_votable(Comment, c)
         self.assertTrue(c.impact > 0)
+
+    def test_project_impact(self):
+        # Project impact from solution
+        self.assertFalse(Impact.objects.filter(user_id=self.kate.id, project_id=self.project.id).exists())
+        s = Solution(
+            project=self.project,
+            user=self.kate,
+            task=self.task
+        )
+        s.save()
+        SolutionTestCase.get_mock_vote(self.emil, s, 100, 1).save()
+        self.assertTrue(Impact.objects.filter(user_id=self.kate.id, project_id=self.project.id).exists())
+        # Now leave a comment
+        self.assertFalse(Impact.objects.filter(user_id=self.jill.id, project_id=self.project.id).exists())
+        c = Comment(
+            project=self.project,
+            user=self.jill,
+            solution=s
+        )
+        c.save()
+        SolutionTestCase.get_mock_vote(self.emil, c, 100, 1).save()
+        self.assertTrue(Impact.objects.filter(user_id=self.jill.id, project_id=self.project.id).exists())
 
 
     # TODO test admin initial impact
