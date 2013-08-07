@@ -9,7 +9,6 @@ It is meant as an outline of the process and may vary when installing on various
 
 * [Django](https://www.djangoproject.com) for a [Python](http://www.python.org) web framework.
 	* [South](http://south.readthedocs.org/) for database migrations.
-	* [Django-Nose](https://pypi.python.org/pypi/django-nose) as a test suite to speed up tests.
 * [MySQL](http://www.mysql.com) for databases.
 * [Gitolite](http://gitolite.com/gitolite/) as a prelimanary git server which should be able to handle a couple of thousand users, but beyond that we will need a custom solution.
 * [Fabric](http://docs.fabfile.org/) for deployment. 

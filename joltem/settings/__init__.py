@@ -75,8 +75,6 @@ INSTALLED_APPS = (
     'mathfilters',
     # Database migrations
     'south',
-    # Test suite
-    'django_nose',
     # Project specific
     'joltem',
     'project',
@@ -84,8 +82,6 @@ INSTALLED_APPS = (
     'task',
     'solution',
 )
-
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

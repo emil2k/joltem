@@ -69,7 +69,7 @@ def update_project_impact(sender, **kwargs):
     Update project specific impact due to vote on solution
     """
     voteable = kwargs.get('instance')
-    logger.info("UPDATE PROJECT IMPACT : %s by %s" % (voteable.id, voteable.user.username))
+    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.user.username))
     if voteable:
         (project_impact, create) = Impact.objects.get_or_create(
             project_id=voteable.project.id,
