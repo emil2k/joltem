@@ -1,16 +1,9 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
 from django.contrib.auth.models import User
 from joltem.models import Profile
 from project.models import Project, Impact
 from task.models import Task
-from solution.models import Solution, Comment, Vote
+from solution.models import Solution, Comment, Vote, Voteable
 
 import logging
 logger = logging.getLogger('tests')
@@ -120,9 +113,6 @@ class ImpactTestCase(TestCase):
     def assertProjectImpactExistence(self, project, user, expected):
         self.assertEqual(Impact.objects.filter(user_id=user.id, project_id=project.id).exists(), expected)
 
-
-class ImpactSignalsTests(ImpactTestCase):
-
     # Test chain of signals
     # 1. Vote added to Votable
     # 2. Voteable update project impacts
@@ -186,4 +176,42 @@ class ImpactSignalsTests(ImpactTestCase):
         p.save()
         self.assertProjectImpactEqual(p, hari, 1)
         self.assertImpactEqual(hari, 1)
+
+    def test_impact_calculation(self):
+        """
+        A test of the impact calculation for a voteable
+        """
+        # Test assumptions
+        self.assertEqual(Vote.MAXIMUM_MAGNITUDE, 5, "Maximum magnitude changed.")
+        self.assertEqual(Voteable.MAGNITUDE_THRESHOLD, 0.159, "Magnitude threshold changed.")
+        p = get_mock_project("sonics")
+        gary = get_mock_user("gary")
+        t = get_mock_task(p, gary)
+        s = get_mock_solution(p, gary, t)
+
+        # Initial
+        self.assertListEqual(s.get_impact_distribution(), [0, 0, 0, 0, 0, 0])
+        self.assertListEqual(s.get_impact_integrals(), [0, 0, 0, 0, 0, 0])
+
+        get_mock_vote(get_mock_user("kate"), s, 100, 2)
+        self.assertListEqual(s.get_impact_distribution(), [0, 0, 100, 0, 0, 0])
+        self.assertListEqual(s.get_impact_integrals(), [100, 100, 100, 0, 0, 0])
+
+        get_mock_vote(get_mock_user("janet"), s, 100, 2)
+        self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 0, 0, 0])
+        self.assertListEqual(s.get_impact_integrals(), [200, 200, 200, 0, 0, 0])
+
+        get_mock_vote(get_mock_user("bill"), s, 500, 3)
+        self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 500, 0, 0])
+        self.assertListEqual(s.get_impact_integrals(), [700, 700, 700, 500, 0, 0])
+
+        get_mock_vote(get_mock_user("susan"), s, 100, 4)
+        self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 500, 100, 0])
+        self.assertListEqual(s.get_impact_integrals(), [800, 800, 800, 600, 100, 0])
+
+        get_mock_vote(get_mock_user("jill"), s, 100, 0)  # rejection vote
+        self.assertListEqual(s.get_impact_distribution(), [100, 0, 200, 500, 100, 0])
+        self.assertListEqual(s.get_impact_integrals(), [900, 800, 800, 600, 100, 0])
+
+
 

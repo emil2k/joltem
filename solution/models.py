@@ -25,6 +25,8 @@ class Vote(models.Model):
     voteable_id = models.PositiveIntegerField()
     voteable = generic.GenericForeignKey('voteable_type', 'voteable_id')
 
+    MAXIMUM_MAGNITUDE = 5  # the maximum magnitude for a vote
+
     def __unicode__(self):
         return str(self.id)
 
@@ -64,22 +66,54 @@ class Voteable(models.Model):
             return int(round(100 * float(weighted_sum)/impact_sum))
 
     def get_impact(self):
-        # TODO calculate impact
+        """
+        Calculate impact, analogous to value of contribution
+        """
+        # TODO determine proper vote for each vote
         total_impact = 0
         weighted_sum = 0
         for vote in self.vote_set.all():
             total_impact += vote.voter_impact
             if vote.is_accepted:
-                weighted_sum += vote.voter_impact * pow(10, vote.magnitude)
+                weighted_sum += vote.voter_impact * self.get_vote_value(vote)
         if total_impact == 0:
             return None
         return int(weighted_sum / float(total_impact))
 
     def get_impact_distribution(self):
-        d = [0, 0, 0, 0, 0, 0]
+        """
+        Impact distribution based on magnitude, with 0 representing a rejected vote
+        """
+        d = [0] * (1 + Vote.MAXIMUM_MAGNITUDE)
         for vote in self.vote_set.all():
             d[vote.magnitude] += vote.voter_impact
         return d
+
+    def get_impact_integrals(self):
+        """
+        Calculate impact integrals (integration of the impact distribution from the given magnitude
+        to the maximum magnitude) for each magnitude returns a list
+        """
+        stop = 1 + Vote.MAXIMUM_MAGNITUDE
+        d = self.get_impact_distribution()
+        ii = [0] * stop
+        for magnitude in range(stop):
+            # Integrate distribution
+            for x in range(magnitude, stop):
+                ii[magnitude] += d[x]
+        return ii
+
+    # If vote was within one standard deviation of the actual magnitude,
+    # a minimum of 15.9% of the rest of distribution would be between it and the maximum
+    # TODO should this go the other way too?
+    MAGNITUDE_THRESHOLD = 0.159  # minimum supporting impact integral
+
+    def get_vote_value(self, vote):
+        """
+        Determines vote value based on the impact distribution of the other votes
+        """
+        # TODO determine effective magnitude
+        return pow(10, vote.magnitude)
 
 
 @receiver([post_save, post_delete], sender=Vote)
