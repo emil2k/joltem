@@ -3,15 +3,26 @@
     {% csrf_token %}
     <input type="hidden" name="comment_id" value="{{ comment.id }}" />
     <div class="btn-group">
-        {% if vote.vote == 1 %}
-            <button class="btn btn-mini btn-success" type="submit" name="comment_vote" value="1"><b data-toggle="tooltip" title="Helpful." class="impact_vote"><i class="icon-plus icon-white"></i></b></button>
+        {% if vote.magnitude > 1 %}
+            <button class="btn btn-mini" type="submit" name="comment_vote" value="{{ vote.magnitude|add:-1 }}">
+                <i data-toggle="tooltip" title="Divide by 10" class="impact_vote icon-minus"></i>
+            </button>
+            <button class="btn btn-mini btn-success" disabled>
+                <i data-toggle="tooltip" title="Exceptional = 10^{{ vote.magnitude }}" class="impact_vote icon-ok icon-white"></i> <sup>{{ vote.magnitude }}</sup>
+            </button>
+            <button class="btn btn-mini" type="submit" name="comment_vote" value="{{ vote.magnitude|add:1 }}">
+                <i data-toggle="tooltip" title="Multiply by 10" class="impact_vote icon-plus"></i>
+            </button>
         {% else %}
-            <button class="btn btn-mini" type="submit" name="comment_vote" value="1"><b data-toggle="tooltip" title="Helpful." class="impact_vote"><i class="icon-plus"></i></b></button>
-        {% endif %}
-        {% if vote.vote == -1 %}
-            <button class="btn btn-mini btn-danger" type="submit" name="comment_vote" value="-1"><b data-toggle="tooltip" title="Not helpful." class="impact_vote"><i class="icon-minus icon-white"></i></b></button>
-        {% else %}
-            <button class="btn btn-mini" type="submit" name="comment_vote" value="-1"><b data-toggle="tooltip" title="Not helpful." class="impact_vote"><i class="icon-minus"></i></b></button>
+            <button class="btn btn-mini {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="comment_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
+                <i data-toggle="tooltip" title="Not helpful = 0" class="impact_vote icon-remove {{ vote.is_rejected|is_true:"icon-white" }}"></i>
+            </button>
+            <button class="btn btn-mini {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="comment_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
+                <i data-toggle="tooltip" title="Helpful = 10" class="impact_vote icon-ok {{ vote.magnitude|icon_white:1 }}"></i>
+            </button>
+            <button class="btn btn-mini" type="submit" name="comment_vote" value="2">
+                <i data-toggle="tooltip" title="Exceptional x 10" class="impact_vote icon-plus {{ vote.magnitude|icon_white:2 }}"></i>
+            </button>
         {% endif %}
     </div>
 </form>

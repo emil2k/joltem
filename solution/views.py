@@ -137,19 +137,22 @@ def review(request, project_name, solution_id):
         vote = None
     if request.POST:
         comment_vote_input = request.POST.get('comment_vote')
-        if comment_vote_input:
+        if comment_vote_input is not None:
+            comment_vote_input = int(comment_vote_input)
             comment_id = request.POST.get('comment_id')
             comment = Comment.objects.get(id=comment_id)
-            if comment.commenter.id == user.id:
+            if comment.user.id == user.id:
                 return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
             try:
+                comment_type = ContentType.objects.get_for_model(comment)
                 comment_vote = Vote.objects.get(
-                    solution_id=solution.id,
-                    comment_id=comment.id,
+                    voteable_type_id=comment_type.id,
+                    voteable_id=comment.id,
                     voter_id=user.id
                 )
-                if comment_vote.vote != comment_vote_input:
-                    comment_vote.vote = comment_vote_input
+                if comment_vote.magnitude != comment_vote_input:
+                    comment_vote.magnitude = comment_vote_input
+                    comment_vote.is_accepted = comment_vote_input > 0
                     comment_vote.voter_impact = user.get_profile().impact
                     comment_vote.time_voted = timezone.now()
                     comment_vote.save()
@@ -157,9 +160,9 @@ def review(request, project_name, solution_id):
                 comment_vote = Vote(
                     voter=user,
                     voter_impact=user.get_profile().impact,
-                    comment=comment,
-                    solution=solution,
-                    vote=comment_vote_input,
+                    voteable=comment,
+                    magnitude=comment_vote_input,
+                    is_accepted=comment_vote_input > 0,
                     time_voted=timezone.now()
                 )
                 comment_vote.save()
@@ -175,8 +178,9 @@ def review(request, project_name, solution_id):
             )
             review_comment.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-        vote_input = int(request.POST.get('vote'))
+        vote_input = request.POST.get('vote')
         if vote_input is not None and not is_owner:
+            vote_input = int(vote_input)
             if vote is None:
                 vote = Vote(
                     voteable=solution,

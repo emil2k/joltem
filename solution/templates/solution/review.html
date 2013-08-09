@@ -79,14 +79,16 @@
                 </div>
                 <div class="span2 text-center">
                     {% with vote=comment_holder.vote %}
-                        <p>
-                            <small class="muted">
-                                {% if comment.impact %}
-                                    {{ comment.impact }} impact,
-                                    {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
-                                {% endif %}
-                            </small>
-                        </p>
+                        {% if vote or comment_holder.is_author %}
+                            <p>
+                                <small class="muted">
+                                    {% if comment.impact %}
+                                        <strong>{{ comment.impact }}</strong> impact,
+                                        <strong>{{ comment_holder.vote_count }}</strong> vote{{ comment_holder.vote_count|pluralize }}
+                                    {% endif %}
+                                </small>
+                            </p>
+                        {% endif %}
                         {% if not comment_holder.is_author %}
                             {% include 'solution/review_comment_vote.html' %}
                         {% endif %}
