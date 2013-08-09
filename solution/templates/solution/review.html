@@ -46,9 +46,11 @@
                 {% endif %}
             </div>
         </div>
-        <div class="row">
-            {% include "solution/review_votes.html" %}
-        </div>
+        {% if vote or is_owner %}
+            <div class="row">
+                {% include "solution/review_votes.html" %}
+            </div>
+        {% endif %}
     {% endif %}
     <hr/>
     {% for comment_holder in comments %}

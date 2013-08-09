@@ -30,6 +30,10 @@ class Vote(models.Model):
     def __unicode__(self):
         return str(self.id)
 
+    @property
+    def is_rejected(self):
+        return not self.is_accepted
+
 
 class Voteable(models.Model):
     """
