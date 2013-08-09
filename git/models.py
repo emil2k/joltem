@@ -68,7 +68,7 @@ GITOLITE_CONFIG_PREFIX = """
 #===========================
 
 repo\tgitolite-admin
-\tRW\t=\tadmin
+\tRW+\t=\tadmin
 
 #===========================
 # Repositories
@@ -92,10 +92,7 @@ def update_config(sender, **kwargs):
         for repo in repos:
             # Repository permissions
             f.write("repo\t%s\n" % repo.full_name)
-            f.write("\tRW\t=\t@all\n")
-            # Personal branches
-            # http://gitolite.com/gitolite/special.html
-            f.write("\tRW\tu/USER/\t=\t@all\n")  # TODO move this into update hook
+            f.write("\tRW+\t=\t@all\n")
             # VREF for solution branch permission
             for user in User.objects.all():
                 f.write("\t-\tVREF/UPDATE/%s/%d\t=\t%s\n" % (user.username, repo.id, user.username))

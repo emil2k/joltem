@@ -19,7 +19,7 @@ from git.models import Repository
 from solution.models import Solution
 
 # Print out command line arguments
-with open(dir+'/test.log', "a") as log_file:
+with open(dir+'/update.log', "a") as log_file:
     log = lambda line: log_file.write("%s\n" % line)
     args = sys.argv
     script = args.pop(0)
