@@ -241,3 +241,17 @@ class Comment(Voteable):
 
     def __unicode__(self):
         return str(self.id)
+
+
+@receiver([post_save, post_delete], sender=Comment)
+def update_metrics_from_comment(sender, **kwargs):
+    """
+    Update vote metrics for a solution, because vote validity depends on whether there is a comment
+    """
+    comment = kwargs.get('instance')
+    logger.info("UPDATE METRICS from comment : %s" % comment)
+    if comment and comment.solution:
+        voteable = comment.solution
+        voteable.acceptance = voteable.get_acceptance()
+        voteable.impact = voteable.get_impact()
+        voteable.save()

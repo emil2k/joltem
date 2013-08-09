@@ -272,22 +272,24 @@ class ImpactTestCase(TestCase):
         Checks that a rejection vote does not count until there is a comment left by that voter in the solution review
         """
         p, ted, t, s = get_mock_setup_solution("lipton", "ted")
-        self.assertEqual(s.get_impact(), None)
-        self.assertEqual(s.get_acceptance(), None)
+        self.assertEqual(s.impact, None)
+        self.assertEqual(s.acceptance, None)
         get_mock_vote(get_mock_user("jill"), s, 300, 1)
-        self.assertEqual(s.get_impact(), 10)
-        self.assertEqual(s.get_acceptance(), 100)
+        s = load_votable(Solution, s)
+        self.assertEqual(s.impact, 10)
+        self.assertEqual(s.acceptance, 100)
         # Now the rejection vote
         kate = get_mock_user("kate")
         get_mock_vote(kate, s, 100, 0)
         # Vote should not count until commented
-        logger.info("AFTER KATE VOTE *****")
-        self.assertEqual(s.get_impact(), 10)  # TODO here it is giving 7 != 10
-        self.assertEqual(s.get_acceptance(), 100)
+        s = load_votable(Solution, s)
+        self.assertEqual(s.impact, 10)
+        self.assertEqual(s.acceptance, 100)
         # Add comment and it should count now
         get_mock_comment(p, kate, s)
-        self.assertEqual(s.get_impact(), 8)
-        self.assertEqual(s.get_acceptance(), 75)
+        s = load_votable(Solution, s)
+        self.assertEqual(s.impact, 8)  # using impact instead of get_impact() because want to check DB state
+        self.assertEqual(s.acceptance, 75)
 
 
     # TODO test that acceptance thresholds are working
