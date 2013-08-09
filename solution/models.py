@@ -51,16 +51,15 @@ class Voteable(models.Model):
         Impact-weighted percentage of acceptance amongst reviewers
         """
         votes = self.vote_set.filter(voter_impact__gt=0)
-        weighted_sum = 0
         impact_sum = 0
+        weighted_sum = 0
         for vote in votes:
-            # Don't count a negative vote if voter didn't provide a comment
-            if not vote.is_accepted and not self.has_commented(vote.voter_id):
+            if not self.is_vote_valid(vote):
                 continue
-            impact_sum += vote.voter_impact
-            if vote.is_accepted:
+            elif vote.is_accepted:
                 weighted_sum += vote.voter_impact
-        if impact_sum <= 0:
+            impact_sum += vote.voter_impact
+        if impact_sum == 0:
             return None
         else:
             return int(round(100 * float(weighted_sum)/impact_sum))
@@ -69,15 +68,23 @@ class Voteable(models.Model):
         """
         Calculate impact, analogous to value of contribution
         """
-        total_impact = 0
+        impact_sum = 0
         weighted_sum = 0
         for vote in self.vote_set.all():
-            total_impact += vote.voter_impact
-            if vote.is_accepted:
+            logger.debug("VOTE : accepted : %s : valid : %s : mag : %d : imp : %d" % (vote.is_accepted, self.is_vote_valid(vote), vote.magnitude, vote.voter_impact))
+            if not self.is_vote_valid(vote):
+                logger.info("VOTE : not valid")
+                continue
+            elif vote.is_accepted:
                 weighted_sum += vote.voter_impact * self.get_vote_value(vote)
-        if total_impact == 0:
+                logger.debug("VOTE : accepted add to weighted sum : %d" % weighted_sum)
+            impact_sum += vote.voter_impact
+            logger.debug("VOTE : added to impact sum : %d" % impact_sum)
+        if impact_sum == 0:
+            logger.debug("VOTE : impact sum == 0 : %d" % impact_sum)
             return None
-        return int(weighted_sum / float(total_impact))
+        logger.debug("VOTE : return impact")
+        return int(round(weighted_sum / float(impact_sum)))
 
     def get_impact_distribution(self):
         """
@@ -111,6 +118,13 @@ class Voteable(models.Model):
             ii[x] -= vote.voter_impact
         return ii
 
+    def is_vote_valid(self, vote):
+        """
+        Determines whether vote should be counted or not
+        OVERRIDE in EXTENDING CLASS
+        """
+        return True
+
     """
     Thought process ...
     If vote is less than one standard deviation above of the actual magnitude,
@@ -128,14 +142,14 @@ class Voteable(models.Model):
         Assumes vote is accepted, so magnitude is greater than 0
         """
         assert vote.magnitude > 0
-        logger.info("* GET VOTE VALUE : %d : %d" % (vote.magnitude, vote.voter_impact))
+        logger.debug("GET VOTE VALUE : %d : %d" % (vote.magnitude, vote.voter_impact))
         excluding_total = sum(self.get_impact_distribution()) - vote.voter_impact
         ie = self.get_impact_integrals_excluding_vote(vote)
         if excluding_total > 0:
-            for magnitude in reversed(range(1 + vote.magnitude)):
+            for magnitude in reversed(range(1, 1 + vote.magnitude)):
                 excluding_integral = ie[magnitude]
                 p = float(excluding_integral) / excluding_total
-                logger.info("** %d : %.3f : %d" % (magnitude, p, excluding_integral))
+                logger.debug("** %d : %.3f : %d" % (magnitude, p, excluding_integral))
                 if p > Voteable.MAGNITUDE_THRESHOLD:
                     return pow(10, magnitude)
         logger.info("** VOTE : defaulted to 10")
@@ -176,6 +190,10 @@ class Solution(Voteable):
 
     def __unicode__(self):
         return str(self.id)
+
+    def is_vote_valid(self, vote):
+        # Don't count a vote, if the person did not provide a comment in the solution review
+        return vote.is_accepted or self.has_commented(vote.voter_id)
 
     @property
     def default_title(self):

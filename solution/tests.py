@@ -66,6 +66,26 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     return v
 
 
+def get_mock_setup_solution(project_name, username):
+    """
+    A shortcut to get a solution
+    """
+    p = get_mock_project(project_name)
+    u = get_mock_user(username)
+    t = get_mock_task(p, u)
+    s = get_mock_solution(p, u, t)
+    return p, u, t, s
+
+
+def get_mock_setup_comment(project_name, username):
+    """
+    A shortcut to get a comment
+    """
+    p, u, t, s = get_mock_setup_solution(project_name, username)
+    c = get_mock_comment(p, u, s)
+    return p, u, t, s, c
+
+
 def load_votable(votable_model, votable):
     """
     Load votable to check if metrics updated properly
@@ -177,6 +197,18 @@ class ImpactTestCase(TestCase):
         self.assertProjectImpactEqual(p, hari, 1)
         self.assertImpactEqual(hari, 1)
 
+    def test_impact_one_accept(self):
+        """
+        Test for a lone acceptance vote
+        """
+        p, bill, t, s = get_mock_setup_solution("lipton", "bill")
+        self.assertEqual(s.get_impact(), None)
+        self.assertEqual(s.get_acceptance(), None)
+        get_mock_vote(get_mock_user("jill"), s, 300, 3)
+        logger.info("AFTER JILL VOTE")
+        self.assertEqual(s.get_impact(), 10)
+        self.assertEqual(s.get_acceptance(), 100)
+
     def test_impact_calculation(self):
         """
         A test of the impact calculation for a voteable
@@ -188,10 +220,7 @@ class ImpactTestCase(TestCase):
         self.assertEqual(Impact.SOLUTION_ACCEPTANCE_THRESHOLD, 0.75, "Solution acceptance threshold changed.")
         self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 0.75, "Comment acceptance threshold changed.")
 
-        p = get_mock_project("sonics")
-        gary = get_mock_user("gary")
-        t = get_mock_task(p, gary)
-        s = get_mock_solution(p, gary, t)
+        p, gary, t, s = get_mock_setup_solution("sonics", "gary")
 
         # Initial
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 0, 0, 0, 0])
@@ -226,12 +255,41 @@ class ImpactTestCase(TestCase):
         w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
         self.assertEqual(s.get_impact(), int(w_sum / float(800)))
 
-        v = get_mock_vote(get_mock_user("jill"), s, 100, 0)  # rejection vote
+        jill = get_mock_user("jill")
+        v = get_mock_vote(jill, s, 100, 0)  # rejection vote
         self.assertListEqual(s.get_impact_distribution(), [100, 0, 200, 500, 100, 0])
         self.assertListEqual(s.get_impact_integrals(), [900, 800, 800, 600, 100, 0])
         self.assertListEqual(s.get_impact_integrals_excluding_vote(v), [800, 800, 800, 600, 100, 0])
         w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
-        self.assertEqual(s.get_impact(), int(w_sum / float(900)))
+        self.assertEqual(s.get_impact(), int(round(w_sum / float(800))))
+        # rejected vote should not count until comment is added
+        get_mock_comment(p, jill, s)
+        # now should count
+        self.assertEqual(s.get_impact(), int(round(w_sum / float(900))))
+
+    def test_rejection_vote_solution(self):
+        """
+        Checks that a rejection vote does not count until there is a comment left by that voter in the solution review
+        """
+        p, ted, t, s = get_mock_setup_solution("lipton", "ted")
+        self.assertEqual(s.get_impact(), None)
+        self.assertEqual(s.get_acceptance(), None)
+        get_mock_vote(get_mock_user("jill"), s, 300, 1)
+        self.assertEqual(s.get_impact(), 10)
+        self.assertEqual(s.get_acceptance(), 100)
+        # Now the rejection vote
+        kate = get_mock_user("kate")
+        get_mock_vote(kate, s, 100, 0)
+        # Vote should not count until commented
+        logger.info("AFTER KATE VOTE *****")
+        self.assertEqual(s.get_impact(), 10)  # TODO here it is giving 7 != 10
+        self.assertEqual(s.get_acceptance(), 100)
+        # Add comment and it should count now
+        get_mock_comment(p, kate, s)
+        self.assertEqual(s.get_impact(), 8)
+        self.assertEqual(s.get_acceptance(), 75)
 
 
+    # TODO test that acceptance thresholds are working
+    # TODO test for proper rounding of impact and acceptance figures
 
