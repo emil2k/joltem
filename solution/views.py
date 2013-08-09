@@ -139,6 +139,7 @@ def review(request, project_name, solution_id):
         comment_vote_input = request.POST.get('comment_vote')
         if comment_vote_input is not None:
             comment_vote_input = int(comment_vote_input)
+            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
             comment_id = request.POST.get('comment_id')
             comment = Comment.objects.get(id=comment_id)
             if comment.user.id == user.id:
@@ -181,6 +182,7 @@ def review(request, project_name, solution_id):
         vote_input = request.POST.get('vote')
         if vote_input is not None and not is_owner:
             vote_input = int(vote_input)
+            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
             if vote is None:
                 vote = Vote(
                     voteable=solution,
@@ -216,6 +218,7 @@ def review(request, project_name, solution_id):
         'accept_votes': solution.vote_set.filter(is_accepted=True),
         'reject_votes': solution.vote_set.filter(is_accepted=False),
         'vote': vote,
+        'maximum_magnitude': Vote.MAXIMUM_MAGNITUDE,
         'has_commented': solution.has_commented(user.id),
         'is_owner': is_owner
     }
