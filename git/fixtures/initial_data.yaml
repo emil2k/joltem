@@ -1,3 +1,0 @@
-- fields: {description: Website and current gitolite server setup., is_hidden: false, name: main, project: 1}
-  model: git.repository
-  pk: 1

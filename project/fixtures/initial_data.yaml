@@ -1,7 +1,0 @@
-- fields:
-    description: ''
-    name: joltem
-    title: Joltem
-    admin_set: []
-  model: project.project
-  pk: 1

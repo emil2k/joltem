@@ -158,7 +158,7 @@ root > ldconfig
 Now we need to install the other requirements for the project.
 
 ```
-ec2-user > sudo yum install python-devel libyaml libyaml-devel
+ec2-user > sudo yum install python-devel
 ec2-user > cd /var/www/
 ec2-user > sudo su
 root > source venv/bin/activate
