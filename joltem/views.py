@@ -5,7 +5,7 @@ from joltem.models import User, Profile
 from project.models import Project
 from git.models import Authentication
 from joltem.models import Invite
-from datetime import datetime
+from django.utils import timezone
 
 
 def home(request):
@@ -87,7 +87,7 @@ def sign_up(request):
                     login(request, user)
                     # Track invite
                     invite.is_signed_up = True
-                    invite.time_signed_up = datetime.now()
+                    invite.time_signed_up = timezone.now()
                     invite.user = user
                     invite.save()
                     return redirect('account_keys')
@@ -224,7 +224,7 @@ def invites(request):
         if mark_sent_id:
             mark_sent = Invite.objects.get(id=mark_sent_id)
             mark_sent.is_sent = True
-            mark_sent.time_sent = datetime.now()
+            mark_sent.time_sent = timezone.now()
             mark_sent.save()
             return redirect('invites')
         first_name = request.POST.get('first_name')
@@ -263,7 +263,7 @@ def invite(request, invite_id):
         invite = Invite.is_valid(invite_id)
         if invite:
             invite.is_clicked = True
-            invite.time_clicked = datetime.now()
+            invite.time_clicked = timezone.now()
             invite.save()
             invitation_redirect.set_cookie('invite_code', invite_id)
         return invitation_redirect
@@ -282,7 +282,7 @@ def invite(request, invite_id):
             return redirect('invites')
         elif action == "mark_sent":
             invite.is_sent = True
-            invite.time_sent = datetime.now()
+            invite.time_sent = timezone.now()
             invite.save()
             return redirect('invite', invite_id=invite_id)
         first_name = request.POST.get('first_name')

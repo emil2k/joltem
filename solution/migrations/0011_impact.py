@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.utils import timezone
-
+import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -9,23 +8,63 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Task.is_closed'
-        db.add_column(u'task_task', 'is_closed',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Deleting field 'Comment.commenter'
+        db.delete_column(u'solution_comment', 'commenter_id')
+
+        # Adding field 'Comment.impact'
+        db.add_column(u'solution_comment', 'impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True),
                       keep_default=False)
 
-        # Adding field 'Task.time_closed'
-        db.add_column(u'task_task', 'time_closed',
-                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
+        # Adding field 'Comment.acceptance'
+        db.add_column(u'solution_comment', 'acceptance',
+                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Comment.project'
+        db.add_column(u'solution_comment', 'project',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
+                      keep_default=False)
+
+        # Adding field 'Comment.user'
+        db.add_column(u'solution_comment', 'user',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['auth.User']),
+                      keep_default=False)
+
+        # Adding field 'Solution.impact'
+        db.add_column(u'solution_solution', 'impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Solution.acceptance'
+        db.add_column(u'solution_solution', 'acceptance',
+                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Task.is_closed'
-        db.delete_column(u'task_task', 'is_closed')
+        # Adding field 'Comment.commenter'
+        db.add_column(u'solution_comment', 'commenter',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=None, to=orm['auth.User']),
+                      keep_default=False)
 
-        # Deleting field 'Task.time_closed'
-        db.delete_column(u'task_task', 'time_closed')
+        # Deleting field 'Comment.impact'
+        db.delete_column(u'solution_comment', 'impact')
+
+        # Deleting field 'Comment.acceptance'
+        db.delete_column(u'solution_comment', 'acceptance')
+
+        # Deleting field 'Comment.project'
+        db.delete_column(u'solution_comment', 'project_id')
+
+        # Deleting field 'Comment.user'
+        db.delete_column(u'solution_comment', 'user_id')
+
+        # Deleting field 'Solution.impact'
+        db.delete_column(u'solution_solution', 'impact')
+
+        # Deleting field 'Solution.acceptance'
+        db.delete_column(u'solution_solution', 'acceptance')
 
 
     models = {
@@ -44,7 +83,7 @@ class Migration(SchemaMigration):
         },
         u'auth.user': {
             'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
+            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
@@ -52,7 +91,7 @@ class Migration(SchemaMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
+            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
@@ -67,24 +106,49 @@ class Migration(SchemaMigration):
         },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
+            'admin_set': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
+        u'solution.comment': {
+            'Meta': {'object_name': 'Comment'},
+            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
+            'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'solution.solution': {
             'Meta': {'object_name': 'Solution'},
-            'application': ('django.db.models.fields.TextField', [], {}),
+            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
             'time_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'title': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'solution.vote': {
+            'Meta': {'object_name': 'Vote'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'voteable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'voteable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
+            'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
         },
         u'task.task': {
             'Meta': {'object_name': 'Task'},
@@ -95,9 +159,9 @@ class Migration(SchemaMigration):
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'tasks'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }
 
-    complete_apps = ['task']
+    complete_apps = ['solution']

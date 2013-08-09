@@ -60,3 +60,8 @@ DEPLOYMENT_PATH = ''
 DEPLOYMENT_VIRTUALENV_ACTIVATE = ''
 # Command to reload UWSGI process on the EC2 instance
 DEPLOYMENT_UWSGI_RELOAD_COMMAND = ''
+
+# To speed up tests
+import sys
+if 'test' in sys.argv:
+    SOUTH_TESTS_MIGRATE = False

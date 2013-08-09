@@ -16,7 +16,7 @@ def new(request, project_name, parent_solution_id):
     parent_solution = None
     if parent_solution_id is not None:
         parent_solution = get_object_or_404(Solution, id=parent_solution_id)
-        if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user)):
+        if not parent_solution.is_accepted or not (parent_solution.is_owner(user) or project.is_admin(user.id)):
             return redirect('project:solution:solution', project_name=project_name, solution_id=parent_solution.id)
         context['parent_solution'] = parent_solution
     # Create a task
@@ -46,11 +46,12 @@ def task(request, project_name, task_id):
         if not is_owner:
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
         accept = request.POST.get('accept')
-        from datetime import datetime
+        from django.utils import timezone
+
         if accept is not None:
             solution = task.solution_set.get(id=accept)
             solution.is_accepted = True
-            solution.time_accepted = datetime.now()
+            solution.time_accepted = timezone.now()
             solution.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
         cancel = request.POST.get('cancel')
@@ -62,7 +63,7 @@ def task(request, project_name, task_id):
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
         if request.POST.get('close'):
             task.is_closed = True
-            task.time_closed = datetime.now()
+            task.time_closed = timezone.now()
             task.save()
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
         if request.POST.get('reopen'):

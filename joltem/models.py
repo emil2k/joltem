@@ -1,45 +1,37 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from project.models import Impact
+
+import logging
+logger = logging.getLogger('django')
 
 
 class Profile(models.Model):
     gravatar_email = models.CharField(max_length=200, null=True, blank=True)
     gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
+    impact = models.BigIntegerField(default=0)
+    completed = models.IntegerField(default=0)
     # Relations
     user = models.OneToOneField(User, related_name="profile")
 
-    # Create profile when user is created
-    def create_profile(sender, **kw):
-        user = kw["instance"]
-        if kw["created"]:
-            profile = Profile(user=user)
-            profile.save()
+    def update(self):
+        """
+        Update user stats
+        """
+        self.impact = self.get_impact()
+        self.completed = self.get_completed()
+        return self  # to chain calls
 
-    post_save.connect(create_profile, sender=User)
-
-    @property
-    def impact(self):
-        # TODO this should later be switched to project specific impact, but it is fine for now as there is only one project
+    def get_impact(self):
         impact = 0
-        # The admins of the project start with an impact of 1, for weighted voting to be effective # TODO hackish missing project parameter, depends on fact that there is only one project
-        if self.user.project_set.count() > 0:
-            impact = 1
-        # Impact from solutions
-        for solution in self.user.solution_set.filter():
-            # A solutions weighted acceptance must be higher than 90% to count towards impact
-            if solution.acceptance < 90:
-                continue
-            if solution.impact:
-                impact += solution.impact
-        # Impact from review comments
-        for comment in self.user.comment_set.filter():
-            if comment.impact:
-                impact += comment.impact
+        for project_impact in self.user.impact_set.all():
+            if project_impact and project_impact.impact:
+                impact += project_impact.impact
         return impact
 
-    @property
-    def completed(self):
+    def get_completed(self):
         return self.user.solution_set.filter(is_completed=True).count()
 
     def set_gravatar_email(self, gravatar_email):
@@ -54,6 +46,24 @@ class Profile(models.Model):
             return True
         return False
 
+@receiver(post_save, sender=User)
+def create_profile(sender, **kw):
+    """
+    Create user profile when user created
+    """
+    user = kw["instance"]
+    logger.info("CREATE PROFILE for %s" % user.username)
+    if kw["created"]:
+        profile = Profile(user=user)
+        profile.update().save()
+
+@receiver([post_save, post_delete], sender=Impact)
+def update_from_project_impact(sender, **kwargs):
+    project_impact = kwargs.get('instance')
+    logger.info("UPDATE USER STATS from project impact : %s : %d for %s" % (sender, project_impact.project.id, project_impact.user.username))
+    if project_impact:
+        project_impact.user.get_profile().update().save()
+
 
 class Invite(models.Model):
     '''
@@ -67,7 +77,6 @@ class Invite(models.Model):
     is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
     is_signed_up = models.BooleanField(default=False)  # whether user signed up
     user = models.ForeignKey(User, null=True, blank=True)  # if the user registered, the associated user
-    from datetime import datetime
     time_sent = models.DateTimeField(null=True, blank=True)
     time_clicked = models.DateTimeField(null=True, blank=True)
     time_signed_up = models.DateTimeField(null=True, blank=True)

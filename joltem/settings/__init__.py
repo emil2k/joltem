@@ -77,8 +77,8 @@ INSTALLED_APPS = (
     'south',
     # Project specific
     'joltem',
-    'git',
     'project',
+    'git',
     'task',
     'solution',
 )
@@ -125,6 +125,11 @@ LOGGING = {
         'django': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': True,
+        },
+        'tests': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': True,
         }
     }

@@ -6,44 +6,48 @@
             <strong>Review in progress,</strong> no votes have been submitted yet for this solution.
         </div>
     {% else %}
-        <div class="row">
-            <div class="span2 text-center">
-                {% if vote or is_owner %}
-                    <p>
-                        {% if solution.impact == None %}
-                            <h2 class="muted">~</h2>
-                        {% elif solution.impact > 0 %}
-                            <h2 class="text-success">{{ solution.impact }}</h2>
-                        {% else %}
-                            <h2 class="muted">0</h2>
-                        {% endif %}
-                        <small class="muted">impact</small>
-                    </p>
-                {% endif %}
+        {% if not vote.is_accepted and not has_commented %}
+            <div class="alert alert-danger">
+                <strong>Unsatisfactory votes require an explanation to count,</strong> leave a comment.
             </div>
-            {% if is_owner %}
-                {% include "solution/review_votes.html" %}
-            {% else %}
-                {% include "solution/review_vote.html" %}
+        {% endif %}
+        <div class="row">
+            {% if vote or is_owner %}
+                <div class="span4 text-center">
+                    {% if solution.impact == None %}
+                        <h2 class="muted">~</h2>
+                    {% elif solution.impact > 0 %}
+                        <h2 class="text-success">{{ solution.impact }}</h2>
+                    {% else %}
+                        <h2 class="muted">0</h2>
+                    {% endif %}
+                    <small class="muted">impact</small>
+                </div>
+                <div class="span4 text-center">
+                    {% if solution.acceptance == None %}
+                        <h2 class="muted">~</h2>
+                    {% elif solution.acceptance > 90 %}
+                        <h2 class="text-success">{{ solution.acceptance }}%</h2>
+                    {% else %}
+                        <h2 class="text-error">{{ solution.acceptance }}%</h2>
+                    {% endif %}
+                    <small class="muted">acceptance</small>
+                </div>
+                <div class="span4 text-center">
+                    <h2 class="muted">{{ vote_count }}</h2>
+                    <small class="muted">votes</small>
+                </div>
             {% endif %}
-            <div class="span2 text-center">
-                {% if vote or is_owner %}
-                    <p>
-                        {% if solution.acceptance == None %}
-                            <h2 class="muted">~</h2>
-                        {% elif solution.acceptance > 90 %}
-                            <h2 class="text-success">{{ solution.acceptance }}%</h2>
-                        {% else %}
-                            <h2 class="text-error">{{ solution.acceptance }}%</h2>
-                        {% endif %}
-                        <small class="muted">acceptance<br/>{{ vote_count }} votes</small>
-                    </p>
+        </div>
+        <div class="row">
+            <div class="span12 text-center">
+                {% if not is_owner %}
+                    {% include "solution/review_vote.html" %}
                 {% endif %}
             </div>
         </div>
-        {% if not is_owner %}
+        {% if vote or is_owner %}
             <div class="row">
-                <div class="span2"></div>
                 {% include "solution/review_votes.html" %}
             </div>
         {% endif %}
@@ -54,17 +58,17 @@
             <div class="row">
                 <div class="row hidden-desktop hidden-tablet">
                     <div class="span8">
-                        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=50" /></p>
-                        <h4><a href="{% url 'user' comment.commenter.username %}">{{ comment.commenter.first_name }}</a></h4>
-                        <p><b>{{ comment.commenter.get_profile.impact }}</b> impact <b>{{ comment.commenter.get_profile.completed }}</b> solutions</p>
+                        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ comment.user.get_profile.gravatar_hash }}?s=50" /></p>
+                        <h4><a href="{% url 'user' comment.user.username %}">{{ comment.user.first_name }}</a></h4>
+                        <p><b>{{ comment.user.get_profile.impact }}</b> impact <b>{{ comment.user.get_profile.completed }}</b> solutions</p>
                     </div>
                 </div>
                 <div class="span2 text-center hidden-phone">
                     <p>
-                        <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.commenter.get_profile.gravatar_hash }}?s=75" /><br/>
+                        <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.user.get_profile.gravatar_hash }}?s=75" /><br/>
                     </p>
                     <p>
-                        <b><a href="{% url 'user' comment.commenter.username %}">{{ comment.commenter.first_name }}</a></b><br/>
+                        <b><a href="{% url 'user' comment.user.username %}">{{ comment.user.first_name }}</a></b><br/>
                     </p>
                 </div>
                 <div class="span8">
@@ -75,14 +79,16 @@
                 </div>
                 <div class="span2 text-center">
                     {% with vote=comment_holder.vote %}
-                        <p>
-                            <small class="muted">
-                                {% if comment.impact %}
-                                    {{ comment.impact }} impact,
-                                    {{ comment_holder.vote_count }} vote{{ comment_holder.vote_count|pluralize }}
-                                {% endif %}
-                            </small>
-                        </p>
+                        {% if vote or comment_holder.is_author %}
+                            <p>
+                                <small class="muted">
+                                    {% if comment.impact %}
+                                        <strong>{{ comment.impact }}</strong> impact,
+                                        <strong>{{ comment_holder.vote_count }}</strong> vote{{ comment_holder.vote_count|pluralize }}
+                                    {% endif %}
+                                </small>
+                            </p>
+                        {% endif %}
                         {% if not comment_holder.is_author %}
                             {% include 'solution/review_comment_vote.html' %}
                         {% endif %}

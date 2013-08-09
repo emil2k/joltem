@@ -13,7 +13,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 
 python_paths = os.environ['PYTHONPATH'].split(os.pathsep)
 
-from datetime import datetime
+from django.utils import timezone
 from joltem.models import User
 from git.models import Repository
 from solution.models import Solution
@@ -33,8 +33,8 @@ with open(dir+'/test.log', "a") as log_file:
     # Retrieve objects
     user = User.objects.get(username=username)
     repository = Repository.objects.get(id=repository_id)
-    is_admin = user in repository.project.users.all()  # is user an administrator of the project?
-    log("%s : %s to %s on %s by %s : %s..%s " % (datetime.now(), mode, reference, repository.full_name, user.first_name, old_sha, new_sha))
+    is_admin = user in repository.project.admin_set.all()  # is user an administrator of the project?
+    log("%s : %s to %s on %s by %s : %s..%s " % (timezone.now(), mode, reference, repository.full_name, user.first_name, old_sha, new_sha))
     decline = lambda reason: print("VREF/UPDATE/%s/%d %s" % (user.username, repository.id, reason))
     if mode == 'W':
         split_reference = reference.split('/')

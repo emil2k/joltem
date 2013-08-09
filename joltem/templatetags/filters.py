@@ -17,19 +17,45 @@ def active(check, active):
     if check == active:
         return "active"
 
-@register.filter
-def css_class(check, css):
-    """
-    If check is true prints a CSS class to be applied to anything
-    """
-    if check:
-        return css
 
 @register.filter
-def vote(vote, value):
+def is_true(boolean, string):
     """
-    If vote matches value of button print active CSS for vote button
+    Outputs a string if true
     """
-    if vote == value:
-        return "btn-success"
+    if boolean:
+        return string
+
+
+@register.filter
+def is_false(boolean, string):
+    """
+    Outputs a string if false
+    """
+    if not boolean:
+        return string
+
+
+def is_match(string, actual, expected):
+    """
+    If value is a bool checks if true and if checks if matches expectations prints given string
+    """
+    if actual == expected:
+        return string
+
+@register.filter
+def icon_white(actual, expected):
+    return is_match('icon-white', actual, expected)
+
+@register.filter
+def btn_success(actual, expected):
+    return is_match('btn-success', actual, expected)
+
+@register.filter
+def btn_danger(actual, expected):
+    return is_match('btn-danger', actual, expected)
+
+@register.filter
+def btn_warning(actual, expected):
+    return is_match('btn-warning', actual, expected)
 

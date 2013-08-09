@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
 from django.http.response import HttpResponseNotFound
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, Vote, Comment, CommentVote
+from solution.models import Solution, Comment, Vote
 
 
 @login_required
@@ -44,9 +46,8 @@ def solution(request, project_name, solution_id):
         if request.POST.get('complete') is not None \
                 and solution.is_owner(user) \
                 and solution.is_accepted:
-            from datetime import datetime
             solution.is_completed = True
-            solution.time_completed = datetime.now()
+            solution.time_completed = timezone.now()
             solution.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
         # Delete solution
@@ -67,17 +68,15 @@ def solution(request, project_name, solution_id):
                     solution=solution,
                     voter=user
                 )
-            from datetime import datetime
+
             if vote_input == 'reject':
                 vote.is_accepted = False
-                vote.is_rejected = True
                 vote.vote = None
             else:
                 vote.is_accepted = True
-                vote.is_rejected = False
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
-            vote.time_voted = datetime.now()
+            vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
@@ -124,53 +123,57 @@ def review(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
     user = request.user
-
     # Redirect if solution is not ready for review
     if not solution.is_completed:
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
+    solution_type = ContentType.objects.get_for_model(solution)
     try:
         vote = Vote.objects.get(
-            solution_id=solution.id,
+            voteable_type_id=solution_type.id,
+            voteable_id=solution.id,
             voter_id=user.id
         )
     except Vote.DoesNotExist:
         vote = None
     if request.POST:
-        from datetime import datetime
         comment_vote_input = request.POST.get('comment_vote')
-        if comment_vote_input:
+        if comment_vote_input is not None:
+            comment_vote_input = int(comment_vote_input)
+            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
             comment_id = request.POST.get('comment_id')
             comment = Comment.objects.get(id=comment_id)
-            if comment.commenter.id == user.id:
+            if comment.user.id == user.id:
                 return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
             try:
-                comment_vote = CommentVote.objects.get(
-                    solution_id=solution.id,
-                    comment_id=comment.id,
+                comment_type = ContentType.objects.get_for_model(comment)
+                comment_vote = Vote.objects.get(
+                    voteable_type_id=comment_type.id,
+                    voteable_id=comment.id,
                     voter_id=user.id
                 )
-                if comment_vote.vote != comment_vote_input:
-                    comment_vote.vote = comment_vote_input
+                if comment_vote.magnitude != comment_vote_input:
+                    comment_vote.magnitude = comment_vote_input
+                    comment_vote.is_accepted = comment_vote_input > 0
                     comment_vote.voter_impact = user.get_profile().impact
-                    comment_vote.time_voted = datetime.now()
+                    comment_vote.time_voted = timezone.now()
                     comment_vote.save()
-            except CommentVote.DoesNotExist:
-                comment_vote = CommentVote(
+            except Vote.DoesNotExist:
+                comment_vote = Vote(
                     voter=user,
                     voter_impact=user.get_profile().impact,
-                    comment=comment,
-                    solution=solution,
-                    vote=comment_vote_input,
-                    time_voted=datetime.now()
+                    voteable=comment,
+                    magnitude=comment_vote_input,
+                    is_accepted=comment_vote_input > 0,
+                    time_voted=timezone.now()
                 )
                 comment_vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             review_comment = Comment(
-                time_commented=datetime.now(),
-                commenter=user,
+                time_commented=timezone.now(),
+                project=project,
+                user=user,
                 solution=solution,
                 comment=comment_text
             )
@@ -178,21 +181,16 @@ def review(request, project_name, solution_id):
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
         vote_input = request.POST.get('vote')
         if vote_input is not None and not is_owner:
+            vote_input = int(vote_input)
+            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
             if vote is None:
                 vote = Vote(
-                    solution=solution,
+                    voteable=solution,
                     voter=user
                 )
-            if vote_input == 'reject':
-                vote.is_accepted = False
-                vote.is_rejected = True
-                vote.vote = None
-            else:
-                vote.is_accepted = True
-                vote.is_rejected = False
-                vote.vote = vote_input
-            vote.comment = request.POST.get('comment')
-            vote.time_voted = datetime.now()
+            vote.is_accepted = vote_input > 0
+            vote.magnitude = vote_input
+            vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
@@ -201,11 +199,11 @@ def review(request, project_name, solution_id):
         def __init__(self, comment, user):
             self.comment = comment
             try:
-                self.vote = comment.commentvote_set.get(voter_id=user.id)
-            except CommentVote.DoesNotExist:
+                self.vote = comment.vote_set.get(voter_id=user.id)
+            except Vote.DoesNotExist:
                 self.vote = None
-            self.is_author = user.id == comment.commenter.id
-            self.vote_count = comment.commentvote_set.count()
+            self.is_author = user.id == comment.user.id
+            self.vote_count = comment.vote_set.count()
 
     comments = []
     for comment in solution.comment_set.all().order_by('time_commented'):
@@ -218,8 +216,9 @@ def review(request, project_name, solution_id):
         'comments': comments,
         'vote_count': solution.vote_set.count(),
         'accept_votes': solution.vote_set.filter(is_accepted=True),
-        'reject_votes': solution.vote_set.filter(is_rejected=True),
+        'reject_votes': solution.vote_set.filter(is_accepted=False),
         'vote': vote,
+        'maximum_magnitude': Vote.MAXIMUM_MAGNITUDE,
         'has_commented': solution.has_commented(user.id),
         'is_owner': is_owner
     }
