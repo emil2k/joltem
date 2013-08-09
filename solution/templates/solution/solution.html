@@ -32,7 +32,7 @@
                 {% csrf_token %}
                 <div class="btn-group">
                     {% if is_owner %}
-                        {% if not solution.is_completed and solution.is_accepted %}
+                        {% if not solution.is_completed %}
                             <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
                         {% endif %}
                         <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>

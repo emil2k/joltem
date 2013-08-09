@@ -43,9 +43,7 @@ def solution(request, project_name, solution_id):
     user = request.user
     if request.POST:
         # Solution actions
-        if request.POST.get('complete') is not None \
-                and solution.is_owner(user) \
-                and solution.is_accepted:
+        if request.POST.get('complete') is not None and solution.is_owner(user):
             solution.is_completed = True
             solution.time_completed = timezone.now()
             solution.save()
