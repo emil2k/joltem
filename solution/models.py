@@ -87,7 +87,8 @@ class Voteable(models.Model):
         if impact_sum == 0:
             logger.debug("VOTE : impact sum == 0 : %d" % impact_sum)
             return None
-        logger.debug("VOTE : return impact")
+        logger.info("VOTE : return impact : %d / %s" % (weighted_sum, float(impact_sum)))
+        logger.info("VOTE : return impact : %s" % int(round(weighted_sum / float(impact_sum))))
         return int(round(weighted_sum / float(impact_sum)))
 
     def get_impact_distribution(self):

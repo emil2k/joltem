@@ -291,7 +291,41 @@ class ImpactTestCase(TestCase):
         self.assertEqual(s.impact, 8)  # using impact instead of get_impact() because want to check DB state
         self.assertEqual(s.acceptance, 75)
 
+    def test_comment_acceptance_threshold(self):
+        """
+        Test that comment acceptance threshold works
+        """
+        self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 75)  # test assumes this value
+        p, u, t, s = get_mock_setup_solution("air","kate")
+        bill = get_mock_user("bill")
 
-    # TODO test that acceptance thresholds are working
-    # TODO test for proper rounding of impact and acceptance figures
+        self.assertImpactEqual(bill, 0)
+        self.assertProjectImpactExistence(p, bill, False)
+        c = get_mock_comment(p, bill, s)
+        self.assertImpactEqual(bill, 0)  # comment should not affect impact ...
+        self.assertProjectImpactExistence(p, bill, True)  # .. but it will create this entry
+        self.assertEqual(c.acceptance, None)
 
+        get_mock_vote(u, c, 750, 3)
+        c = load_votable(Comment, c)
+        self.assertEqual(c.acceptance, 100)
+        self.assertImpactEqual(bill, 10)
+        self.assertProjectImpactEqual(p, bill, 10)
+
+        # Now rejection votes to lower acceptance
+        get_mock_vote(get_mock_user("jade"), c, 100, 0)
+        c = load_votable(Comment, c)
+        self.assertEqual(c.acceptance, int(round(100 * float(750)/850)))  # > 75%
+        self.assertImpactEqual(bill, 9)
+        self.assertProjectImpactEqual(p, bill, 9)
+
+        get_mock_vote(get_mock_user("jill"), c, 150, 0)
+        c = load_votable(Comment, c)
+        self.assertEqual(c.acceptance, int(round(100 * float(750)/1000)))  # = 75%
+        self.assertImpactEqual(bill, 8)
+        self.assertProjectImpactEqual(p, bill, 8)
+        get_mock_vote(get_mock_user("gary"), c, 500, 0)
+        c = load_votable(Comment, c)
+        self.assertEqual(c.acceptance, int(round(100 * float(750)/1500)))  # < 75%
+        self.assertImpactEqual(bill, 0)  # should not count here
+        self.assertProjectImpactEqual(p, bill, 0)

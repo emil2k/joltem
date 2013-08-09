@@ -34,9 +34,9 @@ class Impact(models.Model):
     project = models.ForeignKey(Project)
     user = models.ForeignKey(User)
 
-    # Must be above this threshold to count towards impact
-    SOLUTION_ACCEPTANCE_THRESHOLD = 0.75
-    COMMENT_ACCEPTANCE_THRESHOLD = 0.75
+    # Must be above this threshold to count towards impact, an int between 0 and 100
+    SOLUTION_ACCEPTANCE_THRESHOLD = 75
+    COMMENT_ACCEPTANCE_THRESHOLD = 75
 
     class Meta:
         unique_together = ['project', 'user']
