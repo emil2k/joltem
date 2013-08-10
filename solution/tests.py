@@ -217,8 +217,8 @@ class ImpactTestCase(TestCase):
         # Test assumptions
         self.assertEqual(Vote.MAXIMUM_MAGNITUDE, 5, "Maximum magnitude changed.")
         self.assertEqual(Voteable.MAGNITUDE_THRESHOLD, 0.159, "Magnitude threshold changed.")
-        self.assertEqual(Impact.SOLUTION_ACCEPTANCE_THRESHOLD, 0.75, "Solution acceptance threshold changed.")
-        self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 0.75, "Comment acceptance threshold changed.")
+        self.assertEqual(Impact.SOLUTION_ACCEPTANCE_THRESHOLD, 75, "Solution acceptance threshold changed.")
+        self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 75, "Comment acceptance threshold changed.")
 
         p, gary, t, s = get_mock_setup_solution("sonics", "gary")
 
