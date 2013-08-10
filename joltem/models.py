@@ -72,7 +72,7 @@ class Invite(models.Model):
     invite_code = models.CharField(max_length=200, unique=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
-    personal_message = models.TextField()
+    personal_note = models.TextField(null=True, blank=True)
     is_sent = models.BooleanField(default=False)  # whether user was contacted
     is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
     is_signed_up = models.BooleanField(default=False)  # whether user signed up

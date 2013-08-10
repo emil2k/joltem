@@ -1,4 +1,3 @@
-{% load markup %}
 <h4>What could a million people build together?</h4>
 
 <p>Hello {{ invite.first_name }},</p></p>
@@ -12,8 +11,6 @@
 <p>We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with unimaginable ease. What we propose here is a company to make this real by first focusing on the people most capable of accepting the idea - programmers.</p>
 
 <p>As a proof of concept we have invited a select few to prepare our base system for public release. You are one of the first ten that have received an invitation.</p>
-
-<p>{{ invite.personal_message|markdown }}</p>
 
 <p>You can read more and sign up here through your personal invitation link :<br/>
 http://{{ host }}{% url 'invite' invite.invite_code %}</p>

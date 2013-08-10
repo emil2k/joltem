@@ -228,9 +228,9 @@ def invites(request):
             mark_sent.save()
             return redirect('invites')
         first_name = request.POST.get('first_name')
-        personal_message = request.POST.get('personal_message')
-        if first_name and personal_message:
+        if first_name:
             from uuid import uuid4
+            personal_note = request.POST.get('personal_note')
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             personal_site = request.POST.get('personal_site')
@@ -243,7 +243,7 @@ def invites(request):
                 invite_code=invite_code,
                 first_name=first_name,
                 last_name=last_name,
-                personal_message=personal_message,
+                personal_note=personal_note,
                 email=email,
                 personal_site=personal_site,
                 twitter=twitter,
@@ -286,8 +286,8 @@ def invite(request, invite_id):
             invite.save()
             return redirect('invite', invite_id=invite_id)
         first_name = request.POST.get('first_name')
-        personal_message = request.POST.get('personal_message')
-        if first_name and personal_message:
+        if first_name:
+            personal_note = request.POST.get('personal_note')
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             personal_site = request.POST.get('personal_site')
@@ -296,7 +296,7 @@ def invite(request, invite_id):
             stackoverflow = request.POST.get('stackoverflow')
             invite.first_name = first_name
             invite.last_name = last_name
-            invite.personal_message = personal_message
+            invite.personal_note = personal_note
             invite.email = email
             invite.personal_site = personal_site
             invite.twitter = twitter
