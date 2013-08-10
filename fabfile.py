@@ -13,7 +13,12 @@ def info(text):
         from fabric.colors import blue
         print(blue(text, bold=True))
 
-def deploy(branch='master', remote='origin'):
+
+def init(branch='master', remote='origin'):
+    deploy(branch=branch, remote=remote, initial_data=True)
+
+
+def deploy(branch='master', remote='origin', initial_data=False):
     """
     Deploy to the EC2 instance
     Examples :
@@ -47,12 +52,13 @@ def deploy(branch='master', remote='origin'):
             # Collect static files
             info('Collecting static files.')
             sudo('python manage.py collectstatic --noinput')  # make sure static folder has write permissions
+            initial_data_option = "--no-initial-data" if not initial_data else ""  # skip importing initial data?
             # Sync the database
             info('Synchronizing database.')
-            run('python manage.py syncdb --noinput')  # create superuser later if it is the first time
+            run('python manage.py syncdb --noinput %s' % initial_data_option)  # create superuser later if it is the first time
             # Migrate the database
             info('Migrating database.')
-            run('python manage.py migrate')
+            run('python manage.py migrate %s' % initial_data_option)
         # Restart UWSGI process
         info('Restarting UWSGI process.')
         run(DEPLOYMENT_UWSGI_RELOAD_COMMAND)
