@@ -28,7 +28,7 @@
                 {% csrf_token %}
                 <div class="btn-group">
                     {% if not task.is_closed %}
-                        <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">solve</a>
+                        <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
                     {% endif %}
                     {% if is_owner %}
                         {% if not task.is_closed %}

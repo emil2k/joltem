@@ -191,7 +191,8 @@ class Solution(Voteable):
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     # Relations
-    task = models.ForeignKey(Task)
+    task = models.ForeignKey(Task, null=True, blank=True)
+    solution = models.ForeignKey("solution.Solution", null=True, blank=True, related_name="solution_set")
 
     def __unicode__(self):
         return str(self.id)

@@ -11,28 +11,43 @@ from solution.models import Solution, Comment, Vote
 
 
 @login_required
-def new_solution(request, project_name, task_id):
+def new(request, project_name, task_id=None, solution_id=None):
+    assert task_id is None or solution_id is None, \
+        "Don't specify both a parent solution and parent task when creating a new solution."
     project = get_object_or_404(Project, name=project_name)
-    task = get_object_or_404(Task, id=task_id)
-    if task.is_closed:
-        return redirect('project:task:task', project_name=project.name, task_id=task.id)
+
     context = {
         'project': project,
-        'project_tab': "solutions",
-        'task': task
+        'project_tab': "solutions"
     }
+
+    parent_task, parent_solution = [None] * 2
+
+    if task_id:
+        parent_task = get_object_or_404(Task, id=task_id)
+        if parent_task.is_closed:
+            return redirect('project:task:task', project_name=project.name, task_id=parent_task.id)
+        context['task'] = parent_task
+
+    if solution_id:
+        parent_solution = get_object_or_404(Solution, id=solution_id)
+        if parent_solution.is_completed:
+            return redirect('project:solution:solution', project_name=project.name, task_id=parent_task.id)
+        context['solution'] = parent_solution
+
     if request.POST:
         title = request.POST.get('title')
         description = request.POST.get('description')
-        solution = Solution(
+        parent_solution = Solution(
             user=request.user,
-            task=task,
+            task=parent_task,
+            solution=parent_solution,
             project=project,
             title=title,
             description=description
         )
-        solution.save()
-        return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
+        parent_solution.save()
+        return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution.id)
     return render(request, 'solution/new_solution.html', context)
 
 
@@ -42,6 +57,7 @@ def solution(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     user = request.user
     if request.POST:
+        # TODO check for the various condition for each action, make sure it matches template
         # Solution actions
         if request.POST.get('complete') is not None and solution.is_owner(user):
             solution.is_completed = True
@@ -50,6 +66,7 @@ def solution(request, project_name, solution_id):
             return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
         # Delete solution
         if request.POST.get('delete') is not None:
+            # TODO check for whether solution is complete
             solution.delete()
             return redirect('project:solution:all', project_name=project_name)
         # Vote on completed solution

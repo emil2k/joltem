@@ -4,9 +4,22 @@
 {% block project_content %}
     <div class="row">
         <div class="span8">
-            <h4>{{ task.title }}</h4>
-            {{ task.description|markdown:'tables,fenced_code' }}
-            <hr/>
+            {% if solution %}
+                <div class="alert alert-info">This solution will be placed under this <strong>parent solution</strong>.</div>
+                <h4>{{ solution.default_title }} <span class="muted">by {{ solution.user.first_name }}</span></h4>
+                {% if solution.description %}
+                    {{ solution.description|markdown:'tables,fenced_code' }}
+                {% else %}
+                    <p class="muted">Parent solution has no description.</p>
+                {% endif %}
+                <hr/>
+            {% endif %}
+            {% if task %}
+                <div class="alert alert-info">This solution will be placed under this <strong>parent task</strong>.</div>
+                <h4>{{ task.title }}</h4>
+                {{ task.description|markdown:'tables,fenced_code' }}
+                <hr/>
+            {% endif %}
             <form method="post">
                 {% csrf_token %}
                 <input class="input-block-level" type="text" name="title" placeholder="Optional. A title that describes your solution."/>
