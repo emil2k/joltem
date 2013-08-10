@@ -57,6 +57,21 @@ def solution(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     user = request.user
     if request.POST:
+        # Acceptance of suggested solution
+        accept = request.POST.get('accept')
+        cancel = request.POST.get('cancel')
+        if accept or cancel:
+            action_id = accept if accept else cancel
+            solution = solution.solution_set.get(id=action_id)
+            if accept:
+                solution.is_accepted = True
+                solution.time_accepted = timezone.now()
+            else:
+                solution.is_accepted = False
+                solution.time_accepted = None
+            solution.save()
+            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
         # TODO check for the various condition for each action, make sure it matches template
         # Solution actions
         if request.POST.get('complete') is not None and solution.is_owner(user):
@@ -105,6 +120,7 @@ def solution(request, project_name, solution_id):
         'solution_tab': "solution",
         'solution': solution,
         'subtasks': solution.tasks.all().order_by('-time_posted'),
+        'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
         'vote': vote,
         'is_owner': solution.is_owner(user)
     }

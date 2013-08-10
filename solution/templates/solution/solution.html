@@ -99,6 +99,45 @@
             </div>
         </div>
     {% endfor %}
+    <div class="row">
+        <div class="offset2 span8">
+            <h5>Suggested solutions</h5>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {% for suggested_solution in suggested_solutions %}
+            <div class="row">
+                {% with offset="" solution=suggested_solution %}
+                    <div class="hidden-desktop hidden-tablet pull-right">
+                        {% if is_owner %}
+                            {% if solution.is_accepted %}
+                                <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
+                            {% else %}
+                                <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="span2 text-center hidden-phone">
+                        {% if is_owner %}
+                            {% if solution.is_accepted %}
+                                <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
+                            {% else %}
+                                <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% include 'solution/solution_row_cells.html' %}
+                {% endwith %}
+            </div>
+        {% empty %}
+            <div class="row">
+                <div class="offset2 span8">
+                    <p class="muted">No suggested solutions yet.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </form>
     <hr/>
     {% if is_owner %}
         <div class="alert alert-info">

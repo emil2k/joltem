@@ -45,9 +45,8 @@ def task(request, project_name, task_id):
     if request.POST:
         if not is_owner:
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        accept = request.POST.get('accept')
         from django.utils import timezone
-
+        accept = request.POST.get('accept')
         if accept is not None:
             solution = task.solution_set.get(id=accept)
             solution.is_accepted = True
