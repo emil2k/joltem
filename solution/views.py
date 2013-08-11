@@ -62,31 +62,30 @@ def solution(request, project_name, solution_id):
         cancel = request.POST.get('cancel')
         if accept or cancel:
             action_id = accept if accept else cancel
-            solution = solution.solution_set.get(id=action_id)
+            suggested_solution = solution.solution_set.get(id=action_id)
+            # TODO check if user is acceptor, person responsible for accepting the solution
             if accept:
-                solution.is_accepted = True
-                solution.time_accepted = timezone.now()
+                suggested_solution.is_accepted = True
+                suggested_solution.time_accepted = timezone.now()
             else:
-                solution.is_accepted = False
-                solution.time_accepted = None
-            solution.save()
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+                suggested_solution.is_accepted = False
+                suggested_solution.time_accepted = None
+            suggested_solution.save()
 
-        # TODO check for the various condition for each action, make sure it matches template
-        # Solution actions
-        if request.POST.get('complete') is not None and solution.is_owner(user):
+        # Mark solution complete
+        if request.POST.get('complete') and not solution.is_completed and solution.is_owner(user):
             solution.is_completed = True
             solution.time_completed = timezone.now()
             solution.save()
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
         # Delete solution
-        if request.POST.get('delete') is not None:
-            # TODO check for whether solution is complete
+        if request.POST.get('delete') and not solution.is_completed and solution.is_owner(user):
             solution.delete()
             return redirect('project:solution:all', project_name=project_name)
+
         # Vote on completed solution
         vote_input = request.POST.get('vote')
-        if vote_input is not None:
+        if vote_input and not solution.is_owner(user):
             # Get or create with other parameters
             try:
                 vote = Vote.objects.get(
@@ -109,7 +108,9 @@ def solution(request, project_name, solution_id):
             vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
+        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
     # Get current users vote on this solution
     try:
         vote = solution.vote_set.get(voter_id=user.id)
