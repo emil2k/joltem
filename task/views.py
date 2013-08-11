@@ -124,10 +124,10 @@ class TaskListView(ProjectListView):
             class SubtaskGroup:
                 def __init__(self, solution, tasks):
                     self.solution = solution
-                    self.tasks = tasks
+                    self.subtask_set = tasks
             subtask_groups = []
             for solution in self.parent_task.solution_set.all().order_by('-id'):
-                subtasks = solution.tasks.all().order_by('-id')
+                subtasks = solution.subtask_set.all().order_by('-id')
                 if subtasks.count() > 0:
                     subtask_group = SubtaskGroup(solution, subtasks)
                     subtask_groups.append(subtask_group)

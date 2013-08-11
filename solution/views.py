@@ -119,7 +119,7 @@ def solution(request, project_name, solution_id):
         'project': project,
         'solution_tab': "solution",
         'solution': solution,
-        'subtasks': solution.tasks.all().order_by('-time_posted'),
+        'subtasks': solution.subtask_set.all().order_by('-time_posted'),
         'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
         'vote': vote,
         'is_owner': solution.is_owner(user)

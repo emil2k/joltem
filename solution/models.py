@@ -212,13 +212,13 @@ class Solution(Voteable):
             return self.task.title
 
     @property
-    def subtask_set(self):
+    def get_subtask_count(self):
         """
-        Count of open subtasks stemming from this solution
+        Count of subtasks stemming from this solution
         """
-        open_subtasks = self.tasks.all()
-        count = open_subtasks.count()
-        for subtask in open_subtasks:
+        subtasks = self.subtask_set.all()
+        count = subtasks.count()
+        for subtask in subtasks:
             count += subtask.subtasks
         return count
 
