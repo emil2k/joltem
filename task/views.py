@@ -46,23 +46,7 @@ def task(request, project_name, task_id):
         if not is_owner:
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
-        # TODO remove accept reject from here only have it on the solution view
         from django.utils import timezone
-        accept = request.POST.get('accept')
-        if accept is not None:
-            solution = task.solution_set.get(id=accept)
-            solution.is_accepted = True
-            solution.time_accepted = timezone.now()
-            solution.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        cancel = request.POST.get('cancel')
-        if cancel is not None:
-            solution = task.solution_set.get(id=cancel)
-            solution.is_accepted = False
-            solution.time_accepted = None
-            solution.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        ### remove
 
         if request.POST.get('close'):
             task.is_closed = True

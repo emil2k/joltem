@@ -59,18 +59,15 @@ def solution(request, project_name, solution_id):
     if request.POST:
         # Acceptance of suggested solution
         accept = request.POST.get('accept')
-        cancel = request.POST.get('cancel')
-        if accept or cancel:
-            action_id = accept if accept else cancel
-            suggested_solution = solution.solution_set.get(id=action_id)
-            # TODO check if user is acceptor, person responsible for accepting the solution
+        unaccept = request.POST.get('unaccept')
+        if (accept or unaccept) and solution.is_acceptor(user):
             if accept:
-                suggested_solution.is_accepted = True
-                suggested_solution.time_accepted = timezone.now()
+                solution.is_accepted = True
+                solution.time_accepted = timezone.now()
             else:
-                suggested_solution.is_accepted = False
-                suggested_solution.time_accepted = None
-            suggested_solution.save()
+                solution.is_accepted = False
+                solution.time_accepted = None
+            solution.save()
 
         # Mark solution complete
         if request.POST.get('complete') and not solution.is_completed and solution.is_owner(user):
@@ -123,7 +120,8 @@ def solution(request, project_name, solution_id):
         'subtasks': solution.subtask_set.all().order_by('-time_posted'),
         'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
         'vote': vote,
-        'is_owner': solution.is_owner(user)
+        'is_owner': solution.is_owner(user),
+        'is_acceptor': solution.is_acceptor(user),
     }
     return render(request, 'solution/solution.html', context)
 

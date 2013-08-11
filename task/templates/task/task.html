@@ -66,25 +66,7 @@
         {% csrf_token %}
         {% for solution in solutions %}
             <div class="row">
-                <div class="hidden-desktop hidden-tablet pull-right">
-                    {% if is_owner %}
-                        {% if solution.is_accepted %}
-                            <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                        {% else %}
-                            <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                <div class="span2 text-center hidden-phone">
-                    {% if is_owner %}
-                        {% if solution.is_accepted %}
-                            <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                        {% else %}
-                            <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                {% with offset="" %}
+                {% with offset="offset2" %}
                     {% include 'solution/solution_row_cells.html' %}
                 {% endwith %}
             </div>

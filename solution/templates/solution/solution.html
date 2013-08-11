@@ -48,6 +48,13 @@
                         {% endif %}
                     {% endif %}
                 </div>
+                {% if is_acceptor %}
+                    {% if solution.is_accepted %}
+                        <button class="btn" type="submit" name="unaccept" value="1"></i>unaccept</button>
+                    {% else %}
+                        <button class="btn btn-success" type="submit" name="accept" value="1"></i>accept</button>
+                    {% endif %}
+                {% endif %}
             </form>
             {% if solution.is_completed %}
                 <div class="alert alert-info">
@@ -108,25 +115,7 @@
         {% csrf_token %}
         {% for suggested_solution in suggested_solutions %}
             <div class="row">
-                {% with offset="" solution=suggested_solution %}
-                    <div class="hidden-desktop hidden-tablet pull-right">
-                        {% if is_owner %}
-                            {% if solution.is_accepted %}
-                                <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                            {% else %}
-                                <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="span2 text-center hidden-phone">
-                        {% if is_owner %}
-                            {% if solution.is_accepted %}
-                                <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                            {% else %}
-                                <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                            {% endif %}
-                        {% endif %}
-                    </div>
+                {% with offset="offset2" solution=suggested_solution %}
                     {% include 'solution/solution_row_cells.html' %}
                 {% endwith %}
             </div>
