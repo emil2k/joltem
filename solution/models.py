@@ -226,7 +226,6 @@ class Solution(Voteable):
         """
         Returns whether passed user is the person who posted this solution
         """
-        # TODO write a test for this function
         return self.user_id == user.id
 
     def is_acceptor(self, user):

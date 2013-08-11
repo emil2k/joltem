@@ -31,5 +31,4 @@ class Task(models.Model):
         """
         Whether the passed user is person who posted the task
         """
-        # TODO write test for this function
         return self.owner_id == user.id

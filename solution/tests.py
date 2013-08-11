@@ -121,6 +121,43 @@ class TestCaseDebugMixin():
         logger.debug("\n\n*/// TEARDOWN\n")
 
 
+class PermissionsTestCase(TestCaseDebugMixin, TestCase):
+
+    def test_task_ownership(self):
+        """
+        Test for task ownership, is_owner function
+        """
+        jill = get_mock_user("jill")
+        abby = get_mock_user("abby")
+        p = get_mock_project("hover")
+        t = get_mock_task(p, abby)
+        self.assertFalse(t.is_owner(jill))
+        self.assertTrue(t.is_owner(abby))
+
+    def test_solution_ownership(self):
+        """
+        Test for solution ownership, is_owner function
+        """
+        bob = get_mock_user("bob")
+        zack = get_mock_user("zack")
+
+        p = get_mock_project("proof")
+        t = get_mock_task(p, bob)
+        s = get_mock_solution(p, zack, t)
+
+        self.assertFalse(t.is_owner(zack))
+        self.assertTrue(t.is_owner(bob))
+
+        self.assertFalse(s.is_owner(bob))
+        self.assertTrue(s.is_owner(zack))
+
+
+    # TODO test is_acceptor
+
+    # TODO tests that actually test interface using client or selenium
+    # TODO tests that check if views follow ownership rules for processing actions
+
+
 class ImpactTestCase(TestCaseDebugMixin, TestCase):
 
     # Custom assertions
@@ -135,6 +172,8 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
 
     def assertProjectImpactExistence(self, project, user, expected):
         self.assertEqual(Impact.objects.filter(user_id=user.id, project_id=project.id).exists(), expected)
+
+    # Tests
 
     # Test chain of signals
     # 1. Vote added to Votable
