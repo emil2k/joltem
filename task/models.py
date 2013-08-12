@@ -11,20 +11,20 @@ class Task(models.Model):
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     project = models.ForeignKey('project.Project')
-    parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="tasks") # TODO rename related to subtask_set
+    parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="subtask_set")
     owner = models.ForeignKey(User)
 
     def __unicode__(self):
         return self.title
 
     @property
-    def subtasks(self):  # TODO rename to subtask_count, and probably need to move this to a manager
+    def get_subtask_count(self):
         """
-        Count of open subtasks stemming from this task
+        Count of subtasks stemming from this task
         """
         count = 0
         for solution in self.solution_set.all():
-            count += solution.subtask_set
+            count += solution.get_sub
         return count
 
     def is_owner(self, user):

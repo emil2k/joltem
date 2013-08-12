@@ -184,14 +184,18 @@ class Solution(Voteable):
     description = models.TextField(null=True, blank=True)
     # Whether solution was accepted by creator of task
     is_accepted = models.BooleanField(default=False)
-    # Whether solution was marked completed by creator of task
+    # Whether solution was marked completed
     is_completed = models.BooleanField(default=False)
+    # Alternative to deletion of solution, to keep all relationships intact
+    is_closed = models.BooleanField(default=False)
     # NOTE : No parenthesis on timezone.now because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
+    time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
-    task = models.ForeignKey(Task)
+    task = models.ForeignKey(Task, null=True, blank=True)
+    solution = models.ForeignKey("solution.Solution", null=True, blank=True, related_name="solution_set")
 
     def __unicode__(self):
         return str(self.id)
@@ -211,13 +215,13 @@ class Solution(Voteable):
             return self.task.title
 
     @property
-    def subtask_set(self):
+    def get_subtask_count(self):
         """
-        Count of open subtasks stemming from this solution
+        Count of subtasks stemming from this solution
         """
-        open_subtasks = self.tasks.all()
-        count = open_subtasks.count()
-        for subtask in open_subtasks:
+        subtasks = self.subtask_set.all()
+        count = subtasks.count()
+        for subtask in subtasks:
             count += subtask.subtasks
         return count
 
@@ -226,6 +230,25 @@ class Solution(Voteable):
         Returns whether passed user is the person who posted this solution
         """
         return self.user_id == user.id
+
+    def is_acceptor(self, user):
+        """
+        Returns whether passed user is the person responsible for accepting the solution
+        """
+        if self.task:
+            if not self.task.is_closed:
+                return self.task.is_owner(user)
+            elif self.task.parent and not self.task.parent.is_completed and not self.task.parent.is_closed:
+                return self.task.parent.is_owner(user)
+            else:
+                return self.task.parent.is_acceptor(user)
+        elif self.solution:
+            if not self.solution.is_completed and not self.solution.is_closed:
+                return self.solution.is_owner(user)
+            else:
+                return self.solution.is_acceptor(user)
+
+        return self.project.is_admin(user.id)  # default to project admin
 
     def has_commented(self, user_id):
         """

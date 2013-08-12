@@ -28,7 +28,7 @@
                 {% csrf_token %}
                 <div class="btn-group">
                     {% if not task.is_closed %}
-                        <a class="btn btn-success" href="{% url 'project:solution:new_solution' project.name task.id %}">solve</a>
+                        <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
                     {% endif %}
                     {% if is_owner %}
                         {% if not task.is_closed %}
@@ -41,13 +41,13 @@
                 </div>
             </form>
             {% if task.is_closed %}
-                <div class="alert alert-info">
-                    <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
+                <div class="alert alert-info text-center">
+                    <em><strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.</em>
                 </div>
             {% endif %}
             {% if task.parent %}
-                <div class="alert alert-info">
-                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}
+                <div class="alert alert-info text-center">
+                    <em><strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}</em>
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
@@ -66,25 +66,7 @@
         {% csrf_token %}
         {% for solution in solutions %}
             <div class="row">
-                <div class="hidden-desktop hidden-tablet pull-right">
-                    {% if is_owner %}
-                        {% if solution.is_accepted %}
-                            <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                        {% else %}
-                            <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                <div class="span2 text-center hidden-phone">
-                    {% if is_owner %}
-                        {% if solution.is_accepted %}
-                            <button class="btn btn-mini" name="cancel" value="{{ solution.id }}">unaccept</button>
-                        {% else %}
-                            <button class="btn btn-success btn-mini" name="accept" value="{{ solution.id }}">accept</button>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                {% with offset="" %}
+                {% with offset="offset2" %}
                     {% include 'solution/solution_row_cells.html' %}
                 {% endwith %}
             </div>

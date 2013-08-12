@@ -30,20 +30,35 @@
             {% endif %}
             <form method="post">
                 {% csrf_token %}
-                <div class="btn-group">
-                    {% if is_owner %}
-                        {% if not solution.is_completed %}
-                            <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                {% if solution.is_closed %}
+                    <button class="btn" type="submit" name="reopen" value="1"></i>reopen</button>
+                {% else %}
+                    <div class="btn-group">
+                        {% if is_owner %}
+                            {% if not solution.is_completed and not solution.is_closed %}
+                                <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                            {% endif %}
+                            <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+                            {% if not solution.is_completed and not solution.is_closed %}
+                                <button class="btn" type="submit" name="close" value="1"></i>close</button>
+                            {% endif %}
+                            {% if solution.is_accepted %}
+                                <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create subtask</a>
+                            {% endif %}
+                        {% else %}
+                            {% if not solution.is_completed %}
+                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id%}">suggest solution</a>
+                            {% endif %}
                         {% endif %}
-                        <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
-                        {% if not solution.is_completed %}
-                            <button class="btn" type="submit" name="delete" value="1"></i>delete</button>
-                        {% endif %}
+                    </div>
+                    {% if is_acceptor %}
                         {% if solution.is_accepted %}
-                            <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create subtask</a>
+                            <button class="btn" type="submit" name="unaccept" value="1"></i>unaccept</button>
+                        {% else %}
+                            <button class="btn btn-success" type="submit" name="accept" value="1"></i>accept</button>
                         {% endif %}
                     {% endif %}
-                </div>
+                {% endif %}
             </form>
             {% if solution.is_completed %}
                 <div class="alert alert-info">
@@ -55,13 +70,21 @@
                 </div>
             {% endif %}
             {% if solution.task %}
-                <div class="alert alert-info">
-                    <strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}
+                <div class="alert alert-info text-center">
+                    <em><strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}</em>
+                </div>
+            {% elif solution.solution %}
+                <div class="alert alert-info text-center">
+                    <em><strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name solution.solution.id %}">{{ solution.solution.default_title }}</a> by {{ solution.solution.user.first_name }}<br/></em>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <em>This is a <strong>suggested solution</strong>, which did not stem from a task.</em>
                 </div>
             {% endif %}
             {% if is_owner and not solution.is_accepted %}
                 <div class="alert alert-danger">
-                    <strong>Cannot open subtasks</strong> until the solution is accepted by parent task.
+                    <strong>Cannot open subtasks</strong> until the solution is accepted.
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
@@ -89,6 +112,27 @@
             </div>
         </div>
     {% endfor %}
+    <div class="row">
+        <div class="offset2 span8">
+            <h5>Suggested solutions</h5>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {% for suggested_solution in suggested_solutions %}
+            <div class="row">
+                {% with offset="offset2" solution=suggested_solution %}
+                    {% include 'solution/solution_row_cells.html' %}
+                {% endwith %}
+            </div>
+        {% empty %}
+            <div class="row">
+                <div class="offset2 span8">
+                    <p class="muted">No suggested solutions yet.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </form>
     <hr/>
     {% if is_owner %}
         <div class="alert alert-info">

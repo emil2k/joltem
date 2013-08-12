@@ -11,28 +11,43 @@ from solution.models import Solution, Comment, Vote
 
 
 @login_required
-def new_solution(request, project_name, task_id):
+def new(request, project_name, task_id=None, solution_id=None):
+    assert task_id is None or solution_id is None, \
+        "Don't specify both a parent solution and parent task when creating a new solution."
     project = get_object_or_404(Project, name=project_name)
-    task = get_object_or_404(Task, id=task_id)
-    if task.is_closed:
-        return redirect('project:task:task', project_name=project.name, task_id=task.id)
+
     context = {
         'project': project,
-        'project_tab': "solutions",
-        'task': task
+        'project_tab': "solutions"
     }
+
+    parent_task, parent_solution = [None] * 2
+
+    if task_id:
+        parent_task = get_object_or_404(Task, id=task_id)
+        if parent_task.is_closed:
+            return redirect('project:task:task', project_name=project.name, task_id=parent_task.id)
+        context['task'] = parent_task
+
+    if solution_id:
+        parent_solution = get_object_or_404(Solution, id=solution_id)
+        if parent_solution.is_completed or parent_solution.is_closed:
+            return redirect('project:solution:solution', project_name=project.name, task_id=parent_task.id)
+        context['solution'] = parent_solution
+
     if request.POST:
         title = request.POST.get('title')
         description = request.POST.get('description')
-        solution = Solution(
+        parent_solution = Solution(
             user=request.user,
-            task=task,
+            task=parent_task,
+            solution=parent_solution,
             project=project,
             title=title,
             description=description
         )
-        solution.save()
-        return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
+        parent_solution.save()
+        return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution.id)
     return render(request, 'solution/new_solution.html', context)
 
 
@@ -42,19 +57,47 @@ def solution(request, project_name, solution_id):
     solution = get_object_or_404(Solution, id=solution_id)
     user = request.user
     if request.POST:
-        # Solution actions
-        if request.POST.get('complete') is not None and solution.is_owner(user):
+        # Acceptance of suggested solution
+        accept = request.POST.get('accept')
+        unaccept = request.POST.get('unaccept')
+        if (accept or unaccept) and solution.is_acceptor(user):
+            if accept:
+                solution.is_accepted = True
+                solution.time_accepted = timezone.now()
+            else:
+                solution.is_accepted = False
+                solution.time_accepted = None
+            solution.save()
+
+        # Mark solution complete
+        if request.POST.get('complete') \
+                and not solution.is_completed \
+                and not solution.is_closed \
+                and solution.is_owner(user):
             solution.is_completed = True
             solution.time_completed = timezone.now()
             solution.save()
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-        # Delete solution
-        if request.POST.get('delete') is not None:
-            solution.delete()
-            return redirect('project:solution:all', project_name=project_name)
+
+        # Close solution
+        if request.POST.get('close') \
+                and not solution.is_completed \
+                and not solution.is_closed \
+                and solution.is_owner(user):
+            solution.is_closed = True
+            solution.time_closed = timezone.now()
+            solution.save()
+
+        # Reopen solution
+        if request.POST.get('reopen') \
+                and solution.is_closed \
+                and solution.is_owner(user):
+            solution.is_closed = False
+            solution.time_closed = None
+            solution.save()
+
         # Vote on completed solution
         vote_input = request.POST.get('vote')
-        if vote_input is not None:
+        if vote_input and not solution.is_owner(user):
             # Get or create with other parameters
             try:
                 vote = Vote.objects.get(
@@ -77,7 +120,9 @@ def solution(request, project_name, solution_id):
             vote.time_voted = timezone.now()
             vote.voter_impact = user.get_profile().impact
             vote.save()
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
+        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+
     # Get current users vote on this solution
     try:
         vote = solution.vote_set.get(voter_id=user.id)
@@ -87,9 +132,11 @@ def solution(request, project_name, solution_id):
         'project': project,
         'solution_tab': "solution",
         'solution': solution,
-        'subtasks': solution.tasks.all().order_by('-time_posted'),
+        'subtasks': solution.subtask_set.all().order_by('-time_posted'),
+        'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
         'vote': vote,
-        'is_owner': solution.is_owner(user)
+        'is_owner': solution.is_owner(user),
+        'is_acceptor': solution.is_acceptor(user),
     }
     return render(request, 'solution/solution.html', context)
 
@@ -99,7 +146,7 @@ def solution_edit(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
-    if not is_owner:
+    if not is_owner or solution.is_closed:
         return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
     if request.POST:
         solution.title = request.POST.get('title')

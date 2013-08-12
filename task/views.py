@@ -45,32 +45,20 @@ def task(request, project_name, task_id):
     if request.POST:
         if not is_owner:
             return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        accept = request.POST.get('accept')
+
         from django.utils import timezone
 
-        if accept is not None:
-            solution = task.solution_set.get(id=accept)
-            solution.is_accepted = True
-            solution.time_accepted = timezone.now()
-            solution.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        cancel = request.POST.get('cancel')
-        if cancel is not None:
-            solution = task.solution_set.get(id=cancel)
-            solution.is_accepted = False
-            solution.time_accepted = None
-            solution.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
         if request.POST.get('close'):
             task.is_closed = True
             task.time_closed = timezone.now()
             task.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+
         if request.POST.get('reopen'):
             task.is_closed = False
             task.time_closed = None
             task.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
+
+        return redirect('project:task:task', project_name=project_name, task_id=task_id)
 
     context = {
         'project': project,
@@ -125,10 +113,10 @@ class TaskListView(ProjectListView):
             class SubtaskGroup:
                 def __init__(self, solution, tasks):
                     self.solution = solution
-                    self.tasks = tasks
+                    self.subtask_set = tasks
             subtask_groups = []
             for solution in self.parent_task.solution_set.all().order_by('-id'):
-                subtasks = solution.tasks.all().order_by('-id')
+                subtasks = solution.subtask_set.all().order_by('-id')
                 if subtasks.count() > 0:
                     subtask_group = SubtaskGroup(solution, subtasks)
                     subtask_groups.append(subtask_group)
