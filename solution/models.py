@@ -238,10 +238,11 @@ class Solution(Voteable):
         if self.task:
             if not self.task.is_closed:
                 return self.task.is_owner(user)
-            elif self.task.parent and not self.task.parent.is_completed and not self.task.parent.is_closed:
-                return self.task.parent.is_owner(user)
-            else:
-                return self.task.parent.is_acceptor(user)
+            if self.task.parent:
+                if not self.task.parent.is_completed and not self.task.parent.is_closed:
+                    return self.task.parent.is_owner(user)
+                else:
+                    return self.task.parent.is_acceptor(user)
         elif self.solution:
             if not self.solution.is_completed and not self.solution.is_closed:
                 return self.solution.is_owner(user)
