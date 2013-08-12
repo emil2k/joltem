@@ -31,7 +31,7 @@ def new(request, project_name, task_id=None, solution_id=None):
 
     if solution_id:
         parent_solution = get_object_or_404(Solution, id=solution_id)
-        if parent_solution.is_completed:
+        if parent_solution.is_completed or parent_solution.is_closed:
             return redirect('project:solution:solution', project_name=project.name, task_id=parent_task.id)
         context['solution'] = parent_solution
 
@@ -70,15 +70,30 @@ def solution(request, project_name, solution_id):
             solution.save()
 
         # Mark solution complete
-        if request.POST.get('complete') and not solution.is_completed and solution.is_owner(user):
+        if request.POST.get('complete') \
+                and not solution.is_completed \
+                and not solution.is_closed \
+                and solution.is_owner(user):
             solution.is_completed = True
             solution.time_completed = timezone.now()
             solution.save()
 
-        # Delete solution
-        if request.POST.get('delete') and not solution.is_completed and solution.is_owner(user):
-            solution.delete()
-            return redirect('project:solution:all', project_name=project_name)
+        # Close solution
+        if request.POST.get('close') \
+                and not solution.is_completed \
+                and not solution.is_closed \
+                and solution.is_owner(user):
+            solution.is_closed = True
+            solution.time_closed = timezone.now()
+            solution.save()
+
+        # Reopen solution
+        if request.POST.get('reopen') \
+                and solution.is_closed \
+                and solution.is_owner(user):
+            solution.is_closed = False
+            solution.time_closed = None
+            solution.save()
 
         # Vote on completed solution
         vote_input = request.POST.get('vote')
@@ -131,7 +146,7 @@ def solution_edit(request, project_name, solution_id):
     project = get_object_or_404(Project, name=project_name)
     solution = get_object_or_404(Solution, id=solution_id)
     is_owner = solution.is_owner(request.user)
-    if not is_owner:
+    if not is_owner or solution.is_closed:
         return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
     if request.POST:
         solution.title = request.POST.get('title')

@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.utils import timezone
 from joltem.models import Profile
 from project.models import Project, Impact
 from task.models import Task
@@ -24,21 +25,23 @@ def get_mock_project(name):
     return p
 
 
-def get_mock_task(project, user):
+def get_mock_task(project, user, solution=None):
     t = Task(
         title="A task by %s" % user.username,
         owner=user,
-        project=project
+        project=project,
+        parent=solution
     )
     t.save()
     return t
 
 
-def get_mock_solution(project, user, task):
+def get_mock_solution(project, user, task=None, solution=None):
     s = Solution(
         project=project,
         user=user,
-        task=task
+        task=task,
+        solution=solution
     )
     s.save()
     return s
@@ -86,12 +89,12 @@ def get_mock_setup_comment(project_name, username):
     return p, u, t, s, c
 
 
-def load_votable(votable_model, votable):
+def load_model(model_class, model_object):
     """
-    Load votable to check if metrics updated properly
+    Load model to check if metrics updated properly
     """
-    if votable:
-        return votable_model.objects.get(id=votable.id)
+    if model_object:
+        return model_class.objects.get(id=model_object.id)
 
 
 def load_project_impact(project, user):
@@ -123,36 +126,170 @@ class TestCaseDebugMixin():
 
 class PermissionsTestCase(TestCaseDebugMixin, TestCase):
 
-    def test_task_ownership(self):
+    def setUp(self):
+        super(PermissionsTestCase, self).setUp()
+        u = dict()
+        self.jill = get_mock_user('jill')  # the project admin
+        self.abby = get_mock_user('abby')
+        self.bob = get_mock_user('bob')
+        self.zack = get_mock_user('zack')
+        # Setup project, make Jill admin
+        self.project = get_mock_project("hover")
+        self.project.admin_set.add(self.jill)
+        self.project.save()
+
+    def test_task_is_owner(self):
         """
-        Test for task ownership, is_owner function
+        Test for task is_owner function
         """
-        jill = get_mock_user("jill")
-        abby = get_mock_user("abby")
-        p = get_mock_project("hover")
-        t = get_mock_task(p, abby)
-        self.assertFalse(t.is_owner(jill))
-        self.assertTrue(t.is_owner(abby))
+        t = get_mock_task(self.project, self.abby)
+        self.assertFalse(t.is_owner(self.jill))  # admin check
+        self.assertFalse(t.is_owner(self.bob))
+        self.assertTrue(t.is_owner(self.abby))
 
-    def test_solution_ownership(self):
+    def test_solution_is_owner(self):
         """
-        Test for solution ownership, is_owner function
+        Test for solution is_owner function
         """
-        bob = get_mock_user("bob")
-        zack = get_mock_user("zack")
+        t = get_mock_task(self.project, self.bob)
+        s = get_mock_solution(self.project, self.zack, t)
 
-        p = get_mock_project("proof")
-        t = get_mock_task(p, bob)
-        s = get_mock_solution(p, zack, t)
-
-        self.assertFalse(t.is_owner(zack))
-        self.assertTrue(t.is_owner(bob))
-
-        self.assertFalse(s.is_owner(bob))
-        self.assertTrue(s.is_owner(zack))
+        self.assertFalse(s.is_owner(self.jill))
+        self.assertFalse(s.is_owner(self.bob))
+        self.assertTrue(s.is_owner(self.zack))
 
 
-    # TODO test is_acceptor
+    def test_solution_is_acceptor_simple(self):
+        """
+        Tests for solution is_acceptor owner function,
+
+        When solution has a parent task (not a suggested solution)
+        which is not a subtask of a completed or deleted solution.
+        """
+        t = get_mock_task(self.project, self.bob)
+        s = get_mock_solution(self.project, self.abby, t)
+
+        self.assertFalse(s.is_acceptor(self.jill))
+        self.assertFalse(s.is_acceptor(self.abby))
+        self.assertTrue(s.is_acceptor(self.bob))
+
+    def setup_solution_parents(self):
+        """
+        Setup a suggested solution hierarchy
+        """
+        s0 = get_mock_solution(self.project, self.abby)  # root suggested solution
+        s1 = get_mock_solution(self.project, self.bob, solution=s0)
+        s2 = get_mock_solution(self.project, self.zack, solution=s1)
+
+        self.assertFalse(s2.is_acceptor(self.jill))
+        self.assertFalse(s2.is_acceptor(self.abby))
+        self.assertTrue(s2.is_acceptor(self.bob))
+        self.assertFalse(s2.is_acceptor(self.zack))
+
+        self.assertFalse(s1.is_acceptor(self.jill))
+        self.assertTrue(s1.is_acceptor(self.abby))
+        self.assertFalse(s1.is_acceptor(self.bob))
+        self.assertFalse(s1.is_acceptor(self.zack))
+
+        self.assertTrue(s0.is_acceptor(self.jill))
+        self.assertFalse(s0.is_acceptor(self.abby))
+        self.assertFalse(s0.is_acceptor(self.bob))
+        self.assertFalse(s0.is_acceptor(self.zack))
+
+        return s0, s1, s2
+
+    def test_solution_is_acceptor_parent_completed(self):
+        """
+        Test of what happens acceptance responsibilities when parents solutions are completed
+        """
+        s0, s1, s2 = self.setup_solution_parents()
+
+        # Now complete parent solutions
+
+        s1.is_completed = True
+        s1.time_completed = timezone.now()
+        s1.save()
+
+        self.assertFalse(s2.is_acceptor(self.jill))
+        self.assertTrue(s2.is_acceptor(self.abby))
+        self.assertFalse(s2.is_acceptor(self.bob))
+        self.assertFalse(s2.is_acceptor(self.zack))
+
+        s0.is_completed = True
+        s0.time_completed = timezone.now()
+        s0.save()
+
+        self.assertTrue(s2.is_acceptor(self.jill))
+        self.assertFalse(s2.is_acceptor(self.abby))
+        self.assertFalse(s2.is_acceptor(self.bob))
+        self.assertFalse(s2.is_acceptor(self.zack))
+
+    def test_solution_is_acceptor_parent_closed(self):
+        """
+        Test of what happens acceptance responsibilities when parents solutions are closed
+        """
+        s0, s1, s2 = self.setup_solution_parents()
+
+        # Now delete parent solutions
+
+        s1.is_closed = True
+        s1.time_closed = timezone.now()
+        s1.save()
+
+        self.assertFalse(s2.is_acceptor(self.jill))
+        self.assertTrue(s2.is_acceptor(self.abby))
+        self.assertFalse(s2.is_acceptor(self.bob))
+        self.assertFalse(s2.is_acceptor(self.zack))
+
+        s0.is_closed = True
+        s0.time_closed = timezone.now()
+        s0.save()
+
+        self.assertTrue(s2.is_acceptor(self.jill))
+        self.assertFalse(s2.is_acceptor(self.abby))
+        self.assertFalse(s2.is_acceptor(self.bob))
+        self.assertFalse(s2.is_acceptor(self.zack))
+
+    def test_solution_is_acceptor_parent_task_closed(self):
+        """
+        Test of what happens acceptance responsibilities when parents tasks are closed
+        """
+        s0, s1, s2 = self.setup_solution_parents()
+        jack = get_mock_user("jack")
+        gary = get_mock_user("gary")
+        t = get_mock_task(self.project, jack, s2)
+        s3 = get_mock_solution(self.project, gary, t)
+
+        self.assertFalse(s3.is_acceptor(self.jill))
+        self.assertFalse(s3.is_acceptor(self.abby))
+        self.assertFalse(s3.is_acceptor(self.bob))
+        self.assertFalse(s3.is_acceptor(self.zack))
+        self.assertTrue(s3.is_acceptor(jack))
+        self.assertFalse(s3.is_acceptor(gary))
+
+        # Now close parent task
+        t.is_closed = True
+        t.time_closed = timezone.now()
+        t.save()
+
+        self.assertFalse(s3.is_acceptor(self.jill))
+        self.assertFalse(s3.is_acceptor(self.abby))
+        self.assertFalse(s3.is_acceptor(self.bob))
+        self.assertTrue(s3.is_acceptor(self.zack))
+        self.assertFalse(s3.is_acceptor(jack))
+        self.assertFalse(s3.is_acceptor(gary))
+
+        # And complete the parent solution now
+        s2.is_completed = True
+        s2.time_completed = timezone.now()
+        s2.save()
+
+        self.assertFalse(s3.is_acceptor(self.jill))
+        self.assertFalse(s3.is_acceptor(self.abby))
+        self.assertTrue(s3.is_acceptor(self.bob))
+        self.assertFalse(s3.is_acceptor(self.zack))
+        self.assertFalse(s3.is_acceptor(jack))
+        self.assertFalse(s3.is_acceptor(gary))
 
     # TODO tests that actually test interface using client or selenium
     # TODO tests that check if views follow ownership rules for processing actions
@@ -187,7 +324,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         t = get_mock_task(p, jill)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
-        s = load_votable(Solution, s)
+        s = load_model(Solution, s)
         self.assertTrue(s.impact > 0)
 
     def test_comment_impact(self):
@@ -198,7 +335,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         s = get_mock_solution(p, ted, t)
         c = get_mock_comment(p, jill, s)
         get_mock_vote(ted, c, 100, 1)
-        c = load_votable(Comment, c)
+        c = load_model(Comment, c)
         self.assertTrue(c.impact > 0)
 
     def test_project_impact(self):
@@ -317,19 +454,19 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         self.assertEqual(s.impact, None)
         self.assertEqual(s.acceptance, None)
         get_mock_vote(get_mock_user("jill"), s, 300, 1)
-        s = load_votable(Solution, s)
+        s = load_model(Solution, s)
         self.assertEqual(s.impact, 10)
         self.assertEqual(s.acceptance, 100)
         # Now the rejection vote
         kate = get_mock_user("kate")
         get_mock_vote(kate, s, 100, 0)
         # Vote should not count until commented
-        s = load_votable(Solution, s)
+        s = load_model(Solution, s)
         self.assertEqual(s.impact, 10)
         self.assertEqual(s.acceptance, 100)
         # Add comment and it should count now
         get_mock_comment(p, kate, s)
-        s = load_votable(Solution, s)
+        s = load_model(Solution, s)
         self.assertEqual(s.impact, 8)  # using impact instead of get_impact() because want to check DB state
         self.assertEqual(s.acceptance, 75)
 
@@ -349,25 +486,25 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         self.assertEqual(c.acceptance, None)
 
         get_mock_vote(u, c, 750, 3)
-        c = load_votable(Comment, c)
+        c = load_model(Comment, c)
         self.assertEqual(c.acceptance, 100)
         self.assertImpactEqual(bill, 10)
         self.assertProjectImpactEqual(p, bill, 10)
 
         # Now rejection votes to lower acceptance
         get_mock_vote(get_mock_user("jade"), c, 100, 0)
-        c = load_votable(Comment, c)
+        c = load_model(Comment, c)
         self.assertEqual(c.acceptance, int(round(100 * float(750)/850)))  # > 75%
         self.assertImpactEqual(bill, 9)
         self.assertProjectImpactEqual(p, bill, 9)
 
         get_mock_vote(get_mock_user("jill"), c, 150, 0)
-        c = load_votable(Comment, c)
+        c = load_model(Comment, c)
         self.assertEqual(c.acceptance, int(round(100 * float(750)/1000)))  # = 75%
         self.assertImpactEqual(bill, 8)
         self.assertProjectImpactEqual(p, bill, 8)
         get_mock_vote(get_mock_user("gary"), c, 500, 0)
-        c = load_votable(Comment, c)
+        c = load_model(Comment, c)
         self.assertEqual(c.acceptance, int(round(100 * float(750)/1500)))  # < 75%
         self.assertImpactEqual(bill, 0)  # should not count here
         self.assertProjectImpactEqual(p, bill, 0)
