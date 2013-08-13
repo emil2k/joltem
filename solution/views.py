@@ -9,6 +9,9 @@ from project.models import Project
 from task.models import Task
 from solution.models import Solution, Comment, Vote
 
+import logging
+logger = logging.getLogger('django')
+
 
 @login_required
 def new(request, project_name, task_id=None, solution_id=None):
@@ -302,15 +305,31 @@ def commits(request, project_name, solution_id, repository_name):
 
     from pygit2 import Repository as GitRepository, GIT_SORT_TIME
     git_repo = GitRepository(repository.absolute_path)
+
+    # TODO find merge base
+
     commits = []
     if not git_repo.is_empty:
         try:
-            ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
+            logger.info("Find master OID.")
+
+            master_ref = git_repo.lookup_reference('refs/heads/master')
+            logger.info("MASTER REF : %s" % master_ref.target.hex)
+
+            solution_ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
+            logger.info("SOLUTION REF : %s" % master_ref.target.hex)
+
+            merge_base_oid = git_repo.merge_base(master_ref.target, solution_ref.target)
+            logger.info("MERGE BASE REF : %s" % master_ref.target.hex)
+
         except KeyError:
             commits = None
         else:
-            for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
+            for commit in git_repo.walk(solution_ref.target.hex, GIT_SORT_TIME):
                 commits.append(commit)
+
+    ######## ~~~
+
 
     context = {
         'user': request.user,
