@@ -37,14 +37,12 @@
                         {% if is_owner %}
                             {% if not solution.is_completed %}
                                 <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                                <button class="btn" type="submit" name="close" value="1"></i>close</button>
                             {% else %}
                                 <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                             {% endif %}
                             <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
-                            {% if not solution.is_completed %}
-                                <button class="btn" type="submit" name="close" value="1"></i>close</button>
-                            {% endif %}
-                            {% if solution.is_accepted %}
+                            {% if solution.is_accepted and not solution.is_completed %}
                                 <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create subtask</a>
                             {% endif %}
                         {% else %}
