@@ -43,7 +43,6 @@ with open(dir+'/update.log', "a") as log_file:
             if namespace == 's':  # Solution branches
                 solution_id = split_reference[3]
                 solution = Solution.objects.get(id=solution_id)
-                log("Solution : %s by %s" % (solution.task.title, solution.user.first_name))
                 if not is_admin:
                     if solution.user_id != user.id:
                         decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
