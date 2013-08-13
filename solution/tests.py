@@ -36,12 +36,14 @@ def get_mock_task(project, user, solution=None):
     return t
 
 
-def get_mock_solution(project, user, task=None, solution=None):
+def get_mock_solution(project, user, task=None, solution=None, is_completed=True):
     s = Solution(
         project=project,
         user=user,
         task=task,
-        solution=solution
+        solution=solution,
+        is_completed=is_completed,
+        time_completed=timezone.now() if is_completed else None,
     )
     s.save()
     return s
@@ -69,14 +71,14 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     return v
 
 
-def get_mock_setup_solution(project_name, username):
+def get_mock_setup_solution(project_name, username, is_completed=True):
     """
     A shortcut to get a solution
     """
     p = get_mock_project(project_name)
     u = get_mock_user(username)
     t = get_mock_task(p, u)
-    s = get_mock_solution(p, u, t)
+    s = get_mock_solution(p, u, t, None, is_completed)
     return p, u, t, s
 
 
@@ -177,9 +179,9 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Setup a suggested solution hierarchy
         """
-        s0 = get_mock_solution(self.project, self.abby)  # root suggested solution
-        s1 = get_mock_solution(self.project, self.bob, solution=s0)
-        s2 = get_mock_solution(self.project, self.zack, solution=s1)
+        s0 = get_mock_solution(self.project, self.abby, is_completed=False)  # root suggested solution
+        s1 = get_mock_solution(self.project, self.bob, solution=s0, is_completed=False)
+        s2 = get_mock_solution(self.project, self.zack, solution=s1, is_completed=False)
 
         self.assertFalse(s2.is_acceptor(self.jill))
         self.assertFalse(s2.is_acceptor(self.abby))
@@ -303,6 +305,10 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         profile = Profile.objects.get(user_id=user.id)  # don't use get_profile it uses cached results which cause tests to fail
         self.assertEqual(profile.impact, expected)
 
+    def assertCompletedEqual(self, user, expected):
+        profile = Profile.objects.get(user_id=user.id)  # don't use get_profile it uses cached results which cause tests to fail
+        self.assertEqual(profile.completed, expected)
+
     def assertProjectImpactEqual(self, project, user, expected):
         pi = load_project_impact(project, user)
         self.assertEqual(pi.impact, expected)
@@ -384,9 +390,37 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         self.assertEqual(s.get_impact(), None)
         self.assertEqual(s.get_acceptance(), None)
         get_mock_vote(get_mock_user("jill"), s, 300, 3)
-        logger.info("AFTER JILL VOTE")
         self.assertEqual(s.get_impact(), 10)
         self.assertEqual(s.get_acceptance(), 100)
+
+    def test_impact_mark_incomplete(self):
+        """
+        Test for effect of mark incomplete on impact and completed sum in profile
+        """
+        p = get_mock_project("levy")
+        jay = get_mock_user("jay")
+        t = get_mock_task(p, jay)
+        self.assertImpactEqual(jay, 0)
+        logger.info("**** JAY IMPACT %d" % Profile.objects.get(id=jay.id).impact)
+        self.assertCompletedEqual(jay, 0)
+        s = get_mock_solution(p, jay, t)  # a completed solution added
+        self.assertTrue(s.is_completed)
+        get_mock_vote(get_mock_user("jill"), s, 300, 3)  # a vote is placed on the solution
+        self.assertTrue(s.is_completed)
+        logger.info("**** JAY IMPACT %d" % Profile.objects.get(id=jay.id).impact)
+        self.assertImpactEqual(jay, 10)
+        self.assertCompletedEqual(jay, 1)
+        # Mark solution incomplete
+        s.is_completed = False
+        s.time_completed = None
+        s.save()
+        self.assertFalse(s.is_completed, 0)
+        logger.info("**** JAY IMPACT %d" % Profile.objects.get(id=jay.id).impact)
+        self.assertImpactEqual(jay, 0)
+        self.assertCompletedEqual(jay, 0)
+
+        # TODO make tests
+
 
     def test_impact_calculation(self):
         """

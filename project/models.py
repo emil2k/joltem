@@ -47,7 +47,7 @@ class Impact(models.Model):
         if self.project.is_admin(self.user.id):
             impact += 1
         # Impact from solutions
-        for solution in self.user.solution_set.filter(project_id=self.project.id):
+        for solution in self.user.solution_set.filter(project_id=self.project.id, is_completed=True):
             # Solution acceptance must be higher than this threshold to count towards impact
             if solution.acceptance < Impact.SOLUTION_ACCEPTANCE_THRESHOLD:
                 continue
