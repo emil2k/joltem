@@ -4,6 +4,11 @@
 {% block project_content %}
     <div class="row">
         <div class="span8">
+            {% if error %}
+                <div class="alert alert-error">
+                    {{ error }}
+                </div>
+            {% endif %}
             {% if solution %}
                 <div class="alert alert-info">This solution will be placed under this <strong>parent solution</strong>.</div>
                 <h4>{{ solution.default_title }} <span class="muted">by {{ solution.user.first_name }}</span></h4>
@@ -22,8 +27,8 @@
             {% endif %}
             <form method="post">
                 {% csrf_token %}
-                <input class="input-block-level" type="text" name="title" placeholder="Optional. A title that describes your solution."/>
-                <textarea class="input-block-level" rows=10 name="description" placeholder="Optional. Briefly describe how you plan to solve the task and if you have any experience pertinent to the task."></textarea>
+                <input value="{{ title }}" class="input-block-level" type="text" name="title" placeholder="{% if task %}Optional. {% endif %}A title that describes your solution."/>
+                <textarea class="input-block-level" rows=10 name="description" placeholder="{% if task %}Optional. {% endif %}Briefly describe how you plan to solve the task and if you have any experience pertinent to the task.">{{ description }}</textarea>
                 <button class="btn btn-success" type="submit">Solve</button>
             </form>
         </div>
