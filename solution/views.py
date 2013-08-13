@@ -38,16 +38,24 @@ def new(request, project_name, task_id=None, solution_id=None):
     if request.POST:
         title = request.POST.get('title')
         description = request.POST.get('description')
-        parent_solution = Solution(
-            user=request.user,
-            task=parent_task,
-            solution=parent_solution,
-            project=project,
-            title=title,
-            description=description
-        )
-        parent_solution.save()
-        return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution.id)
+        if parent_task is None \
+                and not (title and description):
+            context['error'] = "A title and description is required, please explain the suggested solution."
+            if title:
+                context['title'] = title
+            if description:
+                context['description'] = description
+        else:
+            solution = Solution(
+                user=request.user,
+                task=parent_task,
+                solution=parent_solution,
+                project=project,
+                title=title,
+                description=description
+            )
+            solution.save()
+            return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
     return render(request, 'solution/new_solution.html', context)
 
 
