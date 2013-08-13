@@ -86,6 +86,15 @@ def solution(request, project_name, solution_id):
             solution.time_completed = timezone.now()
             solution.save()
 
+        # Mark solution incomplete
+        if request.POST.get('incomplete') \
+                and solution.is_completed \
+                and not solution.is_closed \
+                and solution.is_owner(user):
+            solution.is_completed = False
+            solution.time_completed = None
+            solution.save()
+
         # Close solution
         if request.POST.get('close') \
                 and not solution.is_completed \
