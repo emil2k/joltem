@@ -4,6 +4,7 @@ from joltem.models import User
 from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution, Comment, Vote
+from git.models import Repository
 
 from joltem.tests import TEST_LOGGER
 
@@ -19,6 +20,17 @@ def get_mock_project(name):
     )
     p.save()
     return p
+
+
+def get_mock_repository(name, project, is_hidden=False, description=None):
+    r = Repository(
+        name=name,
+        project=project,
+        is_hidden=is_hidden,
+        description=description
+    )
+    r.save()
+    return r
 
 
 def get_mock_task(project, user, solution=None):
