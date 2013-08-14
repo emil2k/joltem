@@ -144,7 +144,7 @@ Next install `libgit2` so that we can install `pygit2` for parsing git data in p
 ```
 ec2-user > cd /usr/local/src/
 ec2-user > sudo su
-root > git clone git://github.com/libgit2/libgit2.git -b master
+root > git clone git://github.com/libgit2/libgit2.git -b v0.19.0
 root > cd libgit2/
 root > mkdir build && cd build
 root > yum install gcc cmake

@@ -33,3 +33,10 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     def test_simple(self):
         self.assertEqual(self.project.name, 'joltem')
+
+    def test_pygit2(self):
+        # Test version
+        import pygit2
+        expecting = '0.19.0'
+        actual = pygit2.__version__
+        self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
