@@ -54,7 +54,7 @@ class Repository(models.Model):
             # Give git group necessary permissions to repository
             subprocess.call(['chmod', '-R', 'g+rwX', self.absolute_path])
             # Add symbolic link to gitolite update hook, otherwise gitolite write permissions enforcement won't work
-            subprocess.call(['ln', '-s', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
+            subprocess.call(['ln', '-sf', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
 
     def delete(self, using=None):
         super(Repository, self).delete(using)
