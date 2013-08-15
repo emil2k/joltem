@@ -7,6 +7,7 @@ from joltem.settings import MAIN_DIR
 import logging
 logger = logging.getLogger('django')
 
+GITOLITE_REPOSITORIES_DIRECTORY = '%sgit/repositories/' % MAIN_DIR
 GITOLITE_ADMIN_DIRECTORY = '%sgit/gitolite/gitolite-admin/' % MAIN_DIR
 GITOLITE_KEY_DIRECTORY = '%skeydir/' % GITOLITE_ADMIN_DIRECTORY
 GITOLITE_CONFIG_FILE_PATH = '%sconf/gitolite.conf' % GITOLITE_ADMIN_DIRECTORY
@@ -35,7 +36,14 @@ class Repository(models.Model):
         """
         Absolute path to repository
         """
-        return "%sgit/repositories/%s.git" % (MAIN_DIR, self.full_name)
+        return "%s%s.git" % (GITOLITE_REPOSITORIES_DIRECTORY, self.full_name)
+
+    def load_pygit_object(self):
+        """
+        Loads pygit2 repository object for this repository
+        """
+        from pygit2 import Repository as PyGitRepository
+        return PyGitRepository(self.absolute_path)
 
     class Meta:
         unique_together = ("name","project")

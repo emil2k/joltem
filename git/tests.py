@@ -1,10 +1,11 @@
 from django.test import TestCase
+from unittest import TestCase as UnitTestCase
 
 from git.models import Repository
 from project.models import Project
 
 from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
-from joltem.tests.mocking import get_mock_project, get_mock_repository
+from joltem.tests.mocking import *
 
 from pygit2 import Repository as PyGitRepository, Signature
 
@@ -19,6 +20,18 @@ def get_branch_reference(branch_name):
 
 
 # Mocking helpers
+
+
+def get_mock_repository(name, project, is_hidden=False, description=None):
+    r = Repository(
+        name=name,
+        project=project,
+        is_hidden=is_hidden,
+        description=description
+    )
+    r.save()
+    return r
+
 
 def get_mock_signature(name, email=None):
     """
@@ -44,9 +57,9 @@ def get_mock_commit(repository, tree_oid, signature, reference, message):
     return commit_oid
 
 
-def put_file_to_tree(name, data, repository, tree=None):
+def put_mock_file(name, data, repository, tree=None):
     """
-    Put a file into a tree, if tree not passed creates a tree.
+    Put a mock file into a tree, if tree not passed creates a tree.
     Emulate addition or update of files, returns new tree Oid
     """
     from pygit2 import GIT_FILEMODE_BLOB
@@ -100,7 +113,27 @@ def debug_tree(repository, tree_oid):
     TEST_LOGGER.debug("\n")
 
 
+# Test cases
+
+class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
+
+    def test_pygit2_version(self):
+        """
+        Test pygit2 version matches expectations
+        """
+        import pygit2
+        expecting = '0.19.0'
+        actual = pygit2.__version__
+        self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
+
+
 class RepositoryTestCase(TestCaseDebugMixin, TestCase):
+
+    """
+    Base test case class that loads a project, creates a repository,
+    and loads a pygit2 repository object for the repository.
+    Deletes the repository in teardown.
+    """
 
     def setUp(self):
         super(RepositoryTestCase, self).setUp()
@@ -111,7 +144,7 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
         TEST_LOGGER.debug("CREATED REPO : %s" % self.repository.absolute_path)
         self.assertDirectoryExistence(self.repository.absolute_path, True)
         # Load repo
-        self.pygit_repository = PyGitRepository(self.repository.absolute_path)
+        self.pygit_repository = self.repository.load_pygit_object()
         TEST_LOGGER.debug("LOADED REPOSITORY : path : %s" % self.pygit_repository.path)
         TEST_LOGGER.debug("LOADED REPOSITORY : workdir : %s" % self.pygit_repository.workdir)
         TEST_LOGGER.debug("LOADED REPOSITORY : is_bare : %s" % self.pygit_repository.is_bare)
@@ -133,17 +166,11 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     # Tests
 
-    def test_pygit2_version(self):
-        # Test version
-        import pygit2
-        expecting = '0.19.0'
-        actual = pygit2.__version__
-        self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
-
     def test_pygit2(self):
+        # TODO remove this test it was just to learn pygit2, it serves no purpose
         # Create tree
-        tree_oid = put_file_to_tree("test_blob.txt", "This is a test blob.", self.pygit_repository)
-        tree_oid = put_file_to_tree("test_blob_2.txt", "This is a test blob. With another file.", self.pygit_repository, tree_oid)
+        tree_oid = put_mock_file("test_blob.txt", "This is a test blob.", self.pygit_repository)
+        tree_oid = put_mock_file("test_blob_2.txt", "This is a test blob. With another file.", self.pygit_repository, tree_oid)
         debug_tree(self.pygit_repository, tree_oid)
         # Create commit
         emil = get_mock_signature('emil')
@@ -153,3 +180,22 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
         # Walk through commits
         debug_commits(self.pygit_repository, commit_oid)
+
+
+class SolutionTestCase(RepositoryTestCase):
+    """
+    Tests regarding solution branches
+    """
+
+    # TODO make some solution commit_set property that returns an iterable of commits for a solution then test it here for order
+    # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
+
+    def test_solution_commits(self):
+        # TODO make some commits to solution branch then check that the Oid list is same as expected
+        TEST_LOGGER.debug("TESTING SOLUTION COMMITS")
+
+
+    # TODO test commit_sets of solutions that are branched out from another solution branch-
+    # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
+    # TODO test merging from one solution branch to another to check if commit_set remains valid
+

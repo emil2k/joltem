@@ -22,17 +22,6 @@ def get_mock_project(name):
     return p
 
 
-def get_mock_repository(name, project, is_hidden=False, description=None):
-    r = Repository(
-        name=name,
-        project=project,
-        is_hidden=is_hidden,
-        description=description
-    )
-    r.save()
-    return r
-
-
 def get_mock_task(project, user, solution=None):
     t = Task(
         title="A task by %s" % user.username,

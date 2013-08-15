@@ -225,6 +225,22 @@ class Solution(Voteable):
             count += subtask.subtasks
         return count
 
+    @property
+    def get_commit_count(self):
+        """
+        Number of commits on the solution
+        """
+        # TODO find efficient way to do this
+        return 3  # for fun
+
+    @property
+    def commit_set(self):
+        """
+        Returns an iterable of the commits, which are represented by Oid objects
+        """
+        # TODO make this return something
+        return []  # :(
+
     def is_owner(self, user):
         """
         Returns whether passed user is the person who posted this solution
