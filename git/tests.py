@@ -41,7 +41,7 @@ def get_mock_signature(name, email=None):
     return Signature(name, email)
 
 
-def get_mock_commit(repository, tree_oid, signature, reference, message):
+def get_mock_commit(repository, tree_oid, signature, reference, message, parents):
     """
     Make a mock commit to the given repository, returns commit Oid
     """
@@ -51,7 +51,7 @@ def get_mock_commit(repository, tree_oid, signature, reference, message):
         signature,              # committer
         message,                # message
         tree_oid,               # commit tree, representing file structure
-        []                      # todo commit parents?
+        parents                 # commit parents
     )
     TEST_LOGGER.debug("CREATED COMMIT : %s - %s" % (commit_oid.hex, commit_oid))
     return commit_oid
@@ -71,6 +71,7 @@ def put_mock_file(name, data, repository, tree=None):
     # Create tree
     tree_oid = builder.write()
     TEST_LOGGER.debug("CREATING TREE : tree.hex : %s" % tree_oid.hex)
+    debug_tree(repository, tree_oid)
     return tree_oid
 
 
@@ -94,7 +95,7 @@ def debug_commits(repository, start_commit_oid, end_commit_oid=None):
     from pygit2 import GIT_SORT_TOPOLOGICAL
     TEST_LOGGER.debug("\nDEBUG COMMITS for %s" % repository.path)
     for c in repository.walk(start_commit_oid, GIT_SORT_TOPOLOGICAL):
-        TEST_LOGGER.debug("COMMIT : %s - %s by %s @ %s" % (c.hex, c.message, c.author.name, c.commit_time))
+        TEST_LOGGER.debug("COMMIT : %s - %s by %s @ %s - parents %d" % (c.hex, c.message, c.author.name, c.commit_time, len(c.parents)))
         if end_commit_oid and c.hex == end_commit_oid.hex:
             TEST_LOGGER.debug("END COMMIT.")
             break
@@ -164,38 +165,71 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
         from os.path import isdir
         self.assertEqual(isdir(path), expected)
 
-    # Tests
-
-    def test_pygit2(self):
-        # TODO remove this test it was just to learn pygit2, it serves no purpose
-        # Create tree
-        tree_oid = put_mock_file("test_blob.txt", "This is a test blob.", self.pygit_repository)
-        tree_oid = put_mock_file("test_blob_2.txt", "This is a test blob. With another file.", self.pygit_repository, tree_oid)
-        debug_tree(self.pygit_repository, tree_oid)
-        # Create commit
-        emil = get_mock_signature('emil')
-        commit_oid = get_mock_commit(self.pygit_repository, tree_oid, emil, get_branch_reference('master'), "Initial commit.")
-        # Run through branches
-        debug_branches(self.pygit_repository)
-
-        # Walk through commits
-        debug_commits(self.pygit_repository, commit_oid)
-
 
 class SolutionTestCase(RepositoryTestCase):
     """
     Tests regarding solution branches
     """
 
+    def setUp(self):
+        super(SolutionTestCase, self).setUp()
+        self.emil = get_mock_user("emil", first_name="Emil")
+        self.emil_signature = get_mock_signature(self.emil.first_name, self.emil.email)
+        self.solution = get_mock_solution(self.project, self.emil)  # a suggested solution
+
     # TODO make some solution commit_set property that returns an iterable of commits for a solution then test it here for order
     # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
 
     def test_solution_commits(self):
         # TODO make some commits to solution branch then check that the Oid list is same as expected
-        TEST_LOGGER.debug("TESTING SOLUTION COMMITS")
+
+        # Make initial commit to master
+        tree_oid = put_mock_file("test_blob.txt", "This is a test file.", self.pygit_repository)
+        commit_oid = get_mock_commit(
+            self.pygit_repository,
+            tree_oid,
+            self.emil_signature,
+            get_branch_reference('master'),
+            "Initial commit to master.",
+            []  # no parents initial commit
+        )
+        debug_branches(self.pygit_repository)
+
+        # Now make a commit to the solution branch
+        tree_oid = put_mock_file("test_blob_2.txt", "This is a test blob.\nWith another file.", self.pygit_repository, tree_oid)
+        commit_oid = get_mock_commit(
+            self.pygit_repository,
+            tree_oid,
+            self.emil_signature,
+            get_branch_reference('s/%d' % self.solution.id),
+            "First commit to solution branch.",
+            [commit_oid]
+        )
+        debug_branches(self.pygit_repository)
+
+        # Now modify the file again
+        tree_oid = put_mock_file(
+            "test_blob_2.txt",
+            "This is a test blob.\nWith another file.\nIt's me ... again.",
+            self.pygit_repository,
+            tree_oid
+        )
+        commit_oid = get_mock_commit(
+            self.pygit_repository,
+            tree_oid,
+            self.emil_signature,
+            get_branch_reference('s/%d' % self.solution.id),
+            "Modified file on solution branch.",
+            [commit_oid]
+        )
+        debug_branches(self.pygit_repository)
+
+        # Walk through commits
+        debug_commits(self.pygit_repository, commit_oid)
 
 
-    # TODO test commit_sets of solutions that are branched out from another solution branch-
+    # TODO test commit_sets of solutions that are branched out from another solution branch
+    # TODO test commit_sets of solution that are branched from closed or completed solutions
     # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
     # TODO test merging from one solution branch to another to check if commit_set remains valid
 

@@ -9,8 +9,8 @@ from git.models import Repository
 from joltem.tests import TEST_LOGGER
 
 
-def get_mock_user(username):
-    return User.objects.create_user(username, '%s@gmail.com' % username, '%s_password' % username)
+def get_mock_user(username, **extra_fields):
+    return User.objects.create_user(username, '%s@gmail.com' % username, '%s_password' % username, **extra_fields)
 
 
 def get_mock_project(name):
