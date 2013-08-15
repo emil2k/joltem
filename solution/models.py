@@ -225,22 +225,6 @@ class Solution(Voteable):
             count += subtask.subtasks
         return count
 
-    @property
-    def get_commit_count(self):
-        """
-        Number of commits on the solution
-        """
-        # TODO find efficient way to do this
-        return 3  # for fun
-
-    @property
-    def commit_set(self):
-        """
-        Returns an iterable of the commits, which are represented by Oid objects
-        """
-        # TODO make this return something
-        return []  # :(
-
     def is_owner(self, user):
         """
         Returns whether passed user is the person who posted this solution
@@ -272,6 +256,38 @@ class Solution(Voteable):
         Returns whether passed user has commented on the solution
         """
         return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
+
+    # Git related
+
+    def get_reference_name(self):
+        # TODO write tests and doc for this function
+        return "refs/heads/s/%d" % self.id
+
+    def get_pygit_branch(self, pygit_repository):
+        """
+        Get pygit2 Branch object for given repository (pygit object), if it is in repository
+        """
+        # TODO write tests for this function
+        return pygit_repository.lookup_reference(self.get_reference_name())
+
+    # TODO find appropriate parent branch, can it change based on completion?
+    def get_commit_set(self, pygit_repository):
+        """
+        Returns a list of commits for this solution the passed repository (pygit object),
+        by walking from appropriate parent branch's merge base.
+
+        Commits are represented by pygit2 Commit objects.
+        """
+        from pygit2 import GIT_SORT_TOPOLOGICAL
+        # TODO find start commit oid
+        start_commit_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        # TODO find end_commit_oid, merge_base_oid
+        commits = []
+        for commit in pygit_repository.walk(start_commit_oid, GIT_SORT_TOPOLOGICAL):
+            # if end_commit_oid and c.hex == end_commit_oid.hex:
+            #     break
+            commits.append(commit.oid)
+        return commits
 
 
 class Comment(Voteable):

@@ -182,6 +182,7 @@ class SolutionTestCase(RepositoryTestCase):
 
     def test_solution_commits(self):
         # TODO make some commits to solution branch then check that the Oid list is same as expected
+        commits = []
 
         # Make initial commit to master
         tree_oid = put_mock_file("test_blob.txt", "This is a test file.", self.pygit_repository)
@@ -194,6 +195,7 @@ class SolutionTestCase(RepositoryTestCase):
             []  # no parents initial commit
         )
         debug_branches(self.pygit_repository)
+        commits.append(commit_oid)
 
         # Now make a commit to the solution branch
         tree_oid = put_mock_file("test_blob_2.txt", "This is a test blob.\nWith another file.", self.pygit_repository, tree_oid)
@@ -206,6 +208,7 @@ class SolutionTestCase(RepositoryTestCase):
             [commit_oid]
         )
         debug_branches(self.pygit_repository)
+        commits.append(commit_oid)
 
         # Now modify the file again
         tree_oid = put_mock_file(
@@ -223,9 +226,19 @@ class SolutionTestCase(RepositoryTestCase):
             [commit_oid]
         )
         debug_branches(self.pygit_repository)
+        commits.append(commit_oid)
 
         # Walk through commits
         debug_commits(self.pygit_repository, commit_oid)
+
+        # Now compare to expectations
+        commits.reverse()
+        commit_set = self.solution.get_commit_set(self.pygit_repository)
+
+        TEST_LOGGER.debug("COMMITS : %s" % [commit.hex for commit in commits])
+        TEST_LOGGER.debug("COMMIT SET: %s" % [commit.hex for commit in commit_set])
+
+        self.assertListEqual(commits, commit_set)
 
 
     # TODO test commit_sets of solutions that are branched out from another solution branch
