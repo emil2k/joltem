@@ -168,6 +168,30 @@ class SolutionTestCase(RepositoryTestCase):
         self.emil_signature = get_mock_signature(self.emil.first_name, self.emil.email)
         self.solution = get_mock_solution(self.project, self.emil)  # a suggested solution
 
+    def test_reference(self):
+        self.assertEqual(self.solution.get_reference(), 'refs/heads/s/%d' % self.solution.id)
+
+    def test_parent_reference_through_task(self):
+        self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/master') # default solution is a suggested solution
+        # Add it to a task to a root task
+        task = get_mock_task(self.project, get_mock_user('jill'))
+        self.solution.task = task
+        self.solution.save()
+        self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/master') # still should default to master because branching from a root task
+        # Add a parent solution for the parent task
+        parent_solution = get_mock_solution(self.project, get_mock_user('zack'))
+        task.parent = parent_solution
+        task.save()
+        self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/s/%d' % parent_solution.id) # now it should be the parent solution
+
+    def test_parent_reference_through_solution(self):
+        self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/master') # default solution is a suggested solution
+        # Add a parent solution
+        parent_solution = get_mock_solution(self.project, get_mock_user('zack'))
+        self.solution.solution = parent_solution
+        self.solution.save()
+        self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/s/%d' % parent_solution.id) # now it should be the parent solution
+
     # TODO make some solution commit_set property that returns an iterable of commits for a solution then test it here for order
     # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
 
@@ -228,7 +252,6 @@ class SolutionTestCase(RepositoryTestCase):
         TEST_LOGGER.debug("COMMIT SET: %s" % [commit.hex for commit in commit_set])
 
         self.assertListEqual(solution_commits, commit_set)
-
 
     # TODO test commit_sets of solutions that are branched out from another solution branch
     # TODO test commit_sets of solution that are branched from closed or completed solutions

@@ -255,7 +255,7 @@ class Solution(Voteable):
         """
         Returns whether passed user has commented on the solution
         """
-        # todo write tests for this function
+        # todo write a test for this function
         return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
 
     # Git related
@@ -264,7 +264,6 @@ class Solution(Voteable):
         """
         Get the parent reference, this solution branch should have been checked out from here
         """
-        # todo write tests for this function
         from git.utils import get_branch_reference
         if self.task and self.task.parent:
             return self.task.parent.get_reference()
