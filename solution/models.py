@@ -255,22 +255,42 @@ class Solution(Voteable):
         """
         Returns whether passed user has commented on the solution
         """
+        # todo write tests for this function
         return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
 
     # Git related
 
-    def get_reference_name(self):
-        # TODO write tests and doc for this function
-        return "refs/heads/s/%d" % self.id
+    def get_parent_reference(self):
+        """
+        Get the parent reference, this solution branch should have been checked out from here
+        """
+        # todo write tests for this function
+        from git.utils import get_branch_reference
+        if self.task and self.task.parent:
+            return self.task.parent.get_reference()
+        elif self.solution:
+            return self.solution.get_reference()
+        else:
+            return get_branch_reference('master')  # default to master
+
+    def get_parent_pygit_branch(self, pygit_repository):
+        """
+        Get pygit2 Branch object for this solution's parent branch on the given repository (pygit object), if it is in repository
+        """
+        # TODO write tests for this function
+        return pygit_repository.lookup_reference(self.get_parent_reference())
+
+    def get_reference(self):
+        from git.utils import get_branch_reference
+        return get_branch_reference("s/%d" % self.id)
 
     def get_pygit_branch(self, pygit_repository):
         """
-        Get pygit2 Branch object for given repository (pygit object), if it is in repository
+        Get pygit2 Branch object for this solution on the given repository (pygit object), if it is in repository
         """
         # TODO write tests for this function
-        return pygit_repository.lookup_reference(self.get_reference_name())
+        return pygit_repository.lookup_reference(self.get_reference())
 
-    # TODO find appropriate parent branch, can it change based on completion?
     def get_commit_set(self, pygit_repository):
         """
         Returns a list of commits for this solution the passed repository (pygit object),
@@ -278,14 +298,15 @@ class Solution(Voteable):
 
         Commits are represented by pygit2 Commit objects.
         """
+        # todo write some more tests
         from pygit2 import GIT_SORT_TOPOLOGICAL
-        # TODO find start commit oid
-        start_commit_oid = self.get_pygit_branch(pygit_repository).resolve().target
-        # TODO find end_commit_oid, merge_base_oid
+        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
+        merge_base_oid = pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
         commits = []
-        for commit in pygit_repository.walk(start_commit_oid, GIT_SORT_TOPOLOGICAL):
-            # if end_commit_oid and c.hex == end_commit_oid.hex:
-            #     break
+        for commit in pygit_repository.walk(solution_branch_oid, GIT_SORT_TOPOLOGICAL):
+            if commit.hex == merge_base_oid.hex:
+                break  # reached merge base
             commits.append(commit.oid)
         return commits
 
@@ -294,7 +315,7 @@ class Comment(Voteable):
     """
     Comments in a solution review
     """
-    # TODO make comments more generic
+    # TODO make comments more generic, with a commentable base class
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
