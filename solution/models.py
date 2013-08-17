@@ -274,7 +274,8 @@ class Solution(Voteable):
 
     def get_parent_pygit_branch(self, pygit_repository):
         """
-        Get pygit2 Branch object for this solution's parent branch on the given repository (pygit object), if it is in repository
+        Get pygit2 Branch object for this solution's parent branch on the
+        given repository (pygit object), if it is in repository
         Returns symbolic reference, need to resolve()
         """
         return pygit_repository.lookup_reference(self.get_parent_reference())
@@ -290,23 +291,50 @@ class Solution(Voteable):
         """
         return pygit_repository.lookup_reference(self.get_reference())
 
+    def get_pygit_solution_range(self, pygit_repository):
+        """
+        Returns pygit2 Oid objects representing the start and end commits for the branch
+        Returned first is the start commit Oid, returned second is the end commit Oid representing the merge base
+        """
+        # todo write test for this function
+        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
+        return solution_branch_oid, pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+
+    def get_pygit_merge_base(self, pygit_repository):
+        """
+        Gets pygit2 Oid of merge base, of the solution branch and it's parent branch from which it should
+        """
+        # todo write a test for this
+        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
+        return pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+
     def get_commit_set(self, pygit_repository):
         """
-        Returns a list of commits for this solution the passed repository (pygit object),
+        Returns a list of commits for this solution the passed repository (pygit2 object),
         by walking from appropriate parent branch's merge base.
 
         Commits are represented by pygit2 Commit objects.
         """
         from pygit2 import GIT_SORT_TOPOLOGICAL
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
-        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
-        merge_base_oid = pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+        merge_base_oid = self.get_pygit_merge_base(pygit_repository)
         commits = []
         for commit in pygit_repository.walk(solution_branch_oid, GIT_SORT_TOPOLOGICAL):
             if commit.hex == merge_base_oid.hex:
                 break  # reached merge base
             commits.append(commit.oid)
         return commits
+
+    def get_pygit_diff(self, pygit_repository):
+        """
+        Get pygit2 Diff object for the changes done by the solution
+        """
+        # todo write tests
+        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        merge_base_oid = self.get_pygit_merge_base(pygit_repository)
+        return pygit_repository.diff(merge_base_oid, solution_branch_oid)
 
 
 class Comment(Voteable):

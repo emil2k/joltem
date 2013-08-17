@@ -119,6 +119,9 @@ class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
         self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
 
 
+# TODO create a mock commit
+# TODO create a mock branch
+
 class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     """
@@ -262,4 +265,3 @@ class SolutionTestCase(RepositoryTestCase):
     # TODO test commit_sets of solution that are branched from closed or completed solutions
     # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
     # TODO test merging from one solution branch to another to check if commit_set remains valid
-
