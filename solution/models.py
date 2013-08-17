@@ -294,47 +294,50 @@ class Solution(Voteable):
     def get_pygit_solution_range(self, pygit_repository):
         """
         Returns pygit2 Oid objects representing the start and end commits for the branch
-        Returned first is the start commit Oid, returned second is the end commit Oid representing the merge base
+        Returned first is the solution commit, returned second is the end commit representing the merge base
         """
-        # todo write test for this function
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
         parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
-        return solution_branch_oid, pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+        merge_base_oid = pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+        return solution_branch_oid, merge_base_oid  # return Oid objects
 
     def get_pygit_merge_base(self, pygit_repository):
         """
         Gets pygit2 Oid of merge base, of the solution branch and it's parent branch from which it should
         """
-        # todo write a test for this
-        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
-        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
-        return pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
+        return merge_base_oid
 
-    def get_commit_set(self, pygit_repository):
+    def get_commit_oid_set(self, pygit_repository):
         """
         Returns a list of commits for this solution the passed repository (pygit2 object),
         by walking from appropriate parent branch's merge base.
 
-        Commits are represented by pygit2 Commit objects.
+        Commits are represented by pygit2 Oid objects.
         """
+        # TODO test when there is no commits
         from pygit2 import GIT_SORT_TOPOLOGICAL
-        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
-        merge_base_oid = self.get_pygit_merge_base(pygit_repository)
+        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
         commits = []
         for commit in pygit_repository.walk(solution_branch_oid, GIT_SORT_TOPOLOGICAL):
             if commit.hex == merge_base_oid.hex:
                 break  # reached merge base
             commits.append(commit.oid)
-        return commits
+        return commits  # todo return commit items
+
+    def get_commit_set(self, pygit_repository):
+        """
+        Returns a list of commits represented by pygit2 Commit objects
+        """
+        return (pygit_repository[oid] for oid in self.get_commit_oid_set(pygit_repository))
 
     def get_pygit_diff(self, pygit_repository):
         """
         Get pygit2 Diff object for the changes done by the solution
         """
         # todo write tests
-        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
-        merge_base_oid = self.get_pygit_merge_base(pygit_repository)
-        return pygit_repository.diff(merge_base_oid, solution_branch_oid)
+        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
+        return pygit_repository.diff(pygit_repository[merge_base_oid], pygit_repository[solution_branch_oid])
 
 
 class Comment(Voteable):

@@ -1,9 +1,5 @@
 {% extends 'solution/base.html' %}
 {% block solution_content %}
-    <div class="alert alert">
-        <strong>To do : </strong>
-        a page to see all worked performed in the solution, view patches ....
-    </div>
     <div class="row">
         <div class="span2">
             <ul class="nav nav-list well">
@@ -13,8 +9,9 @@
                 {% endfor %}
             </ul>
         </div>
-        <div class="span8">
+        <div class="span10">
             <h4>{{ repository.full_name }}</h4>
+            <h5>Commits</h5>
             {% for commit in commits %}
                 <p>
                     {{ commit.message }} by {{ commit.author.name }}<br/>
@@ -22,6 +19,38 @@
                 </p>
             {% empty %}
                 <p class="muted">No commits on this repo for this particular solution.</p>
+            {% endfor %}
+            <h5>Difference</h5>
+            {% for patch in diff %}
+                <p><i class="icon-file"></i> {{ patch.new_file_path }} <span class="muted">({{ patch.old_file_path }})</span></p>
+                {% for hunk in patch.hunks %}
+                    <p>
+                        <strong>old</strong> : start : {{ hunk.old_start }} : lines : {{ hunk.old_lines }} ~ 
+                        <strong>new</strong> : start : {{ hunk.new_start }} : lines : {{ hunk.new_lines }}
+                    </p>
+                    <table class="table table-bordered table-hover table-condensed">
+                        {% for act, line in hunk.lines %}
+                            <tr>
+                                <td style="text-align: center; width: 30px;">
+                                    {% if forloop.counter0 < hunk.old_lines %}
+                                        {{ forloop.counter0|add:hunk.old_start }}
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: center; width: 30px;">{{ forloop.counter0|add:hunk.new_start }}</td>
+                                <td style="text-align: center; width: 30px;">{{ act }}</td>
+                                <td>{{ line }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" class="muted">No lines for this hunk.</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% empty %}
+                    <p class="muted">No hunks for this patch.</p>
+                {% endfor %}
+            {% empty %}
+                <p class="muted">No patches on this repo for this particular solution.</p>
             {% endfor %}
         </div>
     </div>

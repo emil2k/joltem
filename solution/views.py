@@ -303,36 +303,7 @@ def commits(request, project_name, solution_id, repository_name):
     else:
         repository = repository_set[0]  # load the default active repository
 
-    from pygit2 import Repository as GitRepository, GIT_SORT_TOPOLOGICAL
-    git_repo = GitRepository(repository.absolute_path)
-
-    # TODO find merge base
-
-    commits = []
-    if not git_repo.is_empty:
-        try:
-            logger.info("Find master OID.")
-
-            master_ref = git_repo.lookup_reference('refs/heads/master')
-            logger.info("MASTER REF : %s" % master_ref.target.hex)
-
-            solution_ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
-            logger.info("SOLUTION REF : %s" % solution_ref.target.hex)
-
-            merge_base_oid = git_repo.merge_base(master_ref.target, solution_ref.target)
-            logger.info("MERGE BASE REF : %s" % merge_base_oid.hex)
-
-        except KeyError:
-            commits = None
-        else:
-            for commit in git_repo.walk(solution_ref.target.hex, GIT_SORT_TOPOLOGICAL):
-                if commit.hex == merge_base_oid.hex:
-                    logger.info("*** END : %s == %s" % (commit.hex, merge_base_oid.hex))
-                    break
-                commits.append(commit)
-
-    ######## ~~~
-
+    pygit_repository = repository.load_pygit_object()
 
     context = {
         'user': request.user,
@@ -340,9 +311,16 @@ def commits(request, project_name, solution_id, repository_name):
         'solution_tab': "commits",
         'solution': solution,
         'repository': repository,
-        'repositories': repository_set,
-        'commits': commits,
+        'repositories': repository_set
     }
+
+    try:
+        context['commits'] = solution.get_commit_set(pygit_repository)
+        context['diff'] = solution.get_pygit_diff(pygit_repository)
+    except KeyError:
+        context['commits'] = []
+        context['diff'] = []
+
     return render(request, 'solution/commits.html', context)
 
 

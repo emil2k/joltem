@@ -211,6 +211,7 @@ class SolutionTestCase(RepositoryTestCase):
         )
         debug_branches(self.pygit_repository)
         parent_oid = commit_oid  # to test get_parent_pygit_branch
+        merge_base_oid = commit_oid
 
         solution_commits = []
         # Now make a commit to the solution branch
@@ -252,9 +253,15 @@ class SolutionTestCase(RepositoryTestCase):
         self.assertEqual(self.solution.get_pygit_branch(self.pygit_repository).resolve().target, solution_oid)
         self.assertEqual(self.solution.get_parent_pygit_branch(self.pygit_repository).resolve().target, parent_oid)
 
+        # Test pygit Oids
+        range_solution_oid, range_merge_base_oid = self.solution.get_pygit_solution_range(self.pygit_repository)
+        self.assertEqual(range_solution_oid, solution_oid)
+        self.assertEqual(range_merge_base_oid, merge_base_oid)
+        self.assertEqual(self.solution.get_pygit_merge_base(self.pygit_repository), merge_base_oid)
+
         # Now compare to expectations
         solution_commits.reverse()
-        commit_set = self.solution.get_commit_set(self.pygit_repository)
+        commit_set = self.solution.get_commit_oid_set(self.pygit_repository)
 
         TEST_LOGGER.debug("SOLUTION COMMITS : %s" % [commit.hex for commit in solution_commits])
         TEST_LOGGER.debug("COMMIT SET: %s" % [commit.hex for commit in commit_set])
