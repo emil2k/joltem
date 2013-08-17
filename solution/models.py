@@ -329,15 +329,17 @@ class Solution(Voteable):
         """
         Returns a list of commits represented by pygit2 Commit objects
         """
-        return (pygit_repository[oid] for oid in self.get_commit_oid_set(pygit_repository))
+        from git.holders import CommitHolder
+        return (CommitHolder(pygit_repository[oid]) for oid in self.get_commit_oid_set(pygit_repository))
 
     def get_pygit_diff(self, pygit_repository):
         """
         Get pygit2 Diff object for the changes done by the solution
         """
         # todo write tests
+        from git.holders import DiffHolder
         solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
-        return pygit_repository.diff(pygit_repository[merge_base_oid], pygit_repository[solution_branch_oid])
+        return DiffHolder(pygit_repository.diff(pygit_repository[merge_base_oid], pygit_repository[solution_branch_oid]))
 
 
 class Comment(Voteable):
