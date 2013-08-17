@@ -275,8 +275,8 @@ class Solution(Voteable):
     def get_parent_pygit_branch(self, pygit_repository):
         """
         Get pygit2 Branch object for this solution's parent branch on the given repository (pygit object), if it is in repository
+        Returns symbolic reference, need to resolve()
         """
-        # TODO write tests for this function
         return pygit_repository.lookup_reference(self.get_parent_reference())
 
     def get_reference(self):
@@ -286,8 +286,8 @@ class Solution(Voteable):
     def get_pygit_branch(self, pygit_repository):
         """
         Get pygit2 Branch object for this solution on the given repository (pygit object), if it is in repository
+        Returns symbolic reference, need to resolve()
         """
-        # TODO write tests for this function
         return pygit_repository.lookup_reference(self.get_reference())
 
     def get_commit_set(self, pygit_repository):
@@ -297,7 +297,6 @@ class Solution(Voteable):
 
         Commits are represented by pygit2 Commit objects.
         """
-        # todo write some more tests
         from pygit2 import GIT_SORT_TOPOLOGICAL
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
         parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target

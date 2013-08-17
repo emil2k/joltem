@@ -192,7 +192,6 @@ class SolutionTestCase(RepositoryTestCase):
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/s/%d' % parent_solution.id) # now it should be the parent solution
 
-    # TODO make some solution commit_set property that returns an iterable of commits for a solution then test it here for order
     # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
 
     def test_solution_commits(self):
@@ -208,6 +207,7 @@ class SolutionTestCase(RepositoryTestCase):
             []  # no parents initial commit
         )
         debug_branches(self.pygit_repository)
+        parent_oid = commit_oid  # to test get_parent_pygit_branch
 
         solution_commits = []
         # Now make a commit to the solution branch
@@ -240,9 +240,14 @@ class SolutionTestCase(RepositoryTestCase):
         )
         debug_branches(self.pygit_repository)
         solution_commits.append(commit_oid)
+        solution_oid = commit_oid  # to test get_pygit_branch
 
         # Walk through commits
         debug_commits(self.pygit_repository, commit_oid)
+
+        # Test get pygit branch methods
+        self.assertEqual(self.solution.get_pygit_branch(self.pygit_repository).resolve().target, solution_oid)
+        self.assertEqual(self.solution.get_parent_pygit_branch(self.pygit_repository).resolve().target, parent_oid)
 
         # Now compare to expectations
         solution_commits.reverse()
