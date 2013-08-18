@@ -280,9 +280,12 @@ class Solution(Voteable):
         """
         return pygit_repository.lookup_reference(self.get_parent_reference())
 
+    def get_branch_name(self):
+        return "s/%d" % self.id
+
     def get_reference(self):
         from git.utils import get_branch_reference
-        return get_branch_reference("s/%d" % self.id)
+        return get_branch_reference(self.get_branch_name())
 
     def get_pygit_branch(self, pygit_repository):
         """
@@ -296,9 +299,13 @@ class Solution(Voteable):
         Returns pygit2 Oid objects representing the start and end commits for the branch
         Returned first is the solution commit, returned second is the end commit representing the merge base
         """
+        logger.info("** GET PYGIT RANGE")
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
         parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
+        logger.info("*** SOLUTION HEX : %s" % solution_branch_oid.hex)
+        logger.info("*** PARENT HEX : %s" % parent_branch_oid.hex)
         merge_base_oid = pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
+        logger.info("*** MERGE HEX : %s" % merge_base_oid.hex)
         return solution_branch_oid, merge_base_oid  # return Oid objects
 
     def get_pygit_merge_base(self, pygit_repository):

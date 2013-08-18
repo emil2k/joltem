@@ -66,6 +66,26 @@ def put_mock_file(name, data, repository, tree=None):
     return tree_oid
 
 
+def make_mock_commit(pygit_repository, signature, branch_name, parents):
+    """
+    Makes a mock commit and returns, commit Oid
+    """
+    from git.utils import get_branch_reference
+    from datetime import datetime
+    datetime_string = datetime.now().strftime("%X on %x")
+    import uuid
+    tree_oid = put_mock_file("test.txt", "Line added at %s.\n%s" % (datetime_string, uuid.uuid4()), pygit_repository)
+    commit_oid = get_mock_commit(
+        pygit_repository,
+        tree_oid,
+        signature,
+        get_branch_reference(branch_name),
+        "Mock commit to `%s` at %s." % (branch_name, datetime_string),
+        parents
+    )
+    return commit_oid
+
+
 # Debugging helpers
 
 def debug_branches(repository):
@@ -119,9 +139,6 @@ class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
         self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
 
 
-# TODO create a mock commit
-# TODO create a mock branch
-
 class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     """
@@ -171,6 +188,33 @@ class SolutionTestCase(RepositoryTestCase):
         self.emil_signature = get_mock_signature(self.emil.first_name, self.emil.email)
         self.solution = get_mock_solution(self.project, self.emil)  # a suggested solution
 
+    # Custom assertions
+
+    def assertCommitRangeEqual(self, solution_oid, merge_base_oid):
+        """
+        Assert that commit range of solution matches expectations
+        """
+        range_solution_oid, range_merge_base_oid = self.solution.get_pygit_solution_range(self.pygit_repository)
+        try:
+            self.assertEqual(range_merge_base_oid, merge_base_oid)
+        except AssertionError:
+            TEST_LOGGER.error("Merge bases don't match, actual %s != %s"
+                              % (range_merge_base_oid.hex, merge_base_oid.hex))
+            raise
+        self.assertEqual(range_solution_oid, solution_oid)
+        self.assertEqual(self.solution.get_pygit_merge_base(self.pygit_repository), merge_base_oid)
+
+    def assertCommitOidSetEqual(self, expected_commit_oid_set):
+        """
+        Assert two commit set matches expectations, prints out some debugging info.
+        """
+        commit_oid_set = self.solution.get_commit_oid_set(self.pygit_repository)
+        TEST_LOGGER.debug("EXPECTED OID SET : %s" % [commit.hex for commit in expected_commit_oid_set])
+        TEST_LOGGER.debug("ACTUAL OID SET: %s" % [commit.hex for commit in commit_oid_set])
+        self.assertListEqual(expected_commit_oid_set, commit_oid_set)
+
+    # Tests
+
     def test_reference(self):
         self.assertEqual(self.solution.get_reference(), 'refs/heads/s/%d' % self.solution.id)
 
@@ -198,50 +242,20 @@ class SolutionTestCase(RepositoryTestCase):
     # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
 
     def test_solution_commits(self):
-        from git.utils import get_branch_reference
         # Make initial commit to master
-        tree_oid = put_mock_file("test_blob.txt", "This is a test file.", self.pygit_repository)
-        commit_oid = get_mock_commit(
-            self.pygit_repository,
-            tree_oid,
-            self.emil_signature,
-            get_branch_reference('master'),
-            "Initial commit to master.",
-            []  # no parents initial commit
-        )
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])
         debug_branches(self.pygit_repository)
         parent_oid = commit_oid  # to test get_parent_pygit_branch
         merge_base_oid = commit_oid
 
         solution_commits = []
         # Now make a commit to the solution branch
-        tree_oid = put_mock_file("test_blob_2.txt", "This is a test blob.\nWith another file.", self.pygit_repository, tree_oid)
-        commit_oid = get_mock_commit(
-            self.pygit_repository,
-            tree_oid,
-            self.emil_signature,
-            get_branch_reference('s/%d' % self.solution.id),
-            "First commit to solution branch.",
-            [commit_oid]
-        )
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
         debug_branches(self.pygit_repository)
         solution_commits.append(commit_oid)
 
         # Now modify the file again
-        tree_oid = put_mock_file(
-            "test_blob_2.txt",
-            "This is a test blob.\nWith another file.\nIt's me ... again.",
-            self.pygit_repository,
-            tree_oid
-        )
-        commit_oid = get_mock_commit(
-            self.pygit_repository,
-            tree_oid,
-            self.emil_signature,
-            get_branch_reference('s/%d' % self.solution.id),
-            "Modified file on solution branch.",
-            [commit_oid]
-        )
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
         debug_branches(self.pygit_repository)
         solution_commits.append(commit_oid)
         solution_oid = commit_oid  # to test get_pygit_branch
@@ -253,22 +267,52 @@ class SolutionTestCase(RepositoryTestCase):
         self.assertEqual(self.solution.get_pygit_branch(self.pygit_repository).resolve().target, solution_oid)
         self.assertEqual(self.solution.get_parent_pygit_branch(self.pygit_repository).resolve().target, parent_oid)
 
-        # Test pygit Oids
-        range_solution_oid, range_merge_base_oid = self.solution.get_pygit_solution_range(self.pygit_repository)
-        self.assertEqual(range_solution_oid, solution_oid)
-        self.assertEqual(range_merge_base_oid, merge_base_oid)
-        self.assertEqual(self.solution.get_pygit_merge_base(self.pygit_repository), merge_base_oid)
+        # Test commit range
+        self.assertCommitRangeEqual(solution_oid, merge_base_oid)
 
         # Now compare to expectations
         solution_commits.reverse()
-        commit_set = self.solution.get_commit_oid_set(self.pygit_repository)
+        self.assertCommitOidSetEqual(solution_commits)
 
-        TEST_LOGGER.debug("SOLUTION COMMITS : %s" % [commit.hex for commit in solution_commits])
-        TEST_LOGGER.debug("COMMIT SET: %s" % [commit.hex for commit in commit_set])
+    # TODO test merging from one solution branch to another to check if commit_set remains valid, right now merged solutions don't show a commit set
 
-        self.assertListEqual(solution_commits, commit_set)
+    def test_merged_solution_commits(self):
+        """
+        Make some commits solution branch the merge it in and test commit set is still fine
+        """
+
+        # Commits to master
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [commit_oid])  # another commit
+        merge_base_oid = commit_oid
+
+        # Commits to solution branch
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        solution_oid = commit_oid
+
+        # Merge solution branch into master
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [merge_base_oid, solution_oid])
+
+        # Test range, todo this is failing at the moment
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitRangeEqual(solution_oid, merge_base_oid)
+
+        # Add on commit
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [commit_oid])
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [commit_oid])
+
+        # Test range again
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitRangeEqual(solution_oid, merge_base_oid)
+
+
+
+
+
 
     # TODO test commit_sets of solutions that are branched out from another solution branch
     # TODO test commit_sets of solution that are branched from closed or completed solutions
     # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
-    # TODO test merging from one solution branch to another to check if commit_set remains valid
