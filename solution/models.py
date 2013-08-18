@@ -297,23 +297,24 @@ class Solution(Voteable):
     def get_pygit_solution_range(self, pygit_repository):
         """
         Returns pygit2 Oid objects representing the start and end commits for the branch
-        Returned first is the solution commit, returned second is the end commit representing the merge base
+        Returned first is the solution commit, returned second is the end commit representing the checkout point
         """
+        from git.utils import get_checkout_oid
         logger.info("** GET PYGIT RANGE")
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
         parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
         logger.info("*** SOLUTION HEX : %s" % solution_branch_oid.hex)
         logger.info("*** PARENT HEX : %s" % parent_branch_oid.hex)
-        merge_base_oid = pygit_repository.merge_base(solution_branch_oid, parent_branch_oid)
-        logger.info("*** MERGE HEX : %s" % merge_base_oid.hex)
-        return solution_branch_oid, merge_base_oid  # return Oid objects
+        checkout_oid = get_checkout_oid(pygit_repository, solution_branch_oid, parent_branch_oid)
+        logger.info("*** CHECKOUT HEX : %s" % checkout_oid.hex)
+        return solution_branch_oid, checkout_oid  # return Oid objects
 
-    def get_pygit_merge_base(self, pygit_repository):
+    def get_pygit_checkout(self, pygit_repository):
         """
         Gets pygit2 Oid of merge base, of the solution branch and it's parent branch from which it should
         """
-        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
-        return merge_base_oid
+        solution_branch_oid, range_checkout_oid = self.get_pygit_solution_range(pygit_repository)
+        return range_checkout_oid
 
     def get_commit_oid_set(self, pygit_repository):
         """
@@ -322,15 +323,15 @@ class Solution(Voteable):
 
         Commits are represented by pygit2 Oid objects.
         """
-        # TODO test when there is no commits
+        # TODO test when solution branch has not been pushed yet
         from pygit2 import GIT_SORT_TOPOLOGICAL
-        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
+        solution_branch_oid, checkout_oid = self.get_pygit_solution_range(pygit_repository)
         commits = []
         for commit in pygit_repository.walk(solution_branch_oid, GIT_SORT_TOPOLOGICAL):
-            if commit.hex == merge_base_oid.hex:
+            if commit.hex == checkout_oid.hex:
                 break  # reached merge base
             commits.append(commit.oid)
-        return commits  # todo return commit items
+        return commits
 
     def get_commit_set(self, pygit_repository):
         """
@@ -345,8 +346,8 @@ class Solution(Voteable):
         """
         # todo write tests
         from git.holders import DiffHolder
-        solution_branch_oid, merge_base_oid = self.get_pygit_solution_range(pygit_repository)
-        return DiffHolder(pygit_repository.diff(pygit_repository[merge_base_oid], pygit_repository[solution_branch_oid]))
+        solution_branch_oid, checkout_oid = self.get_pygit_solution_range(pygit_repository)
+        return DiffHolder(pygit_repository.diff(pygit_repository[checkout_oid], pygit_repository[solution_branch_oid]))
 
 
 class Comment(Voteable):
