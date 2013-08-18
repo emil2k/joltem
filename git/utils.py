@@ -10,6 +10,7 @@ def walk_branch(pygit_repository, branch_oid):
     """
     Walk a single branch
     """
+    # todo make tests
     from pygit2 import GIT_SORT_TOPOLOGICAL
     previous_first_parent_oid = None
     for commit in pygit_repository.walk(branch_oid, GIT_SORT_TOPOLOGICAL):
@@ -22,17 +23,14 @@ def get_checkout_oid(pygit_repository, topic_branch_oid, parent_branch_oid):
     """
     Get the Oid for the initial commit a topic branch was checked out from a parent branch
     """
-    from git.tests import TEST_LOGGER
     topic_commit_oids = (c.oid for c in walk_branch(pygit_repository, topic_branch_oid))
     parent_commit_oids = [c.oid for c in walk_branch(pygit_repository, parent_branch_oid)]
 
     checkout_id = None
     previous_in_parent = False
     for commit_oid in topic_commit_oids:
-        TEST_LOGGER.debug("TOPIC COMMIT : %s" % commit_oid.hex)
         in_parent = commit_oid in parent_commit_oids
         if not previous_in_parent and in_parent:
-            TEST_LOGGER.debug("CHECKOUT COMMIT : %s" % commit_oid.hex)
             checkout_id = commit_oid
         previous_in_parent = in_parent
 

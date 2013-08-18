@@ -330,6 +330,7 @@ class SolutionTestCase(RepositoryTestCase):
         """
         Test for utility function get_initial_checkout_oid()
         """
+        from git.utils import get_checkout_oid
         # Commits to master
         parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
         parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
@@ -349,12 +350,66 @@ class SolutionTestCase(RepositoryTestCase):
 
         debug_commits(self.pygit_repository, topic_oid)
 
-        from git.utils import get_checkout_oid
         self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
+    def test_get_initial_checkout_oid_merge_to_topic(self):
+        """
+        Test for utility function get_initial_checkout_oid(), with a merge from parent branch to topic branch
+        """
+        from git.utils import get_checkout_oid
+        # Commits to master
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
 
+        # Checkout topic
+        checkout_oid = parent_oid
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
 
+        # Make some commits on master
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
 
+        # Merge master commits to topic branch
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid, parent_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+
+        debug_commits(self.pygit_repository, topic_oid)
+        debug_commits(self.pygit_repository, parent_oid)
+
+        self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
+
+    def test_get_initial_checkout_oid_merge(self):
+        """
+        Test for utility function get_initial_checkout_oid(), where topic branch is merged into parent branch
+        """
+        from git.utils import get_checkout_oid
+        # Commits to master
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
+
+        # Checkout topic
+        checkout_oid = parent_oid
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+
+        # Merge topic into parent branch
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid, topic_oid])
+
+        debug_commits(self.pygit_repository, topic_oid)
+        debug_commits(self.pygit_repository, parent_oid)
+
+        self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
+
+        # Now make some more commits on parent branch and check
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+
+        debug_commits(self.pygit_repository, topic_oid)
+        debug_commits(self.pygit_repository, parent_oid)
+
+        self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
     # TODO test commit_sets of solutions that are branched out from another solution branch
     # TODO test commit_sets of solution that are branched from closed or completed solutions
