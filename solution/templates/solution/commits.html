@@ -12,43 +12,37 @@
         <div class="span10">
             <h4>{{ repository.full_name }}</h4>
             {% for commit in commits %}
-                <div class="row">
-                    <div class="span1 text-center">
-                        <strong>{{ commit.author }}</strong>
-                    </div>
-                    <div class="span9">
-                        <p>
-                            <small class="muted">{{ commit.time_committed|date }} @ {{ commit.time_committed|time }}</small><br/>
-                            {{ commit.message }}<br/>
-                            <small class="text-info">{{ commit.hex }}</small>
-                        </p>
-                    </div>
-                </div>
+                <p>
+                    <small class="muted">{{ commit.time_committed|date }} @ {{ commit.time_committed|time }} by {{ commit.author }}</small><br/>
+                    {{ commit.message }}<br/>
+                    <small class="text-info">{{ commit.hex }}</small>
+                </p>
             {% empty %}
                 <p class="muted">No commits on this repo for this particular solution.</p>
             {% endfor %}
             <h5>Difference</h5>
             {% for patch in diff %}
-                <p><i class="icon-file"></i> {{ patch.new_file_path }} <span class="muted">({{ patch.old_file_path }})</span></p>
+                <p>
+                    <i class="icon-file"></i> {{ patch.new_file_path }}
+                    {% if patch.old_file_path != patch.new_file_path %}
+                        <span class="muted">( renamed from : {{ patch.old_file_path }})</span>
+                    {% endif %}
+                </p>
                 {% for hunk in patch %}
-                    <p>
-                        <strong>old</strong> : start : {{ hunk.old_start }} : lines : {{ hunk.old_line_count }} ~
-                        <strong>new</strong> : start : {{ hunk.new_start }} : lines : {{ hunk.new_line_count }}
-                    </p>
                     <table class="table table-bordered table-hover table-condensed">
                         {% for line in hunk %}
-                            <tr class="{% if line.is_addition %}success{% elif line.is_deletion %}error{% endif %}">
-                                <td style="text-align: center; width: 30px;">
+                            <tr class="{% if line.is_addition %}addition{% elif line.is_deletion %}deletion{% endif %}">
+                                <td class="line_number">
                                     {% if line.old_line_number %}
                                         {{ line.old_line_number }}
                                     {% endif %}
                                 </td>
-                                <td style="text-align: center; width: 30px;">
+                                <td class="line_number">
                                     {% if line.new_line_number %}
                                         {{ line.new_line_number }}
                                     {% endif %}
                                 </td>
-                                <td style="white-space: pre-wrap;">{{ line.line }}</td>
+                                <td class="code">{{ line.line }}</td>
                             </tr>
                         {% empty %}
                             <tr>

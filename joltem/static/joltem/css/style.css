@@ -1,0 +1,29 @@
+/*
+    Difference viewing styles
+*/
+
+tr.addition {
+    background-color: #d1ffc5;
+    color: #000000;
+}
+
+tr.deletion {
+    background-color: #ffaa93;
+    color: #000000;
+}
+
+td.code {
+    white-space: pre-wrap;
+    font-size: 0.9em;
+    color: #646464;
+}
+
+td.line_number {
+    width: 2em;
+    text-align: center;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #646464;
+    text-shadow: 0.1em 0.1em 0.01em #ccc;
+    background-color: #eeeeee;
+}
