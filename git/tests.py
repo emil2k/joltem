@@ -103,10 +103,11 @@ def debug_commits(repository, start_commit_oid, end_commit_oid=None):
     """
     Outputs all commits in given range for debugging, with the latest commits first
     """
-    from pygit2 import GIT_SORT_TOPOLOGICAL
+    from git.utils import walk_branch
     TEST_LOGGER.debug("\nDEBUG COMMITS for %s" % repository.path)
-    for c in repository.walk(start_commit_oid, GIT_SORT_TOPOLOGICAL):
-        TEST_LOGGER.debug("COMMIT : %s - %s by %s @ %s - parents %d" % (c.hex, c.message, c.author.name, c.commit_time, len(c.parents)))
+    for c in walk_branch(repository, start_commit_oid):
+        TEST_LOGGER.debug("COMMIT : %s - %s by %s - parents - %s"
+                          % (c.hex[:6], c.message, c.author.name, [p.hex[:6] for p in c.parents]))
         if end_commit_oid and c.hex == end_commit_oid.hex:
             TEST_LOGGER.debug("END COMMIT.")
             break
@@ -190,19 +191,20 @@ class SolutionTestCase(RepositoryTestCase):
 
     # Custom assertions
 
+    def assertOidEqual(self, actual, expected):
+        """
+        Assert that Oid mathes, expectation, method alters debugging messages to include Oid.hex
+        """
+        self.assertEqual(actual, expected, "Oids don't match : %s != %s" % (actual.hex, expected.hex))
+
     def assertCommitRangeEqual(self, solution_oid, merge_base_oid):
         """
         Assert that commit range of solution matches expectations
         """
         range_solution_oid, range_merge_base_oid = self.solution.get_pygit_solution_range(self.pygit_repository)
-        try:
-            self.assertEqual(range_merge_base_oid, merge_base_oid)
-        except AssertionError:
-            TEST_LOGGER.error("Merge bases don't match, actual %s != %s"
-                              % (range_merge_base_oid.hex, merge_base_oid.hex))
-            raise
-        self.assertEqual(range_solution_oid, solution_oid)
-        self.assertEqual(self.solution.get_pygit_merge_base(self.pygit_repository), merge_base_oid)
+        self.assertOidEqual(range_merge_base_oid, merge_base_oid)
+        self.assertOidEqual(range_solution_oid, solution_oid)
+        self.assertOidEqual(self.solution.get_pygit_merge_base(self.pygit_repository), merge_base_oid)
 
     def assertCommitOidSetEqual(self, expected_commit_oid_set):
         """
@@ -308,6 +310,47 @@ class SolutionTestCase(RepositoryTestCase):
         debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, merge_base_oid)
 
+    def test_get_initial_checkout_oid(self):
+        """
+        Test for utility function get_initial_checkout_oid()
+        """
+        # Commits to master
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
+        parent_oid = commit_oid
+        checkout_oid = commit_oid
+
+        # Commits to solution branch
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        topic_oid = commit_oid
+
+        from git.utils import get_checkout_oid
+        self.assertEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
+
+    def test_get_initial_checkout_oid_concurrent(self):
+        """
+        Test for utility function get_initial_checkout_oid()
+        """
+        # Commits to master
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+
+        checkout_oid = parent_oid
+
+        # Concurrent commits to both branches
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+
+        debug_commits(self.pygit_repository, topic_oid)
+
+        from git.utils import get_checkout_oid
+        self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
 
 
