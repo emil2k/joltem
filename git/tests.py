@@ -215,8 +215,13 @@ class SolutionTestCase(RepositoryTestCase):
         TEST_LOGGER.debug("ACTUAL OID SET: %s" % [commit.hex for commit in commit_oid_set])
         self.assertListEqual(expected_commit_oid_set, commit_oid_set)
 
-    # Tests
+# todo Diff tests
 
+
+class ReferenceTestCase(SolutionTestCase):
+    """
+    Tests regarding references
+    """
     def test_reference(self):
         self.assertEqual(self.solution.get_reference(), 'refs/heads/s/%d' % self.solution.id)
 
@@ -241,7 +246,15 @@ class SolutionTestCase(RepositoryTestCase):
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/s/%d' % parent_solution.id) # now it should be the parent solution
 
-    # TODO then make function that provides diff of solution and then run tests that check on the diff provided and the patches that it generates
+
+class CommitSetTestCase(SolutionTestCase):
+    """
+    Tests regarding commit sets
+    """
+    # TODO test commit_sets of solutions that are branched out from another solution branch
+    # TODO test commit_sets of solution that are branched from closed or completed solutions
+    # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
+    # TODO test merging from one solution branch to another to check if commit_set remains valid, right now merged solutions don't show a commit set
 
     def test_solution_commits(self):
         # Make initial commit to master
@@ -276,8 +289,6 @@ class SolutionTestCase(RepositoryTestCase):
         solution_commits.reverse()
         self.assertCommitOidSetEqual(solution_commits)
 
-    # TODO test merging from one solution branch to another to check if commit_set remains valid, right now merged solutions don't show a commit set
-
     def test_merged_solution_commits(self):
         """
         Make some commits solution branch the merge it in and test commit set is still fine
@@ -298,7 +309,7 @@ class SolutionTestCase(RepositoryTestCase):
         # Merge solution branch into master
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [checkout_oid, solution_oid])
 
-        # Test range, todo this is failing at the moment
+        # Test range
         debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
 
@@ -309,6 +320,13 @@ class SolutionTestCase(RepositoryTestCase):
         # Test range again
         debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
+        # todo assert commit set equal
+
+
+class CheckoutTestCase(SolutionTestCase):
+    """
+    Tests regarding finding initial checkout oid
+    """
 
     def test_get_initial_checkout_oid(self):
         """
@@ -411,6 +429,3 @@ class SolutionTestCase(RepositoryTestCase):
 
         self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
-    # TODO test commit_sets of solutions that are branched out from another solution branch
-    # TODO test commit_sets of solution that are branched from closed or completed solutions
-    # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
