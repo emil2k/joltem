@@ -258,6 +258,7 @@ class Solution(Voteable):
         # todo write a test for this function
         return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
 
+
     # Git related
 
     def get_parent_reference(self):

@@ -339,11 +339,27 @@ class SolutionListView(ProjectListView):
     def dispatch(self, request, *args, **kwargs):
         return super(SolutionListView, self).dispatch(request, *args, **kwargs)
 
+    def reviewed(self):
+        """
+        Generator for solutions that have been reviewed by requesting user
+        """
+        # todo test for this
+        solution_type = ContentType.objects.get_for_model(Solution)
+        for vote in self.user.vote_set.filter(voteable_type_id=solution_type.id).order_by('-time_voted'):
+            yield vote.voteable
+
+
     def get_queryset(self):
-        if self.solutions_tab == 'completed':
+        if self.solutions_tab == 'my_reviewed':
+            return (solution for solution in self.reviewed())
+        elif self.solutions_tab == 'my_incomplete':
+            return self.project.solution_set.filter(is_completed=False, user_id=self.user.id).order_by('-time_completed')
+        elif self.solutions_tab == 'my_complete':
+            return self.project.solution_set.filter(is_completed=True, user_id=self.user.id).order_by('-time_completed')
+        elif self.solutions_tab == 'all_incomplete':
+            return self.project.solution_set.filter(is_completed=False).order_by('-time_completed')
+        elif self.solutions_tab == 'all_complete':
             return self.project.solution_set.filter(is_completed=True).order_by('-time_completed')
-        elif self.solutions_tab == 'accepted':
-            return self.project.solution_set.filter(is_accepted=True).order_by('-time_accepted')
         else:
             return self.project.solution_set.all().order_by('-time_posted')
 
@@ -353,19 +369,31 @@ class SolutionListView(ProjectListView):
         return context
 
 
-def all():
+def my_reviewed():
     return SolutionListView.as_view(
-        solutions_tab='all'
+        solutions_tab='my_reviewed'
     )
 
 
-def accepted():
+def my_incomplete():
     return SolutionListView.as_view(
-        solutions_tab='accepted'
+        solutions_tab='my_incomplete'
     )
 
 
-def completed():
+def my_complete():
     return SolutionListView.as_view(
-        solutions_tab='completed'
+        solutions_tab='my_complete'
+    )
+
+
+def all_incomplete():
+    return SolutionListView.as_view(
+        solutions_tab='all_incomplete'
+    )
+
+
+def all_complete():
+    return SolutionListView.as_view(
+        solutions_tab='all_complete'
     )

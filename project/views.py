@@ -31,6 +31,7 @@ class ProjectListView(ListView, ArgumentsMixin):
         self.store_arguments(request, *args, **kwargs)
         project_name = kwargs.get('project_name')
         self.project = get_object_or_404(Project, name=project_name)
+        self.user = request.user
         self.is_admin = self.project.is_admin(request.user.id)
         return super(ProjectListView, self).dispatch(request, *args, **kwargs)
 

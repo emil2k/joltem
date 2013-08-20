@@ -8,7 +8,9 @@ urlpatterns = patterns(
     url(r'^(?P<solution_id>(\d)+)/edit/$', views.solution_edit, name='solution_edit'),
     url(r'^(?P<solution_id>(\d)+)/review/$', views.review, name='review'),
     url(r'^(?P<solution_id>(\d)+)/commits/(?:(?P<repository_name>[-\w]+)/)?$', views.commits, name='commits'),
-    url(r'^$', views.all(), name='all'),
-    url(r'^accepted/$', views.accepted(), name='accepted'),
-    url(r'^completed/$', views.completed(), name='completed'),
+    url(r'^reviewed/$', views.my_reviewed(), name='my_reviewed'),
+    url(r'^incomplete/my/$', views.my_incomplete(), name='my_incomplete'),
+    url(r'^complete/my/$', views.my_complete(), name='my_complete'),
+    url(r'^incomplete/$', views.all_incomplete(), name='all_incomplete'),
+    url(r'^complete/$', views.all_complete(), name='all_complete'),
     )
