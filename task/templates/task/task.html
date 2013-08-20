@@ -41,13 +41,13 @@
                 </div>
             </form>
             {% if task.is_closed %}
-                <div class="alert alert-info text-center">
-                    <em><strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.</em>
+                <div class="alert alert-info">
+                    <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
                 </div>
             {% endif %}
             {% if task.parent %}
-                <div class="alert alert-info text-center">
-                    <em><strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}</em>
+                <div class="alert alert-info">
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>

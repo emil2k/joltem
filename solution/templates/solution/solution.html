@@ -70,16 +70,16 @@
                 </div>
             {% endif %}
             {% if solution.task %}
-                <div class="alert alert-info text-center">
-                    <em><strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}</em>
+                <div class="alert alert-info">
+                    <strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}
                 </div>
             {% elif solution.solution %}
-                <div class="alert alert-info text-center">
-                    <em><strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name solution.solution.id %}">{{ solution.solution.default_title }}</a> by {{ solution.solution.user.first_name }}<br/></em>
+                <div class="alert alert-info">
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name solution.solution.id %}">{{ solution.solution.default_title }}</a> by {{ solution.solution.user.first_name }}
                 </div>
             {% else %}
-                <div class="alert alert-info text-center">
-                    <em>This is a <strong>suggested solution</strong>, which did not stem from a task.</em>
+                <div class="alert alert-info">
+                    This is a <strong>suggested solution</strong> to <em>master</em>, it has no parent task or solution.
                 </div>
             {% endif %}
             {% if is_owner and not solution.is_accepted %}
