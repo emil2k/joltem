@@ -121,9 +121,13 @@ class TaskListView(ProjectListView):
                     subtask_group = SubtaskGroup(solution, subtasks)
                     subtask_groups.append(subtask_group)
             return subtask_groups
-        elif self.tasks_tab == 'closed':
+        elif self.tasks_tab == 'my_closed':
+            return self.project.task_set.filter(is_closed=True, owner_id=self.user.id).order_by('-time_posted')
+        elif self.tasks_tab == 'my_open':
+            return self.project.task_set.filter(is_closed=False, owner_id=self.user.id).order_by('-time_posted')
+        elif self.tasks_tab == 'all_closed':
             return self.project.task_set.filter(is_closed=True).order_by('-time_posted')
-        else:
+        elif self.tasks_tab == 'all_open':
             return self.project.task_set.filter(is_closed=False).order_by('-time_posted')
 
     def get_context_object_name(self, object_list):
@@ -147,13 +151,25 @@ class TaskListView(ProjectListView):
 
 # Various task lists
 
-def open():
+def my_open():
     return TaskListView.as_view(
-        tasks_tab="open"
+        tasks_tab="my_open"
     )
 
 
-def closed():
+def my_closed():
     return TaskListView.as_view(
-        tasks_tab="closed"
+        tasks_tab="my_closed"
+    )
+
+
+def all_open():
+    return TaskListView.as_view(
+        tasks_tab="all_open"
+    )
+
+
+def all_closed():
+    return TaskListView.as_view(
+        tasks_tab="all_closed"
     )

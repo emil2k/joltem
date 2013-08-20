@@ -9,6 +9,9 @@ urlpatterns = patterns(
     url(r'^(?P<task_id>(\d)+)/edit/$', views.edit, name='edit'),
     url(r'^(?P<task_id>(\d)+)/solve/$', solution_views.new, name='solve'),
     # Lists of tasks
-    url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.open(), name='open'),
-    url(r'^closed/$', views.closed(), name='closed'),
+    url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.TaskListView.as_view(), name='subtasks'),
+    url(r'^open/$', views.all_open(), name='all_open'),
+    url(r'^closed/$', views.all_closed(), name='all_closed'),
+    url(r'^open/my/$', views.my_open(), name='my_open'),
+    url(r'^closed/my/$', views.my_closed(), name='my_closed'),
 )
