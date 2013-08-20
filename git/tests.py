@@ -206,11 +206,14 @@ class SolutionTestCase(RepositoryTestCase):
         self.assertOidEqual(range_solution_oid, solution_oid)
         self.assertOidEqual(self.solution.get_pygit_checkout(self.pygit_repository), checkout_oid)
 
-    def assertCommitOidSetEqual(self, expected_commit_oid_set):
+    def assertCommitOidSetEqual(self, expected_commit_oid_set, solution=None):
         """
         Assert two commit set matches expectations, prints out some debugging info.
         """
-        commit_oid_set = self.solution.get_commit_oid_set(self.pygit_repository)
+        if solution is None:
+            solution = self.solution
+        TEST_LOGGER.debug("LOAD OID SET from solution: %d" % solution.id)
+        commit_oid_set = solution.get_commit_oid_set(self.pygit_repository)
         TEST_LOGGER.debug("EXPECTED OID SET : %s" % [commit.hex for commit in expected_commit_oid_set])
         TEST_LOGGER.debug("ACTUAL OID SET: %s" % [commit.hex for commit in commit_oid_set])
         self.assertListEqual(expected_commit_oid_set, commit_oid_set)
@@ -251,10 +254,45 @@ class CommitSetTestCase(SolutionTestCase):
     """
     Tests regarding commit sets
     """
-    # TODO test commit_sets of solutions that are branched out from another solution branch
     # TODO test commit_sets of solution that are branched from closed or completed solutions
     # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
     # TODO test merging from one solution branch to another to check if commit_set remains valid, right now merged solutions don't show a commit set
+
+    def test_child_solution_commit_set(self):
+        """
+        Test commit set of solution that is branched out from another solution branch
+        """
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])
+        master_oid = commit_oid
+
+        # Now checkout the parent solution branch
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        parent_solution_oid = commit_oid
+
+        child_solution_commits = []
+        # Create suggested solution for this branch and make a few commits to it
+        child_solution = get_mock_solution(self.project, self.emil, solution=self.solution)
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
+        child_solution_commits.append(commit_oid)
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
+        child_solution_commits.append(commit_oid)
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
+        child_solution_commits.append(commit_oid)
+
+        # Test commit set
+        child_solution_commits.reverse()
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
+
+        # Now merge the commit into parent and check
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_solution_oid, commit_oid])
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
+
+        # And merge into master and check
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [master_oid, commit_oid])
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
 
     def test_solution_commits(self):
         # Make initial commit to master
@@ -298,20 +336,29 @@ class CommitSetTestCase(SolutionTestCase):
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])  # initial commit
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [commit_oid])  # another commit
         checkout_oid = commit_oid
+        master_oid = commit_oid
 
+        solution_commits = []
         # Commits to solution branch
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        solution_commits.append(commit_oid)
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        solution_commits.append(commit_oid)
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        solution_commits.append(commit_oid)
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        solution_commits.append(commit_oid)
         solution_oid = commit_oid
 
         # Merge solution branch into master
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [checkout_oid, solution_oid])
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [master_oid, solution_oid])
+        master_oid = commit_oid
 
-        # Test range
+        # Test range and commit set
+        solution_commits.reverse()
         debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
+        self.assertCommitOidSetEqual(solution_commits)
 
         # Add on commit
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [commit_oid])
@@ -320,7 +367,7 @@ class CommitSetTestCase(SolutionTestCase):
         # Test range again
         debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
-        # todo assert commit set equal
+        self.assertCommitOidSetEqual(solution_commits)
 
 
 class CheckoutTestCase(SolutionTestCase):

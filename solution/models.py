@@ -300,13 +300,9 @@ class Solution(Voteable):
         Returned first is the solution commit, returned second is the end commit representing the checkout point
         """
         from git.utils import get_checkout_oid
-        logger.info("** GET PYGIT RANGE")
         solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
         parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
-        logger.info("*** SOLUTION HEX : %s" % solution_branch_oid.hex)
-        logger.info("*** PARENT HEX : %s" % parent_branch_oid.hex)
         checkout_oid = get_checkout_oid(pygit_repository, solution_branch_oid, parent_branch_oid)
-        logger.info("*** CHECKOUT HEX : %s" % checkout_oid.hex)
         return solution_branch_oid, checkout_oid  # return Oid objects
 
     def get_pygit_checkout(self, pygit_repository):
