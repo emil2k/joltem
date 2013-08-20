@@ -29,9 +29,9 @@
                     {% endif %}
                 </p>
                 {% for hunk in patch %}
-                    <table class="table table-bordered table-hover table-condensed">
+                    <table class="patch-display">
                         {% for line in hunk %}
-                            <tr class="{% if line.is_addition %}addition{% elif line.is_deletion %}deletion{% endif %}">
+                            <tr class="line {% if line.is_addition %}addition{% elif line.is_deletion %}deletion{% endif %}">
                                 <td class="line_number">
                                     {% if line.old_line_number %}
                                         {{ line.old_line_number }}

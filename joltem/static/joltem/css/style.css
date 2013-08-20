@@ -2,28 +2,36 @@
     Difference viewing styles
 */
 
+table.patch-display {
+    width: 100%;
+}
+
+tr.line td {
+    padding: 2px 5px;
+}
+
 tr.addition {
-    background-color: #d1ffc5;
+    background-color: #edffed;
     color: #000000;
 }
 
 tr.deletion {
-    background-color: #ffaa93;
+    background-color: #ffeded;
     color: #000000;
 }
 
 td.code {
-    white-space: pre-wrap;
-    font-size: 0.9em;
-    color: #646464;
+    white-space: pre;
+    font-size: 0.8em;
+    color: #858585;
+    font-family: verdana;
 }
+
 
 td.line_number {
     width: 2em;
     text-align: center;
     font-size: 0.8em;
     font-weight: bold;
-    color: #646464;
-    text-shadow: 0.1em 0.1em 0.01em #ccc;
-    background-color: #eeeeee;
+    color: #c1c1c1;
 }
