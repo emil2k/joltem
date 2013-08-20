@@ -1,9 +1,5 @@
 {% extends 'solution/base.html' %}
 {% block solution_content %}
-    <div class="alert alert">
-        <strong>To do : </strong>
-        a page to see all worked performed in the solution, view patches ....
-    </div>
     <div class="row">
         <div class="span2">
             <ul class="nav nav-list well">
@@ -13,15 +9,52 @@
                 {% endfor %}
             </ul>
         </div>
-        <div class="span8">
+        <div class="span10">
             <h4>{{ repository.full_name }}</h4>
             {% for commit in commits %}
                 <p>
-                    {{ commit.message }} by {{ commit.author.name }}<br/>
-                    <span class="muted">{{ commit.hex }}</span>
+                    <small class="muted">{{ commit.time_committed|date }} @ {{ commit.time_committed|time }} by {{ commit.author }}</small><br/>
+                    {{ commit.message }}<br/>
+                    <small class="text-info">{{ commit.hex }}</small>
                 </p>
             {% empty %}
                 <p class="muted">No commits on this repo for this particular solution.</p>
+            {% endfor %}
+            <h5>Difference</h5>
+            {% for patch in diff %}
+                <p>
+                    <i class="icon-file"></i> {{ patch.new_file_path }}
+                    {% if patch.old_file_path != patch.new_file_path %}
+                        <span class="muted">( renamed from : {{ patch.old_file_path }})</span>
+                    {% endif %}
+                </p>
+                {% for hunk in patch %}
+                    <table class="patch-display">
+                        {% for line in hunk %}
+                            <tr class="line {% if line.is_addition %}addition{% elif line.is_deletion %}deletion{% endif %}">
+                                <td class="line_number">
+                                    {% if line.old_line_number %}
+                                        {{ line.old_line_number }}
+                                    {% endif %}
+                                </td>
+                                <td class="line_number">
+                                    {% if line.new_line_number %}
+                                        {{ line.new_line_number }}
+                                    {% endif %}
+                                </td>
+                                <td class="code">{{ line.line }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" class="muted">No lines for this hunk.</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% empty %}
+                    <p class="muted">No hunks for this patch.</p>
+                {% endfor %}
+            {% empty %}
+                <p class="muted">No patches on this repo for this particular solution.</p>
             {% endfor %}
         </div>
     </div>

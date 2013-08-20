@@ -1,0 +1,37 @@
+/*
+    Difference viewing styles
+*/
+
+table.patch-display {
+    width: 100%;
+}
+
+tr.line td {
+    padding: 2px 5px;
+}
+
+tr.addition {
+    background-color: #edffed;
+    color: #000000;
+}
+
+tr.deletion {
+    background-color: #ffeded;
+    color: #000000;
+}
+
+td.code {
+    white-space: pre;
+    font-size: 0.8em;
+    color: #858585;
+    font-family: verdana;
+}
+
+
+td.line_number {
+    width: 2em;
+    text-align: center;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #c1c1c1;
+}

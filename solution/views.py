@@ -9,6 +9,9 @@ from project.models import Project
 from task.models import Task
 from solution.models import Solution, Comment, Vote
 
+import logging
+logger = logging.getLogger('django')
+
 
 @login_required
 def new(request, project_name, task_id=None, solution_id=None):
@@ -300,17 +303,7 @@ def commits(request, project_name, solution_id, repository_name):
     else:
         repository = repository_set[0]  # load the default active repository
 
-    from pygit2 import Repository as GitRepository, GIT_SORT_TIME
-    git_repo = GitRepository(repository.absolute_path)
-    commits = []
-    if not git_repo.is_empty:
-        try:
-            ref = git_repo.lookup_reference('refs/heads/s/%d' % solution.id)
-        except KeyError:
-            commits = None
-        else:
-            for commit in git_repo.walk(ref.target.hex, GIT_SORT_TIME):
-                commits.append(commit)
+    pygit_repository = repository.load_pygit_object()
 
     context = {
         'user': request.user,
@@ -318,9 +311,16 @@ def commits(request, project_name, solution_id, repository_name):
         'solution_tab': "commits",
         'solution': solution,
         'repository': repository,
-        'repositories': repository_set,
-        'commits': commits,
+        'repositories': repository_set
     }
+
+    try:
+        context['commits'] = solution.get_commit_set(pygit_repository)
+        context['diff'] = solution.get_pygit_diff(pygit_repository)
+    except KeyError:
+        context['commits'] = []
+        context['diff'] = []
+
     return render(request, 'solution/commits.html', context)
 
 

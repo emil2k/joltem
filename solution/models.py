@@ -255,14 +255,102 @@ class Solution(Voteable):
         """
         Returns whether passed user has commented on the solution
         """
+        # todo write a test for this function
         return Comment.objects.filter(solution_id=self.id, user_id=user_id).count() > 0
+
+    # Git related
+
+    def get_parent_reference(self):
+        """
+        Get the parent reference, this solution branch should have been checked out from here
+        """
+        from git.utils import get_branch_reference
+        if self.task and self.task.parent:
+            return self.task.parent.get_reference()
+        elif self.solution:
+            return self.solution.get_reference()
+        else:
+            return get_branch_reference('master')  # default to master
+
+    def get_parent_pygit_branch(self, pygit_repository):
+        """
+        Get pygit2 Branch object for this solution's parent branch on the
+        given repository (pygit object), if it is in repository
+        Returns symbolic reference, need to resolve()
+        """
+        return pygit_repository.lookup_reference(self.get_parent_reference())
+
+    def get_branch_name(self):
+        return "s/%d" % self.id
+
+    def get_reference(self):
+        from git.utils import get_branch_reference
+        return get_branch_reference(self.get_branch_name())
+
+    def get_pygit_branch(self, pygit_repository):
+        """
+        Get pygit2 Branch object for this solution on the given repository (pygit object), if it is in repository
+        Returns symbolic reference, need to resolve()
+        """
+        return pygit_repository.lookup_reference(self.get_reference())
+
+    def get_pygit_solution_range(self, pygit_repository):
+        """
+        Returns pygit2 Oid objects representing the start and end commits for the branch
+        Returned first is the solution commit, returned second is the end commit representing the checkout point
+        """
+        from git.utils import get_checkout_oid
+        solution_branch_oid = self.get_pygit_branch(pygit_repository).resolve().target
+        parent_branch_oid = self.get_parent_pygit_branch(pygit_repository).resolve().target
+        checkout_oid = get_checkout_oid(pygit_repository, solution_branch_oid, parent_branch_oid)
+        return solution_branch_oid, checkout_oid  # return Oid objects
+
+    def get_pygit_checkout(self, pygit_repository):
+        """
+        Gets pygit2 Oid of merge base, of the solution branch and it's parent branch from which it should
+        """
+        solution_branch_oid, range_checkout_oid = self.get_pygit_solution_range(pygit_repository)
+        return range_checkout_oid
+
+    def get_commit_oid_set(self, pygit_repository):
+        """
+        Returns a list of commits for this solution the passed repository (pygit2 object),
+        by walking from appropriate parent branch's merge base.
+
+        Commits are represented by pygit2 Oid objects.
+        """
+        # TODO test when solution branch has not been pushed yet
+        from pygit2 import GIT_SORT_TOPOLOGICAL
+        solution_branch_oid, checkout_oid = self.get_pygit_solution_range(pygit_repository)
+        commits = []
+        for commit in pygit_repository.walk(solution_branch_oid, GIT_SORT_TOPOLOGICAL):
+            if commit.hex == checkout_oid.hex:
+                break  # reached merge base
+            commits.append(commit.oid)
+        return commits
+
+    def get_commit_set(self, pygit_repository):
+        """
+        Returns a list of commits represented by pygit2 Commit objects
+        """
+        from git.holders import CommitHolder
+        return (CommitHolder(pygit_repository[oid]) for oid in self.get_commit_oid_set(pygit_repository))
+
+    def get_pygit_diff(self, pygit_repository):
+        """
+        Get pygit2 Diff object for the changes done by the solution
+        """
+        # todo write tests
+        from git.holders import DiffHolder
+        solution_branch_oid, checkout_oid = self.get_pygit_solution_range(pygit_repository)
+        return DiffHolder(pygit_repository.diff(pygit_repository[checkout_oid], pygit_repository[solution_branch_oid]))
 
 
 class Comment(Voteable):
     """
     Comments in a solution review
     """
-    # TODO make comments more generic
+    # TODO make comments more generic, with a commentable base class
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
