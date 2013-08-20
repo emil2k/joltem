@@ -136,17 +136,16 @@
     <hr/>
     {% if is_owner %}
         <div class="alert alert-info">
-            <p>Checkout solution branch :</p>
+            <p>Checkout this solution's branch :</p>
             <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Push to remote designated solution branch :</p>
+            <p>Then push to this solutions designated remote solution branch :</p>
             <pre>git push -u origin s/{{ solution.id }}</pre>
         </div>
     {% else %}
         <div class="alert alert-info">
-            <p>Checkout solution branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Push to remote personal branch :</p>
-            <pre>git push -u origin s/{{ solution.id }}:u/{{ user.username }}/s/{{ solution.id }}</pre>
+            <p>Checkout this solution's branch :</p>
+            <pre>git fetch origin</pre>
+            <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
         </div>
     {% endif %}
 {% endblock %}
