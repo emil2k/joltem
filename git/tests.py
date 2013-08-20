@@ -66,6 +66,17 @@ def put_mock_file(name, data, repository, tree=None):
     return tree_oid
 
 
+def mock_commits(number, pygit_repository, signature, branch_name, initial_parents):
+    """
+    Generator for sequential commits
+    """
+    commit_oid = None
+    for n in range(number):
+        parents = [commit_oid] if commit_oid else initial_parents
+        commit_oid = make_mock_commit(pygit_repository, signature, branch_name, parents)
+        yield commit_oid
+
+
 def make_mock_commit(pygit_repository, signature, branch_name, parents):
     """
     Makes a mock commit and returns, commit Oid
@@ -254,9 +265,40 @@ class CommitSetTestCase(SolutionTestCase):
     """
     Tests regarding commit sets
     """
-    # TODO test commit_sets of solution that are branched from closed or completed solutions
-    # TODO check a scenario where multiple solution branches are being committed to at same time in an alternating sequence and check that both get right commits in their commit_set
-    # TODO test merging from one solution branch to another to check if commit_set remains valid, right now merged solutions don't show a commit set
+
+    def test_child_solution_commit_set_parent_closed(self):
+        """
+        Test commit set of a solution that is branched out of another solution branch, which is mark closed
+        """
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])
+        master_oid = commit_oid
+
+        # Now checkout the parent solution branch
+        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
+        parent_solution_oid = commit_oid
+
+        # Create suggested solution for this solution branch and make a few commits to it
+        child_solution = get_mock_solution(self.project, self.emil, solution=self.solution)
+        child_solution_commits = [c for c in mock_commits(3, self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])]
+        commit_oid = child_solution_commits[-1]
+
+        # Test commit set
+        child_solution_commits.reverse()
+        debug_commits(self.pygit_repository, commit_oid)
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
+
+        # Now mark the parent solution and closed and check again
+        from django.utils import timezone  # todo this should be some function on the model
+        self.solution.is_closed = True
+        self.solution.time_closed = timezone.now()
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
+
+        # Now reopen the solution and mark it complete and check
+        self.solution.is_closed = False
+        self.solution.is_completed = True
+        self.solution.time_closed = None
+        self.solution.time_completed = timezone.now()
+        self.assertCommitOidSetEqual(child_solution_commits, solution=child_solution)
 
     def test_child_solution_commit_set(self):
         """
@@ -269,15 +311,10 @@ class CommitSetTestCase(SolutionTestCase):
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
         parent_solution_oid = commit_oid
 
-        child_solution_commits = []
         # Create suggested solution for this branch and make a few commits to it
         child_solution = get_mock_solution(self.project, self.emil, solution=self.solution)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
-        child_solution_commits.append(commit_oid)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
-        child_solution_commits.append(commit_oid)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])
-        child_solution_commits.append(commit_oid)
+        child_solution_commits = [c for c in mock_commits(3, self.pygit_repository, self.emil_signature, child_solution.get_branch_name(), [commit_oid])]
+        commit_oid = child_solution_commits[-1]
 
         # Test commit set
         child_solution_commits.reverse()
@@ -340,15 +377,10 @@ class CommitSetTestCase(SolutionTestCase):
 
         solution_commits = []
         # Commits to solution branch
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
-        solution_commits.append(commit_oid)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
-        solution_commits.append(commit_oid)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
-        solution_commits.append(commit_oid)
-        commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
-        solution_commits.append(commit_oid)
+        solution_commits = [c for c in mock_commits(5, self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])]
+        commit_oid = solution_commits[-1]
         solution_oid = commit_oid
+        debug_commits(self.pygit_repository, commit_oid)
 
         # Merge solution branch into master
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [master_oid, solution_oid])
@@ -430,9 +462,7 @@ class CheckoutTestCase(SolutionTestCase):
         topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
 
         # Make some commits on master
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [parent_oid])
+        parent_oid = [c for c in mock_commits(3, self.pygit_repository, self.emil_signature, "master", [parent_oid])][-1]
 
         # Merge master commits to topic branch
         topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid, parent_oid])
@@ -453,10 +483,8 @@ class CheckoutTestCase(SolutionTestCase):
 
         # Checkout topic
         checkout_oid = parent_oid
-        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
-        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
-        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
-        topic_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [topic_oid])
+
+        topic_oid = [c for c in mock_commits(4, self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])][-1]
 
         # Merge topic into parent branch
         parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid, topic_oid])
@@ -467,9 +495,7 @@ class CheckoutTestCase(SolutionTestCase):
         self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
         # Now make some more commits on parent branch and check
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
-        parent_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])
+        parent_oid = [c for c in mock_commits(3, self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [parent_oid])][-1]
 
         debug_commits(self.pygit_repository, topic_oid)
         debug_commits(self.pygit_repository, parent_oid)
