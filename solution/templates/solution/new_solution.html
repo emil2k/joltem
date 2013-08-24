@@ -28,7 +28,7 @@
             <form method="post">
                 {% csrf_token %}
                 <input value="{{ title }}" class="input-block-level" type="text" name="title" placeholder="{% if task %}Optional. {% endif %}A title that describes your solution."/>
-                <textarea class="input-block-level" rows=10 name="description" placeholder="{% if task %}Optional. {% endif %}Briefly describe how you plan to solve the task and if you have any experience pertinent to the task.">{{ description }}</textarea>
+                <textarea class="input-block-level" rows=10 name="description" placeholder="{% if task %}Optional. {% endif %}Briefly describe the solution.">{{ description }}</textarea>
                 <button class="btn btn-success" type="submit">Solve</button>
             </form>
         </div>
