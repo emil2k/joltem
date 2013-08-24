@@ -5,7 +5,7 @@
         {% for repo in repositories %}
             {% include 'git/repository_row.html' %}
         {% empty %}
-            <p class="muted">There is no active repositories for this project.</p>
+            <p class="muted">No repositories.</p>
         {% endfor %}
     </form>
 {% endblock %}
