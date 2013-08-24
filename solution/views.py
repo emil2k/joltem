@@ -4,10 +4,11 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from joltem.models import Vote, Comment
 from git.models import Repository
 from project.models import Project
 from task.models import Task
-from solution.models import Solution, Comment, Vote
+from solution.models import Solution
 
 import logging
 logger = logging.getLogger('django')
@@ -239,7 +240,7 @@ def review(request, project_name, solution_id):
                 time_commented=timezone.now(),
                 project=project,
                 user=user,
-                solution=solution,
+                commentable=solution,
                 comment=comment_text
             )
             review_comment.save()

@@ -85,7 +85,7 @@ repo\tgitolite-admin
 """
 
 @receiver([post_save, post_delete], sender=User, weak=False)
-@receiver([post_save, post_delete], sender=Repository, weak=False)
+@receiver([post_save, post_delete], sender='git.Repository', weak=False)
 def update_config(sender, **kwargs):
     """
     Update gitolite configuration file, when the user or repository sets change
@@ -131,7 +131,7 @@ class Authentication(models.Model):
         logger.info("Get file key path : %s" % file_path)
         return file_path
 
-@receiver(post_save, sender=Authentication, weak=False)
+@receiver(post_save, sender='git.Authentication', weak=False)
 def add_key(sender, **kwargs):
     """
     Add key to directory
@@ -147,7 +147,7 @@ def add_key(sender, **kwargs):
     git_command("add %s" % file_path)
     commit_push()
 
-@receiver(post_delete, sender=Authentication, weak=False)
+@receiver(post_delete, sender='git.Authentication', weak=False)
 def remove_key(sender, **kwargs):
     """
     Remove key from directory

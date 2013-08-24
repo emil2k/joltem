@@ -2,8 +2,10 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from joltem.models import Commentable
 
-class Task(models.Model):
+
+class Task(Commentable):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_closed = models.BooleanField(default=False)

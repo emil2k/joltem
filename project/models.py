@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from solution.models import Solution, Comment
 
 import logging
 logger = logging.getLogger('django')
@@ -31,7 +30,7 @@ class Impact(models.Model):
     """
     impact = models.BigIntegerField(null=True, blank=True)
     # Relations
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey('project.Project')
     user = models.ForeignKey(User)
 
     # Must be above this threshold to count towards impact, an int between 0 and 100
@@ -62,8 +61,8 @@ class Impact(models.Model):
                 impact += comment.impact
         return impact
 
-@receiver([post_save, post_delete], sender=Comment)
-@receiver([post_save, post_delete], sender=Solution)
+@receiver([post_save, post_delete], sender='joltem.Comment')
+@receiver([post_save, post_delete], sender='solution.Solution')
 def update_project_impact_from_voteable(sender, **kwargs):
     """
     Update project specific impact due to vote on solution
@@ -79,7 +78,7 @@ def update_project_impact_from_voteable(sender, **kwargs):
         project_impact.save()
 
 
-@receiver([post_save, post_delete], sender=Project)
+@receiver([post_save, post_delete], sender='project.Project')
 def update_project_impact_from_project(sender, **kwargs):
     """
     Update project specific impact due project modification, mainly change to the admin set

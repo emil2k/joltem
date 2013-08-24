@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.utils import timezone
 
-from joltem.models import Profile
+from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
-from solution.models import Solution, Comment, Vote, Voteable
+from solution.models import Solution
 
 from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
 from joltem.tests.mocking import *
