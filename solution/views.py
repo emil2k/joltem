@@ -4,7 +4,9 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+
 from joltem.models import Vote, Comment
+from joltem.holders import CommentHolder
 from git.models import Repository
 from project.models import Project
 from task.models import Task
@@ -153,6 +155,7 @@ def solution(request, project_name, solution_id):
         'project': project,
         'solution_tab': "solution",
         'solution': solution,
+        'comments': CommentHolder.get_comments(solution.comment_set.all().order_by('time_commented'), user),
         'subtasks': solution.subtask_set.all().order_by('-time_posted'),
         'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
         'vote': vote,
@@ -261,25 +264,11 @@ def review(request, project_name, solution_id):
             vote.save()
             return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
 
-    class CommentHolder:
-        def __init__(self, comment, user):
-            self.comment = comment
-            try:
-                self.vote = comment.vote_set.get(voter_id=user.id)
-            except Vote.DoesNotExist:
-                self.vote = None
-            self.is_author = user.id == comment.user.id
-            self.vote_count = comment.vote_set.count()
-
-    comments = []
-    for comment in solution.comment_set.all().order_by('time_commented'):
-        comments.append(CommentHolder(comment, user))
-
     context = {
         'project': project,
         'solution_tab': "review",
         'solution': solution,
-        'comments': comments,
+        'comments': CommentHolder.get_comments(solution.comment_set.all().order_by('time_commented'), user),
         'vote_count': solution.vote_set.count(),
         'accept_votes': solution.vote_set.filter(is_accepted=True),
         'reject_votes': solution.vote_set.filter(is_accepted=False),
