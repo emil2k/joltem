@@ -2,14 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
 from django.utils import timezone
+
+from joltem import receivers
 
 import logging
 logger = logging.getLogger('django')
 
 
 # User profile related
+post_save.connect(receivers.create_profile, sender=User)  # create profile when User created
+
 
 class Profile(models.Model):
     gravatar_email = models.CharField(max_length=200, null=True, blank=True)
@@ -48,24 +51,6 @@ class Profile(models.Model):
             self.gravatar_hash = hashlib.md5(gravatar_email).hexdigest()
             return True
         return False
-
-@receiver(post_save, sender=User)
-def create_profile(sender, **kw):
-    """
-    Create user profile when user created
-    """
-    user = kw["instance"]
-    logger.info("CREATE PROFILE for %s" % user.username)
-    if kw["created"]:
-        profile = Profile(user=user)
-        profile.update().save()
-
-@receiver([post_save, post_delete], sender='project.Impact')
-def update_from_project_impact(sender, **kwargs):
-    project_impact = kwargs.get('instance')
-    logger.info("UPDATE USER STATS from project impact : %s : %d for %s" % (sender, project_impact.project.id, project_impact.user.username))
-    if project_impact:
-        project_impact.user.get_profile().update().save()
 
 
 # Invite related
@@ -134,6 +119,9 @@ class Vote(models.Model):
     @property
     def is_rejected(self):
         return not self.is_accepted
+
+post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
+post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
 
 class Voteable(models.Model):
@@ -261,19 +249,6 @@ class Voteable(models.Model):
         logger.info("** VOTE : defaulted to 10")
         return 10  # default
 
-@receiver([post_save, post_delete], sender='joltem.Vote')
-def update_metrics(sender, **kwargs):
-    """
-    Update vote metrics (acceptance and impact) and save to DB
-    """
-    vote = kwargs.get('instance')
-    logger.info("UPDATE METRICS from vote : %s" % vote.magnitude)
-    if vote and vote.voteable:
-        voteable = vote.voteable
-        voteable.acceptance = voteable.get_acceptance()
-        voteable.impact = voteable.get_impact()
-        voteable.save()
-
 
 # Comment related
 
@@ -291,6 +266,12 @@ class Comment(Voteable):
 
     def __unicode__(self):
         return str(self.comment)
+
+post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
+post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
+
+post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment)
+post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
 
 
 class Commentable(models.Model):

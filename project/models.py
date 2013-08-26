@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
+
+from project import receivers
 
 import logging
 logger = logging.getLogger('django')
@@ -22,6 +23,9 @@ class Project(models.Model):
 
     def __unicode__(self):
         return self.name
+
+post_save.connect(receivers.update_project_impact_from_project, sender=Project)
+post_delete.connect(receivers.update_project_impact_from_project, sender=Project)
 
 
 class Impact(models.Model):
@@ -61,36 +65,5 @@ class Impact(models.Model):
                 impact += comment.impact
         return impact
 
-@receiver([post_save, post_delete], sender='joltem.Comment')
-@receiver([post_save, post_delete], sender='solution.Solution')
-def update_project_impact_from_voteable(sender, **kwargs):
-    """
-    Update project specific impact due to vote on solution
-    """
-    voteable = kwargs.get('instance')
-    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.user.username))
-    if voteable:
-        (project_impact, create) = Impact.objects.get_or_create(
-            project_id=voteable.project.id,
-            user_id=voteable.user.id
-        )
-        project_impact.impact = project_impact.get_impact()
-        project_impact.save()
-
-
-@receiver([post_save, post_delete], sender='project.Project')
-def update_project_impact_from_project(sender, **kwargs):
-    """
-    Update project specific impact due project modification, mainly change to the admin set
-    """
-    project = kwargs.get('instance')
-    logger.info("UPDATE PROJECT IMPACT from project : %s" % sender)
-    if project:
-        for admin in project.admin_set.all():
-            logger.info("UPDATE PROJECT IMPACT for %s" % admin.username)
-            (project_impact, create) = Impact.objects.get_or_create(
-                project_id=project.id,
-                user_id=admin.id
-            )
-            project_impact.impact = project_impact.get_impact()
-            project_impact.save()
+post_save.connect(receivers.update_user_metrics_from_project_impact, sender=Impact)
+post_delete.connect(receivers.update_user_metrics_from_project_impact, sender=Impact)

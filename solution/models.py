@@ -1,9 +1,9 @@
 from django.db import models
 from django.utils import timezone
-from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 
-from joltem.models import Voteable, Commentable, Comment
+from joltem.models import Voteable, Commentable
+from joltem import receivers as joltem_receivers
 
 import logging
 logger = logging.getLogger('django')
@@ -181,20 +181,5 @@ class Solution(Voteable, Commentable):
         return DiffHolder(pygit_repository.diff(pygit_repository[checkout_oid], pygit_repository[solution_branch_oid]))
 
 
-@receiver([post_save, post_delete], sender='joltem.Comment')
-def update_metrics_from_comment(sender, **kwargs):
-    """
-    Update vote metrics for a solution when it's comment is updated,
-    because vote validity depends on whether there is a comment
-    """
-    comment = kwargs.get('instance')
-    logger.info("UPDATE METRICS from comment : %s" % comment)
-    from django.contrib.contenttypes.models import ContentType
-    solution_type = ContentType.objects.get_for_model(Solution)
-    # todo check that comment is part of the commentable comment_set and not outside of it
-    if comment and comment.commentable \
-            and comment.commentable_type_id == solution_type.id:  # check if this is a Solution
-        solution = comment.commentable
-        solution.acceptance = solution.get_acceptance()
-        solution.impact = solution.get_impact()
-        solution.save()
+post_save.connect(joltem_receivers.update_project_impact_from_voteables, sender=Solution)
+post_delete.connect(joltem_receivers.update_project_impact_from_voteables, sender=Solution)
