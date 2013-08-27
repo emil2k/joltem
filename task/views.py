@@ -115,18 +115,18 @@ class TaskListView(ProjectListView):
                     self.solution = solution
                     self.subtask_set = tasks
             subtask_groups = []
-            for solution in self.parent_task.solution_set.all().order_by('-id'):
-                subtasks = solution.subtask_set.all().order_by('-id')
+            for solution in self.parent_task.solution_set.all().order_by('-time_posted'):
+                subtasks = solution.subtask_set.all().order_by('-time_posted')
                 if subtasks.count() > 0:
                     subtask_group = SubtaskGroup(solution, subtasks)
                     subtask_groups.append(subtask_group)
             return subtask_groups
         elif self.tasks_tab == 'my_closed':
-            return self.project.task_set.filter(is_closed=True, owner_id=self.user.id).order_by('-time_posted')
+            return self.project.task_set.filter(is_closed=True, owner_id=self.user.id).order_by('-time_closed')
         elif self.tasks_tab == 'my_open':
             return self.project.task_set.filter(is_closed=False, owner_id=self.user.id).order_by('-time_posted')
         elif self.tasks_tab == 'all_closed':
-            return self.project.task_set.filter(is_closed=True).order_by('-time_posted')
+            return self.project.task_set.filter(is_closed=True).order_by('-time_closed')
         elif self.tasks_tab == 'all_open':
             return self.project.task_set.filter(is_closed=False).order_by('-time_posted')
 

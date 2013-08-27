@@ -353,11 +353,11 @@ class SolutionListView(ProjectListView):
         if self.solutions_tab == 'my_reviewed':
             return (solution for solution in self.reviewed())
         elif self.solutions_tab == 'my_incomplete':
-            return self.project.solution_set.filter(is_completed=False, user_id=self.user.id).order_by('-time_completed')
+            return self.project.solution_set.filter(is_completed=False, user_id=self.user.id).order_by('-time_posted')
         elif self.solutions_tab == 'my_complete':
             return self.project.solution_set.filter(is_completed=True, user_id=self.user.id).order_by('-time_completed')
         elif self.solutions_tab == 'all_incomplete':
-            return self.project.solution_set.filter(is_completed=False).order_by('-time_completed')
+            return self.project.solution_set.filter(is_completed=False).order_by('-time_posted')
         elif self.solutions_tab == 'all_complete':
             return self.project.solution_set.filter(is_completed=True).order_by('-time_completed')
         else:
