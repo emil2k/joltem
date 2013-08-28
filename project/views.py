@@ -27,7 +27,7 @@ class RequestTemplateView(TemplateResponseMixin, RequestContextMixin, View):
     """
 
     def dispatch(self, request, *args, **kwargs):
-        self.initiate_variables(request, args, kwargs)
+        self.initiate_variables(request, *args, **kwargs)
         return super(RequestTemplateView, self).dispatch(request, args, kwargs)
 
     def get(self, request, *args, **kwargs):

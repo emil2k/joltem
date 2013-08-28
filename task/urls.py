@@ -1,4 +1,5 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
+from django.contrib.auth.decorators import login_required
 from task import views
 from solution import views as solution_views
 
@@ -7,7 +8,7 @@ urlpatterns = patterns(
     url(r'^(?:(?P<parent_solution_id>(\d)+)/)?new/$', views.new, name='new'),
     url(r'^(?P<task_id>(\d)+)/$', views.task, name='task'),
     url(r'^(?P<task_id>(\d)+)/edit/$', views.edit, name='edit'),
-    url(r'^(?P<task_id>(\d)+)/solve/$', solution_views.new, name='solve'),
+    url(r'^(?P<task_id>(\d)+)/solve/$', login_required(solution_views.SolutionCreateView.as_view()), name='solve'),
     # Lists of tasks
     url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.TaskListView.as_view(), name='subtasks'),
     url(r'^open/$', views.all_open(), name='all_open'),

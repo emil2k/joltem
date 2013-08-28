@@ -130,59 +130,60 @@ class SolutionView(SolutionObjectMixin, RequestTemplateView):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
 
+class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
+    """
+    View to create a new solution
+    """
+    template_name = "solution/new_solution.html"
 
-### todo all below is old
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionCreateView, self).initiate_variables(request, *args, **kwargs)
+        self.parent_task, self.parent_solution = [None] * 2
+        task_id = kwargs.get('task_id', None)
+        solution_id = kwargs.get('solution_id', None)
+        if task_id:
+            self.parent_task = get_object_or_404(Task, id=task_id)
+        if solution_id:
+            self.parent_solution = get_object_or_404(Solution, id=solution_id)
 
-@login_required
-def new(request, project_name, task_id=None, solution_id=None):
-    assert task_id is None or solution_id is None, \
-        "Don't specify both a parent solution and parent task when creating a new solution."
-    project = get_object_or_404(Project, name=project_name)
+    def get_context_data(self, request, **kwargs):
+        kwargs['task'] = self.parent_task
+        kwargs['solution'] = self.parent_solution
+        return super(SolutionCreateView, self).get_context_data(request, **kwargs)
 
-    context = {
-        'project': project,
-        'project_tab': "solutions"
-    }
+    def post(self, request, *args, **kwargs):
+        if self.parent_task and self.parent_task.is_closed:
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.parent_task.id)
+        if self.parent_solution and (self.parent_solution.is_completed or self.parent_solution.is_closed):
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
 
-    parent_task, parent_solution = [None] * 2
-
-    if task_id:
-        parent_task = get_object_or_404(Task, id=task_id)
-        if parent_task.is_closed:
-            return redirect('project:task:task', project_name=project.name, task_id=parent_task.id)
-        context['task'] = parent_task
-
-    if solution_id:
-        parent_solution = get_object_or_404(Solution, id=solution_id)
-        if parent_solution.is_completed or parent_solution.is_closed:
-            return redirect('project:solution:solution', project_name=project.name, task_id=parent_task.id)
-        context['solution'] = parent_solution
-
-    if request.POST:
         title = request.POST.get('title')
         description = request.POST.get('description')
-        if parent_task is None \
+
+        # If no parent task, title and description of solution required
+        if self.parent_task is None \
                 and not (title and description):
+            context = self.get_context_data(request, **kwargs)
             context['error'] = "A title and description is required, please explain the suggested solution."
             if title:
                 context['title'] = title
             if description:
                 context['description'] = description
+            return self.render_to_response(context)
         else:
             solution = Solution(
                 user=request.user,
-                task=parent_task,
-                solution=parent_solution,
-                project=project,
+                task=self.parent_task,
+                solution=self.parent_solution,
+                project=self.project,
                 title=title,
                 description=description
             )
             solution.save()
-            return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
-    return render(request, 'solution/new_solution.html', context)
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=solution.id)
 
 
-
+### todo refactor these views
 
 @login_required
 def solution_edit(request, project_name, solution_id):
@@ -356,7 +357,6 @@ class SolutionListView(ProjectListView):
         solution_type = ContentType.objects.get_for_model(Solution)
         for vote in self.user.vote_set.filter(voteable_type_id=solution_type.id).order_by('-time_voted'):
             yield vote.voteable
-
 
     def get_queryset(self):
         if self.solutions_tab == 'my_reviewed':

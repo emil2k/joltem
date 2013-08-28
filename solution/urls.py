@@ -4,7 +4,7 @@ from solution import views
 
 urlpatterns = patterns(
     '',
-    url(r'^(?:(?P<solution_id>(\d)+)/)?new/$', views.new, name='new'),
+    url(r'^(?:(?P<solution_id>(\d)+)/)?new/$', login_required(views.SolutionCreateView.as_view()), name='new'),
     url(r'^(?P<solution_id>(\d)+)/$', login_required(views.SolutionView.as_view()), name='solution'),
     url(r'^(?P<solution_id>(\d)+)/edit/$', views.solution_edit, name='solution_edit'),
     url(r'^(?P<solution_id>(\d)+)/review/$', views.review, name='review'),
