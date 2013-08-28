@@ -28,7 +28,8 @@ class SolutionObjectMixin(ProjectObjectMixin):
 
     def initiate_variables(self, request, *args, **kwargs):
         super(SolutionObjectMixin, self).initiate_variables(request, args, kwargs)
-        self.solution = Solution.objects.get(id=self.kwargs.get("solution_id"))
+        self.solution = get_object_or_404(Solution, id=self.kwargs.get("solution_id"))
+        self.is_owner = self.solution.is_owner(self.user)
 
     def get_context_data(self, request, **kwargs):
         kwargs["solution"] = self.solution
@@ -183,28 +184,27 @@ class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=solution.id)
 
 
+class SolutionEditView(SolutionObjectMixin, RequestTemplateView):
+    """
+    View to edit solution
+    """
+    template_name = "solution/solution_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        return super(SolutionEditView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        self.solution.title = request.POST.get('title')
+        self.solution.description = request.POST.get('description')
+        self.solution.save()
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+
 ### todo refactor these views
-
-@login_required
-def solution_edit(request, project_name, solution_id):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    is_owner = solution.is_owner(request.user)
-    if not is_owner or solution.is_closed:
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-    if request.POST:
-        solution.title = request.POST.get('title')
-        solution.description = request.POST.get('description')
-        solution.save()
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
-    context = {
-        'project': project,
-        'solution_tab': "solution",
-        'solution': solution,
-        'is_owner': solution.is_owner(request.user)
-    }
-    return render(request, 'solution/solution_edit.html', context)
 
 @login_required
 def review(request, project_name, solution_id):
