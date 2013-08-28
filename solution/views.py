@@ -16,6 +16,123 @@ import logging
 logger = logging.getLogger('django')
 
 
+# todo convert to class based views
+
+from project.views import ProjectObjectMixin, RequestTemplateView
+
+
+class SolutionObjectMixin(ProjectObjectMixin):
+    """
+    Adds project object for manipulating
+    """
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionObjectMixin, self).initiate_variables(request, args, kwargs)
+        self.solution = Solution.objects.get(id=self.kwargs.get("solution_id"))
+
+    def get_context_data(self, request, **kwargs):
+        kwargs["solution"] = self.solution
+        # Get the users vote on this solution # todo is this necessary on each page or only on review page
+        try:
+            kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
+        except Vote.DoesNotExist:
+            kwargs["vote"] = None
+
+        kwargs["comments"] = CommentHolder.get_comments(self.solution.comment_set.all().order_by('time_commented'), self.user)
+        kwargs["subtasks"] = self.solution.subtask_set.all().order_by('-time_posted')
+        kwargs["suggested_solutions"] = self.solution.solution_set.all().order_by('-time_posted')
+        kwargs["is_owner"] = self.solution.is_owner(self.user)
+        kwargs["is_acceptor"] = self.solution.is_acceptor(self.user)
+
+        return super(SolutionObjectMixin, self).get_context_data(request, **kwargs)
+
+
+class SolutionView(SolutionObjectMixin, RequestTemplateView):
+    """
+    View to display solution's information
+    """
+    template_name = "solution/solution.html"
+
+    def post(self, request, *args, **kwargs):
+        # Acceptance of suggested solution
+        accept = request.POST.get('accept')
+        unaccept = request.POST.get('unaccept')
+        if (accept or unaccept) and self.solution.is_acceptor(self.user):
+            if accept:
+                self.solution.is_accepted = True
+                self.solution.time_accepted = timezone.now()
+            else:
+                self.solution.is_accepted = False
+                self.solution.time_accepted = None
+            self.solution.save()
+
+        # Mark solution complete
+        if request.POST.get('complete') \
+                and not self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_completed = True
+            self.solution.time_completed = timezone.now()
+            self.solution.save()
+
+        # Mark solution incomplete
+        if request.POST.get('incomplete') \
+                and self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_completed = False
+            self.solution.time_completed = None
+            self.solution.save()
+
+        # Close solution
+        if request.POST.get('close') \
+                and not self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_closed = True
+            self.solution.time_closed = timezone.now()
+            self.solution.save()
+
+        # Reopen solution
+        if request.POST.get('reopen') \
+                and self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_closed = False
+            self.solution.time_closed = None
+            self.solution.save()
+
+        # Vote on completed solution
+        vote_input = request.POST.get('vote')
+        if vote_input and not self.solution.is_owner(self.user):
+            # Get or create with other parameters
+            try:
+                vote = Vote.objects.get(
+                    solution_id=self.solution.id,
+                    voter_id=self.user.id
+                )
+            except Vote.DoesNotExist:
+                vote = Vote(
+                    solution=self.solution,
+                    voter=self.user
+                )
+
+            if vote_input == 'reject':
+                vote.is_accepted = False
+                vote.vote = None
+            else:
+                vote.is_accepted = True
+                vote.vote = vote_input
+            vote.comment = request.POST.get('comment')
+            vote.time_voted = timezone.now()
+            vote.voter_impact = self.user.get_profile().impact
+            vote.save()
+
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+
+
+### todo all below is old
+
 @login_required
 def new(request, project_name, task_id=None, solution_id=None):
     assert task_id is None or solution_id is None, \
@@ -65,104 +182,6 @@ def new(request, project_name, task_id=None, solution_id=None):
     return render(request, 'solution/new_solution.html', context)
 
 
-@login_required
-def solution(request, project_name, solution_id):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    user = request.user
-    if request.POST:
-        # Acceptance of suggested solution
-        accept = request.POST.get('accept')
-        unaccept = request.POST.get('unaccept')
-        if (accept or unaccept) and solution.is_acceptor(user):
-            if accept:
-                solution.is_accepted = True
-                solution.time_accepted = timezone.now()
-            else:
-                solution.is_accepted = False
-                solution.time_accepted = None
-            solution.save()
-
-        # Mark solution complete
-        if request.POST.get('complete') \
-                and not solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_completed = True
-            solution.time_completed = timezone.now()
-            solution.save()
-
-        # Mark solution incomplete
-        if request.POST.get('incomplete') \
-                and solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_completed = False
-            solution.time_completed = None
-            solution.save()
-
-        # Close solution
-        if request.POST.get('close') \
-                and not solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_closed = True
-            solution.time_closed = timezone.now()
-            solution.save()
-
-        # Reopen solution
-        if request.POST.get('reopen') \
-                and solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_closed = False
-            solution.time_closed = None
-            solution.save()
-
-        # Vote on completed solution
-        vote_input = request.POST.get('vote')
-        if vote_input and not solution.is_owner(user):
-            # Get or create with other parameters
-            try:
-                vote = Vote.objects.get(
-                    solution_id=solution.id,
-                    voter_id=user.id
-                )
-            except Vote.DoesNotExist:
-                vote = Vote(
-                    solution=solution,
-                    voter=user
-                )
-
-            if vote_input == 'reject':
-                vote.is_accepted = False
-                vote.vote = None
-            else:
-                vote.is_accepted = True
-                vote.vote = vote_input
-            vote.comment = request.POST.get('comment')
-            vote.time_voted = timezone.now()
-            vote.voter_impact = user.get_profile().impact
-            vote.save()
-
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-
-    # Get current users vote on this solution
-    try:
-        vote = solution.vote_set.get(voter_id=user.id)
-    except Vote.DoesNotExist:
-        vote = None
-    context = {
-        'project': project,
-        'solution_tab': "solution",
-        'solution': solution,
-        'comments': CommentHolder.get_comments(solution.comment_set.all().order_by('time_commented'), user),
-        'subtasks': solution.subtask_set.all().order_by('-time_posted'),
-        'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
-        'vote': vote,
-        'is_owner': solution.is_owner(user),
-        'is_acceptor': solution.is_acceptor(user),
-    }
-    return render(request, 'solution/solution.html', context)
 
 
 @login_required
