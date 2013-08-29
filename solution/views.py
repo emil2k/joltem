@@ -1,37 +1,33 @@
-from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
-from django.http.response import HttpResponseNotFound, Http404
-from django.utils.decorators import method_decorator
+from django.shortcuts import redirect, get_object_or_404
+from django.http.response import Http404
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from joltem.models import Vote, Comment
 from joltem.holders import CommentHolder
 from git.models import Repository
-from project.models import Project
 from task.models import Task
 from solution.models import Solution
+
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
+from project.views import ProjectBaseView
 
 import logging
 logger = logging.getLogger('django')
 
 
-# todo convert to class based views
-
-from project.views import ProjectObjectMixin, RequestTemplateView
-
-
-class SolutionObjectMixin(ProjectObjectMixin):
+class SolutionBaseView(ProjectBaseView):
     """
     Adds project object for manipulating
     """
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(SolutionObjectMixin, self).initiate_variables(request, args, kwargs)
+        super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
         self.solution = get_object_or_404(Solution, id=self.kwargs.get("solution_id"))
         self.is_owner = self.solution.is_owner(self.user)
 
-    def get_context_data(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
         kwargs["solution"] = self.solution
         # Get the users vote on this solution # todo is this necessary on each page or only on review page
         try:
@@ -45,10 +41,10 @@ class SolutionObjectMixin(ProjectObjectMixin):
         kwargs["is_owner"] = self.solution.is_owner(self.user)
         kwargs["is_acceptor"] = self.solution.is_acceptor(self.user)
 
-        return super(SolutionObjectMixin, self).get_context_data(request, **kwargs)
+        return super(SolutionBaseView, self).get_context_data(**kwargs)
 
 
-class SolutionView(SolutionObjectMixin, RequestTemplateView):
+class SolutionView(TemplateView, SolutionBaseView):
     """
     View to display solution's information
     """
@@ -131,7 +127,7 @@ class SolutionView(SolutionObjectMixin, RequestTemplateView):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
 
-class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
+class SolutionCreateView(TemplateView, ProjectBaseView):
     """
     View to create a new solution
     """
@@ -147,10 +143,10 @@ class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
         if solution_id:
             self.parent_solution = get_object_or_404(Solution, id=solution_id)
 
-    def get_context_data(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
         kwargs['task'] = self.parent_task
         kwargs['solution'] = self.parent_solution
-        return super(SolutionCreateView, self).get_context_data(request, **kwargs)
+        return super(SolutionCreateView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         if self.parent_task and self.parent_task.is_closed:
@@ -164,7 +160,7 @@ class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
         # If no parent task, title and description of solution required
         if self.parent_task is None \
                 and not (title and description):
-            context = self.get_context_data(request, **kwargs)
+            context = self.get_context_data(**kwargs)
             context['error'] = "A title and description is required, please explain the suggested solution."
             if title:
                 context['title'] = title
@@ -184,7 +180,7 @@ class SolutionCreateView(ProjectObjectMixin, RequestTemplateView):
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=solution.id)
 
 
-class SolutionEditView(SolutionObjectMixin, RequestTemplateView):
+class SolutionEditView(TemplateView, SolutionBaseView):
     """
     View to edit solution
     """
@@ -204,16 +200,16 @@ class SolutionEditView(SolutionObjectMixin, RequestTemplateView):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
 
-class SolutionReviewView(SolutionObjectMixin, RequestTemplateView):
+class SolutionReviewView(TemplateView, SolutionBaseView):
     template_name = "solution/review.html"
 
-    def get_context_data(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
         kwargs["vote_count"] = self.solution.vote_set.count()
         kwargs["accept_votes"] = self.solution.vote_set.filter(is_accepted=True)
         kwargs["reject_votes"] = self.solution.vote_set.filter(is_accepted=False)
         kwargs["maximum_magnitude"] = Vote.MAXIMUM_MAGNITUDE
         kwargs["has_commented"] = self.solution.has_commented(self.user.id)
-        return super(SolutionReviewView, self).get_context_data(request, **kwargs)
+        return super(SolutionReviewView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         if not self.solution.is_completed:
@@ -290,7 +286,7 @@ class SolutionReviewView(SolutionObjectMixin, RequestTemplateView):
             return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
 
 
-class SolutionCommitsView(SolutionObjectMixin, RequestTemplateView):
+class SolutionCommitsView(TemplateView, SolutionBaseView):
     template_name = "solution/commits.html"
 
     def initiate_variables(self, request, *args, **kwargs):
@@ -300,11 +296,12 @@ class SolutionCommitsView(SolutionObjectMixin, RequestTemplateView):
         if self.repository_set.count() == 0:
             raise Http404
         elif repository_name is not None:
+            # todo for some reason a non existent repository is not returning 404
             self.repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
         else:
             self.repository = self.repository_set[0]  # load the default active repository
 
-    def get_context_data(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
         kwargs['repositories'] = self.repository_set
         kwargs['repository'] = self.repository
         pygit_repository = self.repository.load_pygit_object()
@@ -314,26 +311,28 @@ class SolutionCommitsView(SolutionObjectMixin, RequestTemplateView):
         except KeyError:
             kwargs['commits'] = []
             kwargs['diff'] = []
-        return super(SolutionCommitsView, self).get_context_data(request, **kwargs)
-
-### todo refactor these views
-
-# Generic views
-from project.views import ProjectListView
+        return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
-class SolutionListView(ProjectListView):
-    model = Solution
+# todo write list view
+
+class SolutionBaseListView(ListView, ProjectBaseView):
+    """
+    Base view for displaying lists of solutions
+    """
     template_name = 'solution/solutions_list.html'
-    project_tab = 'solutions'
-    solutions_tab = None
     context_object_name = 'solutions'
+    solutions_tab = None
 
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(SolutionListView, self).dispatch(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        kwargs["solutions_tab"] = self.solutions_tab
+        return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
-    def reviewed(self):
+
+class MyReviewedSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_incomplete"
+
+    def reviewed_filter(self):
         """
         Generator for solutions that have been reviewed by requesting user
         """
@@ -343,50 +342,32 @@ class SolutionListView(ProjectListView):
             yield vote.voteable
 
     def get_queryset(self):
-        if self.solutions_tab == 'my_reviewed':
-            return (solution for solution in self.reviewed())
-        elif self.solutions_tab == 'my_incomplete':
-            return self.project.solution_set.filter(is_completed=False, user_id=self.user.id).order_by('-time_completed')
-        elif self.solutions_tab == 'my_complete':
-            return self.project.solution_set.filter(is_completed=True, user_id=self.user.id).order_by('-time_completed')
-        elif self.solutions_tab == 'all_incomplete':
-            return self.project.solution_set.filter(is_completed=False).order_by('-time_completed')
-        elif self.solutions_tab == 'all_complete':
-            return self.project.solution_set.filter(is_completed=True).order_by('-time_completed')
-        else:
-            return self.project.solution_set.all().order_by('-time_posted')
-
-    def get_context_data(self, **kwargs):
-        context = super(SolutionListView, self).get_context_data(**kwargs)
-        context['solutions_tab'] = self.solutions_tab
-        return context
+        return (solution for solution in self.reviewed_filter())
 
 
-def my_reviewed():
-    return SolutionListView.as_view(
-        solutions_tab='my_reviewed'
-    )
+class MyIncompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_incomplete"
+
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=False, is_closed=False, user_id=self.user.id).order_by('-time_posted')
 
 
-def my_incomplete():
-    return SolutionListView.as_view(
-        solutions_tab='my_incomplete'
-    )
+class MyCompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_complete"
+
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=True, is_closed=False, user_id=self.user.id).order_by('-time_completed')
 
 
-def my_complete():
-    return SolutionListView.as_view(
-        solutions_tab='my_complete'
-    )
+class AllIncompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "all_incomplete"
+
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=False, is_closed=False).order_by('-time_posted')
 
 
-def all_incomplete():
-    return SolutionListView.as_view(
-        solutions_tab='all_incomplete'
-    )
+class AllCompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "all_complete"
 
-
-def all_complete():
-    return SolutionListView.as_view(
-        solutions_tab='all_complete'
-    )
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=True,  is_closed=False).order_by('-time_completed')

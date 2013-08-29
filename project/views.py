@@ -5,54 +5,42 @@ from django.views.generic import ListView
 from django.views.generic.base import View, TemplateView, ContextMixin, TemplateResponseMixin
 
 
-class RequestContextMixin(ContextMixin):
-    """
-    A context mixin that adds the request and the user to the context, and initiates some variables
-    """
-
-    def initiate_variables(self, request, *args, **kwargs):
-        """Override to initiate other variables"""
-        self.request = request
-        self.user = request.user
-
-    def get_context_data(self, request, **kwargs):
-        kwargs['request'] = request
-        kwargs['user'] = request.user
-        return super(RequestContextMixin, self).get_context_data(**kwargs)
-
-
-class RequestTemplateView(TemplateResponseMixin, RequestContextMixin, View):
+class RequestBaseView(ContextMixin, View):
     """
     A view that renders a template for GET request, where the context depends on the request or the user
     """
 
+    def initiate_variables(self, request, *args, **kwargs):
+        """Override to initiate other variables, make sure to call super on first line"""
+        self.request = request
+        self.user = request.user
+
     def dispatch(self, request, *args, **kwargs):
         self.initiate_variables(request, *args, **kwargs)
-        return super(RequestTemplateView, self).dispatch(request, args, kwargs)
+        return super(RequestBaseView, self).dispatch(request, args, kwargs)
 
-    def get(self, request, *args, **kwargs):
-        """Default GET behaviour with the custom context mixin"""
-        context = self.get_context_data(request, **kwargs)
-        return self.render_to_response(context)
+    def get_context_data(self, **kwargs):
+        kwargs["user"] = self.user
+        return super(RequestBaseView, self).get_context_data(**kwargs)
 
 
-class ProjectObjectMixin(RequestContextMixin):
+class ProjectBaseView(RequestBaseView):
     """
     Adds project object for manipulating
     """
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(ProjectObjectMixin, self).initiate_variables(request, args, kwargs)
+        super(ProjectBaseView, self).initiate_variables(request, args, kwargs)
         self.project = Project.objects.get(name=self.kwargs.get("project_name"))
         self.is_admin = self.project.is_admin(request.user.id)
 
-    def get_context_data(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
         kwargs["project"] = self.project
         kwargs["is_admin"] = self.is_admin
-        return super(ProjectObjectMixin, self).get_context_data(request, **kwargs)
+        return super(ProjectBaseView, self).get_context_data(**kwargs)
 
 
-class ProjectView(ProjectObjectMixin, RequestTemplateView):
+class ProjectView(TemplateView, ProjectBaseView):
     """
     View to display a project's information
     """
