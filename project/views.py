@@ -1,10 +1,9 @@
-from django.shortcuts import render, get_object_or_404
 from project.models import Project
 
-from django.views.generic import ListView
-from django.views.generic.base import View, TemplateView, ContextMixin, TemplateResponseMixin
+from django.views.generic.base import View, TemplateView, ContextMixin
 
 
+# todo this might need to be moved later to a more general module
 class RequestBaseView(ContextMixin, View):
     """
     A view that renders a template for GET request, where the context depends on the request or the user
@@ -25,6 +24,7 @@ class RequestBaseView(ContextMixin, View):
 
 
 class ProjectBaseView(RequestBaseView):
+    project_tab = None
 
     def initiate_variables(self, request, *args, **kwargs):
         super(ProjectBaseView, self).initiate_variables(request, args, kwargs)
@@ -34,6 +34,7 @@ class ProjectBaseView(RequestBaseView):
     def get_context_data(self, **kwargs):
         kwargs["project"] = self.project
         kwargs["is_admin"] = self.is_admin
+        kwargs["project_tab"] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
 
 

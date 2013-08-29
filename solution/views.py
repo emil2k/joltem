@@ -1,23 +1,22 @@
 from django.shortcuts import redirect, get_object_or_404
+
 from django.http.response import Http404
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 
 from joltem.models import Vote, Comment
 from joltem.holders import CommentHolder
 from git.models import Repository
+
 from task.models import Task
 from solution.models import Solution
-
-from django.views.generic.base import TemplateView
-from django.views.generic.list import ListView
 from project.views import ProjectBaseView
-
-import logging
-logger = logging.getLogger('django')
 
 
 class SolutionBaseView(ProjectBaseView):
+    solution_tab = None
 
     def initiate_variables(self, request, *args, **kwargs):
         super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
@@ -26,6 +25,7 @@ class SolutionBaseView(ProjectBaseView):
 
     def get_context_data(self, **kwargs):
         kwargs["solution"] = self.solution
+        kwargs["solution_tab"] = self.solution_tab
         # Get the users vote on this solution # todo is this necessary on each page or only on review page
         try:
             kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
@@ -46,6 +46,7 @@ class SolutionView(TemplateView, SolutionBaseView):
     View to display solution's information
     """
     template_name = "solution/solution.html"
+    solution_tab = "solution"
 
     def post(self, request, *args, **kwargs):
         # Acceptance of suggested solution
@@ -199,6 +200,7 @@ class SolutionEditView(TemplateView, SolutionBaseView):
 
 class SolutionReviewView(TemplateView, SolutionBaseView):
     template_name = "solution/review.html"
+    solution_tab = "review"
 
     def get_context_data(self, **kwargs):
         kwargs["vote_count"] = self.solution.vote_set.count()
@@ -285,6 +287,7 @@ class SolutionReviewView(TemplateView, SolutionBaseView):
 
 class SolutionCommitsView(TemplateView, SolutionBaseView):
     template_name = "solution/commits.html"
+    solution_tab = "commits"
 
     def initiate_variables(self, request, *args, **kwargs):
         super(SolutionCommitsView, self).initiate_variables(request, *args, **kwargs)
@@ -317,6 +320,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
     """
     template_name = 'solution/solutions_list.html'
     context_object_name = 'solutions'
+    project_tab = "solutions"
     solutions_tab = None
 
     def get_context_data(self, **kwargs):

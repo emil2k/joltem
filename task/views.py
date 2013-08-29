@@ -1,14 +1,10 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-
-from joltem.holders import CommentHolder
-from project.models import Project
-from task.models import Task
-from solution.models import Solution
-
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
+
+from joltem.holders import CommentHolder
+from task.models import Task
+from solution.models import Solution
 from project.views import ProjectBaseView
 
 
@@ -105,6 +101,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
     """
     template_name = 'task/tasks_list.html'
     context_object_name = 'tasks'
+    project_tab = "tasks"
     tasks_tab = None
 
     def get_context_data(self, **kwargs):
@@ -146,6 +143,7 @@ class SubtaskBaseView(ListView, ProjectBaseView):
     """
     template_name = "task/tasks_list_parent.html"
     context_object_name = "subtask_groups"
+    project_tab = "tasks"
 
     def initiate_variables(self, request, *args, **kwargs):
         super(SubtaskBaseView, self).initiate_variables(request, *args, **kwargs)
