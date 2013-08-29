@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
-from django.http.response import HttpResponseNotFound
+from django.http.response import HttpResponseNotFound, Http404
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -293,18 +293,21 @@ class SolutionReviewView(SolutionObjectMixin, RequestTemplateView):
 class SolutionCommitsView(SolutionObjectMixin, RequestTemplateView):
     template_name = "solution/commits.html"
 
-    def get_context_data(self, request, **kwargs):
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionCommitsView, self).initiate_variables(request, *args, **kwargs)
+        self.repository_set = self.project.repository_set.filter(is_hidden=False).order_by('name')
         repository_name = kwargs.get("repository_name")
-        repository_set = self.project.repository_set.filter(is_hidden=False).order_by('name')
-        kwargs['repositories'] = repository_set
-        if self.project.repository_set.count() == 0:
-            return HttpResponseNotFound()
+        if self.repository_set.count() == 0:
+            raise Http404
         elif repository_name is not None:
-            repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
+            self.repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
         else:
-            repository = repository_set[0]  # load the default active repository
-        kwargs['repository'] = repository
-        pygit_repository = repository.load_pygit_object()
+            self.repository = self.repository_set[0]  # load the default active repository
+
+    def get_context_data(self, request, **kwargs):
+        kwargs['repositories'] = self.repository_set
+        kwargs['repository'] = self.repository
+        pygit_repository = self.repository.load_pygit_object()
         try:
             kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
             kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
