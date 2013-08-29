@@ -10,9 +10,9 @@ urlpatterns = patterns(
     url(r'^(?P<task_id>(\d)+)/edit/$', login_required(views.TaskEditView.as_view()), name='edit'),
     url(r'^(?P<task_id>(\d)+)/solve/$', login_required(solution_views.SolutionCreateView.as_view()), name='solve'),
     # Lists of tasks
-    url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.TaskListView.as_view(), name='subtasks'),
-    url(r'^open/$', views.all_open(), name='all_open'),
-    url(r'^closed/$', views.all_closed(), name='all_closed'),
-    url(r'^open/my/$', views.my_open(), name='my_open'),
-    url(r'^closed/my/$', views.my_closed(), name='my_closed'),
+    url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', login_required(views.SubtaskView.as_view()), name='subtasks'),
+    url(r'^open/$', login_required(views.AllOpenTasksView.as_view()), name='all_open'),
+    url(r'^closed/$', login_required(views.AllClosedTasksView.as_view()), name='all_closed'),
+    url(r'^open/my/$', login_required(views.MyOpenTasksView.as_view()), name='my_open'),
+    url(r'^closed/my/$', login_required(views.MyClosedTasksView.as_view()), name='my_closed'),
 )

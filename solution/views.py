@@ -311,8 +311,6 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
         return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
-# todo write list view
-
 class SolutionBaseListView(ListView, ProjectBaseView):
     """
     Base view for displaying lists of solutions
@@ -327,7 +325,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
 
 
 class MyReviewedSolutionsView(SolutionBaseListView):
-    solutions_tab = "my_incomplete"
+    solutions_tab = "my_reviewed"
 
     def reviewed_filter(self):
         """
