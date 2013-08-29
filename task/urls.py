@@ -7,7 +7,7 @@ urlpatterns = patterns(
     '',
     url(r'^(?:(?P<parent_solution_id>(\d)+)/)?new/$', views.new, name='new'),
     url(r'^(?P<task_id>(\d)+)/$', login_required(views.TaskView.as_view()), name='task'),
-    url(r'^(?P<task_id>(\d)+)/edit/$', views.edit, name='edit'),
+    url(r'^(?P<task_id>(\d)+)/edit/$', login_required(views.TaskEditView.as_view()), name='edit'),
     url(r'^(?P<task_id>(\d)+)/solve/$', login_required(solution_views.SolutionCreateView.as_view()), name='solve'),
     # Lists of tasks
     url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', views.TaskListView.as_view(), name='subtasks'),

@@ -23,7 +23,6 @@ class TaskBaseView(ProjectBaseView):
         kwargs["is_owner"] = self.task
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
-
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
@@ -47,6 +46,20 @@ class TaskView(TemplateView, TaskBaseView):
             self.task.save()
 
         return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+
+class TaskEditView(TemplateView, TaskBaseView):
+    template_name = "task/task_edit.html"
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_owner:
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+        title = request.POST.get('title')
+        if title is not None:
+            self.task.title = title
+            self.task.description = request.POST.get('description')
+            self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
 #### todo refactor all below
 
@@ -81,28 +94,6 @@ def new(request, project_name, parent_solution_id):
                 return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution_id)
             return redirect('project:task:my_open', project_name=project.name)
     return render(request, 'task/new_task.html', context)
-
-@login_required
-def edit(request, project_name, task_id):
-    project = get_object_or_404(Project, name=project_name)
-    task = get_object_or_404(Task, id=task_id)
-    is_owner = task.is_owner(request.user)
-    if request.POST:
-        if not is_owner:
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-        title = request.POST.get('title')
-        if title is not None:
-            task.title = title
-            task.description = request.POST.get('description')
-            task.save()
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-    context = {
-        'project': project,
-        'task': task,
-        'is_owner': is_owner,
-    }
-    return render(request, 'task/task_edit.html', context)
-
 
 # Generic views
 from project.views import ProjectListView
