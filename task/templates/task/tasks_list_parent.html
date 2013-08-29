@@ -9,7 +9,7 @@
                 Tasks for solution by {{ subtask_group.solution.user.first_name }}
             </a>
         </div>
-        {% for task in subtask_group.tasks %}
+        {% for task in subtask_group.subtask_set %}
             {% include 'task/task_row.html' %}
         {% endfor %}
     {% empty %}

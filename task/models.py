@@ -2,8 +2,10 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from joltem.models import Commentable
 
-class Task(models.Model):
+
+class Task(Commentable):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_closed = models.BooleanField(default=False)
@@ -24,7 +26,7 @@ class Task(models.Model):
         """
         count = 0
         for solution in self.solution_set.all():
-            count += solution.get_sub
+            count += solution.get_subtask_count
         return count
 
     def is_owner(self, user):

@@ -11,5 +11,12 @@
         {% endif %}
     </ul>
     {% block solution_content %}{% endblock %}
-    {% block scripts %}{% block solution_scripts %}{% endblock %}{% endblock %}
+    {% block scripts %}
+        <script>
+            $(document).ready(function() {
+                $(".impact_vote").tooltip();
+            });
+        </script>
+        {% block solution_scripts %}{% endblock %}
+    {% endblock %}
 {% endblock %}

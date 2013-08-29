@@ -1,10 +1,9 @@
 from django.utils import timezone
 
-from joltem.models import User
+from joltem.models import User, Vote, Comment
 from project.models import Project, Impact
 from task.models import Task
-from solution.models import Solution, Comment, Vote
-from git.models import Repository
+from solution.models import Solution
 
 from joltem.tests import TEST_LOGGER
 
@@ -46,11 +45,11 @@ def get_mock_solution(project, user, task=None, solution=None, is_completed=True
     return s
 
 
-def get_mock_comment(project, user, solution):
+def get_mock_comment(project, user, commentable):
     c = Comment(
         project=project,
         user=user,
-        solution=solution
+        commentable=commentable
     )
     c.save()
     return c

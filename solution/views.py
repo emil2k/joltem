@@ -1,133 +1,119 @@
-from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
-from django.http.response import HttpResponseNotFound
-from django.utils.decorators import method_decorator
+from django.shortcuts import redirect, get_object_or_404
+
+from django.http.response import Http404
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
+
+from joltem.models import Vote
+from joltem.holders import CommentHolder
 from git.models import Repository
-from project.models import Project
+
 from task.models import Task
-from solution.models import Solution, Comment, Vote
-
-import logging
-logger = logging.getLogger('django')
+from solution.models import Solution
+from project.views import ProjectBaseView, CommentableView, VoteableView
 
 
-@login_required
-def new(request, project_name, task_id=None, solution_id=None):
-    assert task_id is None or solution_id is None, \
-        "Don't specify both a parent solution and parent task when creating a new solution."
-    project = get_object_or_404(Project, name=project_name)
+class SolutionBaseView(ProjectBaseView):
+    solution_tab = None
 
-    context = {
-        'project': project,
-        'project_tab': "solutions"
-    }
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
+        self.solution = get_object_or_404(Solution, id=self.kwargs.get("solution_id"))
+        self.is_owner = self.solution.is_owner(self.user)
 
-    parent_task, parent_solution = [None] * 2
+    def get_context_data(self, **kwargs):
+        kwargs["solution"] = self.solution
+        kwargs["solution_tab"] = self.solution_tab
+        # Get the users vote on this solution # todo is this necessary on each page or only on review page
+        try:
+            kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
+        except Vote.DoesNotExist:
+            kwargs["vote"] = None
 
-    if task_id:
-        parent_task = get_object_or_404(Task, id=task_id)
-        if parent_task.is_closed:
-            return redirect('project:task:task', project_name=project.name, task_id=parent_task.id)
-        context['task'] = parent_task
+        kwargs["comments"] = CommentHolder.get_comments(self.solution.comment_set.all().order_by('time_commented'), self.user)
+        kwargs["subtasks"] = self.solution.subtask_set.all().order_by('-time_posted')
+        kwargs["suggested_solutions"] = self.solution.solution_set.all().order_by('-time_posted')
+        kwargs["is_owner"] = self.solution.is_owner(self.user)
+        kwargs["is_acceptor"] = self.solution.is_acceptor(self.user)
 
-    if solution_id:
-        parent_solution = get_object_or_404(Solution, id=solution_id)
-        if parent_solution.is_completed or parent_solution.is_closed:
-            return redirect('project:solution:solution', project_name=project.name, task_id=parent_task.id)
-        context['solution'] = parent_solution
-
-    if request.POST:
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        if parent_task is None \
-                and not (title and description):
-            context['error'] = "A title and description is required, please explain the suggested solution."
-            if title:
-                context['title'] = title
-            if description:
-                context['description'] = description
-        else:
-            solution = Solution(
-                user=request.user,
-                task=parent_task,
-                solution=parent_solution,
-                project=project,
-                title=title,
-                description=description
-            )
-            solution.save()
-            return redirect('project:solution:solution', project_name=project.name, solution_id=solution.id)
-    return render(request, 'solution/new_solution.html', context)
+        return super(SolutionBaseView, self).get_context_data(**kwargs)
 
 
-@login_required
-def solution(request, project_name, solution_id):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    user = request.user
-    if request.POST:
+class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView):
+    """
+    View to display solution's information
+    """
+    template_name = "solution/solution.html"
+    solution_tab = "solution"
+
+    def post(self, request, *args, **kwargs):
         # Acceptance of suggested solution
         accept = request.POST.get('accept')
         unaccept = request.POST.get('unaccept')
-        if (accept or unaccept) and solution.is_acceptor(user):
+        if (accept or unaccept) and self.solution.is_acceptor(self.user):
             if accept:
-                solution.is_accepted = True
-                solution.time_accepted = timezone.now()
+                self.solution.is_accepted = True
+                self.solution.time_accepted = timezone.now()
             else:
-                solution.is_accepted = False
-                solution.time_accepted = None
-            solution.save()
+                self.solution.is_accepted = False
+                self.solution.time_accepted = None
+            self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Mark solution complete
         if request.POST.get('complete') \
-                and not solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_completed = True
-            solution.time_completed = timezone.now()
-            solution.save()
+                and not self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_completed = True
+            self.solution.time_completed = timezone.now()
+            self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Mark solution incomplete
         if request.POST.get('incomplete') \
-                and solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_completed = False
-            solution.time_completed = None
-            solution.save()
+                and self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_completed = False
+            self.solution.time_completed = None
+            self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Close solution
         if request.POST.get('close') \
-                and not solution.is_completed \
-                and not solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_closed = True
-            solution.time_closed = timezone.now()
-            solution.save()
+                and not self.solution.is_completed \
+                and not self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_closed = True
+            self.solution.time_closed = timezone.now()
+            self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Reopen solution
         if request.POST.get('reopen') \
-                and solution.is_closed \
-                and solution.is_owner(user):
-            solution.is_closed = False
-            solution.time_closed = None
-            solution.save()
+                and self.solution.is_closed \
+                and self.solution.is_owner(self.user):
+            self.solution.is_closed = False
+            self.solution.time_closed = None
+            self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Vote on completed solution
         vote_input = request.POST.get('vote')
-        if vote_input and not solution.is_owner(user):
+        if vote_input and not self.solution.is_owner(self.user):
             # Get or create with other parameters
             try:
                 vote = Vote.objects.get(
-                    solution_id=solution.id,
-                    voter_id=user.id
+                    solution_id=self.solution.id,
+                    voter_id=self.user.id
                 )
             except Vote.DoesNotExist:
                 vote = Vote(
-                    solution=solution,
-                    voter=user
+                    solution=self.solution,
+                    voter=self.user
                 )
 
             if vote_input == 'reject':
@@ -138,208 +124,163 @@ def solution(request, project_name, solution_id):
                 vote.vote = vote_input
             vote.comment = request.POST.get('comment')
             vote.time_voted = timezone.now()
-            vote.voter_impact = user.get_profile().impact
+            vote.voter_impact = self.user.get_profile().impact
             vote.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+        return super(SolutionView, self).post(request, *args, **kwargs)
 
-    # Get current users vote on this solution
-    try:
-        vote = solution.vote_set.get(voter_id=user.id)
-    except Vote.DoesNotExist:
-        vote = None
-    context = {
-        'project': project,
-        'solution_tab': "solution",
-        'solution': solution,
-        'subtasks': solution.subtask_set.all().order_by('-time_posted'),
-        'suggested_solutions': solution.solution_set.all().order_by('-time_posted'),
-        'vote': vote,
-        'is_owner': solution.is_owner(user),
-        'is_acceptor': solution.is_acceptor(user),
-    }
-    return render(request, 'solution/solution.html', context)
+    def get_vote_redirect(self):
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+    def get_commentable(self):
+        return self.solution
+
+    def get_comment_redirect(self):
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
 
-@login_required
-def solution_edit(request, project_name, solution_id):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    is_owner = solution.is_owner(request.user)
-    if not is_owner or solution.is_closed:
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-    if request.POST:
-        solution.title = request.POST.get('title')
-        solution.description = request.POST.get('description')
-        solution.save()
-        return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
+class SolutionEditView(TemplateView, SolutionBaseView):
+    """
+    View to edit solution
+    """
+    template_name = "solution/solution_edit.html"
 
-    context = {
-        'project': project,
-        'solution_tab': "solution",
-        'solution': solution,
-        'is_owner': solution.is_owner(request.user)
-    }
-    return render(request, 'solution/solution_edit.html', context)
+    def get(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        return super(SolutionEditView, self).get(request, *args, **kwargs)
 
-@login_required
-def review(request, project_name, solution_id):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    is_owner = solution.is_owner(request.user)
-    user = request.user
-    # Redirect if solution is not ready for review
-    if not solution.is_completed:
-            return redirect('project:solution:solution', project_name=project_name, solution_id=solution_id)
-    solution_type = ContentType.objects.get_for_model(solution)
-    try:
-        vote = Vote.objects.get(
-            voteable_type_id=solution_type.id,
-            voteable_id=solution.id,
-            voter_id=user.id
-        )
-    except Vote.DoesNotExist:
-        vote = None
-    if request.POST:
-        comment_vote_input = request.POST.get('comment_vote')
-        if comment_vote_input is not None:
-            comment_vote_input = int(comment_vote_input)
-            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
-            comment_id = request.POST.get('comment_id')
-            comment = Comment.objects.get(id=comment_id)
-            if comment.user.id == user.id:
-                return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-            try:
-                comment_type = ContentType.objects.get_for_model(comment)
-                comment_vote = Vote.objects.get(
-                    voteable_type_id=comment_type.id,
-                    voteable_id=comment.id,
-                    voter_id=user.id
-                )
-                if comment_vote.magnitude != comment_vote_input:
-                    comment_vote.magnitude = comment_vote_input
-                    comment_vote.is_accepted = comment_vote_input > 0
-                    comment_vote.voter_impact = user.get_profile().impact
-                    comment_vote.time_voted = timezone.now()
-                    comment_vote.save()
-            except Vote.DoesNotExist:
-                comment_vote = Vote(
-                    voter=user,
-                    voter_impact=user.get_profile().impact,
-                    voteable=comment,
-                    magnitude=comment_vote_input,
-                    is_accepted=comment_vote_input > 0,
-                    time_voted=timezone.now()
-                )
-                comment_vote.save()
-            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-        comment_text = request.POST.get('comment')
-        if comment_text is not None:
-            review_comment = Comment(
-                time_commented=timezone.now(),
-                project=project,
-                user=user,
-                solution=solution,
-                comment=comment_text
+    def post(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        self.solution.title = request.POST.get('title')
+        self.solution.description = request.POST.get('description')
+        self.solution.save()
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+
+class SolutionReviewView(VoteableView, CommentableView, TemplateView, SolutionBaseView):
+    template_name = "solution/review.html"
+    solution_tab = "review"
+
+    def get_context_data(self, **kwargs):
+        kwargs["vote_count"] = self.solution.vote_set.count()
+        kwargs["accept_votes"] = self.solution.vote_set.filter(is_accepted=True)
+        kwargs["reject_votes"] = self.solution.vote_set.filter(is_accepted=False)
+        kwargs["has_commented"] = self.solution.has_commented(self.user.id)
+        return super(SolutionReviewView, self).get_context_data(**kwargs)
+
+    def get_vote_redirect(self):
+        return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+
+    def get_commentable(self):
+        return self.solution
+
+    def get_comment_redirect(self):
+        return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+
+
+class SolutionCommitsView(TemplateView, SolutionBaseView):
+    template_name = "solution/commits.html"
+    solution_tab = "commits"
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionCommitsView, self).initiate_variables(request, *args, **kwargs)
+        self.repository_set = self.project.repository_set.filter(is_hidden=False).order_by('name')
+        repository_name = kwargs.get("repository_name")
+        if self.repository_set.count() == 0:
+            raise Http404
+        elif repository_name is not None:
+            # todo for some reason a non existent repository is not returning 404
+            self.repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
+        else:
+            self.repository = self.repository_set[0]  # load the default active repository
+
+    def get_context_data(self, **kwargs):
+        kwargs['repositories'] = self.repository_set
+        kwargs['repository'] = self.repository
+        pygit_repository = self.repository.load_pygit_object()
+        try:
+            kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
+            kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
+        except KeyError:
+            kwargs['commits'] = []
+            kwargs['diff'] = []
+        return super(SolutionCommitsView, self).get_context_data(**kwargs)
+
+
+class SolutionCreateView(TemplateView, ProjectBaseView):
+    """
+    View to create a new solution
+    """
+    template_name = "solution/new_solution.html"
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionCreateView, self).initiate_variables(request, *args, **kwargs)
+        self.parent_task, self.parent_solution = [None] * 2
+        task_id = kwargs.get('task_id', None)
+        solution_id = kwargs.get('solution_id', None)
+        if task_id:
+            self.parent_task = get_object_or_404(Task, id=task_id)
+        if solution_id:
+            self.parent_solution = get_object_or_404(Solution, id=solution_id)
+
+    def get_context_data(self, **kwargs):
+        kwargs['task'] = self.parent_task
+        kwargs['solution'] = self.parent_solution
+        return super(SolutionCreateView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if self.parent_task and self.parent_task.is_closed:
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.parent_task.id)
+        if self.parent_solution and (self.parent_solution.is_completed or self.parent_solution.is_closed):
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
+
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+
+        # If no parent task, title and description of solution required
+        if self.parent_task is None \
+                and not (title and description):
+            context = self.get_context_data(**kwargs)
+            context['error'] = "A title and description is required, please explain the suggested solution."
+            if title:
+                context['title'] = title
+            if description:
+                context['description'] = description
+            return self.render_to_response(context)
+        else:
+            solution = Solution(
+                user=request.user,
+                task=self.parent_task,
+                solution=self.parent_solution,
+                project=self.project,
+                title=title,
+                description=description
             )
-            review_comment.save()
-            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-        vote_input = request.POST.get('vote')
-        if vote_input is not None and not is_owner:
-            vote_input = int(vote_input)
-            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
-            if vote is None:
-                vote = Vote(
-                    voteable=solution,
-                    voter=user
-                )
-            vote.is_accepted = vote_input > 0
-            vote.magnitude = vote_input
-            vote.time_voted = timezone.now()
-            vote.voter_impact = user.get_profile().impact
-            vote.save()
-            return redirect('project:solution:review', project_name=project_name, solution_id=solution_id)
-
-    class CommentHolder:
-        def __init__(self, comment, user):
-            self.comment = comment
-            try:
-                self.vote = comment.vote_set.get(voter_id=user.id)
-            except Vote.DoesNotExist:
-                self.vote = None
-            self.is_author = user.id == comment.user.id
-            self.vote_count = comment.vote_set.count()
-
-    comments = []
-    for comment in solution.comment_set.all().order_by('time_commented'):
-        comments.append(CommentHolder(comment, user))
-
-    context = {
-        'project': project,
-        'solution_tab': "review",
-        'solution': solution,
-        'comments': comments,
-        'vote_count': solution.vote_set.count(),
-        'accept_votes': solution.vote_set.filter(is_accepted=True),
-        'reject_votes': solution.vote_set.filter(is_accepted=False),
-        'vote': vote,
-        'maximum_magnitude': Vote.MAXIMUM_MAGNITUDE,
-        'has_commented': solution.has_commented(user.id),
-        'is_owner': is_owner
-    }
-    return render(request, 'solution/review.html', context)
+            solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=solution.id)
 
 
-@login_required
-def commits(request, project_name, solution_id, repository_name):
-    project = get_object_or_404(Project, name=project_name)
-    solution = get_object_or_404(Solution, id=solution_id)
-    repository_set = project.repository_set.filter(is_hidden=False).order_by('name')
-
-    if project.repository_set.count() == 0:
-        return HttpResponseNotFound()
-    elif repository_name is not None:
-        repository = get_object_or_404(Repository, project_id=project.id, name=repository_name)
-    else:
-        repository = repository_set[0]  # load the default active repository
-
-    pygit_repository = repository.load_pygit_object()
-
-    context = {
-        'user': request.user,
-        'project': project,
-        'solution_tab': "commits",
-        'solution': solution,
-        'repository': repository,
-        'repositories': repository_set
-    }
-
-    try:
-        context['commits'] = solution.get_commit_set(pygit_repository)
-        context['diff'] = solution.get_pygit_diff(pygit_repository)
-    except KeyError:
-        context['commits'] = []
-        context['diff'] = []
-
-    return render(request, 'solution/commits.html', context)
-
-
-# Generic views
-from project.views import ProjectListView
-
-
-class SolutionListView(ProjectListView):
-    model = Solution
+class SolutionBaseListView(ListView, ProjectBaseView):
+    """
+    Base view for displaying lists of solutions
+    """
     template_name = 'solution/solutions_list.html'
-    project_tab = 'solutions'
-    solutions_tab = None
     context_object_name = 'solutions'
+    project_tab = "solutions"
+    solutions_tab = None
 
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(SolutionListView, self).dispatch(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        kwargs["solutions_tab"] = self.solutions_tab
+        return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
-    def reviewed(self):
+
+class MyReviewedSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_reviewed"
+
+    def reviewed_filter(self):
         """
         Generator for solutions that have been reviewed by requesting user
         """
@@ -348,52 +289,33 @@ class SolutionListView(ProjectListView):
         for vote in self.user.vote_set.filter(voteable_type_id=solution_type.id).order_by('-time_voted'):
             yield vote.voteable
 
+    def get_queryset(self):
+        return (solution for solution in self.reviewed_filter())
+
+
+class MyIncompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_incomplete"
 
     def get_queryset(self):
-        if self.solutions_tab == 'my_reviewed':
-            return (solution for solution in self.reviewed())
-        elif self.solutions_tab == 'my_incomplete':
-            return self.project.solution_set.filter(is_completed=False, user_id=self.user.id).order_by('-time_posted')
-        elif self.solutions_tab == 'my_complete':
-            return self.project.solution_set.filter(is_completed=True, user_id=self.user.id).order_by('-time_completed')
-        elif self.solutions_tab == 'all_incomplete':
-            return self.project.solution_set.filter(is_completed=False).order_by('-time_posted')
-        elif self.solutions_tab == 'all_complete':
-            return self.project.solution_set.filter(is_completed=True).order_by('-time_completed')
-        else:
-            return self.project.solution_set.all().order_by('-time_posted')
-
-    def get_context_data(self, **kwargs):
-        context = super(SolutionListView, self).get_context_data(**kwargs)
-        context['solutions_tab'] = self.solutions_tab
-        return context
+        return self.project.solution_set.filter(is_completed=False, is_closed=False, user_id=self.user.id).order_by('-time_posted')
 
 
-def my_reviewed():
-    return SolutionListView.as_view(
-        solutions_tab='my_reviewed'
-    )
+class MyCompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_complete"
+
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=True, is_closed=False, user_id=self.user.id).order_by('-time_completed')
 
 
-def my_incomplete():
-    return SolutionListView.as_view(
-        solutions_tab='my_incomplete'
-    )
+class AllIncompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "all_incomplete"
+
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=False, is_closed=False).order_by('-time_posted')
 
 
-def my_complete():
-    return SolutionListView.as_view(
-        solutions_tab='my_complete'
-    )
+class AllCompleteSolutionsView(SolutionBaseListView):
+    solutions_tab = "all_complete"
 
-
-def all_incomplete():
-    return SolutionListView.as_view(
-        solutions_tab='all_incomplete'
-    )
-
-
-def all_complete():
-    return SolutionListView.as_view(
-        solutions_tab='all_complete'
-    )
+    def get_queryset(self):
+        return self.project.solution_set.filter(is_completed=True,  is_closed=False).order_by('-time_completed')
