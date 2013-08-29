@@ -6,13 +6,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from joltem.models import Vote, Comment
+from joltem.models import Vote
 from joltem.holders import CommentHolder
 from git.models import Repository
 
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView, CommentableView
+from project.views import ProjectBaseView, CommentableView, VoteableView
 
 
 class SolutionBaseView(ProjectBaseView):
@@ -41,7 +41,7 @@ class SolutionBaseView(ProjectBaseView):
         return super(SolutionBaseView, self).get_context_data(**kwargs)
 
 
-class SolutionView(CommentableView, TemplateView, SolutionBaseView):
+class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView):
     """
     View to display solution's information
     """
@@ -130,6 +130,9 @@ class SolutionView(CommentableView, TemplateView, SolutionBaseView):
 
         return super(SolutionView, self).post(request, *args, **kwargs)
 
+    def get_vote_redirect(self):
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
     def get_commentable(self):
         return self.solution
 
@@ -157,7 +160,7 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
 
-class SolutionReviewView(CommentableView, TemplateView, SolutionBaseView):
+class SolutionReviewView(VoteableView, CommentableView, TemplateView, SolutionBaseView):
     template_name = "solution/review.html"
     solution_tab = "review"
 
@@ -165,73 +168,11 @@ class SolutionReviewView(CommentableView, TemplateView, SolutionBaseView):
         kwargs["vote_count"] = self.solution.vote_set.count()
         kwargs["accept_votes"] = self.solution.vote_set.filter(is_accepted=True)
         kwargs["reject_votes"] = self.solution.vote_set.filter(is_accepted=False)
-        kwargs["maximum_magnitude"] = Vote.MAXIMUM_MAGNITUDE
         kwargs["has_commented"] = self.solution.has_commented(self.user.id)
         return super(SolutionReviewView, self).get_context_data(**kwargs)
 
-    def post(self, request, *args, **kwargs):
-        if not self.solution.is_completed:  # todo this might not be needed
-            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
-
-        comment_vote_input = request.POST.get('comment_vote')
-        if comment_vote_input is not None:
-            comment_vote_input = int(comment_vote_input)
-            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
-            comment_id = request.POST.get('comment_id')
-            comment = Comment.objects.get(id=comment_id)
-            if comment.user.id == self.user.id:
-                return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-            try:
-                comment_type = ContentType.objects.get_for_model(comment)
-                comment_vote = Vote.objects.get(
-                    voteable_type_id=comment_type.id,
-                    voteable_id=comment.id,
-                    voter_id=self.user.id
-                )
-                if comment_vote.magnitude != comment_vote_input:
-                    comment_vote.magnitude = comment_vote_input
-                    comment_vote.is_accepted = comment_vote_input > 0
-                    comment_vote.voter_impact = self.user.get_profile().impact
-                    comment_vote.time_voted = timezone.now()
-                    comment_vote.save()
-            except Vote.DoesNotExist:
-                comment_vote = Vote(
-                    voter=self.user,
-                    voter_impact=self.user.get_profile().impact,
-                    voteable=comment,
-                    magnitude=comment_vote_input,
-                    is_accepted=comment_vote_input > 0,
-                    time_voted=timezone.now()
-                )
-                comment_vote.save()
-                return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-
-        solution_type = ContentType.objects.get_for_model(self.solution)
-        try:
-            vote = Vote.objects.get(
-                voteable_type_id=solution_type.id,
-                voteable_id=self.solution.id,
-                voter_id=self.user.id
-            )
-        except Vote.DoesNotExist:
-            vote = None
-
-        vote_input = request.POST.get('vote')
-        if vote_input is not None and not self.is_owner:
-            vote_input = int(vote_input)
-            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
-            if vote is None:
-                vote = Vote(
-                    voteable=self.solution,
-                    voter=self.user
-                )
-            vote.is_accepted = vote_input > 0
-            vote.magnitude = vote_input
-            vote.time_voted = timezone.now()
-            vote.voter_impact = self.user.get_profile().impact
-            vote.save()
-            return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-        return super(SolutionReviewView, self).post(request, *args, **kwargs)  # for processing commenting
+    def get_vote_redirect(self):
+        return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
 
     def get_commentable(self):
         return self.solution

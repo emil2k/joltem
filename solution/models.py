@@ -60,12 +60,6 @@ class Solution(Voteable, Commentable):
             count += subtask.get_subtask_count
         return count
 
-    def is_owner(self, user):
-        """
-        Returns whether passed user is the person who posted this solution
-        """
-        return self.user_id == user.id
-
     def is_acceptor(self, user):
         """
         Returns whether passed user is the person responsible for accepting the solution

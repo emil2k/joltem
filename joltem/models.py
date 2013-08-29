@@ -139,6 +139,12 @@ class Voteable(models.Model):
     class Meta:
         abstract = True
 
+    def is_owner(self, user):
+        """
+        Returns whether passed user is the person who posted this solution
+        """
+        return self.user_id == user.id
+
     def get_acceptance(self):
         """
         Impact-weighted percentage of acceptance amongst reviewers
@@ -266,6 +272,7 @@ class Comment(Voteable):
 
     def __unicode__(self):
         return str(self.comment)
+
 
 post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
 post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)

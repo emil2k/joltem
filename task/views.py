@@ -5,7 +5,7 @@ from django.views.generic.list import ListView
 from joltem.holders import CommentHolder
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView, CommentableView
+from project.views import ProjectBaseView, CommentableView, VoteableView
 
 
 class TaskBaseView(ProjectBaseView):
@@ -23,22 +23,19 @@ class TaskBaseView(ProjectBaseView):
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
-class TaskView(CommentableView, TemplateView, TaskBaseView):
+class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     template_name = "task/task.html"
 
     def post(self, request, *args, **kwargs):
-        if not self.is_owner:
-            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
-
         from django.utils import timezone
 
-        if request.POST.get('close'):
+        if self.is_owner and request.POST.get('close'):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
-        if request.POST.get('reopen'):
+        if self.is_owner and request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
             self.task.save()
@@ -46,7 +43,8 @@ class TaskView(CommentableView, TemplateView, TaskBaseView):
 
         return super(TaskView, self).post(request, *args, **kwargs)  # to process commenting
 
-
+    def get_vote_redirect(self):
+        return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
     def get_commentable(self):
         return self.task

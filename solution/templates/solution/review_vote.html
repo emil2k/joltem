@@ -2,27 +2,29 @@
 <form method="post">
     {% csrf_token %}
     <p>
+        <input type="hidden" name="voteable_id" value="{{ solution.id }}" />
+        <input type="hidden" name="voteable_type" value="solution" />
         <div class="btn-group">
             {% if vote.magnitude > 1 %}
-                <button class="btn" type="submit" name="vote" value="{{ vote.magnitude|add:-1 }}">
+                <button class="btn" type="submit" name="voteable_vote" value="{{ vote.magnitude|add:-1 }}">
                     <i data-toggle="tooltip" title="Divide by 10" class="impact_vote icon-minus"></i>
                 </button>
                 <button class="btn btn-success" disabled>
                     <i data-toggle="tooltip" title="Exceptional = 10^{{ vote.magnitude }}" class="impact_vote icon-ok icon-white"></i> <sup>{{ vote.magnitude }}</sup>
                 </button>
                 {% if vote.magnitude < maximum_magnitude %}
-                    <button class="btn" type="submit" name="vote" value="{{ vote.magnitude|add:1 }}">
+                    <button class="btn" type="submit" name="voteable_vote" value="{{ vote.magnitude|add:1 }}">
                         <i data-toggle="tooltip" title="Multiply by 10" class="impact_vote icon-plus"></i>
                     </button>
                 {% endif %}
             {% else %}
-                <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
+                <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
                     <i data-toggle="tooltip" title="Unsatisfactory = 0" class="impact_vote icon-remove {{ vote.is_rejected|is_true:"icon-white" }}"></i>
                 </button>
-                <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
+                <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
                     <i data-toggle="tooltip" title="Satisfactory = 10" class="impact_vote icon-ok {{ vote.magnitude|icon_white:1 }}"></i>
                 </button>
-                <button class="btn" type="submit" name="vote" value="2">
+                <button class="btn" type="submit" name="voteable_vote" value="2">
                     <i data-toggle="tooltip" title="Exceptional x 10" class="impact_vote icon-plus {{ vote.magnitude|icon_white:2 }}"></i>
                 </button>
             {% endif %}
