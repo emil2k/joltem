@@ -5,7 +5,7 @@ from django.views.generic.list import ListView
 from joltem.holders import CommentHolder
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView
+from project.views import ProjectBaseView, CommentableView
 
 
 class TaskBaseView(ProjectBaseView):
@@ -23,7 +23,7 @@ class TaskBaseView(ProjectBaseView):
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
-class TaskView(TemplateView, TaskBaseView):
+class TaskView(CommentableView, TemplateView, TaskBaseView):
     template_name = "task/task.html"
 
     def post(self, request, *args, **kwargs):
@@ -36,12 +36,22 @@ class TaskView(TemplateView, TaskBaseView):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         if request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
             self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
+        return super(TaskView, self).post(request, *args, **kwargs)  # to process commenting
+
+
+
+    def get_commentable(self):
+        return self.task
+
+    def get_comment_redirect(self):
         return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
 

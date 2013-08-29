@@ -12,7 +12,7 @@ from git.models import Repository
 
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView
+from project.views import ProjectBaseView, CommentableView
 
 
 class SolutionBaseView(ProjectBaseView):
@@ -41,7 +41,7 @@ class SolutionBaseView(ProjectBaseView):
         return super(SolutionBaseView, self).get_context_data(**kwargs)
 
 
-class SolutionView(TemplateView, SolutionBaseView):
+class SolutionView(CommentableView, TemplateView, SolutionBaseView):
     """
     View to display solution's information
     """
@@ -60,6 +60,7 @@ class SolutionView(TemplateView, SolutionBaseView):
                 self.solution.is_accepted = False
                 self.solution.time_accepted = None
             self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Mark solution complete
         if request.POST.get('complete') \
@@ -69,6 +70,7 @@ class SolutionView(TemplateView, SolutionBaseView):
             self.solution.is_completed = True
             self.solution.time_completed = timezone.now()
             self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Mark solution incomplete
         if request.POST.get('incomplete') \
@@ -78,6 +80,7 @@ class SolutionView(TemplateView, SolutionBaseView):
             self.solution.is_completed = False
             self.solution.time_completed = None
             self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Close solution
         if request.POST.get('close') \
@@ -87,6 +90,7 @@ class SolutionView(TemplateView, SolutionBaseView):
             self.solution.is_closed = True
             self.solution.time_closed = timezone.now()
             self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Reopen solution
         if request.POST.get('reopen') \
@@ -95,6 +99,7 @@ class SolutionView(TemplateView, SolutionBaseView):
             self.solution.is_closed = False
             self.solution.time_closed = None
             self.solution.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Vote on completed solution
         vote_input = request.POST.get('vote')
@@ -121,8 +126,147 @@ class SolutionView(TemplateView, SolutionBaseView):
             vote.time_voted = timezone.now()
             vote.voter_impact = self.user.get_profile().impact
             vote.save()
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
+        return super(SolutionView, self).post(request, *args, **kwargs)
+
+    def get_commentable(self):
+        return self.solution
+
+    def get_comment_redirect(self):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+
+class SolutionEditView(TemplateView, SolutionBaseView):
+    """
+    View to edit solution
+    """
+    template_name = "solution/solution_edit.html"
+
+    def get(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        return super(SolutionEditView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_owner or self.solution.is_closed:
+            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
+        self.solution.title = request.POST.get('title')
+        self.solution.description = request.POST.get('description')
+        self.solution.save()
+        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+
+class SolutionReviewView(CommentableView, TemplateView, SolutionBaseView):
+    template_name = "solution/review.html"
+    solution_tab = "review"
+
+    def get_context_data(self, **kwargs):
+        kwargs["vote_count"] = self.solution.vote_set.count()
+        kwargs["accept_votes"] = self.solution.vote_set.filter(is_accepted=True)
+        kwargs["reject_votes"] = self.solution.vote_set.filter(is_accepted=False)
+        kwargs["maximum_magnitude"] = Vote.MAXIMUM_MAGNITUDE
+        kwargs["has_commented"] = self.solution.has_commented(self.user.id)
+        return super(SolutionReviewView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if not self.solution.is_completed:  # todo this might not be needed
+            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
+
+        comment_vote_input = request.POST.get('comment_vote')
+        if comment_vote_input is not None:
+            comment_vote_input = int(comment_vote_input)
+            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
+            comment_id = request.POST.get('comment_id')
+            comment = Comment.objects.get(id=comment_id)
+            if comment.user.id == self.user.id:
+                return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+            try:
+                comment_type = ContentType.objects.get_for_model(comment)
+                comment_vote = Vote.objects.get(
+                    voteable_type_id=comment_type.id,
+                    voteable_id=comment.id,
+                    voter_id=self.user.id
+                )
+                if comment_vote.magnitude != comment_vote_input:
+                    comment_vote.magnitude = comment_vote_input
+                    comment_vote.is_accepted = comment_vote_input > 0
+                    comment_vote.voter_impact = self.user.get_profile().impact
+                    comment_vote.time_voted = timezone.now()
+                    comment_vote.save()
+            except Vote.DoesNotExist:
+                comment_vote = Vote(
+                    voter=self.user,
+                    voter_impact=self.user.get_profile().impact,
+                    voteable=comment,
+                    magnitude=comment_vote_input,
+                    is_accepted=comment_vote_input > 0,
+                    time_voted=timezone.now()
+                )
+                comment_vote.save()
+                return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+
+        solution_type = ContentType.objects.get_for_model(self.solution)
+        try:
+            vote = Vote.objects.get(
+                voteable_type_id=solution_type.id,
+                voteable_id=self.solution.id,
+                voter_id=self.user.id
+            )
+        except Vote.DoesNotExist:
+            vote = None
+
+        vote_input = request.POST.get('vote')
+        if vote_input is not None and not self.is_owner:
+            vote_input = int(vote_input)
+            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
+            if vote is None:
+                vote = Vote(
+                    voteable=self.solution,
+                    voter=self.user
+                )
+            vote.is_accepted = vote_input > 0
+            vote.magnitude = vote_input
+            vote.time_voted = timezone.now()
+            vote.voter_impact = self.user.get_profile().impact
+            vote.save()
+            return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+        return super(SolutionReviewView, self).post(request, *args, **kwargs)  # for processing commenting
+
+    def get_commentable(self):
+        return self.solution
+
+    def get_comment_redirect(self):
+        return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
+
+
+class SolutionCommitsView(TemplateView, SolutionBaseView):
+    template_name = "solution/commits.html"
+    solution_tab = "commits"
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(SolutionCommitsView, self).initiate_variables(request, *args, **kwargs)
+        self.repository_set = self.project.repository_set.filter(is_hidden=False).order_by('name')
+        repository_name = kwargs.get("repository_name")
+        if self.repository_set.count() == 0:
+            raise Http404
+        elif repository_name is not None:
+            # todo for some reason a non existent repository is not returning 404
+            self.repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
+        else:
+            self.repository = self.repository_set[0]  # load the default active repository
+
+    def get_context_data(self, **kwargs):
+        kwargs['repositories'] = self.repository_set
+        kwargs['repository'] = self.repository
+        pygit_repository = self.repository.load_pygit_object()
+        try:
+            kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
+            kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
+        except KeyError:
+            kwargs['commits'] = []
+            kwargs['diff'] = []
+        return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
 class SolutionCreateView(TemplateView, ProjectBaseView):
@@ -176,142 +320,6 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
             )
             solution.save()
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=solution.id)
-
-
-class SolutionEditView(TemplateView, SolutionBaseView):
-    """
-    View to edit solution
-    """
-    template_name = "solution/solution_edit.html"
-
-    def get(self, request, *args, **kwargs):
-        if not self.is_owner or self.solution.is_closed:
-            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
-        return super(SolutionEditView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        if not self.is_owner or self.solution.is_closed:
-            return redirect('project:solution:solution', project_name=self.project, solution_id=self.solution.id)
-        self.solution.title = request.POST.get('title')
-        self.solution.description = request.POST.get('description')
-        self.solution.save()
-        return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
-
-
-class SolutionReviewView(TemplateView, SolutionBaseView):
-    template_name = "solution/review.html"
-    solution_tab = "review"
-
-    def get_context_data(self, **kwargs):
-        kwargs["vote_count"] = self.solution.vote_set.count()
-        kwargs["accept_votes"] = self.solution.vote_set.filter(is_accepted=True)
-        kwargs["reject_votes"] = self.solution.vote_set.filter(is_accepted=False)
-        kwargs["maximum_magnitude"] = Vote.MAXIMUM_MAGNITUDE
-        kwargs["has_commented"] = self.solution.has_commented(self.user.id)
-        return super(SolutionReviewView, self).get_context_data(**kwargs)
-
-    def post(self, request, *args, **kwargs):
-        if not self.solution.is_completed:
-            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
-
-        comment_vote_input = request.POST.get('comment_vote')
-        if comment_vote_input is not None:
-            comment_vote_input = int(comment_vote_input)
-            comment_vote_input = Vote.MAXIMUM_MAGNITUDE if comment_vote_input > Vote.MAXIMUM_MAGNITUDE else comment_vote_input
-            comment_id = request.POST.get('comment_id')
-            comment = Comment.objects.get(id=comment_id)
-            if comment.user.id == self.user.id:
-                return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-            try:
-                comment_type = ContentType.objects.get_for_model(comment)
-                comment_vote = Vote.objects.get(
-                    voteable_type_id=comment_type.id,
-                    voteable_id=comment.id,
-                    voter_id=self.user.id
-                )
-                if comment_vote.magnitude != comment_vote_input:
-                    comment_vote.magnitude = comment_vote_input
-                    comment_vote.is_accepted = comment_vote_input > 0
-                    comment_vote.voter_impact = self.user.get_profile().impact
-                    comment_vote.time_voted = timezone.now()
-                    comment_vote.save()
-            except Vote.DoesNotExist:
-                comment_vote = Vote(
-                    voter=self.user,
-                    voter_impact=self.user.get_profile().impact,
-                    voteable=comment,
-                    magnitude=comment_vote_input,
-                    is_accepted=comment_vote_input > 0,
-                    time_voted=timezone.now()
-                )
-                comment_vote.save()
-            return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-        comment_text = request.POST.get('comment')
-        if comment_text is not None:
-            review_comment = Comment(
-                time_commented=timezone.now(),
-                project=self.project,
-                user=self.user,
-                commentable=self.solution,
-                comment=comment_text
-            )
-            review_comment.save()
-            return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-
-        solution_type = ContentType.objects.get_for_model(self.solution)
-        try:
-            vote = Vote.objects.get(
-                voteable_type_id=solution_type.id,
-                voteable_id=self.solution.id,
-                voter_id=self.user.id
-            )
-        except Vote.DoesNotExist:
-            vote = None
-
-        vote_input = request.POST.get('vote')
-        if vote_input is not None and not self.is_owner:
-            vote_input = int(vote_input)
-            vote_input = Vote.MAXIMUM_MAGNITUDE if vote_input > Vote.MAXIMUM_MAGNITUDE else vote_input
-            if vote is None:
-                vote = Vote(
-                    voteable=self.solution,
-                    voter=self.user
-                )
-            vote.is_accepted = vote_input > 0
-            vote.magnitude = vote_input
-            vote.time_voted = timezone.now()
-            vote.voter_impact = self.user.get_profile().impact
-            vote.save()
-            return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)
-
-
-class SolutionCommitsView(TemplateView, SolutionBaseView):
-    template_name = "solution/commits.html"
-    solution_tab = "commits"
-
-    def initiate_variables(self, request, *args, **kwargs):
-        super(SolutionCommitsView, self).initiate_variables(request, *args, **kwargs)
-        self.repository_set = self.project.repository_set.filter(is_hidden=False).order_by('name')
-        repository_name = kwargs.get("repository_name")
-        if self.repository_set.count() == 0:
-            raise Http404
-        elif repository_name is not None:
-            # todo for some reason a non existent repository is not returning 404
-            self.repository = get_object_or_404(Repository, project_id=self.project.id, name=repository_name)
-        else:
-            self.repository = self.repository_set[0]  # load the default active repository
-
-    def get_context_data(self, **kwargs):
-        kwargs['repositories'] = self.repository_set
-        kwargs['repository'] = self.repository
-        pygit_repository = self.repository.load_pygit_object()
-        try:
-            kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
-            kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
-        except KeyError:
-            kwargs['commits'] = []
-            kwargs['diff'] = []
-        return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
 class SolutionBaseListView(ListView, ProjectBaseView):
