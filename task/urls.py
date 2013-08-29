@@ -5,7 +5,7 @@ from solution import views as solution_views
 
 urlpatterns = patterns(
     '',
-    url(r'^(?:(?P<parent_solution_id>(\d)+)/)?new/$', views.new, name='new'),
+    url(r'^(?:(?P<parent_solution_id>(\d)+)/)?new/$', login_required(views.TaskCreateView.as_view()), name='new'),
     url(r'^(?P<task_id>(\d)+)/$', login_required(views.TaskView.as_view()), name='task'),
     url(r'^(?P<task_id>(\d)+)/edit/$', login_required(views.TaskEditView.as_view()), name='edit'),
     url(r'^(?P<task_id>(\d)+)/solve/$', login_required(solution_views.SolutionCreateView.as_view()), name='solve'),

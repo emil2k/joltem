@@ -61,6 +61,42 @@ class TaskEditView(TemplateView, TaskBaseView):
             self.task.save()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
+
+class TaskCreateView(TemplateView, ProjectBaseView):
+    template_name = "task/new_task.html"
+    parent_solution = None
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(TaskCreateView, self).initiate_variables(request, *args, **kwargs)
+        parent_solution_id = self.kwargs.get("parent_solution_id", None)
+        if parent_solution_id is not None:
+            self.parent_solution = get_object_or_404(Solution, id=parent_solution_id)
+            if not self.parent_solution.is_accepted \
+                    or self.parent_solution.is_completed \
+                    or not (self.parent_solution.is_owner(self.user) or self.project.is_admin(self.user.id)):
+                return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
+
+    def get_context_data(self, **kwargs):
+        kwargs["parent_solution"] = self.parent_solution
+        return super(TaskCreateView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('action') == 'create_task':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            if title is not None:
+                created_task = Task(
+                    project=self.project,
+                    parent=self.parent_solution,
+                    owner=self.user,
+                    title=title,
+                    description=description
+                )
+                created_task.save()
+                if self.parent_solution is not None:
+                    return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
+                return redirect('project:task:task', project_name=self.project.name, task_id=created_task.id)
+
 #### todo refactor all below
 
 @login_required
