@@ -26,7 +26,7 @@ class Task(Commentable):
         """
         count = 0
         for solution in self.solution_set.all():
-            count += solution.get_sub
+            count += solution.get_subtask_count
         return count
 
     def is_owner(self, user):

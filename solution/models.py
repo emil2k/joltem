@@ -57,7 +57,7 @@ class Solution(Voteable, Commentable):
         subtasks = self.subtask_set.all()
         count = subtasks.count()
         for subtask in subtasks:
-            count += subtask.subtasks
+            count += subtask.get_subtask_count
         return count
 
     def is_owner(self, user):
