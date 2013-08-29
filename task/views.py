@@ -1,9 +1,54 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+
+from joltem.holders import CommentHolder
 from project.models import Project
 from task.models import Task
 from solution.models import Solution
+
+from django.views.generic import TemplateView
+from project.views import ProjectBaseView
+
+
+class TaskBaseView(ProjectBaseView):
+
+    def initiate_variables(self, request, *args, **kwargs):
+        super(TaskBaseView, self).initiate_variables(request, args, kwargs)
+        self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
+        self.is_owner = self.task.is_owner(self.user)
+
+    def get_context_data(self, **kwargs):
+        kwargs["task"] = self.task
+        kwargs["is_owner"] = self.task
+        kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
+        kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
+
+        return super(TaskBaseView, self).get_context_data(**kwargs)
+
+
+class TaskView(TemplateView, TaskBaseView):
+    template_name = "task/task.html"
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_owner:
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        from django.utils import timezone
+
+        if request.POST.get('close'):
+            self.task.is_closed = True
+            self.task.time_closed = timezone.now()
+            self.task.save()
+
+        if request.POST.get('reopen'):
+            self.task.is_closed = False
+            self.task.time_closed = None
+            self.task.save()
+
+        return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+#### todo refactor all below
 
 @login_required
 def new(request, project_name, parent_solution_id):
@@ -36,37 +81,6 @@ def new(request, project_name, parent_solution_id):
                 return redirect('project:solution:solution', project_name=project.name, solution_id=parent_solution_id)
             return redirect('project:task:my_open', project_name=project.name)
     return render(request, 'task/new_task.html', context)
-
-@login_required
-def task(request, project_name, task_id):
-    project = get_object_or_404(Project, name=project_name)
-    task = get_object_or_404(Task, id=task_id)
-    is_owner = task.is_owner(request.user)
-    if request.POST:
-        if not is_owner:
-            return redirect('project:task:task', project_name=project_name, task_id=task_id)
-
-        from django.utils import timezone
-
-        if request.POST.get('close'):
-            task.is_closed = True
-            task.time_closed = timezone.now()
-            task.save()
-
-        if request.POST.get('reopen'):
-            task.is_closed = False
-            task.time_closed = None
-            task.save()
-
-        return redirect('project:task:task', project_name=project_name, task_id=task_id)
-
-    context = {
-        'project': project,
-        'task': task,
-        'solutions': task.solution_set.all().order_by('-id'),
-        'is_owner': is_owner,
-    }
-    return render(request, 'task/task.html', context)
 
 @login_required
 def edit(request, project_name, task_id):

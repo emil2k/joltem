@@ -25,9 +25,6 @@ class RequestBaseView(ContextMixin, View):
 
 
 class ProjectBaseView(RequestBaseView):
-    """
-    Adds project object for manipulating
-    """
 
     def initiate_variables(self, request, *args, **kwargs):
         super(ProjectBaseView, self).initiate_variables(request, args, kwargs)

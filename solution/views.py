@@ -18,9 +18,6 @@ logger = logging.getLogger('django')
 
 
 class SolutionBaseView(ProjectBaseView):
-    """
-    Adds project object for manipulating
-    """
 
     def initiate_variables(self, request, *args, **kwargs):
         super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
