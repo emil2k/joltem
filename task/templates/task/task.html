@@ -54,9 +54,18 @@
                     <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
                 </div>
             {% endif %}
+            {% if task.is_accepted %}
+                <div class="alert alert-success">
+                    <strong>This task was accepted on {{ task.time_accepted|date }}</strong>.
+                </div>
+            {% else %}
+                <div class="alert alert-danger">
+                    <strong>This task has not been accepted yet.</strong> It is only visible to you and the person responsible for accepting it.
+                </div>
+            {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">
-                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.task.title }}</a> by {{ task.parent.user.first_name }}
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.default_title }}</a> by {{ task.parent.user.first_name }}
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
