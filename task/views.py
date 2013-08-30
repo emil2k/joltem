@@ -164,7 +164,7 @@ class MyReviewTasksView(TaskBaseListView):
     tasks_tab = "my_review"
 
     def iterate_tasks_to_accept(self):
-        for task in self.project.task_set.filter(is_accepted=False).order_by('-time_posted'):
+        for task in self.project.task_set.filter(is_accepted=False, is_closed=False).order_by('-time_posted'):
             if task.is_acceptor(self.user):
                 yield task
 
