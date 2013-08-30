@@ -218,7 +218,7 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
         return super(SolutionCreateView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        if self.parent_task and self.parent_task.is_closed:
+        if self.parent_task and (self.parent_task.is_closed or not self.parent_task.is_accepted):
             return redirect('project:task:task', project_name=self.project.name, task_id=self.parent_task.id)
         if self.parent_solution and (self.parent_solution.is_completed or self.parent_solution.is_closed):
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)

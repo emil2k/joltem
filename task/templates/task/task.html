@@ -27,7 +27,7 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="btn-group">
-                    {% if not task.is_closed %}
+                    {% if task.is_accepted and not task.is_closed %}
                         <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
                     {% endif %}
                     {% if is_owner %}
