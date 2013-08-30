@@ -39,6 +39,15 @@
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     {% endif %}
                 </div>
+                {% if is_acceptor %}
+                    <div class="btn-group">
+                        {% if not task.is_accepted %}
+                            <button class="btn btn-success" type="submit" name="accept" value="1">accept</button>
+                        {% else %}
+                            <button class="btn" type="submit" name="unaccept" value="1">unaccept</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </form>
             {% if task.is_closed %}
                 <div class="alert alert-info">

@@ -14,10 +14,12 @@ class TaskBaseView(ProjectBaseView):
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
         self.is_owner = self.task.is_owner(self.user)
+        self.is_acceptor = self.task.is_acceptor(self.user)
 
     def get_context_data(self, **kwargs):
         kwargs["task"] = self.task
-        kwargs["is_owner"] = self.task
+        kwargs["is_owner"] = self.is_owner
+        kwargs["is_acceptor"] = self.is_acceptor
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
         return super(TaskBaseView, self).get_context_data(**kwargs)
@@ -29,12 +31,28 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
 
+        # Accept task
+        if self.is_acceptor and request.POST.get('accept'):
+            self.task.is_accepted = True
+            self.task.time_accepted = timezone.now()
+            self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        # Unaccept task
+        if self.is_acceptor and request.POST.get('unaccept'):
+            self.task.is_accepted = False
+            self.task.time_accepted = None
+            self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        # Close task
         if self.is_owner and request.POST.get('close'):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
+        # Reopen task
         if self.is_owner and request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
