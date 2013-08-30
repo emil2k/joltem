@@ -36,6 +36,8 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             self.task.owner = self.user  # user accepting the task becomes responsible for administering it
             self.task.is_accepted = True
             self.task.time_accepted = timezone.now()
+            self.task.is_closed = False  # if task was closed, reopen it
+            self.task.time_closed = None
             self.task.save()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
