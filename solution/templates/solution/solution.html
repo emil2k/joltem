@@ -47,7 +47,7 @@
                             {% endif %}
                         {% else %}
                             {% if not solution.is_completed %}
-                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id%}">suggest solution</a>
+                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
                             {% endif %}
                         {% endif %}
                     </div>
