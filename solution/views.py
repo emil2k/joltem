@@ -33,7 +33,7 @@ class SolutionBaseView(ProjectBaseView):
             kwargs["vote"] = None
 
         kwargs["comments"] = CommentHolder.get_comments(self.solution.comment_set.all().order_by('time_commented'), self.user)
-        kwargs["subtasks"] = self.solution.subtask_set.all().order_by('-time_posted')
+        kwargs["subtasks"] = self.solution.subtask_set.filter(is_accepted=True).order_by('-time_posted')
         kwargs["suggested_solutions"] = self.solution.solution_set.all().order_by('-time_posted')
         kwargs["is_owner"] = self.solution.is_owner(self.user)
 

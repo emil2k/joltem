@@ -19,6 +19,9 @@
         </div>
         <div class="span8">
             <h4>{{ task.title }}</h4>
+            {% if task.owner_id != task.author_id %}
+                <p class="muted">Suggested by <a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a>, administrated by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>.</p>
+            {% endif %}
             {% if task.description %}
                 {{ task.description|markdown:"tables,fenced_code" }}
             {% else %}

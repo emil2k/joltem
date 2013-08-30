@@ -33,6 +33,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         # Accept task
         if self.is_acceptor and request.POST.get('accept'):
+            self.task.owner = self.user  # user accepting the task becomes responsible for administering it
             self.task.is_accepted = True
             self.task.time_accepted = timezone.now()
             self.task.save()
@@ -40,6 +41,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         # Unaccept task
         if self.is_acceptor and request.POST.get('unaccept'):
+            self.task.owner = self.task.author  # revert ownership back to author when unaccepted
             self.task.is_accepted = False
             self.task.time_accepted = None
             self.task.save()
@@ -94,8 +96,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
         parent_solution_id = self.kwargs.get("parent_solution_id", None)
         if parent_solution_id is not None:
             self.parent_solution = get_object_or_404(Solution, id=parent_solution_id)
-            if self.parent_solution.is_completed \
-                    or not (self.parent_solution.is_owner(self.user) or self.project.is_admin(self.user.id)):
+            if self.parent_solution.is_completed:
                 return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
 
     def get_context_data(self, **kwargs):
@@ -111,6 +112,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
                     project=self.project,
                     parent=self.parent_solution,
                     owner=self.user,
+                    author=self.user,
                     title=title,
                     description=description
                 )
@@ -162,7 +164,7 @@ class MyReviewTasksView(TaskBaseListView):
     tasks_tab = "my_review"
 
     def iterate_tasks_to_accept(self):
-        for task in self.project.task_set.filter(is_accepted=False, owner_id=self.user.id).order_by('-time_posted'):
+        for task in self.project.task_set.filter(is_accepted=False).order_by('-time_posted'):
             if task.is_acceptor(self.user):
                 yield task
 
