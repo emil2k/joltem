@@ -76,8 +76,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
         parent_solution_id = self.kwargs.get("parent_solution_id", None)
         if parent_solution_id is not None:
             self.parent_solution = get_object_or_404(Solution, id=parent_solution_id)
-            if not self.parent_solution.is_accepted \
-                    or self.parent_solution.is_completed \
+            if self.parent_solution.is_completed \
                     or not (self.parent_solution.is_owner(self.user) or self.project.is_admin(self.user.id)):
                 return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
 
