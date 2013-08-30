@@ -4,7 +4,6 @@
         <small class="muted">
             by <a href="{% url 'user' solution.user.username %}" class="muted">{{ solution.user.first_name }}</a> on {{ solution.time_posted|date }}
             <span class="hidden-phone">
-                {% if solution.is_accepted %}/ <span class="text-success">Accepted on {{ solution.time_accepted|date }}</span>{% endif %}
                 {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
             </span>
         </small>

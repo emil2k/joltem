@@ -42,7 +42,7 @@
                                 <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                             {% endif %}
                             <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
-                            {% if solution.is_accepted and not solution.is_completed %}
+                            {% if not solution.is_completed %}
                                 <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create subtask</a>
                             {% endif %}
                         {% else %}
@@ -51,22 +51,11 @@
                             {% endif %}
                         {% endif %}
                     </div>
-                    {% if is_acceptor %}
-                        {% if solution.is_accepted %}
-                            <button class="btn" type="submit" name="unaccept" value="1"></i>unaccept</button>
-                        {% else %}
-                            <button class="btn btn-success" type="submit" name="accept" value="1"></i>accept</button>
-                        {% endif %}
-                    {% endif %}
                 {% endif %}
             </form>
             {% if solution.is_completed %}
                 <div class="alert alert-info">
                     <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
-                </div>
-            {% elif solution.is_accepted %}
-                <div class="alert alert-success">
-                    <b>This solution was accepted</b> on {{ solution.time_accepted|date }}.
                 </div>
             {% endif %}
             {% if solution.task %}
@@ -79,12 +68,7 @@
                 </div>
             {% else %}
                 <div class="alert alert-info">
-                    This is a <strong>suggested solution</strong> to <em>master</em>, it has no parent task or solution.
-                </div>
-            {% endif %}
-            {% if is_owner and not solution.is_accepted %}
-                <div class="alert alert-danger">
-                    <strong>Cannot open subtasks</strong> until the solution is accepted.
+                    This is a <strong>suggested solution</strong> without a parent ( task or solution ).
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
