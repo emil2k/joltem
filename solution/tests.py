@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.utils import timezone
 
 from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
@@ -23,16 +22,7 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         self.project.admin_set.add(self.jill)
         self.project.save()
 
-    def test_task_is_owner(self):
-        """
-        Test for task is_owner function
-        """
-        t = get_mock_task(self.project, self.abby)
-        self.assertFalse(t.is_owner(self.jill))  # admin check
-        self.assertFalse(t.is_owner(self.bob))
-        self.assertTrue(t.is_owner(self.abby))
-
-    def test_solution_is_owner(self):
+    def test_is_owner(self):
         """
         Test for solution is_owner function
         """
@@ -42,16 +32,6 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         self.assertFalse(s.is_owner(self.jill))
         self.assertFalse(s.is_owner(self.bob))
         self.assertTrue(s.is_owner(self.zack))
-
-    def setup_solution_parents(self):
-        """
-        Setup a suggested solution hierarchy
-        """
-        s0 = get_mock_solution(self.project, self.abby, is_completed=False)  # root suggested solution
-        s1 = get_mock_solution(self.project, self.bob, solution=s0, is_completed=False)
-        s2 = get_mock_solution(self.project, self.zack, solution=s1, is_completed=False)
-
-        return s0, s1, s2
 
     # TODO tests that actually test interface using client or selenium
     # TODO tests that check if views follow ownership rules for processing actions

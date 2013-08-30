@@ -42,4 +42,13 @@ class Task(Commentable):
         Whether passed user is the person responsible for accepting the task
         """
         # todo make function
-        pass
+        if self.parent:
+            if self.parent.task:
+                if self.parent.task.is_closed or not self.parent.task.is_accepted:
+                    return self.parent.task.is_acceptor(user)  # fallback to acceptor
+                else:
+                    return self.parent.task.is_owner(user)  # owner available
+            elif self.parent.solution:
+                # todo
+                pass
+        return self.project.is_admin(user.id)  # default to project admin
