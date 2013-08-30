@@ -51,7 +51,7 @@ class Solution(Voteable, Commentable):
         """
         Count of subtasks stemming from this solution
         """
-        subtasks = self.subtask_set.all()
+        subtasks = self.subtask_set.filter(is_accepted=True)
         count = subtasks.count()
         for subtask in subtasks:
             count += subtask.get_subtask_count

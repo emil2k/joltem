@@ -24,11 +24,11 @@ class Task(Commentable):
     @property
     def get_subtask_count(self):
         """
-        Count of subtasks stemming from this task
+        Count of accepted subtasks stemming from this task
         """
         count = 0
-        for solution in self.solution_set.all():
-            count += solution.get_subtask_count
+        for solution in self.solution_set.filter(is_accepted=True):
+            count += solution.get_subtask_count()
         return count
 
     def is_owner(self, user):

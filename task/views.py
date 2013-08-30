@@ -138,28 +138,50 @@ class MyOpenTasksView(TaskBaseListView):
     tasks_tab = "my_open"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=False, owner_id=self.user.id).order_by('-time_posted')
+        return self.project.task_set.filter(is_accepted=True, is_closed=False, owner_id=self.user.id).order_by('-time_posted')
 
 
 class MyClosedTasksView(TaskBaseListView):
     tasks_tab = "my_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=True, owner_id=self.user.id).order_by('-time_closed')
+        return self.project.task_set.filter(is_accepted=True, is_closed=True, owner_id=self.user.id).order_by('-time_closed')
+
+
+class MyUnacceptedTasksView(TaskBaseListView):
+    tasks_tab = "my_unaccepted"
+
+    def get_queryset(self):
+        return self.project.task_set.filter(is_accepted=False, owner_id=self.user.id).order_by('-time_posted')
+
+
+class MyReviewTasksView(TaskBaseListView):
+    """
+    List of unaccepted tasks that the user is responsible for accepting
+    """
+    tasks_tab = "my_review"
+
+    def iterate_tasks_to_accept(self):
+        for task in self.project.task_set.filter(is_accepted=False, owner_id=self.user.id).order_by('-time_posted'):
+            if task.is_acceptor(self.user):
+                yield task
+
+    def get_queryset(self):
+        return (task for task in self.iterate_tasks_to_accept())
 
 
 class AllOpenTasksView(TaskBaseListView):
     tasks_tab = "all_open"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=False).order_by('-time_posted')
+        return self.project.task_set.filter(is_accepted=True, is_closed=False).order_by('-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):
     tasks_tab = "all_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=True).order_by('-time_closed')
+        return self.project.task_set.filter(is_accepted=True, is_closed=True).order_by('-time_closed')
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
@@ -189,7 +211,7 @@ class SubtaskBaseView(ListView, ProjectBaseView):
 
     def get_subtask_queryset(self, solution):
         """Query set for subtasks of each solution, default is all"""
-        return solution.subtask_set.all().order_by('-time_posted')
+        return solution.subtask_set.filter(is_accepted=True).order_by('-time_posted')
 
     def get_queryset(self):
         """Generate subtask groups"""
