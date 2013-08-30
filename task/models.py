@@ -37,18 +37,29 @@ class Task(Commentable):
         """
         return self.owner_id == user.id
 
+    def iterate_parents(self):
+        """
+        Iterate through parents, returns a tuple with the parent solution and task
+        """
+        parent_solution, parent_task = self.parent, None
+        yield parent_solution, parent_task
+        while parent_solution or parent_task:
+            if parent_solution:
+                parent_solution, parent_task = parent_solution.solution, parent_solution.task
+            elif parent_task:
+                parent_solution, parent_task = parent_task.parent, None
+            if parent_solution or parent_task:
+                yield parent_solution, parent_task
+
     def is_acceptor(self, user):
         """
         Whether passed user is the person responsible for accepting the task
         """
-        # todo make function
-        if self.parent:
-            if self.parent.task:
-                if self.parent.task.is_closed or not self.parent.task.is_accepted:
-                    return self.parent.task.is_acceptor(user)  # fallback to acceptor
-                else:
-                    return self.parent.task.is_owner(user)  # owner available
-            elif self.parent.solution:
-                # todo
-                pass
+        for parent_solution, parent_task in self.iterate_parents():
+            if parent_task:
+                if not parent_task.is_closed and parent_task.is_accepted:
+                    return parent_task.is_owner(user)
+            elif parent_solution:
+                if not parent_solution.is_closed and not parent_solution.is_completed:
+                    return parent_solution.is_owner(user)
         return self.project.is_admin(user.id)  # default to project admin
