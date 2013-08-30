@@ -16,7 +16,8 @@ class Task(Commentable):
     # Relations
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="subtask_set")
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(User)  # user responsible for administrating the task
+    author = models.ForeignKey(User, related_name="tasks_authored_set")  # user who created the task
 
     def __unicode__(self):
         return self.title
