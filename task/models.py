@@ -8,8 +8,10 @@ from joltem.models import Commentable
 class Task(Commentable):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    is_accepted = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     time_posted = models.DateTimeField(default=timezone.now)
+    time_accepted = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     project = models.ForeignKey('project.Project')
@@ -34,3 +36,10 @@ class Task(Commentable):
         Whether the passed user is person who posted the task
         """
         return self.owner_id == user.id
+
+    def is_acceptor(self, user):
+        """
+        Whether passed user is the person responsible for accepting the task
+        """
+        # todo make function
+        pass
