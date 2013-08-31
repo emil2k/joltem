@@ -21,10 +21,12 @@ def get_mock_project(name):
     return p
 
 
-def get_mock_task(project, user, solution=None):
+def get_mock_task(project, user, solution=None, author=None):
+    author = user if author is None else author
     t = Task(
         title="A task by %s" % user.username,
         owner=user,
+        author=author,
         project=project,
         parent=solution
     )

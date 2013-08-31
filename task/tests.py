@@ -47,11 +47,6 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
 
         self.assertListEqual(parents, [s3, t2, s1, s0])
 
-
-
-
-    # TODO test task is_acceptor
-
     def _test_is_acceptor_parent_task(self, is_closed, is_accepted):
         """
         Generates tests for testing is_acceptor parametrized by whether the parent task is closed/accepted
@@ -161,3 +156,5 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         self.assertTrue(t.is_acceptor(self.jill))
         self.assertFalse(t.is_acceptor(self.abby))
         self.assertFalse(t.is_acceptor(self.bob))
+
+    # todo tests for suggested task is acceptor

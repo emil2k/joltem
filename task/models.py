@@ -57,10 +57,12 @@ class Task(Commentable):
         Whether passed user is the person responsible for accepting the task
         """
         for parent_solution, parent_task in self.iterate_parents():
-            if parent_task:
-                if not parent_task.is_closed and parent_task.is_accepted:
-                    return parent_task.is_owner(user)
-            elif parent_solution:
+            if parent_solution \
+                    and parent_solution.user_id != self.author_id:
                 if not parent_solution.is_closed and not parent_solution.is_completed:
                     return parent_solution.is_owner(user)
+            elif parent_task \
+                    and parent_task.owner_id != self.author_id:
+                if not parent_task.is_closed and parent_task.is_accepted:
+                    return parent_task.is_owner(user)
         return self.project.is_admin(user.id)  # default to project admin
