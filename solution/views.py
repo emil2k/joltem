@@ -33,10 +33,9 @@ class SolutionBaseView(ProjectBaseView):
             kwargs["vote"] = None
 
         kwargs["comments"] = CommentHolder.get_comments(self.solution.comment_set.all().order_by('time_commented'), self.user)
-        kwargs["subtasks"] = self.solution.subtask_set.all().order_by('-time_posted')
+        kwargs["subtasks"] = self.solution.subtask_set.filter(is_accepted=True).order_by('-time_posted')
         kwargs["suggested_solutions"] = self.solution.solution_set.all().order_by('-time_posted')
         kwargs["is_owner"] = self.solution.is_owner(self.user)
-        kwargs["is_acceptor"] = self.solution.is_acceptor(self.user)
 
         return super(SolutionBaseView, self).get_context_data(**kwargs)
 
@@ -49,19 +48,6 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
     solution_tab = "solution"
 
     def post(self, request, *args, **kwargs):
-        # Acceptance of suggested solution
-        accept = request.POST.get('accept')
-        unaccept = request.POST.get('unaccept')
-        if (accept or unaccept) and self.solution.is_acceptor(self.user):
-            if accept:
-                self.solution.is_accepted = True
-                self.solution.time_accepted = timezone.now()
-            else:
-                self.solution.is_accepted = False
-                self.solution.time_accepted = None
-            self.solution.save()
-            return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
-
         # Mark solution complete
         if request.POST.get('complete') \
                 and not self.solution.is_completed \
@@ -232,7 +218,7 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
         return super(SolutionCreateView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        if self.parent_task and self.parent_task.is_closed:
+        if self.parent_task and (self.parent_task.is_closed or not self.parent_task.is_accepted):
             return redirect('project:task:task', project_name=self.project.name, task_id=self.parent_task.id)
         if self.parent_solution and (self.parent_solution.is_completed or self.parent_solution.is_closed):
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)

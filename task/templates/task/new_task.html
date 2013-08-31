@@ -7,7 +7,7 @@
             <div class="span8">
                 {% if parent_solution %}
                     <div class="alert alert-info">
-                        This task will be placed under parent solution : <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.task.title }}</a></strong>
+                        This task will be placed under parent solution : <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.default_title }}</a></strong>
                     </div>
                 {% endif %}
                 <input class="span8" type="text" name="title" placeholder="Task title." />

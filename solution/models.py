@@ -17,15 +17,12 @@ class Solution(Voteable, Commentable):
     title = models.TextField(null=True, blank=True)
     # Description of solution for all involved
     description = models.TextField(null=True, blank=True)
-    # Whether solution was accepted by creator of task
-    is_accepted = models.BooleanField(default=False)
     # Whether solution was marked completed
     is_completed = models.BooleanField(default=False)
     # Alternative to deletion of solution, to keep all relationships intact
     is_closed = models.BooleanField(default=False)
     # NOTE : No parenthesis on timezone.now because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
-    time_accepted = models.DateTimeField(null=True, blank=True)
     time_completed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
@@ -54,31 +51,11 @@ class Solution(Voteable, Commentable):
         """
         Count of subtasks stemming from this solution
         """
-        subtasks = self.subtask_set.all()
+        subtasks = self.subtask_set.filter(is_accepted=True)
         count = subtasks.count()
         for subtask in subtasks:
             count += subtask.get_subtask_count
         return count
-
-    def is_acceptor(self, user):
-        """
-        Returns whether passed user is the person responsible for accepting the solution
-        """
-        if self.task:
-            if not self.task.is_closed:
-                return self.task.is_owner(user)
-            if self.task.parent:
-                if not self.task.parent.is_completed and not self.task.parent.is_closed:
-                    return self.task.parent.is_owner(user)
-                else:
-                    return self.task.parent.is_acceptor(user)
-        elif self.solution:
-            if not self.solution.is_completed and not self.solution.is_closed:
-                return self.solution.is_owner(user)
-            else:
-                return self.solution.is_acceptor(user)
-
-        return self.project.is_admin(user.id)  # default to project admin
 
     def has_commented(self, user_id):
         """

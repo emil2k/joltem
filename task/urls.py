@@ -15,4 +15,6 @@ urlpatterns = patterns(
     url(r'^closed/$', login_required(views.AllClosedTasksView.as_view()), name='all_closed'),
     url(r'^open/my/$', login_required(views.MyOpenTasksView.as_view()), name='my_open'),
     url(r'^closed/my/$', login_required(views.MyClosedTasksView.as_view()), name='my_closed'),
+    url(r'^unaccepted/my/$', login_required(views.MyUnacceptedTasksView.as_view()), name='my_unaccepted'),
+    url(r'^review/$', login_required(views.MyReviewTasksView.as_view()), name='my_review'),
 )

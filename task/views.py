@@ -14,10 +14,12 @@ class TaskBaseView(ProjectBaseView):
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
         self.is_owner = self.task.is_owner(self.user)
+        self.is_acceptor = self.task.is_acceptor(self.user)
 
     def get_context_data(self, **kwargs):
         kwargs["task"] = self.task
-        kwargs["is_owner"] = self.task
+        kwargs["is_owner"] = self.is_owner
+        kwargs["is_acceptor"] = self.is_acceptor
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
         return super(TaskBaseView, self).get_context_data(**kwargs)
@@ -29,12 +31,37 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
 
+        # Accept task
+        if self.is_acceptor and request.POST.get('accept'):
+            if not self.task.parent \
+                    or self.task.parent.user_id != self.task.author_id:  # suggested task (tasks on master considered suggested)
+                self.task.owner = self.user
+            else:
+                self.task.owner = self.task.author
+
+            self.task.is_accepted = True
+            self.task.time_accepted = timezone.now()
+            self.task.is_closed = False  # if task was closed, reopen it
+            self.task.time_closed = None
+            self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        # Unaccept task
+        if self.is_acceptor and request.POST.get('unaccept'):
+            self.task.owner = self.task.author  # revert ownership back to author when unaccepted
+            self.task.is_accepted = False
+            self.task.time_accepted = None
+            self.task.save()
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        # Close task
         if self.is_owner and request.POST.get('close'):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
+        # Reopen task
         if self.is_owner and request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
@@ -57,7 +84,7 @@ class TaskEditView(TemplateView, TaskBaseView):
     template_name = "task/task_edit.html"
 
     def post(self, request, *args, **kwargs):
-        if not self.is_owner:
+        if not (self.is_owner or self.is_acceptor):
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
         title = request.POST.get('title')
         if title is not None:
@@ -76,9 +103,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
         parent_solution_id = self.kwargs.get("parent_solution_id", None)
         if parent_solution_id is not None:
             self.parent_solution = get_object_or_404(Solution, id=parent_solution_id)
-            if not self.parent_solution.is_accepted \
-                    or self.parent_solution.is_completed \
-                    or not (self.parent_solution.is_owner(self.user) or self.project.is_admin(self.user.id)):
+            if self.parent_solution.is_completed:
                 return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
 
     def get_context_data(self, **kwargs):
@@ -94,12 +119,11 @@ class TaskCreateView(TemplateView, ProjectBaseView):
                     project=self.project,
                     parent=self.parent_solution,
                     owner=self.user,
+                    author=self.user,
                     title=title,
                     description=description
                 )
                 created_task.save()
-                if self.parent_solution is not None:
-                    return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
                 return redirect('project:task:task', project_name=self.project.name, task_id=created_task.id)
 
 
@@ -121,28 +145,50 @@ class MyOpenTasksView(TaskBaseListView):
     tasks_tab = "my_open"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=False, owner_id=self.user.id).order_by('-time_posted')
+        return self.project.task_set.filter(is_accepted=True, is_closed=False, owner_id=self.user.id).order_by('-time_posted')
 
 
 class MyClosedTasksView(TaskBaseListView):
     tasks_tab = "my_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=True, owner_id=self.user.id).order_by('-time_closed')
+        return self.project.task_set.filter(is_accepted=True, is_closed=True, owner_id=self.user.id).order_by('-time_closed')
+
+
+class MyUnacceptedTasksView(TaskBaseListView):
+    tasks_tab = "my_unaccepted"
+
+    def get_queryset(self):
+        return self.project.task_set.filter(is_accepted=False, owner_id=self.user.id).order_by('-time_posted')
+
+
+class MyReviewTasksView(TaskBaseListView):
+    """
+    List of unaccepted tasks that the user is responsible for accepting
+    """
+    tasks_tab = "my_review"
+
+    def iterate_tasks_to_accept(self):
+        for task in self.project.task_set.filter(is_accepted=False, is_closed=False).order_by('-time_posted'):
+            if task.is_acceptor(self.user):
+                yield task
+
+    def get_queryset(self):
+        return (task for task in self.iterate_tasks_to_accept())
 
 
 class AllOpenTasksView(TaskBaseListView):
     tasks_tab = "all_open"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=False).order_by('-time_posted')
+        return self.project.task_set.filter(is_accepted=True, is_closed=False).order_by('-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):
     tasks_tab = "all_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(is_closed=True).order_by('-time_closed')
+        return self.project.task_set.filter(is_accepted=True, is_closed=True).order_by('-time_closed')
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
@@ -172,7 +218,7 @@ class SubtaskBaseView(ListView, ProjectBaseView):
 
     def get_subtask_queryset(self, solution):
         """Query set for subtasks of each solution, default is all"""
-        return solution.subtask_set.all().order_by('-time_posted')
+        return solution.subtask_set.filter(is_accepted=True).order_by('-time_posted')
 
     def get_queryset(self):
         """Generate subtask groups"""

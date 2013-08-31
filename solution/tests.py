@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.utils import timezone
 
 from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
@@ -23,16 +22,7 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         self.project.admin_set.add(self.jill)
         self.project.save()
 
-    def test_task_is_owner(self):
-        """
-        Test for task is_owner function
-        """
-        t = get_mock_task(self.project, self.abby)
-        self.assertFalse(t.is_owner(self.jill))  # admin check
-        self.assertFalse(t.is_owner(self.bob))
-        self.assertTrue(t.is_owner(self.abby))
-
-    def test_solution_is_owner(self):
+    def test_is_owner(self):
         """
         Test for solution is_owner function
         """
@@ -42,139 +32,6 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         self.assertFalse(s.is_owner(self.jill))
         self.assertFalse(s.is_owner(self.bob))
         self.assertTrue(s.is_owner(self.zack))
-
-
-    def test_solution_is_acceptor_simple(self):
-        """
-        Tests for solution is_acceptor owner function,
-
-        When solution has a parent task (not a suggested solution)
-        which is not a subtask of a completed or deleted solution.
-        """
-        t = get_mock_task(self.project, self.bob)
-        s = get_mock_solution(self.project, self.abby, t)
-
-        self.assertFalse(s.is_acceptor(self.jill))
-        self.assertFalse(s.is_acceptor(self.abby))
-        self.assertTrue(s.is_acceptor(self.bob))
-
-    def setup_solution_parents(self):
-        """
-        Setup a suggested solution hierarchy
-        """
-        s0 = get_mock_solution(self.project, self.abby, is_completed=False)  # root suggested solution
-        s1 = get_mock_solution(self.project, self.bob, solution=s0, is_completed=False)
-        s2 = get_mock_solution(self.project, self.zack, solution=s1, is_completed=False)
-
-        self.assertFalse(s2.is_acceptor(self.jill))
-        self.assertFalse(s2.is_acceptor(self.abby))
-        self.assertTrue(s2.is_acceptor(self.bob))
-        self.assertFalse(s2.is_acceptor(self.zack))
-
-        self.assertFalse(s1.is_acceptor(self.jill))
-        self.assertTrue(s1.is_acceptor(self.abby))
-        self.assertFalse(s1.is_acceptor(self.bob))
-        self.assertFalse(s1.is_acceptor(self.zack))
-
-        self.assertTrue(s0.is_acceptor(self.jill))
-        self.assertFalse(s0.is_acceptor(self.abby))
-        self.assertFalse(s0.is_acceptor(self.bob))
-        self.assertFalse(s0.is_acceptor(self.zack))
-
-        return s0, s1, s2
-
-    def test_solution_is_acceptor_parent_completed(self):
-        """
-        Test of what happens acceptance responsibilities when parents solutions are completed
-        """
-        s0, s1, s2 = self.setup_solution_parents()
-
-        # Now complete parent solutions
-
-        s1.is_completed = True
-        s1.time_completed = timezone.now()
-        s1.save()
-
-        self.assertFalse(s2.is_acceptor(self.jill))
-        self.assertTrue(s2.is_acceptor(self.abby))
-        self.assertFalse(s2.is_acceptor(self.bob))
-        self.assertFalse(s2.is_acceptor(self.zack))
-
-        s0.is_completed = True
-        s0.time_completed = timezone.now()
-        s0.save()
-
-        self.assertTrue(s2.is_acceptor(self.jill))
-        self.assertFalse(s2.is_acceptor(self.abby))
-        self.assertFalse(s2.is_acceptor(self.bob))
-        self.assertFalse(s2.is_acceptor(self.zack))
-
-    def test_solution_is_acceptor_parent_closed(self):
-        """
-        Test of what happens acceptance responsibilities when parents solutions are closed
-        """
-        s0, s1, s2 = self.setup_solution_parents()
-
-        # Now delete parent solutions
-
-        s1.is_closed = True
-        s1.time_closed = timezone.now()
-        s1.save()
-
-        self.assertFalse(s2.is_acceptor(self.jill))
-        self.assertTrue(s2.is_acceptor(self.abby))
-        self.assertFalse(s2.is_acceptor(self.bob))
-        self.assertFalse(s2.is_acceptor(self.zack))
-
-        s0.is_closed = True
-        s0.time_closed = timezone.now()
-        s0.save()
-
-        self.assertTrue(s2.is_acceptor(self.jill))
-        self.assertFalse(s2.is_acceptor(self.abby))
-        self.assertFalse(s2.is_acceptor(self.bob))
-        self.assertFalse(s2.is_acceptor(self.zack))
-
-    def test_solution_is_acceptor_parent_task_closed(self):
-        """
-        Test of what happens acceptance responsibilities when parents tasks are closed
-        """
-        s0, s1, s2 = self.setup_solution_parents()
-        jack = get_mock_user("jack")
-        gary = get_mock_user("gary")
-        t = get_mock_task(self.project, jack, s2)
-        s3 = get_mock_solution(self.project, gary, t)
-
-        self.assertFalse(s3.is_acceptor(self.jill))
-        self.assertFalse(s3.is_acceptor(self.abby))
-        self.assertFalse(s3.is_acceptor(self.bob))
-        self.assertFalse(s3.is_acceptor(self.zack))
-        self.assertTrue(s3.is_acceptor(jack))
-        self.assertFalse(s3.is_acceptor(gary))
-
-        # Now close parent task
-        t.is_closed = True
-        t.time_closed = timezone.now()
-        t.save()
-
-        self.assertFalse(s3.is_acceptor(self.jill))
-        self.assertFalse(s3.is_acceptor(self.abby))
-        self.assertFalse(s3.is_acceptor(self.bob))
-        self.assertTrue(s3.is_acceptor(self.zack))
-        self.assertFalse(s3.is_acceptor(jack))
-        self.assertFalse(s3.is_acceptor(gary))
-
-        # And complete the parent solution now
-        s2.is_completed = True
-        s2.time_completed = timezone.now()
-        s2.save()
-
-        self.assertFalse(s3.is_acceptor(self.jill))
-        self.assertFalse(s3.is_acceptor(self.abby))
-        self.assertTrue(s3.is_acceptor(self.bob))
-        self.assertFalse(s3.is_acceptor(self.zack))
-        self.assertFalse(s3.is_acceptor(jack))
-        self.assertFalse(s3.is_acceptor(gary))
 
     # TODO tests that actually test interface using client or selenium
     # TODO tests that check if views follow ownership rules for processing actions
