@@ -21,20 +21,24 @@ def get_mock_project(name):
     return p
 
 
-def get_mock_task(project, user, solution=None, author=None):
+def get_mock_task(project, user, solution=None, author=None, is_closed=False, is_accepted=True):
     author = user if author is None else author
     t = Task(
         title="A task by %s" % user.username,
         owner=user,
         author=author,
         project=project,
-        parent=solution
+        parent=solution,
+        is_accepted=is_accepted,
+        time_accepted=timezone.now() if is_accepted else None,
+        is_closed=is_closed,
+        time_closed=timezone.now() if is_closed else None,
     )
     t.save()
     return t
 
 
-def get_mock_solution(project, user, task=None, solution=None, is_completed=True):
+def get_mock_solution(project, user, task=None, solution=None, is_completed=True, is_closed=False):
     s = Solution(
         project=project,
         user=user,
@@ -42,6 +46,8 @@ def get_mock_solution(project, user, task=None, solution=None, is_completed=True
         solution=solution,
         is_completed=is_completed,
         time_completed=timezone.now() if is_completed else None,
+        is_closed=is_closed,
+        time_closed=timezone.now() if is_closed else None,
     )
     s.save()
     return s

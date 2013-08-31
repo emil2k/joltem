@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 
-from joltem.tests import TestCaseDebugMixin
+from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
 from joltem.tests.mocking import *
 
 
@@ -51,43 +51,59 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Generates tests for testing is_acceptor parametrized by whether the parent task is closed/accepted
         """
-        s0 = get_mock_solution(self.project, self.abby)
-        t0 = get_mock_task(self.project, self.abby, s0)
+        s0 = get_mock_solution(self.project, self.abby, is_completed=False, is_closed=False)
+        t0 = get_mock_task(self.project, self.abby, s0, is_accepted=True, is_closed=False)
 
-        # Configure fallback level, if parent task is unavailable this should become the acceptor
-        s0.is_closed = False
-        s0.is_completed = False
-        s0.save()
-        t0.is_closed = False
-        t0.is_accepted = True
-        t0.time_accepted = timezone.now()
-        t0.save()
+        s1 = get_mock_solution(self.project, self.zack, t0, is_completed=False, is_closed=False)
+        t1 = get_mock_task(self.project, self.zack, s1, is_accepted=is_accepted, is_closed=is_closed)
 
-        s1 = get_mock_solution(self.project, self.zack, t0)
-        t1 = get_mock_task(self.project, self.zack, s1)
+        s2 = get_mock_solution(self.project, self.bob, t1, is_completed=False, is_closed=False)
+        t2 = get_mock_task(self.project, self.bob, s2, is_accepted=False, is_closed=False)
 
-        # Configure parent task, based on parameters
-        t1.is_closed = is_closed
-        t1.is_accepted = is_accepted
-        if is_closed:
-            t1.time_closed = timezone.now()
-        if is_accepted:
-            t1.time_accepted = timezone.now()
-        t1.save()
+        # Zack should be the owner either way since if the task is closed
+        # he is still the next parent with the solution (s1) being open and incomplete
+        self.assertFalse(t2.is_acceptor(self.jill))
+        self.assertFalse(t2.is_acceptor(self.bob))
+        self.assertFalse(t2.is_acceptor(self.abby))
+        self.assertTrue(t2.is_acceptor(self.zack))
 
-        s2 = get_mock_solution(self.project, self.bob, t1)
-        t2 = get_mock_task(self.project, self.bob, s2)
+        # Now lets mark Zack's solution complete
+        s1.is_completed = True
+        s1.time_completed = timezone.now()
+        s1.save()
 
-        if is_closed or not is_accepted:  # parent unavailable, should fallback
-            self.assertTrue(t2.is_acceptor(self.abby))
-            self.assertFalse(t2.is_acceptor(self.zack))
-            self.assertFalse(t2.is_acceptor(self.bob))
+        if not is_closed and is_accepted:
+            # Zack still acceptor because he is next parent and his task is open and accepted
             self.assertFalse(t2.is_acceptor(self.jill))
-        else:  # parent available should be acceptor
-            self.assertTrue(t2.is_acceptor(self.zack))
+            self.assertFalse(t2.is_acceptor(self.bob))
             self.assertFalse(t2.is_acceptor(self.abby))
-            self.assertFalse(t2.is_acceptor(self.bob))
+            self.assertTrue(t2.is_acceptor(self.zack))
+        else:
+            # Abby should be the acceptor as she is the next parent
             self.assertFalse(t2.is_acceptor(self.jill))
+            self.assertFalse(t2.is_acceptor(self.bob))
+            self.assertFalse(t2.is_acceptor(self.zack))
+            self.assertTrue(t2.is_acceptor(self.abby))
+
+        # Now lets mark Zack's solution incomplete, but closed
+        s1.is_completed = False
+        s1.time_completed = None
+        s1.is_closed = True
+        s1.time_closed = timezone.now()
+        s1.save()
+
+        if not is_closed and is_accepted:
+            # Zack still acceptor because he is next parent and his task is open and accepted
+            self.assertFalse(t2.is_acceptor(self.jill))
+            self.assertFalse(t2.is_acceptor(self.bob))
+            self.assertFalse(t2.is_acceptor(self.abby))
+            self.assertTrue(t2.is_acceptor(self.zack))
+        else:
+            # Abby should be the acceptor as she is the next parent
+            self.assertFalse(t2.is_acceptor(self.jill))
+            self.assertFalse(t2.is_acceptor(self.bob))
+            self.assertFalse(t2.is_acceptor(self.zack))
+            self.assertTrue(t2.is_acceptor(self.abby))
 
     def test_is_acceptor_parent_task_open_accepted(self):
         self._test_is_acceptor_parent_task(False, True)
@@ -105,24 +121,17 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Generates tests for testing is_acceptor parametrized by whether the parent solution is closed/completed
         """
-        s0 = get_mock_solution(self.project, self.abby)
+        s0 = get_mock_solution(self.project, self.abby, is_closed=False, is_completed=False)
 
         # Configure fallback level, if parent solution is unavailable this should become the acceptor
         s0.is_closed = False
         s0.is_completed = False
         s0.save()
 
-        s1 = get_mock_solution(self.project, self.zack, solution=s0)
+        s1 = get_mock_solution(self.project, self.zack, solution=s0, is_closed=is_closed, is_completed=is_completed)
 
-        # Configure parent solution, based on parameters
-        s1.is_closed = is_closed
-        s1.is_completed = is_completed
-        if is_completed:
-            s1.time_completed = timezone.now()
-        s1.save()
-
-        s2 = get_mock_solution(self.project, self.bob, solution=s1)
-        t2 = get_mock_task(self.project, self.bob, s2)
+        s2 = get_mock_solution(self.project, self.bob, solution=s1, is_closed=False, is_completed=False)
+        t2 = get_mock_task(self.project, self.bob, s2, is_closed=False, is_accepted=False)
 
         if is_closed or is_completed:  # parent unavailable, should fallback
             self.assertTrue(t2.is_acceptor(self.abby))
@@ -152,9 +161,31 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         Test is acceptor for task without a parent solution, meaning a root task,
         a project admin should be an acceptor
         """
-        t = get_mock_task(self.project, self.abby)
+        t = get_mock_task(self.project, self.abby, is_accepted=False, is_closed=False)
         self.assertTrue(t.is_acceptor(self.jill))
         self.assertFalse(t.is_acceptor(self.abby))
         self.assertFalse(t.is_acceptor(self.bob))
 
-    # todo tests for suggested task is acceptor
+    def test_is_acceptor_suggested_task(self):
+        """
+        Test is acceptor for a suggested task, then take away the parent and see if it falls back correctly
+        """
+        t0 = get_mock_task(self.project, self.abby, is_accepted=True, is_closed=False)
+
+        s1 = get_mock_solution(self.project, self.bob, task=t0, is_completed=False, is_closed=False)
+        t1 = get_mock_task(self.project, self.zack, author=self.zack, solution=s1, is_accepted=False, is_closed=False)  # suggested task by zack
+
+        self.assertTrue(t1.is_acceptor(self.bob))
+        self.assertFalse(t1.is_acceptor(self.zack))
+        self.assertFalse(t1.is_acceptor(self.abby))
+        self.assertFalse(t1.is_acceptor(self.jill))
+
+        # Now mark solution complete and abby should become acceptor
+        s1.is_completed = True
+        s1.time_completed = timezone.now()
+        s1.save()
+
+        self.assertTrue(t1.is_acceptor(self.abby))
+        self.assertFalse(t1.is_acceptor(self.bob))
+        self.assertFalse(t1.is_acceptor(self.zack))
+        self.assertFalse(t1.is_acceptor(self.jill))
