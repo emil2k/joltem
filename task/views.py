@@ -33,7 +33,12 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         # Accept task
         if self.is_acceptor and request.POST.get('accept'):
-            self.task.owner = self.user  # user accepting the task becomes responsible for administering it
+            if not self.task.parent \
+                    or self.task.parent.user_id != self.task.author_id:  # suggested task (tasks on master considered suggested)
+                self.task.owner = self.user
+            else:
+                self.task.owner = self.task.author
+
             self.task.is_accepted = True
             self.task.time_accepted = timezone.now()
             self.task.is_closed = False  # if task was closed, reopen it
