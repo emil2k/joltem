@@ -124,8 +124,6 @@ class TaskCreateView(TemplateView, ProjectBaseView):
                     description=description
                 )
                 created_task.save()
-                if self.parent_solution is not None:
-                    return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
                 return redirect('project:task:task', project_name=self.project.name, task_id=created_task.id)
 
 
