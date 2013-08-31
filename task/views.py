@@ -79,7 +79,7 @@ class TaskEditView(TemplateView, TaskBaseView):
     template_name = "task/task_edit.html"
 
     def post(self, request, *args, **kwargs):
-        if not self.is_owner:
+        if not (self.is_owner or self.is_acceptor):
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
         title = request.POST.get('title')
         if title is not None:

@@ -39,6 +39,8 @@
                         {% else %}
                             <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                         {% endif %}
+                    {% endif %}
+                    {% if is_owner or is_acceptor %}
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     {% endif %}
                 </div>
