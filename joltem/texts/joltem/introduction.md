@@ -28,7 +28,7 @@ The peer review system is crucial to the health of the system, so it is importan
 2. Clone the main repository : `git clone git@joltem.com:joltem/main`
 3. Refer to the `README.md` for instructions on how to setup the system in your development environment.
 
-*Processing for contributing a solution :*
+*Process for contributing a solution :*
 
 1. Look at list of open tasks and open a solution to one. Or suggest a solution to another solution.
 2. Checkout and push to designated branch for the solution, from the appropriate parent. Solution branches are named `s/{solution_id}` and only the solution owner can push to them.
