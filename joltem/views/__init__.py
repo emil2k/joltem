@@ -217,7 +217,9 @@ def invites(request):
     from joltem.models import Invite
     context = {
         'nav_tab': "invite",
-        'invites': Invite.objects.all().order_by('-time_sent'),
+        'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted','-time_sent'),
+        'signed_up_invites': Invite.objects.filter(is_signed_up=True).order_by('-time_signed_up', '-time_sent'),
+        'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-first_name', '-last_name'),
     }
     if request.POST:
         mark_sent_id = request.POST.get('mark_sent')
