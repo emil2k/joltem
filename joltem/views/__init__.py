@@ -305,3 +305,18 @@ def invite(request, invite_id):
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)
+
+
+# Class based views
+
+from django.views.generic.base import TemplateView
+from joltem.views.generic import TextContextMixin, RequestBaseView
+
+
+class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+    """
+    A view to display a basic introduction to the site, displayed to new users after sign up.
+    """
+    template_name = "joltem/introduction.html"
+    text_names = ["joltem/introduction.md"]
+    text_context_object_prefix = "introduction_"

@@ -1,0 +1,5 @@
+{% extends 'joltem/base.html' %}
+{% load markup %}
+{% block content %}
+    {{ introduction_1|markdown:"tables,fenced_code" }}
+{% endblock %}

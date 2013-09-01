@@ -26,6 +26,24 @@ class RequestBaseView(ContextMixin, View):
         return super(RequestBaseView, self).get_context_data(**kwargs)
 
 
+class TextContextMixin(ContextMixin):
+    """
+    Passes text file contents to into context, from texts folder into context.
+
+    The context of each file are loaded into context object identified by iteration variable,
+    i.e. text_1, text_2, text_3
+    """
+    text_names = []
+    text_context_object_prefix = "text_"
+
+    def get_context_data(self, **kwargs):
+        from joltem.libs.loaders.text import TextLoader
+        text_loader = TextLoader()
+        for i, text_name in enumerate(self.text_names):
+            kwargs[self.text_context_object_prefix + str(i+1)], filepath = text_loader(text_name)
+        return super(TextContextMixin, self).get_context_data(**kwargs)
+
+
 class VoteableView(RequestBaseView):
     """
     View that contains a voteable, processes the voting
