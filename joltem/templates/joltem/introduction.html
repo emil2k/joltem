@@ -1,10 +1,26 @@
 {% extends 'joltem/base.html' %}
+{% load filters %}
 {% load markup %}
 {% block title %}Introduction - Joltem{% endblock %}
 {% block content %}
     <div class="row">
         <div class="span8">
             {{ introduction_1|markdown:"tables,fenced_code" }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="span8">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Getting started</li>
+                <li><a href="{% url 'account_keys' %}">Add SSH key</a></li>
+                <li><a href="{% url 'project:git:repositories' "joltem" %}">Clone repository</a></li>
+                <li class="nav-header">Browse tasks & solutions</li>
+                <li><a href="{% url 'project:task:all_open' "joltem" %}">Open tasks</a></li>
+                <li><a href="{% url 'project:solution:all_incomplete' "joltem" %}">Incomplete solutions</a></li>
+                <li><a href="{% url 'project:solution:all_complete' "joltem" %}">Complete solutions</a></li>
+                <li class="nav-header">Questions</li>
+                <li><a href="mailto:emil2k@gmail.com">Send an email</a></li>
+            </ul>
         </div>
     </div>
 {% endblock %}
