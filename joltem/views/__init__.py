@@ -217,7 +217,9 @@ def invites(request):
     from joltem.models import Invite
     context = {
         'nav_tab': "invite",
-        'invites': Invite.objects.all().order_by('-time_sent'),
+        'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted','-time_sent'),
+        'signed_up_invites': Invite.objects.filter(is_signed_up=True).order_by('-time_signed_up', '-time_sent'),
+        'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-first_name', '-last_name'),
     }
     if request.POST:
         mark_sent_id = request.POST.get('mark_sent')
@@ -226,6 +228,13 @@ def invites(request):
             mark_sent.is_sent = True
             mark_sent.time_sent = timezone.now()
             mark_sent.save()
+            return redirect('invites')
+        mark_contacted_id = request.POST.get('mark_contacted')
+        if mark_contacted_id:
+            mark_contacted = Invite.objects.get(id=mark_contacted_id)
+            mark_contacted.is_contacted = True
+            mark_contacted.time_contacted = timezone.now()
+            mark_contacted.save()
             return redirect('invites')
         first_name = request.POST.get('first_name')
         if first_name:
@@ -237,6 +246,7 @@ def invites(request):
             twitter = request.POST.get('twitter')
             facebook = request.POST.get('facebook')
             stackoverflow = request.POST.get('stackoverflow')
+            github = request.POST.get('github')
             uuid = uuid4()
             invite_code = uuid.hex
             invite = Invite(
@@ -248,7 +258,8 @@ def invites(request):
                 personal_site=personal_site,
                 twitter=twitter,
                 facebook=facebook,
-                stackoverflow=stackoverflow
+                stackoverflow=stackoverflow,
+                github=github
             )
             invite.save()
         return redirect('invites')
@@ -285,6 +296,11 @@ def invite(request, invite_id):
             invite.time_sent = timezone.now()
             invite.save()
             return redirect('invite', invite_id=invite_id)
+        elif action == "mark_contacted":
+            invite.is_contacted = True
+            invite.time_contacted = timezone.now()
+            invite.save()
+            return redirect('invite', invite_id=invite_id)
         first_name = request.POST.get('first_name')
         if first_name:
             personal_note = request.POST.get('personal_note')
@@ -294,6 +310,7 @@ def invite(request, invite_id):
             twitter = request.POST.get('twitter')
             facebook = request.POST.get('facebook')
             stackoverflow = request.POST.get('stackoverflow')
+            github = request.POST.get('github')
             invite.first_name = first_name
             invite.last_name = last_name
             invite.personal_note = personal_note
@@ -302,6 +319,7 @@ def invite(request, invite_id):
             invite.twitter = twitter
             invite.facebook = facebook
             invite.stackoverflow = stackoverflow
+            invite.github = github
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)

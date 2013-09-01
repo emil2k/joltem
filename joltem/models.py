@@ -63,10 +63,12 @@ class Invite(models.Model):
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     personal_note = models.TextField(null=True, blank=True)
-    is_sent = models.BooleanField(default=False)  # whether user was contacted
+    is_contacted = models.BooleanField(default=False)  # whether user was contacted
+    is_sent = models.BooleanField(default=False)  # whether user was sent an invitation
     is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
     is_signed_up = models.BooleanField(default=False)  # whether user signed up
     user = models.ForeignKey(User, null=True, blank=True)  # if the user registered, the associated user
+    time_contacted = models.DateTimeField(null=True, blank=True)
     time_sent = models.DateTimeField(null=True, blank=True)
     time_clicked = models.DateTimeField(null=True, blank=True)
     time_signed_up = models.DateTimeField(null=True, blank=True)
@@ -74,7 +76,8 @@ class Invite(models.Model):
     email = models.CharField(max_length=200, null=True, blank=True)
     twitter = models.CharField(max_length=200, null=True, blank=True)
     facebook = models.CharField(max_length=200, null=True, blank=True)
-    stackoverflow = models.CharField(max_length=200, null=True, blank=True)  # full url
+    stackoverflow = models.CharField(max_length=200, null=True, blank=True)
+    github = models.CharField(max_length=200, null=True, blank=True)
     personal_site = models.CharField(max_length=200, null=True, blank=True)
 
     @classmethod
