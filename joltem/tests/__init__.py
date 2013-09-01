@@ -1,5 +1,3 @@
-__author__ = 'emil'
-
 import logging
 TEST_LOGGER = logging.getLogger('tests')
 
@@ -14,3 +12,7 @@ class TestCaseDebugMixin():
 
     def tearDown(self):
         TEST_LOGGER.debug("\n\n*/// TEARDOWN\n")
+
+
+# Load tests from submodules
+from joltem.tests.loaders import *
