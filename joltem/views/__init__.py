@@ -90,7 +90,7 @@ def sign_up(request):
                     invite.time_signed_up = timezone.now()
                     invite.user = user
                     invite.save()
-                    return redirect('account_keys')
+                    return redirect('intro')
             context = {
                 'nav_tab': "up",
                 'error': error,
@@ -305,3 +305,18 @@ def invite(request, invite_id):
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)
+
+
+# Class based views
+
+from django.views.generic.base import TemplateView
+from joltem.views.generic import TextContextMixin, RequestBaseView
+
+
+class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+    """
+    A view to display a basic introduction to the site, displayed to new users after sign up.
+    """
+    template_name = "joltem/introduction.html"
+    text_names = ["joltem/introduction.md"]
+    text_context_object_prefix = "introduction_"

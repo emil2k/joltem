@@ -5,7 +5,8 @@ from django.views.generic.list import ListView
 from joltem.holders import CommentHolder
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView, CommentableView, VoteableView
+from joltem.views.generic import VoteableView, CommentableView
+from project.views import ProjectBaseView
 
 
 class TaskBaseView(ProjectBaseView):

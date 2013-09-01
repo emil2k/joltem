@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from project.models import Project
-from git.models import Repository, Authentication
-from joltem.settings import MAIN_DIR
+from git.models import Repository
 
 
 def repository(request, project_name, repository_name):

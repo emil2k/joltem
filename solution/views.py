@@ -12,7 +12,8 @@ from git.models import Repository
 
 from task.models import Task
 from solution.models import Solution
-from project.views import ProjectBaseView, CommentableView, VoteableView
+from joltem.views.generic import VoteableView, CommentableView
+from project.views import ProjectBaseView
 
 
 class SolutionBaseView(ProjectBaseView):
