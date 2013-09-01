@@ -90,7 +90,7 @@ def sign_up(request):
                     invite.time_signed_up = timezone.now()
                     invite.user = user
                     invite.save()
-                    return redirect('account_keys')
+                    return redirect('intro')
             context = {
                 'nav_tab': "up",
                 'error': error,
