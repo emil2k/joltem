@@ -28,12 +28,14 @@
                     {% endif %}
                 </div>
                 <div class="span3 text-center">
-                    {% if invite.is_signed_up %}
-                        <small class="text-success">Signed up on {{ invite.time_signed_up|date }}.</small>
-                    {% elif invite.is_clicked %}
-                        <small class="text-info">Clicked on {{ invite.time_clicked|date }}.</small>
-                    {% elif invite.is_sent %}
-                        <small class="muted">Sent on {{ invite.time_sent|date }}.</small>
+                    {% if invite.is_sent %}
+                        {% if invite.is_signed_up %}
+                            <small class="text-success">Signed up on {{ invite.time_signed_up|date }}.</small>
+                        {% elif invite.is_clicked %}
+                            <small class="text-info">Clicked on {{ invite.time_clicked|date }}.</small>
+                        {% else %}
+                            <small class="muted">Sent on {{ invite.time_sent|date }}.</small>
+                        {% endif %}
                     {% else %}
                         <button class="btn btn-success btn-mini" name="mark_sent" value="{{ invite.id }}">mark sent</button>
                     {% endif %}
