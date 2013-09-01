@@ -1,5 +1,10 @@
 {% extends 'joltem/base.html' %}
 {% load markup %}
+{% block title %}Introduction - Joltem{% endblock %}
 {% block content %}
-    {{ introduction_1|markdown:"tables,fenced_code" }}
+    <div class="row">
+        <div class="span8">
+            {{ introduction_1|markdown:"tables,fenced_code" }}
+        </div>
+    </div>
 {% endblock %}
