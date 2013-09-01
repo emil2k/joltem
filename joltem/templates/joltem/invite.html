@@ -16,6 +16,7 @@
                 <input type="text" placeholder="Twitter" name="twitter" class="input-block-level" value="{{ invite.twitter }}" /><br/>
                 <input type="text" placeholder="Facebook" name="facebook" class="input-block-level" value="{{ invite.facebook }}" /><br/>
                 <input type="text" placeholder="StackOverflow" name="stackoverflow" class="input-block-level" value="{{ invite.stackoverflow }}" /><br/>
+                <input type="text" placeholder="GitHub" name="github" class="input-block-level" value="{{ invite.github }}" /><br/>
             </div>
         </div>
         <div class="row">
@@ -28,6 +29,11 @@
                 <div class="btn-group">
                     <button type="submit" class="btn btn-success">Edit invitation</button>
                     <button type="submit" class="btn" name="action" value="delete">Delete</button>
+                    {% if not invite.is_contacted %}
+                        <button type="submit" class="btn btn-info" name="action" value="mark_contacted">Mark contacted</button>
+                    {% elif not invite.is_sent %}
+                        <button type="submit" class="btn btn-success" name="action" value="mark_sent">Mark sent</button>
+                    {% endif %}
                 </div>
             </div>
         </div>

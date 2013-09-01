@@ -10,7 +10,7 @@
                         <strong><a href="{% url 'invite' invite.id %}">{{ invite.full_name }}</a></strong>
                     </p>
                 </div>
-                <div class="span6">
+                <div class="span4">
                     {% if invite.personal_site %}
                         <a href="{{ invite.personal_site }}" target="_blank" class="btn btn-mini"><i class="icon-globe"></i></a>
                     {% endif %}
@@ -26,18 +26,30 @@
                     {% if invite.stackoverflow %}
                         <a href="{{ invite.stackoverflow }}" target="_blank" class="btn btn-mini">stack</a>
                     {% endif %}
+                    {% if invite.github %}
+                        <a href="{{ invite.github }}" target="_blank" class="btn btn-mini">github</a>
+                    {% endif %}
                 </div>
                 <div class="span3 text-center">
-                    {% if invite.is_sent %}
-                        {% if invite.is_signed_up %}
-                            <small class="text-success">Signed up on {{ invite.time_signed_up|date }}.</small>
-                        {% elif invite.is_clicked %}
-                            <small class="text-info">Clicked on {{ invite.time_clicked|date }}.</small>
+                    {% if invite.is_contacted %}
+                        {% if invite.is_sent %}
+                            {% if invite.is_signed_up %}
+                                <small class="text-success">Signed up on {{ invite.time_signed_up|date }}.</small>
+                            {% elif invite.is_clicked %}
+                                <small class="text-info">Clicked on {{ invite.time_clicked|date }}.</small>
+                            {% else %}
+                                <small class="muted">Sent invitation on {{ invite.time_sent|date }}.</small>
+                            {% endif %}
                         {% else %}
-                            <small class="muted">Sent on {{ invite.time_sent|date }}.</small>
+                            <small class="muted">Contacted on {{ invite.time_contacted|date }}.</small>
                         {% endif %}
-                    {% else %}
+                    {% endif %}
+                </div>
+                <div class="span2">
+                    {% if not invite.is_sent %}
                         <button class="btn btn-success btn-mini" name="mark_sent" value="{{ invite.id }}">mark sent</button>
+                    {% elif not invite.is_contacted %}
+                        <button class="btn btn-info btn-mini" name="mark_contacted" value="{{ invite.id }}">mark contacted</button>
                     {% endif %}
                 </div>
             </div>
@@ -57,6 +69,7 @@
                 <input type="text" placeholder="Twitter" name="twitter" class="input-block-level"/><br/>
                 <input type="text" placeholder="Facebook" name="facebook" class="input-block-level"/><br/>
                 <input type="text" placeholder="StackOverflow" name="stackoverflow" class="input-block-level"/><br/>
+                <input type="text" placeholder="GitHub" name="github" class="input-block-level"/><br/>
             </div>
         </div>
         <div class="row">
