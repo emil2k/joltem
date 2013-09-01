@@ -219,7 +219,7 @@ def invites(request):
         'nav_tab': "invite",
         'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted','-time_sent'),
         'signed_up_invites': Invite.objects.filter(is_signed_up=True).order_by('-time_signed_up', '-time_sent'),
-        'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-first_name', '-last_name'),
+        'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-id'),
     }
     if request.POST:
         mark_sent_id = request.POST.get('mark_sent')
