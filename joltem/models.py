@@ -1,4 +1,7 @@
+import logging
+
 from django.db import models
+from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.db.models.signals import post_save, post_delete
@@ -6,7 +9,6 @@ from django.utils import timezone
 
 from joltem import receivers
 
-import logging
 logger = logging.getLogger('django')
 
 
@@ -265,7 +267,6 @@ class Comment(Voteable):
     """
     Comments in a solution review
     """
-    # todo make tests for impact effects when voting on comments
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Generic relations
@@ -290,6 +291,45 @@ class Commentable(models.Model):
     """
     # Generic relations
     comment_set = generic.GenericRelation('joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
+
+    class Meta:
+        abstract = True
+
+
+# Notification related
+
+class Notification(models.Model):
+    """
+    Notification to a user
+    """
+    user = models.ForeignKey(User)  # user to notify
+    notifying_kwargs = models.CharField(max_length=200) # pass to the notifying class to determine url and text of notification
+    is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
+    time_notified = models.DateTimeField(default=timezone.now)
+    time_cleared = models.DateTimeField(default=timezone.now)
+    # Generic relations
+    notifying_type = models.ForeignKey(content_type_models.ContentType)
+    notifying_id = models.PositiveIntegerField()
+    notifying = generic.GenericForeignKey('notifying_type', 'notifying_id')
+
+
+class Notifying(models.Model):
+    """
+    Abstract, an object that can produce notifications
+    """
+
+    def get_notification_text(self, notification):
+        """
+        Get notification text for a given notification
+        """
+        raise ImproperlyConfigured("Extending class must implement get notification text.")
+
+    def get_notification_url(self, notification):
+        """
+        Get notification url for a given notification, implementation should use resolving
+        and should not hard code urls
+        """
+        raise ImproperlyConfigured("Extending class must implement get notification url.")
 
     class Meta:
         abstract = True
