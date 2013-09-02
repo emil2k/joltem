@@ -6,7 +6,7 @@ from joltem.models import Voteable, Commentable
 from joltem import receivers as joltem_receivers
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('joltem')
 
 
 class Solution(Voteable, Commentable):

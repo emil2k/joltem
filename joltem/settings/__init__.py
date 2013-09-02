@@ -127,6 +127,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'joltem': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -134,6 +139,22 @@ LOGGING = {
         }
     }
 }
+
+# Attempt to start logging to file
+try:
+    from joltem.settings.local import JOLTEM_LOGGER_FILE_PATH, JOLTEM_LOGGER_MAX_BYTES, JOLTEM_LOGGER_BACKUP_COUNT
+    LOGGING['handlers']['logfile'] = {
+        'level': 'DEBUG',
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': JOLTEM_LOGGER_FILE_PATH,
+        'maxBytes': JOLTEM_LOGGER_MAX_BYTES,
+        'backupCount': JOLTEM_LOGGER_BACKUP_COUNT,
+        'formatter': 'verbose',
+    }
+    # Add th handler to the logger
+    LOGGING['loggers']['joltem']['handlers'] = ['console', 'logfile']
+except ImportError:
+    pass
 
 # Include local settings
 try:

@@ -7,7 +7,7 @@ from project.models import Project
 from joltem.settings import MAIN_DIR
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('joltem')
 
 GITOLITE_REPOSITORIES_DIRECTORY = '%sgit/repositories/' % MAIN_DIR
 GITOLITE_ADMIN_DIRECTORY = '%sgit/gitolite/gitolite-admin/' % MAIN_DIR
@@ -116,13 +116,26 @@ post_delete.connect(receivers.remove_key, sender=Authentication)
 
 # Git utility functions
 
+def whoami():
+    """
+    Run the `whoami` command to find out the user running the processeses
+    """
+    from subprocess import Popen, PIPE
+    p = Popen("whoami", shell=True, stdout=PIPE, stderr=PIPE)
+    (out, error) = p.communicate()
+    logger.debug("WHOAMI : " + out)
+    if error:
+        logger.error("WHOAMI ERROR: " + error)  # even if git command is fine, returns in stderr for some reason
+
+
 def git_command(command):
     if command:
         from subprocess import Popen, PIPE
         p = Popen("git --git-dir={0}.git --work-tree={0} {1}".format(GITOLITE_ADMIN_DIRECTORY, command), shell=True, stdout=PIPE, stderr=PIPE)
         (out, error) = p.communicate()
         logger.debug(out)
-        logger.debug(error)  # even if git command is fine, returns in stderr for some reason
+        if error:
+            logger.error(error)  # even if git command is fine, returns in stderr for some reason
 
 
 def commit_push():
