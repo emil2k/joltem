@@ -7,6 +7,11 @@ TEMPLATE_DEBUG = DEBUG
 # Absolute path to main project directory which contains all the apps, with trailing slash
 MAIN_DIR = ''
 
+# Absolute path to Joltem logger log, if set outputs to this Joltem logger to file
+JOLTEM_LOGGER_FILE_PATH = None
+JOLTEM_LOGGER_MAX_BYTES = 500 * 1024 * 1024  # maximum bytes per log file, rotates logs when it reaches this
+JOLTEM_LOGGER_BACKUP_COUNT = 5  # how many rotated logs to keep
+
 # Make this unique, and don't share it with anybody, used for hashing passwords
 # You can use generator here : http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = ''

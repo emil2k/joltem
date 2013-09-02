@@ -1,5 +1,5 @@
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('joltem')
 
 
 def create_profile(sender, **kw):

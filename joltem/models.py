@@ -7,7 +7,7 @@ from django.utils import timezone
 from joltem import receivers
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('joltem')
 
 
 # User profile related

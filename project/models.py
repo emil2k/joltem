@@ -5,7 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from project import receivers
 
 import logging
-logger = logging.getLogger('django')
+logger = logging.getLogger('joltem')
 
 
 class Project(models.Model):
