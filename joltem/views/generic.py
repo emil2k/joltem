@@ -117,7 +117,11 @@ class CommentableView(RequestBaseView):
                 comment=comment_text
             )
             comment.save()
-            # Notify other participants that a post has been made
+            # Notify commentable owner that a comment has been made
+            commentable_owner = self.get_commentable_owner()
+            if commentable_owner:
+                commentable.notify(commentable_owner)
+            # Notify other participants that a comment has been made
             for commentator in commentable.commentator_set:
                 if commentator.id != comment.user_id:
                     commentable.notify(commentator)
@@ -127,6 +131,12 @@ class CommentableView(RequestBaseView):
 
     def get_commentable(self):
         raise ImproperlyConfigured("Commentable needs to be defined in extending class.")
+
+    def get_commentable_owner(self):
+        """
+        Return the owner of the commentable if there is one, so that user may be notified if comments are posted
+        """
+        return None
 
     def get_comment_redirect(self):
         raise ImproperlyConfigured("Comment redirect needs to be defined in extending class.")

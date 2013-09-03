@@ -66,3 +66,11 @@ class Task(Commentable):
                 if not parent_task.is_closed and parent_task.is_accepted:
                     return parent_task.is_owner(user)
         return self.project.is_admin(user.id)  # default to project admin
+
+    def get_notification_text(self, notification):
+        return "Task updated : %s" % self.title
+
+    def get_notification_url(self, url):
+        from django.core.urlresolvers import reverse
+        return reverse("project:task:task", args=[self.project.name, self.id])
+

@@ -123,6 +123,9 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
     def get_commentable(self):
         return self.solution
 
+    def get_commentable_owner(self):
+        return self.solution.user
+
     def get_comment_redirect(self):
         return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
@@ -163,6 +166,9 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView, SolutionBa
 
     def get_commentable(self):
         return self.solution
+
+    def get_commentable_owner(self):
+        return self.solution.user
 
     def get_comment_redirect(self):
         return redirect('project:solution:review', project_name=self.project.name, solution_id=self.solution.id)

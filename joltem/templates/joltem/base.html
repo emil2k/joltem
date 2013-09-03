@@ -52,8 +52,11 @@
                 <span class="icon-bar"></span>
             </button>
             {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/icon-brand.png' %}" alt="Joltem" /></a>{% endblock %}
-            <div class="nav-collapse collapse">
+            <ul class="nav">
+            </ul>
+            <div class="nav-collapse">
                 <ul class="nav">
+                    <li class="{{ nav_tab|active:"notifications"}}"><a href="{% url 'notifications' %}">Notifications</a></li>
                     {% block nav %}{% endblock %}
                     <li class="divider-vertical"></li>
                     {% if user.is_superuser %}

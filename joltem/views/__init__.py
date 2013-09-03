@@ -331,6 +331,19 @@ from django.views.generic.base import TemplateView
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
+class NotificationsView(TemplateView, RequestBaseView):
+    """
+    Displays the users notifications
+    """
+    template_name = "joltem/notifications.html"
+
+    def get_context_data(self, **kwargs):
+        from joltem.holders import NotificationHolder
+        kwargs["nav_tab"] = "notifications"
+        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
+        return super(NotificationsView, self).get_context_data(**kwargs)
+
+
 class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
     """
     A view to display a basic introduction to the site, displayed to new users after sign up.

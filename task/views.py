@@ -77,6 +77,9 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     def get_commentable(self):
         return self.task
 
+    def get_commentable_owner(self):
+        return self.task.owner
+
     def get_comment_redirect(self):
         return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
