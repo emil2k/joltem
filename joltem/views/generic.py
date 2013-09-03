@@ -106,17 +106,23 @@ class CommentableView(RequestBaseView):
     """
 
     def post(self, request, *args, **kwargs):
+        commentable = self.get_commentable()
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             comment = Comment(
                 time_commented=timezone.now(),
                 project=self.project,
                 user=self.user,
-                commentable=self.get_commentable(),
+                commentable=commentable,
                 comment=comment_text
             )
             comment.save()
+            # Notify other participants that a post has been made
+            for commentator in commentable.commentator_set:
+                if commentator.id != comment.user_id:
+                    commentable.notify(commentator)
             return self.get_comment_redirect()
+
         return super(CommentableView, self).post(request, *args, **kwargs)
 
     def get_commentable(self):

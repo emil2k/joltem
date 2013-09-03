@@ -12,10 +12,10 @@ class Migration(SchemaMigration):
         db.create_table(u'joltem_notification', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('notifying_kwargs', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('notifying_kwargs', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('is_cleared', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('time_notified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('time_cleared', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('time_cleared', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('notifying_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'])),
             ('notifying_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
         ))
@@ -104,9 +104,9 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_cleared': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'notifying_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'notifying_kwargs': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'notifying_kwargs': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'notifying_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
-            'time_cleared': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_cleared': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_notified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },

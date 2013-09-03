@@ -64,6 +64,14 @@ class Solution(Voteable, Commentable):
         # todo write a test for this function
         return self.comment_set.count() > 0
 
+    # TODO notifications when comments are being posted
+    def get_notification_text(self, notification):
+        return "Solution updated : %s" % self.title
+
+    def get_notification_url(self, url):
+        from django.core.urlresolvers import reverse
+        return reverse("project:solution:solution", solution_id=self.id)
+
     # Git related
 
     def get_parent_reference(self):

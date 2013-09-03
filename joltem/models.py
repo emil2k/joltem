@@ -99,6 +99,64 @@ class Invite(models.Model):
         return "%s %s" % (self.first_name, self.last_name)
 
 
+# Notification related
+
+class Notification(models.Model):
+    """
+    Notification to a user
+    """
+    user = models.ForeignKey(User)  # user to notify
+    notifying_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
+    is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
+    time_notified = models.DateTimeField(default=timezone.now)
+    time_cleared = models.DateTimeField(null=True, blank=True)
+    # Generic relations
+    notifying_type = models.ForeignKey(content_type_models.ContentType)
+    notifying_id = models.PositiveIntegerField()
+    notifying = generic.GenericForeignKey('notifying_type', 'notifying_id')
+
+
+class Notifying(models.Model):
+    """
+    Abstract, an object that can produce notifications
+    """
+
+    def notify(self, user):
+        """
+        Send notification to user
+        """
+        # todo add kwargs
+        notification = Notification(
+            user=user,
+            time_notified=timezone.now(),
+            is_cleared=False,
+            notifying=self
+        )
+        notification.save()
+
+    def broadcast(self, users):
+        """
+        Broadcast a notification to a list of users
+        """
+        for user in users:
+            self.notify(user)
+
+    def get_notification_text(self, notification):
+        """
+        Get notification text for a given notification
+        """
+        raise ImproperlyConfigured("Extending class must implement get notification text.")
+
+    def get_notification_url(self, notification):
+        """
+        Get notification url for a given notification, implementation should use reverse
+        and should not hard code urls
+        """
+        raise ImproperlyConfigured("Extending class must implement get notification url.")
+
+    class Meta:
+        abstract = True
+
 # Votes related
 
 class Vote(models.Model):
@@ -285,7 +343,7 @@ post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment
 post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
 
 
-class Commentable(models.Model):
+class Commentable(Notifying):
     """
     Abstract, an object that can be commented on
     """
@@ -295,41 +353,23 @@ class Commentable(models.Model):
     class Meta:
         abstract = True
 
-
-# Notification related
-
-class Notification(models.Model):
-    """
-    Notification to a user
-    """
-    user = models.ForeignKey(User)  # user to notify
-    notifying_kwargs = models.CharField(max_length=200) # pass to the notifying class to determine url and text of notification
-    is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
-    time_notified = models.DateTimeField(default=timezone.now)
-    time_cleared = models.DateTimeField(default=timezone.now)
-    # Generic relations
-    notifying_type = models.ForeignKey(content_type_models.ContentType)
-    notifying_id = models.PositiveIntegerField()
-    notifying = generic.GenericForeignKey('notifying_type', 'notifying_id')
-
-
-class Notifying(models.Model):
-    """
-    Abstract, an object that can produce notifications
-    """
-
-    def get_notification_text(self, notification):
+    def iterate_commentators(self):
         """
-        Get notification text for a given notification
+        Iterate through comments and return distinct commentators
         """
-        raise ImproperlyConfigured("Extending class must implement get notification text.")
+        commentator_ids = []
+        for comment in self.comment_set.all():
+            if not comment.user.id in commentator_ids:
+                commentator_ids.append(comment.user.id)
+                yield comment.user
 
-    def get_notification_url(self, notification):
+    @property
+    def commentator_set(self):
         """
-        Get notification url for a given notification, implementation should use resolving
-        and should not hard code urls
+        Return a distinct list of commentators
         """
-        raise ImproperlyConfigured("Extending class must implement get notification url.")
+        return [commentator for commentator in self.iterate_commentators()]
 
-    class Meta:
-        abstract = True
+
+
+
