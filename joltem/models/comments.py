@@ -9,7 +9,7 @@ from django.utils import timezone
 from joltem import receivers
 from joltem.models.votes import Voteable
 from joltem.models.notifications import Notifying
-from joltem.models.generic import Owned
+from joltem.models.generic import Owned, ProjectContext
 
 logger = logging.getLogger('django')
 
@@ -24,6 +24,7 @@ class Comment(Voteable):
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
     owner = models.ForeignKey(User)
+    project = models.ForeignKey('project.Project')
     # Generic relations
     commentable_type = models.ForeignKey(content_type_models.ContentType)
     commentable_id = models.PositiveIntegerField()
@@ -43,7 +44,7 @@ post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment
 post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
 
 
-class Commentable(Notifying, Owned):
+class Commentable(Notifying, Owned, ProjectContext):
     """
     Abstract, an object that can be commented on
     """

@@ -28,6 +28,7 @@ class Solution(Voteable, Commentable):
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     owner = models.ForeignKey(User)
+    project = models.ForeignKey('project.Project')
     task = models.ForeignKey('task.Task', null=True, blank=True)
     solution = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="solution_set")
 

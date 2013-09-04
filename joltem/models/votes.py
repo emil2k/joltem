@@ -7,7 +7,7 @@ from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
 from joltem import receivers
-from joltem.models.generic import Owned
+from joltem.models.generic import Owned, ProjectContext
 
 logger = logging.getLogger('django')
 
@@ -45,14 +45,12 @@ post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
 
-class Voteable(Owned):
+class Voteable(Owned, ProjectContext):
     """
     Abstract, an object that can be voted on for impact determination
     """
     impact = models.BigIntegerField(null=True, blank=True)
     acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
-    # Relations
-    project = models.ForeignKey('project.Project')
     # Generic relations
     vote_set = generic.GenericRelation('joltem.Vote', content_type_field='voteable_type', object_id_field='voteable_id')
 

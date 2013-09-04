@@ -15,10 +15,28 @@ class Owned(models.Model):
     class Meta:
         abstract = True
 
+    def __init__(self, *args, **kwargs):
+        if self.owner is None:
+            raise ImproperlyConfigured("Owner foreign key field must be set in implementing class.")
+        super(Owned, self).__init__(*args, **kwargs)
+
     def is_owner(self, user):
         """
         Whether the passed user is person who posted the task
         """
-        if self.owner is None:
-            raise ImproperlyConfigured("Owner foreign key field must be set in implementing class.")
         return self.owner_id == user.id
+
+
+class ProjectContext(models.Model):
+    """
+    Abstract, a model that can only be defined in some projects context
+    """
+    project = None
+
+    class Meta:
+        abstract = True
+
+    def __init__(self, *args, **kwargs):
+        if self.project is None:
+            raise ImproperlyConfigured("Project foreign key field must be set in implementing class.")
+        super(ProjectContext, self).__init__(*args, **kwargs)
