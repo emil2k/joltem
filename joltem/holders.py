@@ -7,7 +7,7 @@ class CommentHolder:
             self.vote = comment.vote_set.get(voter_id=user.id)
         except Vote.DoesNotExist:
             self.vote = None
-        self.is_author = user.id == comment.user.id
+        self.is_author = user.id == comment.owner.id
         self.vote_count = comment.vote_set.count()
 
     @classmethod

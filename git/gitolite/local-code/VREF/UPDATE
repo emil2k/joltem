@@ -44,7 +44,7 @@ with open(dir+'/update.log', "a") as log_file:
                 solution_id = split_reference[3]
                 solution = Solution.objects.get(id=solution_id)
                 if not is_admin:
-                    if solution.user_id != user.id:
+                    if not solution.is_owner(user):
                         decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
             elif namespace == 'u':  # User, personal branches
                 branch_username = split_reference[3]

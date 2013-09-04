@@ -7,6 +7,7 @@ from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
 from joltem import receivers
+from joltem.models.generic import Owned
 
 logger = logging.getLogger('django')
 
@@ -44,7 +45,7 @@ post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
 
-class Voteable(models.Model):
+class Voteable(Owned):
     """
     Abstract, an object that can be voted on for impact determination
     """
@@ -52,18 +53,11 @@ class Voteable(models.Model):
     acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
     # Relations
     project = models.ForeignKey('project.Project')
-    user = models.ForeignKey(User)
     # Generic relations
     vote_set = generic.GenericRelation('joltem.Vote', content_type_field='voteable_type', object_id_field='voteable_id')
 
     class Meta:
         abstract = True
-
-    def is_owner(self, user):
-        """
-        Returns whether passed user is the person who posted this solution
-        """
-        return self.user_id == user.id
 
     def get_acceptance(self):
         """

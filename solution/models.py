@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 
 from joltem.models import Voteable, Commentable
@@ -26,6 +27,7 @@ class Solution(Voteable, Commentable):
     time_completed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
+    owner = models.ForeignKey(User)
     task = models.ForeignKey('task.Task', null=True, blank=True)
     solution = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="solution_set")
 

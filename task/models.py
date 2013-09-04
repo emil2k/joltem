@@ -14,9 +14,9 @@ class Task(Commentable):
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
+    owner = models.ForeignKey(User)
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="subtask_set")
-    owner = models.ForeignKey(User)  # user responsible for administrating the task
     author = models.ForeignKey(User, related_name="tasks_authored_set")  # user who created the task
 
     def __unicode__(self):
@@ -31,12 +31,6 @@ class Task(Commentable):
         for solution in self.solution_set.filter(is_accepted=True):
             count += solution.get_subtask_count()
         return count
-
-    def is_owner(self, user):
-        """
-        Whether the passed user is person who posted the task
-        """
-        return self.owner_id == user.id
 
     def iterate_parents(self):
         """
@@ -58,7 +52,7 @@ class Task(Commentable):
         """
         for parent_solution, parent_task in self.iterate_parents():
             if parent_solution \
-                    and parent_solution.user_id != self.author_id:
+                    and parent_solution.owner_id != self.author_id:
                 if not parent_solution.is_closed and not parent_solution.is_completed:
                     return parent_solution.is_owner(user)
             elif parent_task \

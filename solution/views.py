@@ -245,7 +245,7 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
             return self.render_to_response(context)
         else:
             solution = Solution(
-                user=request.user,
+                owner=request.user,
                 task=self.parent_task,
                 solution=self.parent_solution,
                 project=self.project,
@@ -290,14 +290,14 @@ class MyIncompleteSolutionsView(SolutionBaseListView):
     solutions_tab = "my_incomplete"
 
     def get_queryset(self):
-        return self.project.solution_set.filter(is_completed=False, is_closed=False, user_id=self.user.id).order_by('-time_posted')
+        return self.project.solution_set.filter(is_completed=False, is_closed=False, owner_id=self.user.id).order_by('-time_posted')
 
 
 class MyCompleteSolutionsView(SolutionBaseListView):
     solutions_tab = "my_complete"
 
     def get_queryset(self):
-        return self.project.solution_set.filter(is_completed=True, is_closed=False, user_id=self.user.id).order_by('-time_completed')
+        return self.project.solution_set.filter(is_completed=True, is_closed=False, owner_id=self.user.id).order_by('-time_completed')
 
 
 class AllIncompleteSolutionsView(SolutionBaseListView):

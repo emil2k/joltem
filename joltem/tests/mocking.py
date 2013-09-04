@@ -38,10 +38,10 @@ def get_mock_task(project, user, solution=None, author=None, is_closed=False, is
     return t
 
 
-def get_mock_solution(project, user, task=None, solution=None, is_completed=True, is_closed=False):
+def get_mock_solution(project, owner, task=None, solution=None, is_completed=True, is_closed=False):
     s = Solution(
         project=project,
-        user=user,
+        owner=owner,
         task=task,
         solution=solution,
         is_completed=is_completed,
@@ -53,10 +53,10 @@ def get_mock_solution(project, user, task=None, solution=None, is_completed=True
     return s
 
 
-def get_mock_comment(project, user, commentable):
+def get_mock_comment(project, owner, commentable):
     c = Comment(
         project=project,
-        user=user,
+        owner=owner,
         commentable=commentable
     )
     c.save()

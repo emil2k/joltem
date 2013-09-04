@@ -28,6 +28,7 @@ class Notification(models.Model):
     class Meta:
         app_label = "joltem"
 
+
 class Notifying(models.Model):
     """
     Abstract, an object that can produce notifications

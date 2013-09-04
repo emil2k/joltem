@@ -112,7 +112,7 @@ class CommentableView(RequestBaseView):
             comment = Comment(
                 time_commented=timezone.now(),
                 project=self.project,
-                user=self.user,
+                owner=self.user,
                 commentable=commentable,
                 comment=comment_text
             )
@@ -123,7 +123,7 @@ class CommentableView(RequestBaseView):
                 commentable.notify(commentable_owner)
             # Notify other participants that a comment has been made
             for commentator in commentable.commentator_set:
-                if commentator.id != comment.user_id:
+                if commentator.id != comment.owner_id:
                     commentable.notify(commentator)
             return self.get_comment_redirect()
 

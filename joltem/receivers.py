@@ -52,11 +52,11 @@ def update_project_impact_from_voteables(sender, **kwargs):
     """
     from project.models import Impact
     voteable = kwargs.get('instance')
-    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.user.username))
+    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.owner.username))
     if voteable:
         (project_impact, create) = Impact.objects.get_or_create(
             project_id=voteable.project.id,
-            user_id=voteable.user.id
+            user_id=voteable.owner.id
         )
         project_impact.impact = project_impact.get_impact()
         project_impact.save()

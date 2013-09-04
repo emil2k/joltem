@@ -35,7 +35,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         # Accept task
         if self.is_acceptor and request.POST.get('accept'):
             if not self.task.parent \
-                    or self.task.parent.user_id != self.task.author_id:  # suggested task (tasks on master considered suggested)
+                    or self.task.parent.owner_id != self.task.author_id:  # suggested task (tasks on master considered suggested)
                 self.task.owner = self.user
             else:
                 self.task.owner = self.task.author
