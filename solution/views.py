@@ -27,7 +27,7 @@ class SolutionBaseView(ProjectBaseView):
     def get_context_data(self, **kwargs):
         kwargs["solution"] = self.solution
         kwargs["solution_tab"] = self.solution_tab
-        # Get the users vote on this solution # todo is this necessary on each page or only on review page
+        # Get the users vote on this solution
         try:
             kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
         except Vote.DoesNotExist:

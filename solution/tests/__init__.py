@@ -12,7 +12,6 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
 
     def setUp(self):
         super(PermissionsTestCase, self).setUp()
-        u = dict()
         self.jill = get_mock_user('jill')  # the project admin
         self.abby = get_mock_user('abby')
         self.bob = get_mock_user('bob')
@@ -279,3 +278,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         self.assertEqual(c.acceptance, int(round(100 * float(750)/1500)))  # < 75%
         self.assertImpactEqual(bill, 0)  # should not count here
         self.assertProjectImpactEqual(p, bill, 0)
+
+
+# Load other tests from submodules
+from solution.tests.views import *

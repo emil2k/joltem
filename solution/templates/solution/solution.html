@@ -4,7 +4,7 @@
 {% block solution_content %}
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
-            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ solution.owner.get_profile.gravatar_hash }}?s=50" /></p>
+            <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ solution.owner.get_profile.gravatar_hash }}?s=50" />
             <h4><a href="{% url 'user' solution.owner.username %}">{{ solution.owner.first_name }}</a></h4>
             <p><b>{{ solution.owner.get_profile.impact }}</b> impact <b>{{ solution.owner.get_profile.completed }}</b> solutions</p>
             <hr class="clearfix"/>
@@ -31,7 +31,7 @@
             <form method="post">
                 {% csrf_token %}
                 {% if solution.is_closed %}
-                    <button class="btn" type="submit" name="reopen" value="1"></i>reopen</button>
+                    <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                 {% else %}
                     <div class="btn-group">
                         {% if not solution.is_completed %}
@@ -40,7 +40,7 @@
                         {% if is_owner %}
                             <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
                             {% if not solution.is_completed %}
-                                <button class="btn" type="submit" name="close" value="1"></i>close</button>
+                                <button class="btn" type="submit" name="close" value="1">close</button>
                                 <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
                             {% else %}
                                 <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
