@@ -16,9 +16,9 @@ class Owned(models.Model):
         abstract = True
 
     def __init__(self, *args, **kwargs):
+        super(Owned, self).__init__(*args, **kwargs)
         if self.owner is None:
             raise ImproperlyConfigured("Owner foreign key field must be set in implementing class.")
-        super(Owned, self).__init__(*args, **kwargs)
 
     def is_owner(self, user):
         """
@@ -37,6 +37,6 @@ class ProjectContext(models.Model):
         abstract = True
 
     def __init__(self, *args, **kwargs):
+        super(ProjectContext, self).__init__(*args, **kwargs)
         if self.project is None:
             raise ImproperlyConfigured("Project foreign key field must be set in implementing class.")
-        super(ProjectContext, self).__init__(*args, **kwargs)

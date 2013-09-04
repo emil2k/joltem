@@ -109,24 +109,8 @@ class CommentableView(RequestBaseView):
         commentable = self.get_commentable()
         comment_text = request.POST.get('comment')
         if comment_text is not None:
-            comment = Comment(
-                time_commented=timezone.now(),
-                project=self.project,
-                owner=self.user,
-                commentable=commentable,
-                comment=comment_text
-            )
-            comment.save()
-            # Notify commentable owner that a comment has been made
-            commentable_owner = self.get_commentable_owner()
-            if commentable_owner:
-                commentable.notify(commentable_owner)
-            # Notify other participants that a comment has been made
-            for commentator in commentable.commentator_set:
-                if commentator.id != comment.owner_id:
-                    commentable.notify(commentator)
+            commentable.add_comment(self.user, comment_text)
             return self.get_comment_redirect()
-
         return super(CommentableView, self).post(request, *args, **kwargs)
 
     def get_commentable(self):

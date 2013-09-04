@@ -51,15 +51,41 @@ class Commentable(Notifying, Owned, ProjectContext):
     # Generic relations
     comment_set = generic.GenericRelation('joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
 
+    NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
+
     class Meta:
         abstract = True
+
+    def add_comment(self, commentator, comment_text):
+        """
+        Adds comment to commentable, returns comment
+        """
+        comment = Comment(
+            time_commented=timezone.now(),
+            project=self.project,
+            owner=commentator,
+            # todo add notification type as a parameter to comments
+            commentable=self,
+            comment=comment_text
+        )
+        comment.save()
+        self.notify_comment_added(comment)
+        return comment
+
+    def notify_comment_added(self, comment):
+        """
+        Notify other commentators of comment
+        """
+        for commentator in self.iterate_commentators():
+            if comment.owner_id != commentator.id:
+                self.notify(commentator)
 
     def iterate_commentators(self):
         """
         Iterate through comments and return distinct commentators
         """
-        commentator_ids = []
-        # todo yield commentable owner, and add to list above
+        commentator_ids = [self.owner.id]
+        yield self.owner
         for comment in self.comment_set.all():
             if not comment.owner.id in commentator_ids:
                 commentator_ids.append(comment.owner.id)
