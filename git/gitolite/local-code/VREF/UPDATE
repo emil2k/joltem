@@ -2,7 +2,7 @@
 
 """
 Update VREF gitolite hook script
-takes new commits and places them in database
+enforces branch level permissions
 """
 
 from __future__ import print_function
@@ -13,45 +13,40 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 
 python_paths = os.environ['PYTHONPATH'].split(os.pathsep)
 
-from django.utils import timezone
 from joltem.models import User
 from git.models import Repository
 from solution.models import Solution
 
-# Print out command line arguments
-with open(dir+'/update.log', "a") as log_file:
-    log = lambda line: log_file.write("%s\n" % line)
-    args = sys.argv
-    script = args.pop(0)
-    # Get VREF passed arguments
-    reference = args[0]
-    old_sha = args[1]
-    new_sha = args[2]
-    mode = args[5]
-    username = args[7]
-    repository_id = args[8]
-    # Retrieve objects
-    user = User.objects.get(username=username)
-    repository = Repository.objects.get(id=repository_id)
-    is_admin = user in repository.project.admin_set.all()  # is user an administrator of the project?
-    log("%s : %s to %s on %s by %s : %s..%s " % (timezone.now(), mode, reference, repository.full_name, user.first_name, old_sha, new_sha))
-    decline = lambda reason: print("VREF/UPDATE/%s/%d %s" % (user.username, repository.id, reason))
-    if mode == 'W':
-        split_reference = reference.split('/')
-        if split_reference[0] == 'refs' and split_reference[1] == 'heads':
-            namespace = split_reference[2]
-            if namespace == 's':  # Solution branches
-                solution_id = split_reference[3]
-                solution = Solution.objects.get(id=solution_id)
-                if not is_admin:
-                    if solution.user_id != user.id:
-                        decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
-            elif namespace == 'u':  # User, personal branches
-                branch_username = split_reference[3]
-                if user.username != branch_username:
-                    decline("You cannot push to this personal branch it belongs to %s." % branch_username)
-            else:  # Other branches
-                if not is_admin:
-                    decline("You don't have permission to push to this reference.")
-        else:
-            decline("Not allowed to push refs, that don't start with refs/heads")
+args = sys.argv
+script = args.pop(0)
+# Get VREF passed arguments
+reference = args[0]
+old_sha = args[1]
+new_sha = args[2]
+mode = args[5]
+username = args[7]
+repository_id = args[8]
+# Retrieve objects
+user = User.objects.get(username=username)
+repository = Repository.objects.get(id=repository_id)
+is_admin = user in repository.project.admin_set.all()  # is user an administrator of the project?
+decline = lambda reason: print("VREF/UPDATE/%s/%d %s" % (user.username, repository.id, reason))
+if mode == 'W':
+    split_reference = reference.split('/')
+    if split_reference[0] == 'refs' and split_reference[1] == 'heads':
+        namespace = split_reference[2]
+        if namespace == 's':  # Solution branches
+            solution_id = split_reference[3]
+            solution = Solution.objects.get(id=solution_id)
+            if not is_admin:
+                if solution.user_id != user.id:
+                    decline("Only the solution owner can push to this branch, file a pull request from a personal branch if you wish.")
+        elif namespace == 'u':  # User, personal branches
+            branch_username = split_reference[3]
+            if user.username != branch_username:
+                decline("You cannot push to this personal branch it belongs to %s." % branch_username)
+        else:  # Other branches
+            if not is_admin:
+                decline("You don't have permission to push to this reference.")
+    else:
+        decline("Not allowed to push refs, that don't start with refs/heads")
