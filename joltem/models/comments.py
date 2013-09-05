@@ -43,6 +43,8 @@ post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comme
 post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment)
 post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
 
+NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
+
 
 class Commentable(Notifying, Owned, ProjectContext):
     """
@@ -50,8 +52,6 @@ class Commentable(Notifying, Owned, ProjectContext):
     """
     # Generic relations
     comment_set = generic.GenericRelation('joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
-
-    NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
 
     class Meta:
         abstract = True
@@ -76,11 +76,11 @@ class Commentable(Notifying, Owned, ProjectContext):
         Notify other commentators of comment, and the owner of the notifying
         """
         if comment.owner_id != self.owner.id:  # notify owner
-            self.notify(self.owner, type=Commentable.NOTIFICATION_TYPE_COMMENT_ADDED)
+            self.notify(self.owner, type=NOTIFICATION_TYPE_COMMENT_ADDED)
         for commentator in self.iterate_commentators():
             if commentator.id != self.owner.id \
                     and commentator.id != comment.owner_id:
-                self.notify(commentator, type=Commentable.NOTIFICATION_TYPE_COMMENT_ADDED)
+                self.notify(commentator, type=NOTIFICATION_TYPE_COMMENT_ADDED)
 
     def iterate_commentators(self, queryset=None, exclude=[]):
         """

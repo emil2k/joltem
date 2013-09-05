@@ -12,6 +12,7 @@ class TextsLoaderTestCase(TestCaseDebugMixin, TestCase):
         self.loader = TextLoader()
 
     # Custom assertions
+
     def assertFileExists(self, filepath):
         """
         Checks that a file exists
@@ -21,6 +22,8 @@ class TextsLoaderTestCase(TestCaseDebugMixin, TestCase):
                 pass
         except IOError:
             self.failureException("File does not exist at %s." % filepath)
+
+    # Tests
 
     def test_directory_cache(self):
         for dir in app_text_dirs:
@@ -33,7 +36,6 @@ class TextsLoaderTestCase(TestCaseDebugMixin, TestCase):
 
     def test_loading_text(self):
         text, filepath = self.loader(self.text_name)
-        TEST_LOGGER.debug("LOADED TEXT : %s\n\n%s\n\n" % (filepath, text))
-        self.assertIn("todo", text.lower())
+        self.assertIn("work", text.lower())
 
 

@@ -68,7 +68,8 @@ class Solution(Voteable, Commentable):
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
-        if Commentable.NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
+        from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
+        if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             first_names = self.get_commentator_first_names(
                 queryset=self.comment_set.all().order_by("-time_commented"),
                 exclude=[notification.user]

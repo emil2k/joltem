@@ -16,3 +16,4 @@ class TestCaseDebugMixin():
 
 # Load tests from submodules
 from joltem.tests.loaders import *
+from joltem.tests.notifications import *
