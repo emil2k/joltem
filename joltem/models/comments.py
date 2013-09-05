@@ -82,19 +82,27 @@ class Commentable(Notifying, Owned, ProjectContext):
                     and commentator.id != comment.owner_id:
                 self.notify(commentator, type=Commentable.NOTIFICATION_TYPE_COMMENT_ADDED)
 
-    def iterate_commentators(self):
+    def iterate_commentators(self, queryset=None, exclude=[]):
         """
         Iterate through comments and return distinct commentators
         """
+        queryset = self.comment_set.all() if not queryset else queryset
         commentator_ids = []
-        for comment in self.comment_set.all():
+        for comment in queryset:
+            if comment.owner in exclude:
+                continue
             if not comment.owner.id in commentator_ids:
                 commentator_ids.append(comment.owner.id)
                 yield comment.owner
 
-    @property
-    def commentator_set(self):
+    def get_commentators(self, queryset=None, exclude=[]):
         """
         Return a distinct list of commentators
         """
-        return [commentator for commentator in self.iterate_commentators()]
+        return [commentator for commentator in self.iterate_commentators(queryset=queryset, exclude=exclude)]
+
+    def get_commentator_first_names(self, queryset=None, exclude=[]):
+        """
+        Returns a distinct list of the commentator first names
+        """
+        return [commentator.first_name for commentator in self.get_commentators(queryset=queryset, exclude=exclude)]

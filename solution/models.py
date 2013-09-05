@@ -69,7 +69,10 @@ class Solution(Voteable, Commentable):
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
         if Commentable.NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
-            first_names = [commentator.first_name for commentator in self.iterate_commentators()]
+            first_names = self.get_commentator_first_names(
+                queryset=self.comment_set.all().order_by("-time_commented"),
+                exclude=[notification.user]
+            )
             return "%s commented on solution %s" % (list_string_join(first_names), self.title)
         return "Solution updated : %s" % self.title
 
