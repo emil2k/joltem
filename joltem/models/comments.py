@@ -76,11 +76,11 @@ class Commentable(Notifying, Owned, ProjectContext):
         Notify other commentators of comment, and the owner of the notifying
         """
         if comment.owner_id != self.owner.id:  # notify owner
-            self.notify(self.owner, type=NOTIFICATION_TYPE_COMMENT_ADDED)
+            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_ADDED, True)
         for commentator in self.iterate_commentators():
             if commentator.id != self.owner.id \
                     and commentator.id != comment.owner_id:
-                self.notify(commentator, type=NOTIFICATION_TYPE_COMMENT_ADDED)
+                self.notify(commentator, NOTIFICATION_TYPE_COMMENT_ADDED, True)
 
     def iterate_commentators(self, queryset=None, exclude=[]):
         """

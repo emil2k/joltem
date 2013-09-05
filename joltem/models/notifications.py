@@ -4,6 +4,7 @@ from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
+from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
 
 logger = logging.getLogger('django')
@@ -38,10 +39,39 @@ class Notifying(models.Model):
     class Meta:
         abstract = True
 
-    def notify(self, user, type=None):
+    def notify(self, user, type, update=False):
         """
         Send notification to user
         """
+        from joltem.tests import TEST_LOGGER  # todo remove
+        if not update:
+            TEST_LOGGER.debug("NO UPDATE NOTIFY")
+            # Just create a new notification
+            self.create_notification(user, type)
+        else:
+            TEST_LOGGER.debug("UPDATE NOTIFY")
+            # Attempt to update the latest notifications instead of creating a new one
+            notifying_type = ContentType.objects.get_for_model(self)
+            notifications = Notification.objects.filter(
+                user_id=user.id,
+                type=type,
+                notifying_type_id=notifying_type.id,
+                notifying_id=self.id
+            )
+            TEST_LOGGER.debug("NOTIFICATIONS FOUND : %d" % notifications.count())
+            TEST_LOGGER.debug("NOTIFICATIONS FOUND (all): %d" % Notification.objects.all().count())
+            if notifications.count() > 0:
+                self.update_notification(notifications[0])  # update latest notification
+            else:
+                self.create_notification(user, type)
+
+    def update_notification(self, notification):
+        notification.is_cleared = False
+        notification.time_cleared = None
+        notification.time_notified = timezone.now()
+        notification.save()
+
+    def create_notification(self, user, type):
         # todo add kwargs
         notification = Notification(
             user=user,
@@ -51,13 +81,6 @@ class Notifying(models.Model):
             notifying=self
         )
         notification.save()
-
-    def broadcast(self, users):
-        """
-        Broadcast a notification to a list of users
-        """
-        for user in users:
-            self.notify(user)
 
     def get_notification_text(self, notification):
         """

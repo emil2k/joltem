@@ -74,8 +74,8 @@ class Solution(Voteable, Commentable):
                 queryset=self.comment_set.all().order_by("-time_commented"),
                 exclude=[notification.user]
             )
-            return "%s commented on solution %s" % (list_string_join(first_names), self.title)
-        return "Solution updated : %s" % self.title
+            return "%s commented on solution %s" % (list_string_join(first_names), self.default_title)
+        return "Solution updated : %s" % self.default_title
 
     def get_notification_url(self, url):
         from django.core.urlresolvers import reverse
