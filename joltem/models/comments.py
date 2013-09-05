@@ -64,7 +64,6 @@ class Commentable(Notifying, Owned, ProjectContext):
             time_commented=timezone.now(),
             project=self.project,
             owner=commentator,
-            # todo add notification type as a parameter to comments
             commentable=self,
             comment=comment_text
         )
@@ -78,7 +77,7 @@ class Commentable(Notifying, Owned, ProjectContext):
         """
         for commentator in self.iterate_commentators():
             if comment.owner_id != commentator.id:
-                self.notify(commentator)
+                self.notify(commentator, type=Commentable.NOTIFICATION_TYPE_COMMENT_ADDED)
 
     def iterate_commentators(self):
         """

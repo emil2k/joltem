@@ -16,6 +16,7 @@ class Notification(models.Model):
     Notification to a user
     """
     user = models.ForeignKey(User)  # user to notify
+    type = models.CharField(max_length=200, null=True, blank=True) # notification type, since each model may have multiple different notifications
     notifying_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
     is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
     time_notified = models.DateTimeField(default=timezone.now)
@@ -37,13 +38,14 @@ class Notifying(models.Model):
     class Meta:
         abstract = True
 
-    def notify(self, user):
+    def notify(self, user, type=None):
         """
         Send notification to user
         """
         # todo add kwargs
         notification = Notification(
             user=user,
+            type=type,
             time_notified=timezone.now(),
             is_cleared=False,
             notifying=self
@@ -57,6 +59,7 @@ class Notifying(models.Model):
         for user in users:
             self.notify(user)
 
+    # todo pass viewing user to these functions as the message might depend on the user
     def get_notification_text(self, notification):
         """
         Get notification text for a given notification

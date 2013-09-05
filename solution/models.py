@@ -67,6 +67,10 @@ class Solution(Voteable, Commentable):
         return self.comment_set.count() > 0
 
     def get_notification_text(self, notification):
+        from joltem.utils import list_string_join
+        if Commentable.NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
+            first_names = [commentator.first_name for commentator in self.iterate_commentators()]
+            return "%s commented on solution %s" % (list_string_join(first_names), self.title)
         return "Solution updated : %s" % self.title
 
     def get_notification_url(self, url):

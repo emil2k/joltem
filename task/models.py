@@ -62,6 +62,10 @@ class Task(Commentable):
         return self.project.is_admin(user.id)  # default to project admin
 
     def get_notification_text(self, notification):
+        from joltem.utils import list_string_join
+        if Commentable.NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
+            first_names = [commentator.first_name for commentator in self.iterate_commentators()]
+            return "%s commented on task %s" % (list_string_join(first_names), self.title)
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):
