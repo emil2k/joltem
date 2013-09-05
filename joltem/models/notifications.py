@@ -43,13 +43,10 @@ class Notifying(models.Model):
         """
         Send notification to user
         """
-        from joltem.tests import TEST_LOGGER  # todo remove
         if not update:
-            TEST_LOGGER.debug("NO UPDATE NOTIFY")
             # Just create a new notification
             self.create_notification(user, type)
         else:
-            TEST_LOGGER.debug("UPDATE NOTIFY")
             # Attempt to update the latest notifications instead of creating a new one
             notifying_type = ContentType.objects.get_for_model(self)
             notifications = Notification.objects.filter(
@@ -58,8 +55,6 @@ class Notifying(models.Model):
                 notifying_type_id=notifying_type.id,
                 notifying_id=self.id
             )
-            TEST_LOGGER.debug("NOTIFICATIONS FOUND : %d" % notifications.count())
-            TEST_LOGGER.debug("NOTIFICATIONS FOUND (all): %d" % Notification.objects.all().count())
             if notifications.count() > 0:
                 self.update_notification(notifications[0])  # update latest notification
             else:
