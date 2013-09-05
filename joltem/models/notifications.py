@@ -59,7 +59,6 @@ class Notifying(models.Model):
         for user in users:
             self.notify(user)
 
-    # todo pass viewing user to these functions as the message might depend on the user
     def get_notification_text(self, notification):
         """
         Get notification text for a given notification
