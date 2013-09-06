@@ -1,13 +1,14 @@
 from django.test import TestCase
 from django.contrib.contenttypes.generic import ContentType
 
-
 from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
 from joltem.tests.mocking import *
 
 from joltem.models.notifications import Notification
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
+
+import time
 
 
 class NotificationTestCase(TestCaseDebugMixin, TestCase):
@@ -23,32 +24,10 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
 
     # Custom assertions
 
-    def assertNotificationReceived(self, user, notifying, type, expected_text=None):
+    def assertReceivedNotificationCount(self, user, notifying, type, expected_text=None, expected_count=1):
         """
-        Checks if a notification was received by the user, from the notifying instance
-        if expected text is passed checks that the text matches also
-
-        Assumes only one notification meets parameters, otherwise fails
-        """
-        notifying_type = ContentType.objects.get_for_model(notifying)
-        TEST_LOGGER.debug("USER NOTIFICATIONS : %d" % user.notification_set.count())
-        try:
-            notification = user.notification_set.get(
-                user_id=user.id,
-                notifying_type_id=notifying_type.id,
-                notifying_id=notifying.id,
-                type=type
-            )
-            if expected_text:
-                self.assertNotificationTextEqual(notifying, notification, expected_text)
-        except Notification.DoesNotExist, e:
-            self.fail("Notification was not received : %s" % e)
-        except Notification.MultipleObjectsReturned, e:
-            self.fail("Multiple notifications received of the same type from the same instance : %s" % e)
-
-    def assertNotificationNotReceived(self, user, notifying, type, expected_text=None):
-        """
-        Checks to make sure that a particular notification was not received by the user
+        Check the notification count
+        If `count` is specified it should be exactly that many
         """
         notifying_type = ContentType.objects.get_for_model(notifying)
         notifications = user.notification_set.filter(
@@ -57,14 +36,34 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
             notifying_id=notifying.id,
             type=type
         )
-        try:
-            for notification in notifications:
-                self.assertNotificationTextNotEqual(notifying, notification, expected_text)
-        except AssertionError, e:
-            self.fail("Notification was received when it should not have been.")
+        match_count = 0
+        for notification in notifications:
+            if not expected_text:
+                match_count += 1
+            else:
+                if notifying.get_notification_text(notification) == expected_text:
+                    match_count += 1
+        self.assertEqual(expected_count, match_count)
+
+    def assertNotificationReceived(self, user, notifying, type, expected_text=None):
+        """
+        Checks if a notification was received by the user, from the notifying instance
+        if expected text is passed checks that the text matches also
+
+        Assumes only one notification meets parameters, otherwise fails
+        """
+        self.assertReceivedNotificationCount(user, notifying, type, expected_text, expected_count=1)
+
+    def assertNotificationNotReceived(self, user, notifying, type, expected_text=None):
+        """
+        Checks to make sure that a particular notification was not received by the user
+        """
+        self.assertReceivedNotificationCount(user, notifying, type, expected_text, expected_count=0)
+
 
     def assertNotificationTextEqual(self, notifying, notification, expected):
-        self.assertEqual(notifying.get_notification_text(notification), expected, "Notification text not equal to expectation.")
+        actual = notifying.get_notification_text(notification)
+        self.assertEqual(actual, expected, "Notification text not equal to expectation : %s" % actual)
 
     def assertNotificationTextNotEqual(self, notifying, notification, expected):
         self.assertNotEqual(notifying.get_notification_text(notification), expected, "Notification text equal to value that it shouldn't be.")
@@ -77,11 +76,11 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         """
         task = get_mock_task(self.project, self.jill)
         task.add_comment(self.bob, "Bob waz here.")
-        self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task %s" % task.title)
-        self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task %s" % task.title)
+        self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task \"%s\"" % task.title)
+        self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task \"%s\"" % task.title)
         task.add_comment(self.jill, "Ok, Bob.")
-        self.assertNotificationReceived(self.bob, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on task %s" % task.title)
-        self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on task %s" % task.title)
+        self.assertNotificationReceived(self.bob, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on task \"%s\"" % task.title)
+        self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on task \"%s\"" % task.title)
 
     def test_comment_on_solution(self):
         """
@@ -90,16 +89,16 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         task = get_mock_task(self.project, self.jill)
         solution = get_mock_solution(self.project, self.jill, task=task)
         solution.add_comment(self.bob, "Bob waz here.")
-        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution %s" % solution.default_title)
-        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution %s" % solution.default_title)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution \"%s\"" % solution.default_title)
         solution.add_comment(self.jill, "Ok, Bob.")
-        self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution %s" % solution.default_title)
-        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution %s" % solution.default_title)
+        self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution \"%s\"" % solution.default_title)
         # Make sure it is giving you the default title
         solution.title = "MY TITLE"
         solution.save()
-        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution MY TITLE")
-        self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution MY TITLE")
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution \"MY TITLE\"")
+        self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution \"MY TITLE\"")
 
     def test_multiple_comments_on_task(self):
         """
@@ -110,13 +109,36 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         task.add_comment(self.jill, "Bob waz here.")
         task.add_comment(self.bob, "Bob waz here.")
         # Jill should only have one notification from Bob
-        self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task %s" % task.title)
+        self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task \"%s\"" % task.title)
 
     def test_vote_on_solution(self):
         """
         Test votes on solution
         """
+        self.ted = get_mock_user("ted", first_name="Ted")
         solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
-        get_mock_vote(self.bob, solution, 200, 2)
-        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on solution %s" % solution.default_title)
+        solution.put_vote(self.bob, 2)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on your solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on your solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on your solution \"%s\"" % solution.default_title)
+        time.sleep(1)  # so that the voting order is established, which effect notification text
+        solution.put_vote(self.ted, 0)
+        debug_votes(solution)
+        # Check that only one notification should just update
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Ted and Bob voted on your solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Ted and Bob voted on your solution \"%s\"" % solution.default_title)
+        self.assertNotificationNotReceived(self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Ted and Bob voted on your solution \"%s\"" % solution.default_title)
 
+    def test_vote_updated_on_solution(self):
+        solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
+        solution.put_vote(self.bob, 0)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on your solution \"%s\"" % solution.default_title)
+        solution.put_vote(self.bob, 0)  # same vote, check that updated notification is not sent
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED, "Bob updated a vote on your solution \"%s\"" % solution.default_title)
+        solution.put_vote(self.bob, 2)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED, "Bob updated a vote on your solution \"%s\"" % solution.default_title)
+        solution.put_vote(self.bob, 1)  # check that it creates another notification todo
+        self.assertReceivedNotificationCount(self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED, "Bob updated a vote on your solution \"%s\"" % solution.default_title, expected_count=2)
+
+
+    # todo make same tests for comment

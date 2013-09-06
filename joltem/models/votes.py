@@ -103,12 +103,13 @@ class Voteable(Notifying, Owned, ProjectContext):
                 voteable_id=self.id,
                 voter_id=voter.id
             )
-            vote.is_accepted = vote_magnitude > 0
-            vote.magnitude = vote_magnitude
-            vote.time_voted = timezone.now()
-            vote.voter_impact = voter.get_profile().impact
-            vote.save()
-            self.notify_vote_updated(vote)
+            if vote.magnitude != vote_magnitude:
+                vote.is_accepted = vote_magnitude > 0
+                vote.magnitude = vote_magnitude
+                vote.time_voted = timezone.now()
+                vote.voter_impact = voter.get_profile().impact
+                vote.save()
+                self.notify_vote_updated(vote)
             return True
         except Vote.DoesNotExist:
             return False
@@ -120,7 +121,7 @@ class Voteable(Notifying, Owned, ProjectContext):
         """
         # Should NOT update, create new notification each time,
         # and should pass updated vote in kwargs todo
-        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False)
+        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False, {"voter_first_name": vote.voter.first_name})
 
     def iterate_voters(self, queryset=None, exclude=[]):
         """

@@ -7,6 +7,8 @@ from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
 
+import json
+
 logger = logging.getLogger('django')
 
 
@@ -18,7 +20,7 @@ class Notification(models.Model):
     """
     user = models.ForeignKey(User)  # user to notify
     type = models.CharField(max_length=200, null=True, blank=True) # notification type, since each model may have multiple different notifications
-    notifying_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
+    json_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
     is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
     time_notified = models.DateTimeField(default=timezone.now)
     time_cleared = models.DateTimeField(null=True, blank=True)
@@ -30,6 +32,14 @@ class Notification(models.Model):
     class Meta:
         app_label = "joltem"
 
+    @property
+    def kwargs(self):
+        return json.loads(self.json_kwargs)
+
+    @kwargs.setter
+    def kwargs(self, kwargs):
+        self.json_kwargs = json.dumps(kwargs)
+
 
 class Notifying(models.Model):
     """
@@ -39,13 +49,13 @@ class Notifying(models.Model):
     class Meta:
         abstract = True
 
-    def notify(self, user, type, update=False):
+    def notify(self, user, type, update=False, kwargs={}):
         """
         Send notification to user
         """
         if not update:
             # Just create a new notification
-            self.create_notification(user, type)
+            self.create_notification(user, type, kwargs)
         else:
             # Attempt to update the latest notifications instead of creating a new one
             notifying_type = ContentType.objects.get_for_model(self)
@@ -58,7 +68,7 @@ class Notifying(models.Model):
             if notifications.count() > 0:
                 self.update_notification(notifications[0])  # update latest notification
             else:
-                self.create_notification(user, type)
+                self.create_notification(user, type, kwargs)
 
     def update_notification(self, notification):
         notification.is_cleared = False
@@ -66,14 +76,15 @@ class Notifying(models.Model):
         notification.time_notified = timezone.now()
         notification.save()
 
-    def create_notification(self, user, type):
+    def create_notification(self, user, type, kwargs={}):
         # todo add kwargs
         notification = Notification(
             user=user,
             type=type,
             time_notified=timezone.now(),
             is_cleared=False,
-            notifying=self
+            notifying=self,
+            kwargs=kwargs
         )
         notification.save()
 

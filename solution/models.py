@@ -83,7 +83,10 @@ class Solution(Voteable, Commentable):
             )
             return "%s voted on your solution \"%s\"" % (list_string_join(first_names), self.default_title)
         elif NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
-            pass # todo
+            try:
+                return "%s updated a vote on your solution \"%s\"" % (notification.kwargs["voter_first_name"], self.default_title)
+            except KeyError:
+                return "A vote was updated on your solution \"%s\"" % self.default_title
         return "Solution updated : %s" % self.default_title  # should not resort to this
 
     def get_notification_url(self, url):

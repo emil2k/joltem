@@ -117,4 +117,4 @@ def load_project_impact(project, user):
 def debug_votes(voteable):
     TEST_LOGGER.debug("DEBUG VOTES")
     for vote in voteable.vote_set.all():
-        TEST_LOGGER.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
+        TEST_LOGGER.debug("VOTE : %s : %s : %d impact : %d mag" % (vote.time_voted, vote.voter.username, vote.voter_impact, vote.magnitude))
