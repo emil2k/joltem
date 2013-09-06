@@ -74,14 +74,23 @@ class Comment(Voteable):
             return "%s marked your comment helpful" % list_string_join(first_names)
         return "Comment updated"  # should not resort to this
 
-    def get_notification_url(self, url):
+    def get_notification_url(self, notification):
+        return self.get_comment_url()
+
+    def get_comment_url(self):
+        """
+        Get anchor link to this comment
+        """
         from django.core.urlresolvers import reverse
         from solution.models import Solution
         # Depends on the commentable type
+        anchor = lambda path: path + "#comment-%s" % self.id  # add a comment anchor
         if isinstance(self.commentable, Solution):
-            return reverse("project:solution:solution", args=[self.project.name, self.commentable_id])
+            return anchor(reverse("project:solution:solution", args=[self.project.name, self.commentable_id]))
         else:  # it is a Task
-            return reverse("project:task:task", args=[self.project.name, self.commentable_id])
+            return anchor(reverse("project:task:task", args=[self.project.name, self.commentable_id]))
+
+
 
 post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
 post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)

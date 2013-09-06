@@ -3,6 +3,7 @@ class CommentHolder:
     def __init__(self, comment, user):
         from joltem.models import Vote
         self.comment = comment
+        self.url = comment.get_comment_url()
         try:
             self.vote = comment.vote_set.get(voter_id=user.id)
         except Vote.DoesNotExist:

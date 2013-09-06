@@ -19,7 +19,7 @@
             </div>
             <div class="span8">
                 <p>
-                    <small class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</small>
+                    <small><a name="comment-{{ comment.id }}" href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
                 </p>
                 {{ comment.comment|markdown:"tables,fenced_code" }}
             </div>

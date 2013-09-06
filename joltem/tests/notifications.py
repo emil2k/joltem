@@ -209,7 +209,3 @@ class CommentNotificationTestCase(NotificationTestCase):
         self.assertNotificationNotReceived(self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
         comment.put_vote(self.jill, 2)  # now accepted, should remove notification above
         self.assertNotificationReceived(self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-
-
-
-    # todo test notification urls on comments (both tasks and solutions) and solutions
