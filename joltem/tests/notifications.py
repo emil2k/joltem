@@ -7,6 +7,7 @@ from joltem.tests.mocking import *
 from joltem.models.notifications import Notification
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL
 from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
+from solution.models import NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE
 
 import time
 
@@ -99,6 +100,40 @@ class TasksNotificationTestCase(NotificationTestCase):
 
 class SolutionNotificationTestCase(NotificationTestCase):
 
+    def test_solution_complete_for_task(self):
+        """
+        Test notification to task owner, when a solution for the task is marked complete
+        """
+        task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+        solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
+        solution.mark_complete()
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+        # Now mark incomplete and the notification should be gone
+        solution.mark_incomplete()
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+
+    def test_solution_complete_for_closed_task(self):
+        """
+        Test notification to a closed task owner, when a solution for the task is marked complete
+        since the task is closed there should be no notification
+        """
+        task = get_mock_task(self.project, self.jill, is_closed=True, is_accepted=True)
+        solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
+        solution.mark_complete()
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+
+    def test_solution_complete_same_owner(self):
+        """
+        Test notification to a task owner, who did contributed a solution to her own task and marked it complete
+        should not receive notification
+        """
+        task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+        solution = get_mock_solution(self.project, self.jill, task=task, is_completed=False, is_closed=False)
+        solution.mark_complete()
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+
+    # Comments on solutions
+
     def test_comment_on_solution(self):
         """
         Test comment notifications delivery from solution
@@ -116,6 +151,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         solution.save()
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution \"MY TITLE\"")
         self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution \"MY TITLE\"")
+
+    # Votes on solution
 
     def test_vote_on_solution(self):
         """

@@ -64,9 +64,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
                 and self.solution.is_completed \
                 and not self.solution.is_closed \
                 and self.solution.is_owner(self.user):
-            self.solution.is_completed = False
-            self.solution.time_completed = None
-            self.solution.save()
+            self.solution.mark_incomplete()
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Close solution
@@ -74,9 +72,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
                 and not self.solution.is_completed \
                 and not self.solution.is_closed \
                 and self.solution.is_owner(self.user):
-            self.solution.is_closed = True
-            self.solution.time_closed = timezone.now()
-            self.solution.save()
+            self.solution.mark_complete()
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Reopen solution

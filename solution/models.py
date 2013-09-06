@@ -9,6 +9,8 @@ from joltem import receivers as joltem_receivers
 import logging
 logger = logging.getLogger('django')
 
+NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
+
 
 class Solution(Voteable, Commentable):
     """
@@ -65,6 +67,29 @@ class Solution(Voteable, Commentable):
         Returns whether passed user has commented on the solution
         """
         return self.comment_set.count() > 0
+
+    def mark_complete(self):
+        """Mark the solution complete"""
+        self.is_closed = True
+        self.time_closed = timezone.now()
+        self.save()
+        self.notify_complete()
+
+    def mark_incomplete(self):
+        """Mark the solution incomplete"""
+        self.is_completed = False
+        self.time_completed = None
+        self.save()
+        self.notify_incomplete()
+
+    def notify_complete(self):
+        if self.task \
+                and not self.task.is_closed \
+                and self.task.owner_id != self.owner_id:  # don't notify yourself
+            self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, True)
+
+    def notify_incomplete(self):
+        self.delete_notifications(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
