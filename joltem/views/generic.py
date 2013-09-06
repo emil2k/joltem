@@ -60,34 +60,16 @@ class VoteableView(RequestBaseView):
                 and input_voteable_type is not None:
             input_vote = int(input_vote)
             input_voteable_id = int(input_voteable_id)
+            input_vote = Vote.MAXIMUM_MAGNITUDE if input_vote > Vote.MAXIMUM_MAGNITUDE else input_vote  # enforce max
+            input_vote = 0 if input_vote < 0 else input_vote  # enforce min
             # Determine voteable type
             if input_voteable_type == 'solution':
                 voteable_model = Solution
             else:
                 voteable_model = Comment
             voteable = voteable_model.objects.get(id=input_voteable_id)
-            voteable_type = ContentType.objects.get_for_model(voteable)
-            # Attempt to reload vote, to update it
-            try:
-                vote = Vote.objects.get(
-                    voteable_type_id=voteable_type.id,
-                    voteable_id=voteable.id,
-                    voter_id=self.user.id
-                )
-            except Vote.DoesNotExist:
-                vote = None
             if not voteable.is_owner(self.user):  # can't vote for yourself
-                input_vote = Vote.MAXIMUM_MAGNITUDE if input_vote > Vote.MAXIMUM_MAGNITUDE else input_vote
-                if vote is None:
-                    vote = Vote(
-                        voteable=voteable,
-                        voter=self.user
-                    )
-                vote.is_accepted = input_vote > 0
-                vote.magnitude = input_vote
-                vote.time_voted = timezone.now()
-                vote.voter_impact = self.user.get_profile().impact
-                vote.save()
+                voteable.put_vote(self.user, input_vote)
                 return self.get_vote_redirect()
 
         return super(VoteableView, self).post(request, *args, **kwargs)

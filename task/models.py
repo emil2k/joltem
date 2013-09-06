@@ -69,7 +69,7 @@ class Task(Commentable):
                 queryset=self.comment_set.all().order_by("-time_commented"),
                 exclude=[notification.user]
             )
-            return "%s commented on task %s" % (list_string_join(first_names), self.title)
+            return "%s commented on task \"%s\"" % (list_string_join(first_names), self.title)
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):

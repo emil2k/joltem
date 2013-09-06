@@ -7,6 +7,7 @@ from joltem.tests.mocking import *
 
 from joltem.models.notifications import Notification
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
+from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
 
 
 class NotificationTestCase(TestCaseDebugMixin, TestCase):
@@ -26,8 +27,11 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         """
         Checks if a notification was received by the user, from the notifying instance
         if expected text is passed checks that the text matches also
+
+        Assumes only one notification meets parameters, otherwise fails
         """
         notifying_type = ContentType.objects.get_for_model(notifying)
+        TEST_LOGGER.debug("USER NOTIFICATIONS : %d" % user.notification_set.count())
         try:
             notification = user.notification_set.get(
                 user_id=user.id,
@@ -38,10 +42,9 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
             if expected_text:
                 self.assertNotificationTextEqual(notifying, notification, expected_text)
         except Notification.DoesNotExist, e:
-            self.fail("Notification was not received.")
+            self.fail("Notification was not received : %s" % e)
         except Notification.MultipleObjectsReturned, e:
-            TEST_LOGGER.debug("NOTIFICATIONS FOUND (all): %d" % Notification.objects.all().count())
-            self.fail("Multiple notifications received of the same type from the same instance.")
+            self.fail("Multiple notifications received of the same type from the same instance : %s" % e)
 
     def assertNotificationNotReceived(self, user, notifying, type, expected_text=None):
         """
@@ -98,8 +101,6 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution MY TITLE")
         self.assertNotificationReceived(self.bob, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Jill commented on solution MY TITLE")
 
-
-
     def test_multiple_comments_on_task(self):
         """
         Test multiple comments by one user, notifications should update instead of creating new notifications
@@ -110,3 +111,12 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         task.add_comment(self.bob, "Bob waz here.")
         # Jill should only have one notification from Bob
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task %s" % task.title)
+
+    def test_vote_on_solution(self):
+        """
+        Test votes on solution
+        """
+        solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
+        get_mock_vote(self.bob, solution, 200, 2)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on solution %s" % solution.default_title)
+

@@ -3,10 +3,12 @@ import logging
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
+from django.contrib.contenttypes.generic import ContentType
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
 from joltem import receivers
+from joltem.models.notifications import Notifying
 from joltem.models.generic import Owned, ProjectContext
 
 logger = logging.getLogger('django')
@@ -44,8 +46,11 @@ class Vote(models.Model):
 post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
+NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
+NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
-class Voteable(Owned, ProjectContext):
+
+class Voteable(Notifying, Owned, ProjectContext):
     """
     Abstract, an object that can be voted on for impact determination
     """
@@ -56,6 +61,91 @@ class Voteable(Owned, ProjectContext):
 
     class Meta:
         abstract = True
+
+    def put_vote(self, voter, vote_magnitude):
+        """
+        Add or update a vote on this voteable
+        """
+        if not self.update_vote(voter, vote_magnitude):
+            self.add_vote(voter, vote_magnitude)
+
+    def add_vote(self, voter, vote_magnitude):
+        """
+        Add a vote by the user
+        """
+        vote = Vote(
+            voteable=self,
+            voter=voter,
+            is_accepted=vote_magnitude > 0,
+            magnitude=vote_magnitude,
+            time_voted=timezone.now(),
+            voter_impact=voter.get_profile().impact
+        )
+        vote.save()
+        self.notify_vote_added(vote)
+
+    def notify_vote_added(self, vote):
+        """
+        Send out notification that vote was added
+        """
+        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_ADDED, True)
+
+    def update_vote(self, voter, vote_magnitude):
+        """
+        Update vote by the user on this voteable.
+        returns boolean, indicated whether existing vote was found, and updated
+        """
+        try:
+            voteable_type = ContentType.objects.get_for_model(self)
+            # Attempt to load vote to update it
+            vote = Vote.objects.get(
+                voteable_type_id=voteable_type.id,
+                voteable_id=self.id,
+                voter_id=voter.id
+            )
+            vote.is_accepted = vote_magnitude > 0
+            vote.magnitude = vote_magnitude
+            vote.time_voted = timezone.now()
+            vote.voter_impact = voter.get_profile().impact
+            vote.save()
+            self.notify_vote_updated(vote)
+            return True
+        except Vote.DoesNotExist:
+            return False
+
+    def notify_vote_updated(self, vote):
+        """
+        Send out notification that vote was updated
+        override in extending class to disable
+        """
+        # Should NOT update, create new notification each time,
+        # and should pass updated vote in kwargs todo
+        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False)
+
+    def iterate_voters(self, queryset=None, exclude=[]):
+        """
+        Iterate through votes and return distinct voters
+        """
+        queryset = self.vote_set.all() if not queryset else queryset
+        voter_ids = []
+        for vote in queryset:
+            if vote.voter in exclude:
+                continue
+            if not vote.voter.id in voter_ids:
+                voter_ids.append(vote.voter.id)
+                yield vote.voter
+
+    def get_voters(self, queryset=None, exclude=[]):
+        """
+        Return a distinct list of voters
+        """
+        return [voter for voter in self.iterate_voters(queryset=queryset, exclude=exclude)]
+
+    def get_voter_first_names(self, queryset=None, exclude=[]):
+        """
+        Returns a distinct list of the voter first names
+        """
+        return [voter.first_name for voter in self.get_voters(queryset=queryset, exclude=exclude)]
 
     def get_acceptance(self):
         """

@@ -69,13 +69,22 @@ class Solution(Voteable, Commentable):
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
         from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
+        from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
         if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             first_names = self.get_commentator_first_names(
                 queryset=self.comment_set.all().order_by("-time_commented"),
                 exclude=[notification.user]
             )
-            return "%s commented on solution %s" % (list_string_join(first_names), self.default_title)
-        return "Solution updated : %s" % self.default_title
+            return "%s commented on solution \"%s\"" % (list_string_join(first_names), self.default_title)
+        elif NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
+            first_names = self.get_voter_first_names(
+                queryset=self.vote_set.all().order_by("-time_voted"),
+                exclude=[notification.user]
+            )
+            return "%s voted on your solution \"%s\"" % (list_string_join(first_names), self.default_title)
+        elif NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
+            pass # todo
+        return "Solution updated : %s" % self.default_title  # should not resort to this
 
     def get_notification_url(self, url):
         from django.core.urlresolvers import reverse
