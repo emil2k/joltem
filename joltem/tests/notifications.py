@@ -60,7 +60,6 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         """
         self.assertReceivedNotificationCount(user, notifying, type, expected_text, expected_count=0)
 
-
     def assertNotificationTextEqual(self, notifying, notification, expected):
         actual = notifying.get_notification_text(notification)
         self.assertEqual(actual, expected, "Notification text not equal to expectation : %s" % actual)
@@ -113,7 +112,7 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
 
     def test_vote_on_solution(self):
         """
-        Test votes on solution
+        Test notifications for votes on solution
         """
         self.ted = get_mock_user("ted", first_name="Ted")
         solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
@@ -130,6 +129,9 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         self.assertNotificationNotReceived(self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Ted and Bob voted on your solution \"%s\"" % solution.default_title)
 
     def test_vote_updated_on_solution(self):
+        """
+        Tests notifications when votes are updated on a solution
+        """
         solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
         solution.put_vote(self.bob, 0)
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED, "Bob voted on your solution \"%s\"" % solution.default_title)
@@ -140,5 +142,38 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         solution.put_vote(self.bob, 1)  # check that it creates another notification todo
         self.assertReceivedNotificationCount(self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED, "Bob updated a vote on your solution \"%s\"" % solution.default_title, expected_count=2)
 
+    def test_vote_on_comment(self):
+        """
+        Tests notifications for votes on comments,
+        should only notify when someone marked there comment helpful
+        """
+        self.ted = get_mock_user("ted", first_name="Ted")
+        self.katy = get_mock_user("katy", first_name="Katy")
+        solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
+        comment = solution.add_comment(self.bob, "You should add some tests.")
+        comment.put_vote(self.ted, 0)  # negative vote on comment should not trigger notification
+        self.assertNotificationNotReceived(self.bob, comment, NOTIFICATION_TYPE_VOTE_ADDED)
+        comment.put_vote(self.katy, 2)
+        self.assertNotificationReceived(self.bob, comment, NOTIFICATION_TYPE_VOTE_ADDED, "Katy marked your comment helpful")
+        time.sleep(1)
+        comment.put_vote(self.jill, 1)
+        self.assertNotificationReceived(self.bob, comment, NOTIFICATION_TYPE_VOTE_ADDED, "Jill and Katy marked your comment helpful")
+        debug_votes(comment)
 
-    # todo make same tests for comment
+    def test_vote_updated_on_comment(self):
+        """
+        Tests notifications when votes are updated on a comment,
+        no notifications should be sent for this
+        """
+        solution = get_mock_solution(self.project, self.jill, title="Cleaning up")
+        comment = solution.add_comment(self.bob, "You should add some tests.")
+        comment.put_vote(self.jill, 2)
+        self.assertNotificationReceived(self.bob, comment, NOTIFICATION_TYPE_VOTE_ADDED)
+        comment.put_vote(self.jill, 1)
+        self.assertNotificationNotReceived(self.bob, comment, NOTIFICATION_TYPE_VOTE_UPDATED)
+
+
+    # todo make test when someone votes helpful then removes vote or changes to rejected the notification should disappear when there is no positive votes
+
+
+    # todo test notification urls on comments (both tasks and solutions) and solutions

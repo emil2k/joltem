@@ -36,6 +36,40 @@ class Comment(Voteable):
     def __unicode__(self):
         return str(self.comment)
 
+    def notify_vote_added(self, vote):
+        """
+        Override to only notify of "Helpful" or positive votes
+        """
+        if vote.is_accepted:
+            super(Comment, self).notify_vote_added(vote)
+
+    def notify_vote_updated(self, vote):
+        """
+        Override to disable,
+        there should be no notifications when votes are updated on comments
+        """
+        pass
+
+    def get_notification_text(self, notification):
+        from joltem.utils import list_string_join
+        from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
+        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
+            # Get first names of all people who marked the comment helpful
+            first_names = self.get_voter_first_names(
+                queryset=self.vote_set.filter(is_accepted=True).order_by("-time_voted"),
+                exclude=[notification.user]
+            )
+            return "%s marked your comment helpful" % list_string_join(first_names)
+        return "Comment updated"  # should not resort to this
+
+    def get_notification_url(self, url):
+        from django.core.urlresolvers import reverse
+        from solution.models import Solution
+        # Depends on the commentable type
+        if isinstance(self.commentable, Solution):
+            return reverse("project:solution:solution", args=[self.project.name, self.commentable_id])
+        else:  # it is a Task
+            return reverse("project:task:task", args=[self.project.name, self.commentable_id])
 
 post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
 post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
