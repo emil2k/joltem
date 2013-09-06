@@ -16,6 +16,9 @@ logger = logging.getLogger('django')
 
 # Comment related
 
+NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
+
+
 class Comment(Voteable):
     """
     Comments in a solution review
@@ -41,19 +44,28 @@ class Comment(Voteable):
         Override to only notify of "Helpful" or positive votes
         """
         if vote.is_accepted:
-            super(Comment, self).notify_vote_added(vote)
+            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
 
-    def notify_vote_updated(self, vote):
+    def notify_vote_updated(self, vote, old_vote_magnitude):
         """
         Override to disable,
-        there should be no notifications when votes are updated on comments
+        there should be no notifications when votes are updated on comments.
+        Except when a vote goes from accepted to
         """
-        pass
+        if vote.is_accepted and old_vote_magnitude == 0:  # became accepted
+            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
+        elif vote.is_rejected and old_vote_magnitude > 0:  # became rejected
+            # Check if there is any other positive votes
+            positive_votes = self.get_voters(
+                queryset=self.vote_set.filter(is_accepted=True),
+                exclude=[vote.voter]
+            )
+            if len(positive_votes) == 0:
+                self.delete_notifications(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
-        from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
-        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
+        if NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL == notification.type:
             # Get first names of all people who marked the comment helpful
             first_names = self.get_voter_first_names(
                 queryset=self.vote_set.filter(is_accepted=True).order_by("-time_voted"),
@@ -120,7 +132,7 @@ class Commentable(Notifying, Owned, ProjectContext):
         """
         Iterate through comments and return distinct commentators
         """
-        queryset = self.comment_set.all() if not queryset else queryset
+        queryset = self.comment_set.all() if queryset is None else queryset
         commentator_ids = []
         for comment in queryset:
             if comment.owner in exclude:

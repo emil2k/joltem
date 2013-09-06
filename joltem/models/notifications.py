@@ -88,6 +88,20 @@ class Notifying(models.Model):
         )
         notification.save()
 
+    def delete_notifications(self, user, type):
+        """
+        Delete all notifications of this type from this notifying to this user
+        """
+        notifying_type = ContentType.objects.get_for_model(self)
+        notifications = Notification.objects.filter(
+            user_id=user.id,
+            type=type,
+            notifying_type_id=notifying_type.id,
+            notifying_id=self.id
+        )
+        for notification in notifications:
+            notification.delete()
+
     def get_notification_text(self, notification):
         """
         Get notification text for a given notification

@@ -103,31 +103,30 @@ class Voteable(Notifying, Owned, ProjectContext):
                 voteable_id=self.id,
                 voter_id=voter.id
             )
-            if vote.magnitude != vote_magnitude:
+            old_vote_magnitude = vote.magnitude
+            if old_vote_magnitude != vote_magnitude:
                 vote.is_accepted = vote_magnitude > 0
                 vote.magnitude = vote_magnitude
                 vote.time_voted = timezone.now()
                 vote.voter_impact = voter.get_profile().impact
                 vote.save()
-                self.notify_vote_updated(vote)
+                self.notify_vote_updated(vote, old_vote_magnitude)
             return True
         except Vote.DoesNotExist:
             return False
 
-    def notify_vote_updated(self, vote):
+    def notify_vote_updated(self, vote, old_vote_magnitude):
         """
         Send out notification that vote was updated
         override in extending class to disable
         """
-        # Should NOT update, create new notification each time,
-        # and should pass updated vote in kwargs todo
         self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False, {"voter_first_name": vote.voter.first_name})
 
     def iterate_voters(self, queryset=None, exclude=[]):
         """
         Iterate through votes and return distinct voters
         """
-        queryset = self.vote_set.all() if not queryset else queryset
+        queryset = self.vote_set.all() if queryset is None else queryset
         voter_ids = []
         for vote in queryset:
             if vote.voter in exclude:
