@@ -107,7 +107,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
         solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
         solution.mark_complete()
-        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, "Solution \"%s\" was marked complete" % solution.default_title)
         # Now mark incomplete and the notification should be gone
         solution.mark_incomplete()
         self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
