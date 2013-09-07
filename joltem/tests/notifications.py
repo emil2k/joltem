@@ -132,6 +132,25 @@ class SolutionNotificationTestCase(NotificationTestCase):
         solution.mark_complete()
         self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
+    def test_solution_complete_has_votes(self):
+        """
+        Test notifications on a solution that was marked complete more then once,
+        and maybe is reentering review - all users who previously voted for it
+        should be notified and ask to re-review it and revise the vote
+        """
+        solution = get_mock_solution(self.project, self.bob, title="Making Jam", is_completed=False, is_closed=False)
+        solution.mark_complete()  # solution marked complete for first time
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+        solution.put_vote(self.jill, 2)
+        solution.mark_incomplete()  # something is wrong, marked incomplete to revise
+        solution.mark_complete()
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, "Solution \"%s\" was revised, update your vote" % solution.default_title)
+        solution.mark_incomplete()  # notification should disappear
+        self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+
+
+        pass # todo
+
     # Comments on solutions
 
     def test_comment_on_solution(self):

@@ -83,13 +83,23 @@ class Solution(Voteable, Commentable):
         self.notify_incomplete()
 
     def notify_complete(self):
+        """Send out completion notifications"""
+        # Notify task owner
         if self.task \
                 and not self.task.is_closed \
                 and self.task.owner_id != self.owner_id:  # don't notify yourself
-            self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, True)
+            self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, True, kwargs={"role": "task_owner"})
+        # Notify any people who previously voted on the solution
+        # that it has been revised
+        for vote in self.vote_set.all():
+            self.notify(vote.voter, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, True, kwargs={"role": "voter"})
 
     def notify_incomplete(self):
-        self.delete_notifications(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+        """Remove completion notifications"""
+        if self.task:
+            self.delete_notifications(self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+        for vote in self.vote_set.all():
+            self.delete_notifications(vote.voter, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
@@ -113,7 +123,10 @@ class Solution(Voteable, Commentable):
             except KeyError:
                 return "A vote was updated on your solution \"%s\"" % self.default_title
         elif NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE == notification.type:
-            return "Solution \"%s\" was marked complete" % self.default_title
+            if notification.kwargs["role"] == "voter":
+                return "Solution \"%s\" was revised, update your vote" % self.default_title
+            else:
+                return "Solution \"%s\" was marked complete" % self.default_title
         return "Solution updated : %s" % self.default_title  # should not resort to this
 
     def get_notification_url(self, url):
