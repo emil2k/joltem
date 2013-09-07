@@ -1,22 +1,25 @@
 {% extends 'joltem/base.html' %}
 {% block title %}Notifications - Joltem{% endblock %}
 {% block content %}
-    <h4>Notifications</h4>
-    {% for notification in notifications %}
-        <div class="row">
-            <div class="span12">
-                <p>
-                    {% if not notification.notification.is_cleared %}
-                        <strong><a href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/></strong>
-                    {% else %}
-                        <a class="muted" href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/>
-                    {% endif %}
-                    <small class="muted">{{ notification.notification.time_notified|date}} @ {{ notification.notification.time_notified|time}}</small>
-                </p>
+    <form method="post">
+        {% csrf_token %}
+        <h4>Notifications <button class="btn btn-mini pull-right" name="clear_all" value="1"><i class="icon-list"></i> clear all</button></h4>
+        {% for notification in notifications %}
+            <div class="row">
+                <div class="span12">
+                    <p>
+                        {% if not notification.notification.is_cleared %}
+                            <strong><a href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/></strong>
+                        {% else %}
+                            <a class="muted" href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/>
+                        {% endif %}
+                        <small class="muted">{{ notification.notification.time_notified|date}} @ {{ notification.notification.time_notified|time}}</small>
+                    </p>
+                </div>
             </div>
-        </div>
-    {% empty %}
-        <p class="muted">You have no notifications.</p>
-    {% endfor %}
+        {% empty %}
+            <p class="muted">You have no notifications.</p>
+        {% endfor %}
+    </form>
 
 {% endblock %}

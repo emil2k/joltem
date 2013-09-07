@@ -337,6 +337,12 @@ class NotificationsView(TemplateView, RequestBaseView):
     """
     template_name = "joltem/notifications.html"
 
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("clear_all"):
+            for notification in request.user.notification_set.filter(is_cleared=False):
+                notification.mark_cleared()
+        return redirect("notifications")
+
     def get_context_data(self, **kwargs):
         from joltem.holders import NotificationHolder
         kwargs["nav_tab"] = "notifications"
