@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from joltem.models import Commentable
 
+NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
 
 class Task(Commentable):
     title = models.CharField(max_length=200)
@@ -61,6 +62,25 @@ class Task(Commentable):
                     return parent_task.is_owner(user)
         return self.project.is_admin(user.id)  # default to project admin
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Override to notify at creation
+        """
+        created = not self.pk
+        super(Task, self).save(force_insert, force_update, using, update_fields)
+        if created:
+            self.notify_created()
+
+    def notify_created(self):
+        """Send out appropriate notifications about the task being posted"""
+        if self.parent:
+            if self.parent.owner_id != self.author_id:
+                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "parent_solution"})
+        else:
+            for admin in self.project.admin_set.all():
+                if admin.id != self.author_id:
+                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "project_admin"})
+
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
         from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
@@ -70,6 +90,11 @@ class Task(Commentable):
                 exclude=[notification.user]
             )
             return "%s commented on task \"%s\"" % (list_string_join(first_names), self.title)
+        elif NOTIFICATION_TYPE_TASK_POSTED == notification.type:
+            if notification.kwargs["role"] == "parent_solution":
+                return "%s posted a task on your solution \"%s\"" % (self.owner.first_name, self.parent.default_title)
+            elif notification.kwargs["role"] == "project_admin":
+                return "%s posted a task" % self.owner.first_name
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):
