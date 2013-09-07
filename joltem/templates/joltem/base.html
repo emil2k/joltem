@@ -60,15 +60,20 @@
                 <span class="icon-bar"></span>
             </button>
             {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/icon-brand.png' %}" alt="Joltem" /></a>{% endblock %}
-            <ul class="nav">
+            <ul class="nav pull-right" style="margin:0px;">
+                {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'notifications' %}">
+                            {% with count=user.get_profile.notifications %}
+                                <span class="notification-counter {% if count > 0 %}notifications-some{% else %}notifications-none{% endif %}">{{ count }}</span>
+                            {% endwith %}
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
             <div class="nav-collapse">
                 <ul class="nav">
-                    {% if user.is_authenticated %}
-                        <li class="{{ nav_tab|active:"notifications"}}"><a href="{% url 'notifications' %}">Notifications - {{ user.get_profile.notifications }}</a></li>
-                    {% endif %}
                     {% block nav %}{% endblock %}
-                    <li class="divider-vertical"></li>
                     {% if user.is_superuser %}
                         <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
                     {% endif %}

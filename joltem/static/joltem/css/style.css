@@ -35,3 +35,23 @@ td.line_number {
     font-weight: bold;
     color: #c1c1c1;
 }
+
+/*
+    Notification related
+*/
+
+.notification-counter {
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-family: Verdana;
+}
+
+.notifications-some{
+    background-color: rgba(212, 19, 13, 1);
+    color: #fff;
+}
+
+.notifications-none{
+    background-color: #e2e2e2;
+    color: #8c8c8c;
+}
