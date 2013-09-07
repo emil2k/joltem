@@ -1,6 +1,7 @@
 {% load markup %}
 {% for comment_holder in comments %}
     {% with comment=comment_holder.comment %}
+        <a name="comment-{{ comment.id }}" class="anchor-fix"></a>
         <div class="row">
             <div class="row hidden-desktop hidden-tablet">
                 <div class="span8">
@@ -19,7 +20,7 @@
             </div>
             <div class="span8">
                 <p>
-                    <small><a name="comment-{{ comment.id }}" href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
+                    <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
                 </p>
                 {{ comment.comment|markdown:"tables,fenced_code" }}
             </div>
