@@ -43,6 +43,11 @@ class Notification(models.Model):
     def kwargs(self, kwargs):
         self.json_kwargs = json.dumps(kwargs)
 
+    def mark_cleared(self):
+        self.is_cleared = True
+        self.time_cleared = timezone.now()
+        self.save()
+
 
 class Notifying(models.Model):
     """
