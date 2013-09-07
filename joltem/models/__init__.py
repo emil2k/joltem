@@ -21,6 +21,7 @@ class Profile(models.Model):
     gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
     impact = models.BigIntegerField(default=0)
     completed = models.IntegerField(default=0)
+    notifications = models.IntegerField(default=0)
     # Relations
     user = models.OneToOneField(User, related_name="profile")
 

@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
+from django.db.models.signals import post_save, post_delete
+
+from joltem.receivers import update_notification_count
 
 import json
 
@@ -114,3 +117,7 @@ class Notifying(models.Model):
         and should not hard code urls
         """
         raise ImproperlyConfigured("Extending class must implement get notification url.")
+
+
+post_save.connect(update_notification_count, sender=Notification)
+post_delete.connect(update_notification_count, sender=Notification)

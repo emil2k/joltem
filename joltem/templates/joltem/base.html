@@ -56,7 +56,7 @@
             </ul>
             <div class="nav-collapse">
                 <ul class="nav">
-                    <li class="{{ nav_tab|active:"notifications"}}"><a href="{% url 'notifications' %}">Notifications</a></li>
+                    <li class="{{ nav_tab|active:"notifications"}}"><a href="{% url 'notifications' %}">Notifications - {{ user.get_profile.notifications }}</a></li>
                     {% block nav %}{% endblock %}
                     <li class="divider-vertical"></li>
                     {% if user.is_superuser %}

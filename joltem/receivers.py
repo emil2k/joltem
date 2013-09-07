@@ -60,3 +60,21 @@ def update_project_impact_from_voteables(sender, **kwargs):
         )
         project_impact.impact = project_impact.get_impact()
         project_impact.save()
+
+
+def update_notification_count(sender, **kwargs):
+    """
+    Update notification count (excluding cleared) for the user
+    """
+    notification = kwargs.get('instance')
+    user = notification.user
+    logger.info("UPDATE NOTIFICATION COUNT FOR : %s" % user.first_name)
+    profile = user.get_profile()
+    profile.notifications = user.notification_set.filter(is_cleared=False).count()
+    profile.save()
+
+
+
+
+
+
