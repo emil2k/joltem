@@ -5,11 +5,13 @@
     <div class="row">
         <div class="span2">
             <ul class="nav nav-list well">
-                <li><a href="{% url 'project:solution:new' project.name %}">Suggest</a></li>
-                <li class="{{ solutions_tab|active:"my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.name %}">Reviewed</a></li>
+                <li><a href="{% url 'project:solution:new' project.name %}">Create</a></li>
                 <li class="nav-header">My</li>
                 <li class="{{ solutions_tab|active:"my_incomplete" }}"><a href="{% url 'project:solution:my_incomplete' project.name %}">Incomplete</a></li>
                 <li class="{{ solutions_tab|active:"my_complete" }}"><a href="{% url 'project:solution:my_complete' project.name %}">Complete</a></li>
+                <li class="nav-header">Review</li>
+                <li class="{{ solutions_tab|active:"my_review" }}"><a href="{% url 'project:solution:my_review' project.name %}">Review</a></li>
+                <li class="{{ solutions_tab|active:"my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.name %}">Reviewed</a></li>
                 <li class="nav-header">All</li>
                 <li class="{{ solutions_tab|active:"all_incomplete" }}"><a href="{% url 'project:solution:all_incomplete' project.name %}">Incomplete</a></li>
                 <li class="{{ solutions_tab|active:"all_complete" }}"><a href="{% url 'project:solution:all_complete' project.name %}">Complete</a></li>

@@ -276,6 +276,24 @@ class MyReviewedSolutionsView(SolutionBaseListView):
         return (solution for solution in self.reviewed_filter())
 
 
+class MyReviewSolutionsView(SolutionBaseListView):
+    solutions_tab = "my_review"
+
+    def review_filter(self):
+        """
+        Generator for solutions that need to be reviewed by requesting user
+        """
+        # todo test for this
+        solution_type = ContentType.objects.get_for_model(Solution)
+        reviewed = [vote.voteable for vote in self.user.vote_set.filter(voteable_type_id=solution_type.id).order_by('-time_voted')]
+        for solution in Solution.objects.filter(is_completed=True, is_closed=False).exclude(owner_id=self.user.id).order_by('-time_completed'):
+            if solution not in reviewed:
+                yield solution
+
+    def get_queryset(self):
+        return (solution for solution in self.review_filter())
+
+
 class MyIncompleteSolutionsView(SolutionBaseListView):
     solutions_tab = "my_incomplete"
 
