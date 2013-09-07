@@ -7,7 +7,7 @@ from joltem.tests.mocking import *
 from joltem.models.notifications import Notification
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL
 from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
-from solution.models import NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE
+from solution.models import NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, NOTIFICATION_TYPE_SOLUTION_POSTED
 
 import time
 
@@ -30,7 +30,7 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         Check the notification count
         If `count` is specified it should be exactly that many
         """
-        TEST_LOGGER.debug("ASSERT RECEIVED NOTIFICATION")
+        TEST_LOGGER.debug("ASSERT RECEIVED NOTIFICATION : %s" % user)
         notifying_type = ContentType.objects.get_for_model(notifying)
         notifications = user.notification_set.filter(
             user_id=user.id,
@@ -148,8 +148,50 @@ class SolutionNotificationTestCase(NotificationTestCase):
         solution.mark_incomplete()  # notification should disappear
         self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
+    def test_solution_posted_with_parent_task(self):
+        """
+        Test notifications that a solution has been posted,
+        if the solution has a parent task, notify parent task owner
+        """
+        self.ted = get_mock_user("ted", first_name="Ted")  # he is the project admin
+        self.project.admin_set.add(self.ted)
+        self.project.save()
 
-        pass # todo
+        task = get_mock_task(self.project, self.jill, is_accepted=True, is_closed=False)
+        solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution on your task \"%s\"" % task.title)
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
+        self.assertNotificationNotReceived(self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)  # no notification to the project admin
+
+    def test_solution_posted_with_parent_solution(self):
+        """
+        Test notifications that a solution has been posted,
+        if the solution has a parent solution, notify parent solution owner
+        """
+        self.ted = get_mock_user("ted", first_name="Ted")  # he is the project admin
+        self.project.admin_set.add(self.ted)
+        self.project.save()
+
+        parent_solution = get_mock_solution(self.project, self.jill, title="Doodle", is_completed=False, is_closed=False)
+        solution = get_mock_solution(self.project, self.bob, solution=parent_solution, is_completed=False, is_closed=False)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution on your solution \"%s\"" % parent_solution.default_title)
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
+        self.assertNotificationNotReceived(self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)  # no notification to the project admin
+
+    def test_solution_posted_no_parent(self):
+        """
+        Test notifications that a solution has been posted,
+        if the solution has no parents, notify the project administrators
+        """
+        self.project.admin_set.add(self.jill)
+        self.ted = get_mock_user("ted", first_name="Ted")  # test with multiple project admins
+        self.project.admin_set.add(self.ted)
+        self.project.save()
+
+        solution = get_mock_solution(self.project, self.bob, is_completed=False, is_closed=False)
+        self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution")
+        self.assertNotificationReceived(self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution")
+        self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
 
     # Comments on solutions
 

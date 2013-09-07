@@ -9,6 +9,7 @@ from joltem import receivers as joltem_receivers
 import logging
 logger = logging.getLogger('django')
 
+NOTIFICATION_TYPE_SOLUTION_POSTED = "solution_posted"
 NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
 
 
@@ -68,6 +69,15 @@ class Solution(Voteable, Commentable):
         """
         return self.comment_set.count() > 0
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Override to notify at creation
+        """
+        created = not self.pk
+        super(Solution, self).save(force_insert, force_update, using, update_fields)
+        if created:
+            self.notify_created()
+
     def mark_complete(self):
         """Mark the solution complete"""
         self.is_closed = True
@@ -81,6 +91,16 @@ class Solution(Voteable, Commentable):
         self.time_completed = None
         self.save()
         self.notify_incomplete()
+
+    def notify_created(self):
+        """Send out appropriate notifications about the solution being posted"""
+        if self.task:  # notify parent task owner
+            self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "parent_task"})
+        elif self.solution:  # notify parent solution owner
+            self.notify(self.solution.owner, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "parent_solution"})
+        else:  # no parent, notify project admins
+            for admin in self.project.admin_set.all():
+                self.notify(admin, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "project_admin"})
 
     def notify_complete(self):
         """Send out completion notifications"""
@@ -127,6 +147,13 @@ class Solution(Voteable, Commentable):
                 return "Solution \"%s\" was revised, update your vote" % self.default_title
             else:
                 return "Solution \"%s\" was marked complete" % self.default_title
+        elif NOTIFICATION_TYPE_SOLUTION_POSTED == notification.type:
+            if notification.kwargs["role"] == "parent_task":
+                return "%s posted a solution on your task \"%s\"" % (self.owner.first_name, self.task.title)
+            elif notification.kwargs["role"] == "parent_solution":
+                return "%s posted a solution on your solution \"%s\"" % (self.owner.first_name, self.solution.default_title)
+            elif notification.kwargs["role"] == "project_admin":
+                return "%s posted a solution" % self.owner.first_name
         return "Solution updated : %s" % self.default_title  # should not resort to this
 
     def get_notification_url(self, url):
