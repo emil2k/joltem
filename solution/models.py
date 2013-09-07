@@ -94,13 +94,14 @@ class Solution(Voteable, Commentable):
 
     def notify_created(self):
         """Send out appropriate notifications about the solution being posted"""
-        if self.task:  # notify parent task owner
+        if self.task and self.task.owner_id != self.owner_id:  # notify parent task owner
             self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "parent_task"})
-        elif self.solution:  # notify parent solution owner
+        elif self.solution and self.solution.owner_id != self.owner_id:  # notify parent solution owner
             self.notify(self.solution.owner, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "parent_solution"})
         else:  # no parent, notify project admins
             for admin in self.project.admin_set.all():
-                self.notify(admin, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "project_admin"})
+                if admin.id != self.owner_id:
+                    self.notify(admin, NOTIFICATION_TYPE_SOLUTION_POSTED, True, kwargs={"role": "project_admin"})
 
     def notify_complete(self):
         """Send out completion notifications"""

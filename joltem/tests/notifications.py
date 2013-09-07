@@ -158,6 +158,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         self.project.save()
 
         task = get_mock_task(self.project, self.jill, is_accepted=True, is_closed=False)
+        jill_solution = get_mock_solution(self.project, self.jill, task=task, is_completed=False, is_closed=False)
+        self.assertNotificationNotReceived(self.jill, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED)  # don't notify yourself
         solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution on your task \"%s\"" % task.title)
         self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
@@ -173,6 +175,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         self.project.save()
 
         parent_solution = get_mock_solution(self.project, self.jill, title="Doodle", is_completed=False, is_closed=False)
+        jill_solution = get_mock_solution(self.project, self.jill, solution=parent_solution, is_completed=False, is_closed=False)
+        self.assertNotificationNotReceived(self.jill, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED)  # don't notify yourself
         solution = get_mock_solution(self.project, self.bob, solution=parent_solution, is_completed=False, is_closed=False)
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution on your solution \"%s\"" % parent_solution.default_title)
         self.assertNotificationNotReceived(self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
@@ -188,6 +192,9 @@ class SolutionNotificationTestCase(NotificationTestCase):
         self.project.admin_set.add(self.ted)
         self.project.save()
 
+        jill_solution = get_mock_solution(self.project, self.jill, is_completed=False, is_closed=False)
+        self.assertNotificationNotReceived(self.jill, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED) # don't notify yourself
+        self.assertNotificationReceived(self.ted, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Jill posted a solution")
         solution = get_mock_solution(self.project, self.bob, is_completed=False, is_closed=False)
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution")
         self.assertNotificationReceived(self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED, "Bob posted a solution")
