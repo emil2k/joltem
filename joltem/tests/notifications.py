@@ -7,7 +7,7 @@ from joltem.tests.mocking import *
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL
 from joltem.models.votes import NOTIFICATION_TYPE_VOTE_ADDED, NOTIFICATION_TYPE_VOTE_UPDATED
 from solution.models import NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, NOTIFICATION_TYPE_SOLUTION_POSTED
-from task.models import NOTIFICATION_TYPE_TASK_POSTED
+from task.models import NOTIFICATION_TYPE_TASK_POSTED, NOTIFICATION_TYPE_TASK_ACCEPTED
 
 import time
 
@@ -136,6 +136,21 @@ class TasksNotificationTestCase(NotificationTestCase):
         self.assertNotificationReceived(self.ted, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task")
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task")
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
+
+    def test_task_accepted_suggested(self):
+        """
+        Test notifications when a suggested task is accepted
+        """
+        solution = get_mock_solution(self.project, self.jill, title="Paint it Blue", is_closed=False, is_completed=False)
+        task = get_mock_task(self.project, self.bob, solution=solution, is_closed=False, is_accepted=False)
+        self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
+        self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
+        task.mark_accepted(self.jill)
+        self.assertNotificationReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED, "Your task \"%s\" was accepted" % task.title)
+        self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
+        task.mark_unaccepted()  # should be removed now
+        self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
+        self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
 
 
 

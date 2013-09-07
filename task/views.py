@@ -34,25 +34,12 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         # Accept task
         if self.is_acceptor and request.POST.get('accept'):
-            if not self.task.parent \
-                    or self.task.parent.owner_id != self.task.author_id:  # suggested task (tasks on master considered suggested)
-                self.task.owner = self.user
-            else:
-                self.task.owner = self.task.author
-
-            self.task.is_accepted = True
-            self.task.time_accepted = timezone.now()
-            self.task.is_closed = False  # if task was closed, reopen it
-            self.task.time_closed = None
-            self.task.save()
+            self.task.mark_accepted(self.user)
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         # Unaccept task
         if self.is_acceptor and request.POST.get('unaccept'):
-            self.task.owner = self.task.author  # revert ownership back to author when unaccepted
-            self.task.is_accepted = False
-            self.task.time_accepted = None
-            self.task.save()
+            self.task.mark_unaccepted()
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         # Close task

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from joltem.models import Commentable
 
 NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
+NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
 
 class Task(Commentable):
     title = models.CharField(max_length=200)
@@ -71,6 +72,45 @@ class Task(Commentable):
         if created:
             self.notify_created()
 
+    def mark_accepted(self, suggested_owner):
+        """
+        Mark task accepted, allow it to solicit solutions
+        `owner`, specifies task owner responsible for administrating it if the task is a suggested task
+        """
+        if not self.parent or self.parent.owner_id != self.author_id:  # a suggested task, on master all considered suggested
+            self.owner = suggested_owner
+        else:
+            self.owner = self.author
+        self.is_accepted = True
+        self.time_accepted = timezone.now()
+        self.is_closed = False  # if task was closed, reopen it
+        self.time_closed = None
+        self.save()
+        self.notify_accepted()
+
+    def mark_unaccepted(self):
+        """
+        Mark task unaccepted, disallow it to solicit solutions
+        """
+        self.owner = self.author  # revert ownership back to author when unaccepted
+        self.is_accepted = False
+        self.time_accepted = None
+        self.save()
+        self.notify_unaccepted()
+
+    def notify_accepted(self):
+        """
+        Notify task author, if not the owner, that the task was accepted
+        """
+        if self.owner_id != self.author_id:
+            self.notify(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED, True)
+
+    def notify_unaccepted(self):
+        """
+        Delete any notifications that the task was accepted
+        """
+        self.delete_notifications(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED)
+
     def notify_created(self):
         """Send out appropriate notifications about the task being posted"""
         if self.parent:
@@ -95,6 +135,8 @@ class Task(Commentable):
                 return "%s posted a task on your solution \"%s\"" % (self.owner.first_name, self.parent.default_title)
             elif notification.kwargs["role"] == "project_admin":
                 return "%s posted a task" % self.owner.first_name
+        elif NOTIFICATION_TYPE_TASK_ACCEPTED == notification.type:
+            return "Your task \"%s\" was accepted" % self.title
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):
