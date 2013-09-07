@@ -12,10 +12,11 @@ def get_mock_user(username, **extra_fields):
     return User.objects.create_user(username, '%s@gmail.com' % username, '%s_password' % username, **extra_fields)
 
 
-def get_mock_project(name):
+def get_mock_project(name, title=None):
+    title = "Project : %s" % name if not title else title
     p = Project(
         name=name,
-        title="Project : %s" %  name,
+        title=title
     )
     p.save()
     return p
@@ -38,10 +39,12 @@ def get_mock_task(project, user, solution=None, author=None, is_closed=False, is
     return t
 
 
-def get_mock_solution(project, user, task=None, solution=None, is_completed=True, is_closed=False):
+def get_mock_solution(project, owner, task=None, solution=None, is_completed=True, is_closed=False, title=None, description=None):
     s = Solution(
+        title=title,
+        description=description,
         project=project,
-        user=user,
+        owner=owner,
         task=task,
         solution=solution,
         is_completed=is_completed,
@@ -53,10 +56,10 @@ def get_mock_solution(project, user, task=None, solution=None, is_completed=True
     return s
 
 
-def get_mock_comment(project, user, commentable):
+def get_mock_comment(project, owner, commentable):
     c = Comment(
         project=project,
-        user=user,
+        owner=owner,
         commentable=commentable
     )
     c.save()
@@ -114,4 +117,4 @@ def load_project_impact(project, user):
 def debug_votes(voteable):
     TEST_LOGGER.debug("DEBUG VOTES")
     for vote in voteable.vote_set.all():
-        TEST_LOGGER.debug("VOTE : %s : %d impact : %d mag" % (vote.voter.username, vote.voter_impact, vote.magnitude))
+        TEST_LOGGER.debug("VOTE : %s : %s : %d impact : %d mag" % (vote.time_voted, vote.voter.username, vote.voter_impact, vote.magnitude))

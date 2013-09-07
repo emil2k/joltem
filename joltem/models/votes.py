@@ -1,100 +1,18 @@
+import logging
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
+from django.contrib.contenttypes.generic import ContentType
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
 from joltem import receivers
+from joltem.models.notifications import Notifying
+from joltem.models.generic import Owned, ProjectContext
 
 import logging
 logger = logging.getLogger('joltem')
-
-
-# User profile related
-post_save.connect(receivers.create_profile, sender=User)  # create profile when User created
-
-
-class Profile(models.Model):
-    gravatar_email = models.CharField(max_length=200, null=True, blank=True)
-    gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
-    impact = models.BigIntegerField(default=0)
-    completed = models.IntegerField(default=0)
-    # Relations
-    user = models.OneToOneField(User, related_name="profile")
-
-    def update(self):
-        """
-        Update user stats
-        """
-        self.impact = self.get_impact()
-        self.completed = self.get_completed()
-        return self  # to chain calls
-
-    def get_impact(self):
-        impact = 0
-        for project_impact in self.user.impact_set.all():
-            if project_impact and project_impact.impact:
-                impact += project_impact.impact
-        return impact
-
-    def get_completed(self):
-        return self.user.solution_set.filter(is_completed=True).count()
-
-    def set_gravatar_email(self, gravatar_email):
-        """
-        Set gravatar email and hash, checks if changed from old
-        return boolean whether changed value or not
-        """
-        if self.gravatar_email != gravatar_email:
-            import hashlib
-            self.gravatar_email = gravatar_email
-            self.gravatar_hash = hashlib.md5(gravatar_email).hexdigest()
-            return True
-        return False
-
-
-# Invite related
-
-class Invite(models.Model):
-    '''
-    A way to send out invitations and track invitations for developers in beta program
-    '''
-    invite_code = models.CharField(max_length=200, unique=True)
-    first_name = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=200)
-    personal_note = models.TextField(null=True, blank=True)
-    is_contacted = models.BooleanField(default=False)  # whether user was contacted
-    is_sent = models.BooleanField(default=False)  # whether user was sent an invitation
-    is_clicked = models.BooleanField(default=False)  # whether email link was clicked or not
-    is_signed_up = models.BooleanField(default=False)  # whether user signed up
-    user = models.ForeignKey(User, null=True, blank=True)  # if the user registered, the associated user
-    time_contacted = models.DateTimeField(null=True, blank=True)
-    time_sent = models.DateTimeField(null=True, blank=True)
-    time_clicked = models.DateTimeField(null=True, blank=True)
-    time_signed_up = models.DateTimeField(null=True, blank=True)
-    # Various contact methods and profiles
-    email = models.CharField(max_length=200, null=True, blank=True)
-    twitter = models.CharField(max_length=200, null=True, blank=True)
-    facebook = models.CharField(max_length=200, null=True, blank=True)
-    stackoverflow = models.CharField(max_length=200, null=True, blank=True)
-    github = models.CharField(max_length=200, null=True, blank=True)
-    personal_site = models.CharField(max_length=200, null=True, blank=True)
-
-    @classmethod
-    def is_valid(cls, invite_code):
-        """
-        Check if invite code is valid, if valid returns Invite object and False if not
-        If already return False
-        """
-        try:
-            invite = cls.objects.get(invite_code=invite_code)
-            return False if invite.is_signed_up else invite
-        except cls.DoesNotExist:
-            return False
-
-    @property
-    def full_name(self):
-        return "%s %s" % (self.first_name, self.last_name)
 
 
 # Votes related
@@ -116,6 +34,9 @@ class Vote(models.Model):
 
     MAXIMUM_MAGNITUDE = 5  # the maximum magnitude for a vote
 
+    class Meta:
+        app_label = "joltem"
+
     def __unicode__(self):
         return str(self.id)
 
@@ -126,27 +47,106 @@ class Vote(models.Model):
 post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
+NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
+NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
-class Voteable(models.Model):
+
+class Voteable(Notifying, Owned, ProjectContext):
     """
     Abstract, an object that can be voted on for impact determination
     """
     impact = models.BigIntegerField(null=True, blank=True)
     acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
-    # Relations
-    project = models.ForeignKey('project.Project')
-    user = models.ForeignKey(User)
     # Generic relations
     vote_set = generic.GenericRelation('joltem.Vote', content_type_field='voteable_type', object_id_field='voteable_id')
 
     class Meta:
         abstract = True
 
-    def is_owner(self, user):
+    def put_vote(self, voter, vote_magnitude):
         """
-        Returns whether passed user is the person who posted this solution
+        Add or update a vote on this voteable
         """
-        return self.user_id == user.id
+        if not self.update_vote(voter, vote_magnitude):
+            self.add_vote(voter, vote_magnitude)
+
+    def add_vote(self, voter, vote_magnitude):
+        """
+        Add a vote by the user
+        """
+        vote = Vote(
+            voteable=self,
+            voter=voter,
+            is_accepted=vote_magnitude > 0,
+            magnitude=vote_magnitude,
+            time_voted=timezone.now(),
+            voter_impact=voter.get_profile().impact
+        )
+        vote.save()
+        self.notify_vote_added(vote)
+
+    def notify_vote_added(self, vote):
+        """
+        Send out notification that vote was added
+        """
+        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_ADDED, True)
+
+    def update_vote(self, voter, vote_magnitude):
+        """
+        Update vote by the user on this voteable.
+        returns boolean, indicated whether existing vote was found, and updated
+        """
+        try:
+            voteable_type = ContentType.objects.get_for_model(self)
+            # Attempt to load vote to update it
+            vote = Vote.objects.get(
+                voteable_type_id=voteable_type.id,
+                voteable_id=self.id,
+                voter_id=voter.id
+            )
+            old_vote_magnitude = vote.magnitude
+            if old_vote_magnitude != vote_magnitude:
+                vote.is_accepted = vote_magnitude > 0
+                vote.magnitude = vote_magnitude
+                vote.time_voted = timezone.now()
+                vote.voter_impact = voter.get_profile().impact
+                vote.save()
+                self.notify_vote_updated(vote, old_vote_magnitude)
+            return True
+        except Vote.DoesNotExist:
+            return False
+
+    def notify_vote_updated(self, vote, old_vote_magnitude):
+        """
+        Send out notification that vote was updated
+        override in extending class to disable
+        """
+        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False, {"voter_first_name": vote.voter.first_name})
+
+    def iterate_voters(self, queryset=None, exclude=[]):
+        """
+        Iterate through votes and return distinct voters
+        """
+        queryset = self.vote_set.all() if queryset is None else queryset
+        voter_ids = []
+        for vote in queryset:
+            if vote.voter in exclude:
+                continue
+            if not vote.voter.id in voter_ids:
+                voter_ids.append(vote.voter.id)
+                yield vote.voter
+
+    def get_voters(self, queryset=None, exclude=[]):
+        """
+        Return a distinct list of voters
+        """
+        return [voter for voter in self.iterate_voters(queryset=queryset, exclude=exclude)]
+
+    def get_voter_first_names(self, queryset=None, exclude=[]):
+        """
+        Returns a distinct list of the voter first names
+        """
+        return [voter.first_name for voter in self.get_voters(queryset=queryset, exclude=exclude)]
 
     def get_acceptance(self):
         """
@@ -257,39 +257,3 @@ class Voteable(models.Model):
                     return pow(10, magnitude)
         logger.info("** VOTE : defaulted to 10")
         return 10  # default
-
-
-# Comment related
-
-class Comment(Voteable):
-    """
-    Comments in a solution review
-    """
-    # todo make tests for impact effects when voting on comments
-    comment = models.TextField(null=True, blank=True)
-    time_commented = models.DateTimeField(default=timezone.now)
-    # Generic relations
-    commentable_type = models.ForeignKey(content_type_models.ContentType)
-    commentable_id = models.PositiveIntegerField()
-    commentable = generic.GenericForeignKey('commentable_type', 'commentable_id')
-
-    def __unicode__(self):
-        return str(self.comment)
-
-
-post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
-post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
-
-post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment)
-post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
-
-
-class Commentable(models.Model):
-    """
-    Abstract, an object that can be commented on
-    """
-    # Generic relations
-    comment_set = generic.GenericRelation('joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
-
-    class Meta:
-        abstract = True

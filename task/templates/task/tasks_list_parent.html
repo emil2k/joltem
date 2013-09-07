@@ -6,7 +6,7 @@
     {% for subtask_group in subtask_groups %}
         <div class="alert text-center">
             <a href="{% url 'project:solution:solution' project.name subtask_group.solution.id %}" class="muted">
-                Tasks for solution by {{ subtask_group.solution.user.first_name }}
+                Tasks for solution by {{ subtask_group.solution.owner.first_name }}
             </a>
         </div>
         {% for task in subtask_group.subtask_set %}

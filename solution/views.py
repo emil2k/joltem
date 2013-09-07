@@ -27,7 +27,7 @@ class SolutionBaseView(ProjectBaseView):
     def get_context_data(self, **kwargs):
         kwargs["solution"] = self.solution
         kwargs["solution_tab"] = self.solution_tab
-        # Get the users vote on this solution # todo is this necessary on each page or only on review page
+        # Get the users vote on this solution
         try:
             kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
         except Vote.DoesNotExist:
@@ -64,9 +64,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
                 and self.solution.is_completed \
                 and not self.solution.is_closed \
                 and self.solution.is_owner(self.user):
-            self.solution.is_completed = False
-            self.solution.time_completed = None
-            self.solution.save()
+            self.solution.mark_incomplete()
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Close solution
@@ -74,9 +72,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView, SolutionBaseView
                 and not self.solution.is_completed \
                 and not self.solution.is_closed \
                 and self.solution.is_owner(self.user):
-            self.solution.is_closed = True
-            self.solution.time_closed = timezone.now()
-            self.solution.save()
+            self.solution.mark_complete()
             return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.solution.id)
 
         # Reopen solution
@@ -239,7 +235,7 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
             return self.render_to_response(context)
         else:
             solution = Solution(
-                user=request.user,
+                owner=request.user,
                 task=self.parent_task,
                 solution=self.parent_solution,
                 project=self.project,
@@ -284,14 +280,14 @@ class MyIncompleteSolutionsView(SolutionBaseListView):
     solutions_tab = "my_incomplete"
 
     def get_queryset(self):
-        return self.project.solution_set.filter(is_completed=False, is_closed=False, user_id=self.user.id).order_by('-time_posted')
+        return self.project.solution_set.filter(is_completed=False, is_closed=False, owner_id=self.user.id).order_by('-time_posted')
 
 
 class MyCompleteSolutionsView(SolutionBaseListView):
     solutions_tab = "my_complete"
 
     def get_queryset(self):
-        return self.project.solution_set.filter(is_completed=True, is_closed=False, user_id=self.user.id).order_by('-time_completed')
+        return self.project.solution_set.filter(is_completed=True, is_closed=False, owner_id=self.user.id).order_by('-time_completed')
 
 
 class AllIncompleteSolutionsView(SolutionBaseListView):

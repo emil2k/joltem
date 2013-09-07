@@ -27,6 +27,14 @@
             body {
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
             }
+
+            a.anchor-fix {
+                position: relative;
+                top:-60px;
+                display: block;
+                height: 0;
+                width:0;
+            }
         }
     </style>
     <script>
@@ -52,10 +60,20 @@
                 <span class="icon-bar"></span>
             </button>
             {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/icon-brand.png' %}" alt="Joltem" /></a>{% endblock %}
-            <div class="nav-collapse collapse">
+            <ul class="nav pull-right" style="margin:0px;">
+                {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'notifications' %}">
+                            {% with count=user.get_profile.notifications %}
+                                <span class="notification-counter {% if count > 0 %}notifications-some{% else %}notifications-none{% endif %}">{{ count }}</span>
+                            {% endwith %}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            <div class="nav-collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
-                    <li class="divider-vertical"></li>
                     {% if user.is_superuser %}
                         <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
                     {% endif %}

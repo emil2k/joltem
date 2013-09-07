@@ -2,7 +2,7 @@
     <p>
         <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a><br>
         <small class="muted">
-            by <a href="{% url 'user' solution.user.username %}" class="muted">{{ solution.user.first_name }}</a> on {{ solution.time_posted|date }}
+            by <a href="{% url 'user' solution.owner.username %}" class="muted">{{ solution.owner.first_name }}</a> on {{ solution.time_posted|date }}
             <span class="hidden-phone">
                 {% if solution.is_completed %}/ <span class="text-info">Completed on {{ solution.time_completed|date }}</span>{% endif %}
             </span>

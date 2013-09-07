@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from joltem.models import User, Profile
 from project.models import Project
 from git.models import Authentication
-from joltem.models import Invite
+from joltem.models import Invite, Notification
 from django.utils import timezone
 
 
@@ -328,8 +328,41 @@ def invite(request, invite_id):
 
 # Class based views
 
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 from joltem.views.generic import TextContextMixin, RequestBaseView
+
+
+class NotificationsView(TemplateView, RequestBaseView):
+    """
+    Displays the users notifications
+    """
+    template_name = "joltem/notifications.html"
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("clear_all"):
+            for notification in request.user.notification_set.filter(is_cleared=False):
+                notification.mark_cleared()
+        return redirect("notifications")
+
+    def get_context_data(self, **kwargs):
+        from joltem.holders import NotificationHolder
+        kwargs["nav_tab"] = "notifications"
+        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
+        return super(NotificationsView, self).get_context_data(**kwargs)
+
+
+class NotificationRedirectView(RedirectView):
+    """
+    A notification redirect, that marks a notification cleared and redirects to the notifications url
+    """
+    permanent = False
+    query_string = False
+
+    def get_redirect_url(self, notification_id):
+        notification = get_object_or_404(Notification, id=notification_id)
+        notification.mark_cleared()
+        return notification.notifying.get_notification_url(notification)
+
 
 
 class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):

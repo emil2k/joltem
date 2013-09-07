@@ -52,11 +52,29 @@ def update_project_impact_from_voteables(sender, **kwargs):
     """
     from project.models import Impact
     voteable = kwargs.get('instance')
-    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.user.username))
+    logger.info("UPDATE PROJECT IMPACT from %s : %s by %s" % (sender, voteable.id, voteable.owner.username))
     if voteable:
         (project_impact, create) = Impact.objects.get_or_create(
             project_id=voteable.project.id,
-            user_id=voteable.user.id
+            user_id=voteable.owner.id
         )
         project_impact.impact = project_impact.get_impact()
         project_impact.save()
+
+
+def update_notification_count(sender, **kwargs):
+    """
+    Update notification count (excluding cleared) for the user
+    """
+    notification = kwargs.get('instance')
+    user = notification.user
+    logger.info("UPDATE NOTIFICATION COUNT FOR : %s" % user.first_name)
+    profile = user.get_profile()
+    profile.notifications = user.notification_set.filter(is_cleared=False).count()
+    profile.save()
+
+
+
+
+
+
