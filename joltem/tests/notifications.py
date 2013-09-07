@@ -137,6 +137,21 @@ class TasksNotificationTestCase(NotificationTestCase):
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task")
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
 
+    def test_task_accepted(self):
+        """
+        Test notifications when a regular task, created by the owner of a solution on a solution, is accepted
+        """
+        parent_solution = get_mock_solution(self.project, self.jill, title="Paint it Red", is_closed=False, is_completed=False)
+        parent_task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+
+        solution = get_mock_solution(self.project, self.bob, task=parent_task, is_closed=False, is_completed=False)
+        task = get_mock_task(self.project, self.bob, solution=solution, is_closed=False, is_accepted=False )
+        self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
+
+        # Mark it accepted now
+        task.mark_accepted(self.jill)
+        self.assertNotificationReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED,  "Your task \"%s\" was accepted" % task.title)
+
     def test_task_accepted_suggested(self):
         """
         Test notifications when a suggested task is accepted
@@ -151,7 +166,6 @@ class TasksNotificationTestCase(NotificationTestCase):
         task.mark_unaccepted()  # should be removed now
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
         self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
-
 
 
 class SolutionNotificationTestCase(NotificationTestCase):

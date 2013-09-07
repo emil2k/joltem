@@ -72,13 +72,13 @@ class Task(Commentable):
         if created:
             self.notify_created()
 
-    def mark_accepted(self, suggested_owner):
+    def mark_accepted(self, acceptor):
         """
         Mark task accepted, allow it to solicit solutions
         `owner`, specifies task owner responsible for administrating it if the task is a suggested task
         """
         if not self.parent or self.parent.owner_id != self.author_id:  # a suggested task, on master all considered suggested
-            self.owner = suggested_owner
+            self.owner = acceptor
         else:
             self.owner = self.author
         self.is_accepted = True
@@ -86,7 +86,7 @@ class Task(Commentable):
         self.is_closed = False  # if task was closed, reopen it
         self.time_closed = None
         self.save()
-        self.notify_accepted()
+        self.notify_accepted(acceptor)
 
     def mark_unaccepted(self):
         """
@@ -98,11 +98,13 @@ class Task(Commentable):
         self.save()
         self.notify_unaccepted()
 
-    def notify_accepted(self):
+    def notify_accepted(self, acceptor):
         """
         Notify task author, if not the owner, that the task was accepted
         """
-        if self.owner_id != self.author_id:
+        if self.owner_id != self.author_id:  # suggested task accepted
+            self.notify(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED, True)
+        elif acceptor.id != self.author_id:
             self.notify(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED, True)
 
     def notify_unaccepted(self):
