@@ -10,5 +10,5 @@ git/repositories
 gitolite-update
 joltem/settings/local.py
 pylama.ini
-report.pylama
+pylama.report
 workspace.xml
