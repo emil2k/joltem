@@ -15,7 +15,7 @@ APP_JSON = {
     }
 }
 SHARED_OPTIONS = {
-    # :nfs => true
+    :nfs => true
 }
 CONFIGURATION = './vagrant'
 
