@@ -1,11 +1,13 @@
-from django.shortcuts import render, redirect, get_object_or_404, resolve_url
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout as auth_logout
-from joltem.models import User, Profile
-from project.models import Project
-from git.models import Authentication
-from joltem.models import Invite, Notification
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
+from django.views.generic.base import TemplateView, RedirectView
+
+from git.models import Authentication
+from joltem.models import User, Invite, Notification
+from joltem.views.generic import TextContextMixin, RequestBaseView
+from project.models import Project
 
 
 def home(request):
@@ -328,8 +330,6 @@ def invite(request, invite_id):
 
 # Class based views
 
-from django.views.generic.base import TemplateView, RedirectView
-from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
 class NotificationsView(TemplateView, RequestBaseView):
