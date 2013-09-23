@@ -1,0 +1,14 @@
+{
+    "name": "app",
+    "description": "Setup for running applications",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "run_list": [
+        "role[base]",
+        "recipe[python]",
+        "recipe[nginx]",
+        "recipe[runit]"
+        // "recipe[uwsgi]"
+    ]
+}
+

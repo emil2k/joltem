@@ -1,0 +1,26 @@
+{
+    "name": "base",
+    "description": "Base Server Setup",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "default_attributes": {
+        "users": ["klen"],
+        "authorization": {
+            "sudo": {
+                "users": ["vagrant", "klen"],
+                "passwordless": true
+            }
+        },
+        "tz": "UTC"
+    },
+    "run_list": [
+        "recipe[apt]",
+        "recipe[sudo]",
+        "recipe[build-essential]",
+        "recipe[locale]",
+        "recipe[timezone]",
+        "recipe[user::data_bag]"
+    ]
+}
+
+

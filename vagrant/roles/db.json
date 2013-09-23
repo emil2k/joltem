@@ -1,0 +1,24 @@
+{
+    "name": "db",
+    "description": "DataStorage Server Setup",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "default_attributes": {
+        "redis": {
+            "bind": false
+        },
+        "postgresql": {
+
+            "password": {
+                "postgres": "iloverandompasswordsbutthiswilldo"
+            }
+
+        }
+    },
+    "run_list": [
+        "role[base]",
+        "recipe[postgresql::server]",
+        "recipe[redis]"
+    ]
+}
+
