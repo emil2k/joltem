@@ -25,9 +25,6 @@
 [submodule "vagrant/cookbooks/runit"]
 	path = vagrant/cookbooks/runit
 	url = https://github.com/opscode-cookbooks/runit
-[submodule "vagrant/cookbooks/uwsgi"]
-	path = vagrant/cookbooks/uwsgi
-	url = https://github.com/50onRed/uwsgi
 [submodule "vagrant/cookbooks/ohai"]
 	path = vagrant/cookbooks/ohai
 	url = https://github.com/opscode-cookbooks/ohai
@@ -46,3 +43,6 @@
 [submodule "vagrant/cookbooks/openssl"]
 	path = vagrant/cookbooks/openssl
 	url = https://github.com/opscode-cookbooks/openssl
+[submodule "vagrant/cookbooks/mysql"]
+	path = vagrant/cookbooks/mysql
+	url = https://github.com/opscode-cookbooks/mysql

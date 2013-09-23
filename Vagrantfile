@@ -6,7 +6,7 @@
 APP_HOST = '33.33.33.33'
 APP_HOSTNAME = 'joltem.local'
 # APP_ROLES = ['joltem', 'db']
-APP_ROLES = ['app', 'db']
+APP_ROLES = ['vagrant', 'db']
 APP_JSON = {
     :chef_environment => 'vagrant',
     :joltem => {

@@ -3,12 +3,12 @@
     "description": "Setup for running applications",
     "chef_type": "role",
     "json_class": "Chef::Role",
+    "default_attributes": {
+        "chef_environment": "vagrant"
+    },
     "run_list": [
-        "role[base]",
-        "recipe[python]",
-        "recipe[nginx]",
-        "recipe[runit]",
-        "recipe[joltem::app]"
+        "role[app]",
+        "recipe[joltem::vagrant]"
     ]
 }
 

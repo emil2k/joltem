@@ -7,17 +7,17 @@
         "redis": {
             "bind": false
         },
-        "postgresql": {
+        "mysql": {
 
-            "password": {
-                "postgres": "iloverandompasswordsbutthiswilldo"
-            }
+            "server_debian_password": "iloverandompasswordsbutthiswilldo",
+            "server_root_password": "iloverandompasswordsbutthiswilldo",
+            "server_repl_password": "iloverandompasswordsbutthiswilldo"
 
         }
     },
     "run_list": [
         "role[base]",
-        "recipe[postgresql::server]",
+        "recipe[mysql::server]",
         "recipe[redis]"
     ]
 }
