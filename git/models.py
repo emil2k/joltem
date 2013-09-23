@@ -4,10 +4,13 @@ from django.db.models.signals import post_save, post_delete
 
 from git import receivers
 from project.models import Project
-from joltem.settings import MAIN_DIR
+from django.conf import settings
+from os import path as op
 
 import logging
 logger = logging.getLogger('joltem')
+
+MAIN_DIR = op.dirname(settings.PROJECT_ROOT)
 
 GITOLITE_REPOSITORIES_DIRECTORY = '%sgit/repositories/' % MAIN_DIR
 GITOLITE_ADMIN_DIRECTORY = '%sgit/gitolite/gitolite-admin/' % MAIN_DIR
