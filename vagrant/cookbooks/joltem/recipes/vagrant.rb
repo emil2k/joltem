@@ -1,5 +1,5 @@
 template "#{node[:nginx][:dir]}/sites-enabled/joltem.conf" do
-    source      "joltem.conf.erb"
+    source      "nginx/joltem.conf.erb"
     owner       'root'
     group       'root'
     mode        '0644'

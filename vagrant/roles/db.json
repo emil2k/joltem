@@ -18,7 +18,9 @@
     "run_list": [
         "role[base]",
         "recipe[mysql::server]",
-        "recipe[redis]"
+        "recipe[redis]",
+        "recipe[database]",
+        "recipe[joltem::db]"
     ]
 }
 

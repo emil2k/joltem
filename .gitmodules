@@ -46,3 +46,6 @@
 [submodule "vagrant/cookbooks/mysql"]
 	path = vagrant/cookbooks/mysql
 	url = https://github.com/opscode-cookbooks/mysql
+[submodule "vagrant/cookbooks/database"]
+	path = vagrant/cookbooks/database
+	url = https://github.com/opscode-cookbooks/database

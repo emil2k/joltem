@@ -1,0 +1,8 @@
+from .<%= node[:joltem][:environment] %> import *
+
+
+DATABASES['default']['HOST'] = "<%= node[:joltem][:db][:host] %>"
+DATABASES['default']['PORT'] = "<%= node[:joltem][:db][:port] %>"
+DATABASES['default']['NAME'] = "<%= node[:joltem][:db][:name] %>"
+DATABASES['default']['USER'] = "<%= node[:joltem][:db][:user] %>"
+DATABASES['default']['PASSWORD'] = "<%= node[:joltem][:db][:password] %>"

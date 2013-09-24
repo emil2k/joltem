@@ -1,0 +1,12 @@
+{
+    "name": "joltem",
+    "description": "Setup Joltem applications",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "run_list": [
+        "role[app]",
+        "recipe[joltem::joltem]"
+    ]
+}
+
+

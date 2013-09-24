@@ -7,7 +7,7 @@
         "chef_environment": "vagrant"
     },
     "run_list": [
-        "role[app]",
+        "role[joltem]",
         "recipe[joltem::vagrant]"
     ]
 }
