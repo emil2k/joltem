@@ -3,7 +3,6 @@
 *.pyc
 .idea
 .vagrant
-Makefile
 git/gitolite/gitolite-admin
 git/gitolite/keydir
 git/repositories
