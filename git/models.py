@@ -9,6 +9,10 @@ from joltem.settings import MAIN_DIR
 import logging
 logger = logging.getLogger('joltem')
 
+REPOSITORIES_DIRECTORY = '%sgateway/repositories/' % MAIN_DIR
+
+# Old gitolite setup
+
 GITOLITE_REPOSITORIES_DIRECTORY = '%sgit/repositories/' % MAIN_DIR
 GITOLITE_ADMIN_DIRECTORY = '%sgit/gitolite/gitolite-admin/' % MAIN_DIR
 GITOLITE_KEY_DIRECTORY = '%skeydir/' % GITOLITE_ADMIN_DIRECTORY
@@ -54,7 +58,7 @@ class Repository(models.Model):
         """
         Absolute path to repository
         """
-        return "%s%s.git" % (GITOLITE_REPOSITORIES_DIRECTORY, self.full_name)
+        return "%s/%d.git" % (REPOSITORIES_DIRECTORY, self.id)
 
     def load_pygit_object(self):
         """
@@ -77,10 +81,6 @@ class Repository(models.Model):
             from pygit2 import init_repository
             # Initiate bare repository on server
             init_repository(self.absolute_path, bare=True)
-            # Give git group necessary permissions to repository
-            subprocess.call(['chmod', '-R', 'g+rwX', self.absolute_path])
-            # Add symbolic link to gitolite update hook, otherwise gitolite write permissions enforcement won't work
-            subprocess.call(['ln', '-sf', '%sgit/gitolite/gitolite-update' % MAIN_DIR, '%s/hooks/update' % self.absolute_path])
 
     def delete(self, using=None):
         super(Repository, self).delete(using)
