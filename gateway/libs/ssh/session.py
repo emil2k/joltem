@@ -1,3 +1,5 @@
+import shlex
+
 from twisted.python import log
 from zope.interface import implements
 from twisted.conch.ssh.channel import SSHChannel
@@ -5,8 +7,6 @@ from twisted.conch.ssh.session import SSHSession, wrapProtocol
 from twisted.conch.interfaces import ISession
 from twisted.conch.insults.insults import ServerProtocol
 from twisted.internet import reactor
-
-import shlex
 
 from git.models import REPOSITORIES_DIRECTORY
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol

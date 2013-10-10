@@ -7,3 +7,4 @@ git/repositories
 gitolite-update
 *.log
 *.pem
+_trial_temp
