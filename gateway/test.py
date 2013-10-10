@@ -1,17 +1,21 @@
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 
-# Start up the server ...
+import sys
+from twisted.python import log
+from twisted.internet import reactor
+from twisted.internet.endpoints import TCP4ServerEndpoint
+from twisted.cred.portal import Portal
+
+from gateway.libs.ssh.factory import GatewayFactory
+from gateway.libs.ssh.auth import GatewayRealm, DummyEmilChecker
+
+# Start up the gateway ...
 
 GATEWAY_PORT = 2022
 
 if __name__ == '__main__':
-    import sys
-    from twisted.python import log
-    from twisted.internet import reactor
-    from twisted.internet.endpoints import TCP4ServerEndpoint
-    from twisted.cred.portal import Portal
 
-    from gateway.libs.ssh.factory import GatewayFactory
-    from gateway.libs.ssh.auth import GatewayRealm, DummyEmilChecker
 
     log.startLogging(sys.stdout)
 

@@ -1,16 +1,32 @@
 from twisted.python import log
 from zope.interface import implements
+from twisted.conch.ssh.channel import SSHChannel
 from twisted.conch.ssh.session import SSHSession, wrapProtocol
 from twisted.conch.interfaces import ISession
 from twisted.conch.insults.insults import ServerProtocol
+from twisted.internet import reactor
 
+import shlex
+
+from git.models import REPOSITORIES_DIRECTORY
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
+from gateway.libs.git.protocol import GitProcessProtocol
 
 
 class GatewaySession(SSHSession):
 
     def channelOpen(self, specificData):
         self.session = GatewaySessionInterface(self.avatar)
+
+    def loseConnection(self):
+        """
+        Overridden to fix possible bug described here :
+        http://twistedmatrix.com/trac/ticket/2754
+        """
+        log.msg("CUSTOM LOSE CONNECTION")
+        if self.client and self.client.transport:
+            self.client.transport.loseConnection()
+        SSHChannel.loseConnection(self)
 
 
 class GatewaySessionInterface():
@@ -34,8 +50,24 @@ class GatewaySessionInterface():
         serverProtocol.makeConnection(protocol)
         protocol.makeConnection(wrapProtocol(serverProtocol))
 
-    def execCommand(self, protocol, command):  # protocol is instance of SSHSessionProcessProtocol
-        pass  # todo
+    def execCommand(self, protocol, command_string):  # protocol is instance of SSHSessionProcessProtocol
+        log.msg("Execute command : %s" % command_string)
+
+        command = shlex.split(command_string)
+        process = command[0]
+
+        log.msg("COMMAND : %s" % command)
+
+        if process == "git-upload-pack" or process == "git-receive-pack":
+            repository_id = int(command[1])
+            git_protocol = GitProcessProtocol(protocol)
+            protocol.makeConnection(git_protocol)
+            reactor.spawnProcess(
+                git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
+                path=REPOSITORIES_DIRECTORY)
+        else:
+            protocol.write("Command not allowed.\n")
+            protocol.loseConnection()
 
     def windowChanged(self, newWindowSize):
         (rows, cols, xpixel, ypixel) = newWindowSize
