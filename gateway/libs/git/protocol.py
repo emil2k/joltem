@@ -1,5 +1,6 @@
 import struct
 import shlex
+import collections
 
 from zope.interface import implements
 from twisted.python import log
@@ -38,61 +39,83 @@ def parse_line_size(raw):
     return int(hexdigit, 16)
 
 
-class BaseBufferedProtocol(Protocol):
+# Buffering and splitting
+
+class ISplitter():
     """
-    Buffered protocol that receives and buffers data
-
-    As data is received it is checked against the `splitters` dictionary if the data contains a splitter,
-    the buffer is spliced from the position of last occurrence of that splitter and routed to the appropriate
-    function in the extending class in the form of : dataReceived_{name of splitter, key of splitters dict}
-
-    Example `splitters` attribute :
-
-    splitters = {
-        'linefeed': '\n',
-        'nullbyte': '\x00',
-    }
+    Splitter interfaces, receives splices of data
     """
 
-    splitters = {}
+    def splice_received(self, splice):
+        """
+        Received a splice of data from the splitter mechanism
+        """
+        pass
 
-    def __init__(self):
-        self._buffer = bytearray()
 
-    def dataReceived(self, data):
-        self._buffer.extend(data)
-        for name, splitter in self.splitters.iteritems():
-            indexes = self.containsSplitter(data, splitter) # todo pass an offset, to convert to buffer indexes
-            last = 0  # todo convert data indexes to buffer indexes and split the buffer instead
-            for index in indexes:  # found splitter
-                self.routeSplitData(name, data)  # todo splice data
+class BaseBufferedSplitter():
+    """
+    Mechanism for buffering and splitting up data
+    """
+    splitter = None
+
+    def __init__(self, interface):
+        self._buffer = bytearray()  # stores data until it is split up
+        self._interface = interface  # ISplitter, send splices here
+
+    def buffer(self, data):
+        if type(data) is not bytearray:
+            data = bytearray(data)
+        indexes = self._contains_splitter(data)
+        if len(indexes):
+            last = 0
+            for index in indexes:
+                splice = bytearray()
+                if len(self._buffer):
+                    splice.extend(self._buffer)
+                    self._buffer = bytearray()  # flush buffer
+                splice.extend(data[last:index])
+                self._interface.splice_received(splice)
                 last = index
+            self._buffer = data[last + len(self.splitter):]
+        else:  # no splits simply buffer
+            self._buffer.extend(data)
 
-    def routeSplitData(self, name, data):
+    def _contains_splitter(self, data):
         """
-        Route split data to the appropriate function in the extending class
+        Check if a chunk of data contains the splitter, return a tuple of indexes of the splitter
         """
-        f = getattr(self, 'dataReceived_%s' % name, None)
-        if callable(f):
-            return f(data)
-        else:
-            raise NotImplementedError("Unimplemented routing method : dataReceived_%s" % name)
+        return tuple(self._seek_split(data))
 
-    def containsSplitter(self, data, splitter):
+    def _seek_split(self, data):
         """
-        Check if a chunk of data contains the splitter, return a tuple of indexes of all the occurrences of
-        the splitter in the chunk of data
+        Generator function to seek for indexes of a split, default behaviour is to find instances of the
+        `splitter` attribute, but if necessary can completely override this function to seek in anyway necessary
         """
-        def seekSplitter(data, splitter):
-            """Generator to seek for occurrences of the splitter"""
-            index = 0
-            while index < len(data):
-                if data[index:index+len(splitter)] == splitter:
-                    found = index
-                    index += len(splitter)
-                    yield found
-                index += 1
-        return tuple(seekSplitter(data, splitter))
+        if not self.splitter:
+            raise NotImplementedError("Splitter not set.")
+        index = 0
+        while index < len(data):
+            if data[index:index+len(self.splitter)] == self.splitter:
+                found = index
+                index += len(self.splitter)
+                yield found
+            index += 1
+
+
+class NewLineSplitter(BaseBufferedSplitter):
+    splitter = '\n'
+
+
+class NullByteSplitter(BaseBufferedSplitter):
+    splitter = '\x00'
+
+
+class FlushPacketSplitter(BaseBufferedSplitter):
+    splitter = '0000'
+
+
+# Git stuff
 
 
 class GitProcessProtocol(SubprocessProtocol):

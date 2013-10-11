@@ -1,29 +1,28 @@
 from unittest import TestCase
+from gateway.libs.git.protocol import NullByteSplitter, ISplitter
 
 
-class BaseBufferedProtocol(TestCase):
-
-    def setUp(self):
-        from gateway.libs.git.protocol import BaseBufferedProtocol
-        self.protocol = BaseBufferedProtocol()
+class BufferedSplitter(TestCase):
 
     def test_buffering(self):
-        self.protocol.dataReceived('some test data')
-        self.protocol.dataReceived('\x00')
-        self.protocol.dataReceived('end of data')
-        self.assertEqual(self.protocol._buffer, 'some test data\x00end of data')
+        b = NullByteSplitter(ISplitter())
+        self.assertEqual(b._buffer, '')
+        b.buffer('some test data\x00lol')
+        self.assertEqual(b._buffer, 'lol')
+        b.buffer('\x00test\x00it')
+        self.assertEqual(b._buffer, 'it')
+        b.buffer(' good')
+        self.assertEqual(b._buffer, 'it good')
 
     def test_contains_splitter(self):
-        indexes = self.protocol.containsSplitter('we like\x00a null\x00bytes', '\x00')
+        b = NullByteSplitter(ISplitter())
+        indexes = b._contains_splitter('we like\x00a null\x00bytes')
         self.assertTupleEqual(indexes, (7, 14))
 
     def test_contains_no_splitter(self):
-        indexes = self.protocol.containsSplitter('no null bytes', '\x00')
+        b = NullByteSplitter(ISplitter())
+        indexes = b._contains_splitter('no null bytes')
         self.assertTupleEqual(indexes, ())  # return an empty tuple
-
-    def test_unimplemented_routing(self):
-        with self.assertRaises(NotImplementedError):
-            self.protocol.routeSplitData('test', 'lost data')
 
 
 class ParsingGitProtocol(TestCase):
