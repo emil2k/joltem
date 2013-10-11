@@ -1,13 +1,32 @@
 from unittest import TestCase
 
 
-class ParsingGitProtocol(TestCase):
+class BaseBufferedProtocol(TestCase):
 
     def setUp(self):
-        pass
+        from gateway.libs.git.protocol import BaseBufferedProtocol
+        self.protocol = BaseBufferedProtocol()
 
-    def tearDown(self):
-        pass
+    def test_buffering(self):
+        self.protocol.dataReceived('some test data')
+        self.protocol.dataReceived('\x00')
+        self.protocol.dataReceived('end of data')
+        self.assertEqual(self.protocol._buffer, 'some test data\x00end of data')
+
+    def test_contains_splitter(self):
+        indexes = self.protocol.containsSplitter('we like\x00a null\x00bytes', '\x00')
+        self.assertTupleEqual(indexes, (7, 14))
+
+    def test_contains_no_splitter(self):
+        indexes = self.protocol.containsSplitter('no null bytes', '\x00')
+        self.assertTupleEqual(indexes, ())  # return an empty tuple
+
+    def test_unimplemented_routing(self):
+        with self.assertRaises(NotImplementedError):
+            self.protocol.routeSplitData('test', 'lost data')
+
+
+class ParsingGitProtocol(TestCase):
 
     def test_parse_line(self):
         from gateway.libs.git.protocol import parse_line
