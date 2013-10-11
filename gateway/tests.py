@@ -1,8 +1,15 @@
 from unittest import TestCase
-from gateway.libs.git.protocol import NullByteSplitter, ISplitter
+from gateway.libs.git.protocol import NullByteSplitter, PacketLineSplitter, ISplitter
 
 
-class BufferedSplitter(TestCase):
+class TestingPacketLineSplitter(TestCase):
+
+    def test_contains_splitter(self):
+        s = PacketLineSplitter(ISplitter())
+        indexes = s._contains_splitter('0007abc00040006te')
+        self.assertTupleEqual(indexes, (0, 7, 11))
+
+class TestingBufferedSplitter(TestCase):
 
     def test_buffering(self):
         b = NullByteSplitter(ISplitter())
@@ -35,6 +42,11 @@ class ParsingGitProtocol(TestCase):
     def test_parse_line_size(self):
         from gateway.libs.git.protocol import parse_line_size
         raw = '003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master'
+        self.assertEqual(parse_line_size(raw), 63)
+
+    def test_parse_line_size_from_bytearray(self):
+        from gateway.libs.git.protocol import parse_line_size
+        raw = bytearray('003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
         self.assertEqual(parse_line_size(raw), 63)
 
     def _test_parse_reference(self, raw, expected_object, expected_reference):
