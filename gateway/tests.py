@@ -1,35 +1,32 @@
 from unittest import TestCase
-from gateway.libs.git.protocol import NullByteSplitter, PacketLineSplitter, ISplitter
+from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter, ISplitter
 
 
 class TestingPacketLineSplitter(TestCase):
 
-    def test_contains_splitter(self):
-        s = PacketLineSplitter(ISplitter())
-        indexes = s._contains_splitter('0007abc00040006te')
-        self.assertTupleEqual(indexes, (0, 7, 11))
+    def test_buffered(self):
+        b = PacketLineSplitter(ISplitter())
+        b._buffer_data('0007a')  # bc bytes will arrive later
+        indexes = lambda b: tuple(splice for splice in b._iterate_splices())
+        self.assertTupleEqual(indexes(b), ())
+        # Rest of the data
+        b._buffer_data('bc00040006te')  # bc bytes will arrive later
+        self.assertTupleEqual(indexes(b), (b'abc', b'', b'te'))
 
-class TestingBufferedSplitter(TestCase):
+
+class TestingBaseBufferedSplitter(TestCase):
 
     def test_buffering(self):
-        b = NullByteSplitter(ISplitter())
+        b = BaseBufferedSplitter(ISplitter())
         self.assertEqual(b._buffer, '')
-        b.buffer('some test data\x00lol')
-        self.assertEqual(b._buffer, 'lol')
-        b.buffer('\x00test\x00it')
-        self.assertEqual(b._buffer, 'it')
-        b.buffer(' good')
-        self.assertEqual(b._buffer, 'it good')
+        b._buffer_data('some test data\x00lol')
+        self.assertEqual(b._buffer, 'some test data\x00lol')
 
-    def test_contains_splitter(self):
-        b = NullByteSplitter(ISplitter())
-        indexes = b._contains_splitter('we like\x00a null\x00bytes')
-        self.assertTupleEqual(indexes, (7, 14))
-
-    def test_contains_no_splitter(self):
-        b = NullByteSplitter(ISplitter())
-        indexes = b._contains_splitter('no null bytes')
-        self.assertTupleEqual(indexes, ())  # return an empty tuple
+    def test_unimplemented_seek_spit(self):
+        b = BaseBufferedSplitter(ISplitter())
+        b._buffer_data('some test data\x00lol')
+        with self.assertRaises(NotImplementedError):
+            b._process_buffer()
 
 
 class ParsingGitProtocol(TestCase):
@@ -38,6 +35,8 @@ class ParsingGitProtocol(TestCase):
         from gateway.libs.git.protocol import parse_line
         raw = '003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master'
         self.assertEqual(parse_line(raw), '7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
+
+    # todo test parse line size with less than 4 char input
 
     def test_parse_line_size(self):
         from gateway.libs.git.protocol import parse_line_size

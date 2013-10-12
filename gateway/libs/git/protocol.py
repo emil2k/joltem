@@ -55,62 +55,29 @@ class BaseBufferedSplitter():
     """
     Mechanism for buffering and splitting up data
     """
-    splitter = None
 
     def __init__(self, interface):
         self._buffer = bytearray()  # stores data until it is split up
         self._interface = interface  # ISplitter, send splices here
 
-    def buffer(self, data):
+    def data_received(self, data):
+        self._buffer_data(data)
+        self._process_buffer()
+
+    def _buffer_data(self, data):
         if type(data) is not bytearray:
             data = bytearray(data)
-        indexes = self._contains_splitter(data)
-        if len(indexes):
-            last = 0
-            for index in indexes:
-                splice = bytearray()
-                if len(self._buffer):
-                    splice.extend(self._buffer)
-                    self._buffer = bytearray()  # flush buffer
-                splice.extend(data[last:index])
-                self._interface.splice_received(splice)
-                last = index
-            self._buffer = data[last + len(self.splitter):]
-        else:  # no splits simply buffer
-            self._buffer.extend(data)
+        self._buffer.extend(data)
 
-    def _contains_splitter(self, data):
+    def _process_buffer(self):
+        for splice in self._iterate_splices():
+            self._interface.splice_received(splice)
+
+    def _iterate_splices(self):
         """
-        Check if a chunk of data contains the splitter, return a tuple of indexes of the splitter
+        Generator function to splice up the buffer, must implement in extending class
         """
-        return tuple(self._seek_split(data))
-
-    def _seek_split(self, data):
-        """
-        Generator function to seek for indexes of a split, default behaviour is to find instances of the
-        `splitter` attribute, but if necessary can completely override this function to seek in anyway necessary
-        """
-        if not self.splitter:
-            raise NotImplementedError("Splitter not set.")
-        index = 0
-        while index < len(data):
-            if data[index:index+len(self.splitter)] == self.splitter:
-                found = index
-                index += len(self.splitter)
-                yield found
-            index += 1
-
-
-class NewLineSplitter(BaseBufferedSplitter):
-    splitter = '\n'
-
-
-class NullByteSplitter(BaseBufferedSplitter):
-    splitter = '\x00'
-
-
-class FlushPacketSplitter(BaseBufferedSplitter):
-    splitter = '0000'
+        raise NotImplementedError("Splitting not implemented.")
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -165,18 +132,17 @@ class PacketLineSplitter(BaseBufferedSplitter):
       "0004"            ""
     ----
     """
-    def _seek_split(self, data):
-        index = 0
-        if len(self._buffer):
-            # Buffer not empty, need to parse buffer to determine size of last line and where to
-            # start looking for new lines in the new data
-            index = 4 + parse_line_size(self._buffer) - len(self._buffer)
-        if index >= 0:
-            while index < len(data):
-                line_size = parse_line_size(data, index)
-                found = index
-                index += line_size
-                yield found
+
+    # todo handle empty packet line 0000
+
+    def _iterate_splices(self):
+        line_size = parse_line_size(self._buffer)
+        while line_size <= len(self._buffer):
+            found = self._buffer[4:line_size]
+            self._buffer = self._buffer[line_size:]
+            if len(self._buffer) >= 4:
+                line_size = parse_line_size(self._buffer)
+            yield found
 
 
 # Git stuff
