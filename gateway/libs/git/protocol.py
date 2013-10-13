@@ -200,6 +200,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
         self._pack = False  # indicates whether pack is being transferred
         self._buffer = bytearray()  # buffer clients input here until authorized
+        self._abilities = None
 
     def outReceived(self, data):  # todo
         GitProcessProtocol.outReceived(self, data)
@@ -222,6 +223,16 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
     def received_packet_line(self, line):
         log.msg(line, system="packet-line")
+        # todo parse a packet line, end connection if necessary with error message
+        if self._abilities is None:
+            parts = line.split('\x00')
+            if len(parts) == 2:
+                line, self._abilities = parts
+            elif len(parts) > 2:
+                raise IOError('Multiple null bytes in abilities lines.')
+        # Parse line
+        old_oid, new_oid, reference = line.split(' ')
+        log.msg("parse packed line : %s -> %s : %s" % (old_oid, new_oid, reference), system='parser')
 
     def received_empty_packet_line(self):
         log.msg("empty packet line received.", system="packet-line")
