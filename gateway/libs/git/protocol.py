@@ -228,11 +228,11 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             GitProcessProtocol.write(self, data)
 
     def processEnded(self, reason):
-        log.msg("Process ended : %s" % reason, system="client")
+        log.msg("Process ended.", system="client")
         GitProcessProtocol.processEnded(self, reason)
 
     def processExited(self, reason):
-        log.msg("Process exited : %s" % reason, system="client")
+        log.msg("Process exited.", system="client")
         GitProcessProtocol.processExited(self, reason)
 
     # Receivers
@@ -242,7 +242,9 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         if self._abilities is None:
             parts = line.split('\x00')
             if len(parts) == 2:
-                line, self._abilities = parts
+                line, abilities = parts
+                self._abilities = shlex.split(str(abilities))
+                log.msg("abilities : %s" % self._abilities, system='parser')
             elif len(parts) > 2:
                 raise IOError('Multiple null bytes in abilities lines.')
         # Parse line
