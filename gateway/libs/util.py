@@ -20,7 +20,7 @@ class SubprocessProtocol(ProcessProtocol):
         self.protocol.outReceived(data)
 
     def errReceived(self, data):
-        self.processEnded.errReceieved(data)
+        self.protocol.errReceived(data)
 
     def childConnectionLost(self, childFD):
         self.protocol.childConnectionLost(childFD)

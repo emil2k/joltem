@@ -164,7 +164,7 @@ class GitProcessProtocol(SubprocessProtocol):
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
-        log.msg("\n" + data, system="gateway")
+        log.msg("\n" + data, system="gateway error")
         SubprocessProtocol.errReceived(self, data)
 
     # ITransport
@@ -198,18 +198,34 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     def __init__(self, protocol):
         GitProcessProtocol.__init__(self, protocol)
         self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
-        self._pack = False  # indicates whether pack is being transferred
+        self._buffering = True  # whether to buffer
         self._buffer = bytearray()  # buffer clients input here until authorized
         self._abilities = None
+
+    def flush(self):
+        """
+        Flush input buffers into process
+        """
+        GitProcessProtocol.write(self, str(self._buffer))
+        self._buffer = bytearray()
+
+    def stop_buffering(self):
+        """
+        Flush and stop buffering
+        """
+        self.flush()
+        self._buffering = False
 
     def outReceived(self, data):  # todo
         GitProcessProtocol.outReceived(self, data)
 
     def write(self, data):
-        if not self._pack:
-            log.msg("\n" + data, system="client")
+        log.msg("\n" + data, system="client")
+        if self._buffering:
+            self._buffer.extend(data)
             self._splitter.data_received(data)
-        self._buffer.extend(data)
+        else:
+            GitProcessProtocol.write(self, data)
 
     def processEnded(self, reason):
         log.msg("Process ended : %s" % reason, system="client")
@@ -223,7 +239,6 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
     def received_packet_line(self, line):
         log.msg(line, system="packet-line")
-        # todo parse a packet line, end connection if necessary with error message
         if self._abilities is None:
             parts = line.split('\x00')
             if len(parts) == 2:
@@ -231,14 +246,26 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             elif len(parts) > 2:
                 raise IOError('Multiple null bytes in abilities lines.')
         # Parse line
-        old_oid, new_oid, reference = line.split(' ')
-        log.msg("parse packed line : %s -> %s : %s" % (old_oid, new_oid, reference), system='parser')
+        self.handle_push_line(line)
+        # Flush buffer to process input, to pass through data
+        self.flush()
 
     def received_empty_packet_line(self):
         log.msg("empty packet line received.", system="packet-line")
-        # Now it should be sending the packet data
-        self._pack = True
-        # todo Parse the received lines and authorize the request
-        # Flush buffer to the process
-        GitProcessProtocol.write(self, self._buffer)
-        self._buffer = bytearray()
+        self.stop_buffering()  # client should now send PACK data
+
+    def handle_push_line(self, input):
+        """
+        Process a push request line, end connection if not authorized.
+        Input should be a string in the form : {old_oid} {new_oid} {reference}
+
+        Example :
+        a45c1e5fdc0938b97b0ac98e1ba6d8cdf81c4f5c f9d4af97f4b0b9e4188597dcff930fababce8fd8 refs/heads/master
+        """
+        parts = input.split(' ')
+        if not len(parts) == 3:
+            raise IOError("Push line does not contain 3 parts.")
+        old, new, ref = parts
+        log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
+
+
