@@ -167,6 +167,14 @@ class GitProcessProtocol(SubprocessProtocol):
         log.msg("\n" + data, system="gateway error")
         SubprocessProtocol.errReceived(self, data)
 
+    def processEnded(self, reason):
+        log.msg("Process ended.", system="gateway")
+        SubprocessProtocol.processEnded(self, reason)
+
+    def processExited(self, reason):
+        log.msg("Process exited.", system="gateway")
+        SubprocessProtocol.processExited(self, reason)
+
     # ITransport
 
     def getHost(self):
@@ -206,7 +214,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         """
         Flush input buffers into process
         """
-        GitProcessProtocol.write(self, str(self._buffer))
+        self.transport.write(str(self._buffer))
         self._buffer = bytearray()
 
     def stop_buffering(self):
@@ -216,24 +224,13 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self.flush()
         self._buffering = False
 
-    def outReceived(self, data):  # todo
-        GitProcessProtocol.outReceived(self, data)
-
     def write(self, data):
         log.msg("\n" + data, system="client")
         if self._buffering:
             self._buffer.extend(data)
             self._splitter.data_received(data)
         else:
-            GitProcessProtocol.write(self, data)
-
-    def processEnded(self, reason):
-        log.msg("Process ended.", system="client")
-        GitProcessProtocol.processEnded(self, reason)
-
-    def processExited(self, reason):
-        log.msg("Process exited.", system="client")
-        GitProcessProtocol.processExited(self, reason)
+            self.transport.write(data)
 
     # Receivers
 
