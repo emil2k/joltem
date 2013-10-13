@@ -1,9 +1,10 @@
 import struct
 import shlex
 
-from zope.interface import implements
+from zope.interface import implements, Interface
 from twisted.python import log
 from twisted.internet.interfaces import ITransport
+from twisted.conch.ssh.session import SSHSession
 
 from gateway.libs.util import SubprocessProtocol
 
@@ -39,26 +40,15 @@ def parse_line_size(raw, offset=0):
 
 # Buffering and splitting
 
-class ISplitter():
-    """
-    Splitter interfaces, receives splices of data
-    """
-
-    def splice_received(self, splice):
-        """
-        Received a splice of data from the splitter mechanism
-        """
-        pass
-
 
 class BaseBufferedSplitter():
     """
     Mechanism for buffering and splitting up data
     """
 
-    def __init__(self, interface):
+    def __init__(self, callback):
         self._buffer = bytearray()  # stores data until it is split up
-        self._interface = interface  # ISplitter, send splices here
+        self._callback = callback  # send splices here
 
     def data_received(self, data):
         self._buffer_data(data)
@@ -71,7 +61,10 @@ class BaseBufferedSplitter():
 
     def _process_buffer(self):
         for splice in self._iterate_splices():
-            self._interface.splice_received(splice)
+            self._callback(splice)
+
+    def splices(self):
+        return tuple(splice for splice in self._iterate_splices())
 
     def _iterate_splices(self):
         """
@@ -133,20 +126,32 @@ class PacketLineSplitter(BaseBufferedSplitter):
     ----
     """
 
-    # todo handle empty packet line 0000
+    def __init__(self, callback, empty_line_callback):
+        BaseBufferedSplitter.__init__(self, callback)
+        self._empty_line_callback = empty_line_callback
 
     def _iterate_splices(self):
-        line_size = parse_line_size(self._buffer)
-        while line_size <= len(self._buffer):
-            found = self._buffer[4:line_size]
-            self._buffer = self._buffer[line_size:]
-            if len(self._buffer) >= 4:
-                line_size = parse_line_size(self._buffer)
-            yield found
+        """
+        Iterates through a packet line buffer pruning it as it goes.
+        Stops at an empty packet line (0000) or if a line is not fully buffered.
+        """
+        while len(self._buffer) >= 4:
+            line_size = parse_line_size(self._buffer)
+            if line_size == 0:  # handle empty packet line 0000
+                self._buffer = self._buffer[4:]  # adjust buffer, in case it is used again
+                self._empty_line_callback()
+                break
+            elif line_size < 4:
+                raise IOError("Packet line size is less than 4 but not 0.")
+            if line_size <= len(self._buffer):  # if line fully buffered, flush it out
+                found = self._buffer[4:line_size]
+                self._buffer = self._buffer[line_size:]
+                yield found
+            else:
+                break  # wait till line is fully buffered
 
 
 # Git stuff
-
 
 class GitProcessProtocol(SubprocessProtocol):
 
@@ -154,16 +159,12 @@ class GitProcessProtocol(SubprocessProtocol):
 
     # ProcessProtocol
 
-    def childDataReceived(self, childFD, data):
-        log.msg("CHILD DATA RECEIVED : %s" % childFD)
-        SubprocessProtocol.childDataReceived(self, childFD, data)
-
     def outReceived(self, data):
-        log.msg("OUT\n"+data)
+        log.msg("\n" + data, system="gateway")
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
-        log.msg("ERROR\n"+data)
+        log.msg("\n" + data, system="gateway")
         SubprocessProtocol.errReceived(self, data)
 
     # ITransport
@@ -175,13 +176,58 @@ class GitProcessProtocol(SubprocessProtocol):
         return self.transport.getPeer()
 
     def write(self, data):
-        log.msg("WRITE\n"+data)
+        log.msg("\n" + data, system="client")
         self.transport.write(data)
 
     def writeSequence(self, seq):
-        log.msg("WRITE SEQ\n"+"\n".join(seq))
-        self.transport.writeSequence(seq)
+        raise NotImplementedError("Write sequence is not implemented.")
 
     def loseConnection(self):
-        log.msg("LOSE CONNECTION")
+        log.msg("Lose connection.")
         self.transport.loseConnection()
+
+
+class GitReceivePackProcessProtocol(GitProcessProtocol):
+    """
+    Protocol for handling a `git receive pack` from a client.
+    This command runs when someone attempts to push to the server.
+
+    Buffer and parse clients input then either pass through inputs to the process or kill the connection.
+    """
+
+    def __init__(self, protocol):
+        GitProcessProtocol.__init__(self, protocol)
+        self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
+        self._pack = False  # indicates whether pack is being transferred
+        self._buffer = bytearray()  # buffer clients input here until authorized
+
+    def outReceived(self, data):  # todo
+        GitProcessProtocol.outReceived(self, data)
+
+    def write(self, data):
+        if not self._pack:
+            log.msg("\n" + data, system="client")
+            self._splitter.data_received(data)
+        self._buffer.extend(data)
+
+    def processEnded(self, reason):
+        log.msg("Process ended : %s" % reason, system="client")
+        GitProcessProtocol.processEnded(self, reason)
+
+    def processExited(self, reason):
+        log.msg("Process exited : %s" % reason, system="client")
+        GitProcessProtocol.processExited(self, reason)
+
+    # Receivers
+
+    def received_packet_line(self, line):
+        log.msg(line, system="packet-line")
+
+    def received_empty_packet_line(self):
+        log.msg("empty packet line received.", system="packet-line")
+        # Now it should be sending the packet data
+        self._pack = True
+        # todo Parse the received lines and authorize the request
+        # Flush buffer to the process
+        GitProcessProtocol.write(self, self._buffer)
+        self._buffer = bytearray()

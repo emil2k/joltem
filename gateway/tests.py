@@ -1,29 +1,32 @@
 from unittest import TestCase
-from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter, ISplitter
+from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
 
 
 class TestingPacketLineSplitter(TestCase):
 
     def test_buffered(self):
-        b = PacketLineSplitter(ISplitter())
-        b._buffer_data('0007a')  # bc bytes will arrive later
-        indexes = lambda b: tuple(splice for splice in b._iterate_splices())
-        self.assertTupleEqual(indexes(b), ())
-        # Rest of the data
-        b._buffer_data('bc00040006te')  # bc bytes will arrive later
-        self.assertTupleEqual(indexes(b), (b'abc', b'', b'te'))
+        b = PacketLineSplitter(lambda: None, lambda: None)
+        b._buffer_data('0007a')  # bc bytes will arrive later, buffer for now
+        self.assertTupleEqual(b.splices(), ())
+        b._buffer_data('bc00040006te')  # rest of data arrived
+        self.assertTupleEqual(b.splices(), (b'abc', b'', b'te'))
+
+    def test_empty_packet_line(self):
+        b = PacketLineSplitter(lambda: None, lambda: None)
+        b._buffer_data('0007abc0000')
+        self.assertTupleEqual(b.splices(), (b'abc',))
 
 
 class TestingBaseBufferedSplitter(TestCase):
 
     def test_buffering(self):
-        b = BaseBufferedSplitter(ISplitter())
+        b = BaseBufferedSplitter(lambda: None)
         self.assertEqual(b._buffer, '')
         b._buffer_data('some test data\x00lol')
         self.assertEqual(b._buffer, 'some test data\x00lol')
 
     def test_unimplemented_seek_spit(self):
-        b = BaseBufferedSplitter(ISplitter())
+        b = BaseBufferedSplitter(lambda: None)
         b._buffer_data('some test data\x00lol')
         with self.assertRaises(NotImplementedError):
             b._process_buffer()

@@ -13,7 +13,8 @@ class SubprocessProtocol(ProcessProtocol):
             self.makeConnection(protocol.transport)  # connect to remote end
 
     def childDataReceived(self, childFD, data):
-        self.protocol.childDataReceived(childFD, data)
+        # Default to ProcessProtocol implementation routes to outReceived and errReceived based on file descriptor
+        ProcessProtocol.childDataReceived(self, childFD, data)
 
     def outReceived(self, data):
         self.protocol.outReceived(data)

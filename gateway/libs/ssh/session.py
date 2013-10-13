@@ -10,7 +10,7 @@ from twisted.internet import reactor
 
 from git.models import REPOSITORIES_DIRECTORY
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
-from gateway.libs.git.protocol import GitProcessProtocol
+from gateway.libs.git.protocol import GitProcessProtocol, GitReceivePackProcessProtocol
 
 
 class GatewaySession(SSHSession):
@@ -60,7 +60,11 @@ class GatewaySessionInterface():
 
         if process == "git-upload-pack" or process == "git-receive-pack":
             repository_id = int(command[1])
-            git_protocol = GitProcessProtocol(protocol)
+            if process == "git-receive-pack":
+                git_protocol = GitReceivePackProcessProtocol(protocol)
+            else:
+                git_protocol = GitProcessProtocol(protocol)
+
             protocol.makeConnection(git_protocol)
             reactor.spawnProcess(
                 git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
