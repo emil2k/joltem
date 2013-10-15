@@ -157,6 +157,10 @@ class GitProcessProtocol(SubprocessProtocol):
 
     implements(ITransport)
 
+    def eof_received(self):
+        """For receiving end of file requests, from the SSH connection"""
+        log.msg("End of file received", system="client")
+
     # ProcessProtocol
 
     def outReceived(self, data):
@@ -191,7 +195,7 @@ class GitProcessProtocol(SubprocessProtocol):
         raise NotImplementedError("Write sequence is not implemented.")
 
     def loseConnection(self):
-        log.msg("Lose connection.")
+        log.msg("Lose connection.", system="gateway")
         self.transport.loseConnection()
 
 

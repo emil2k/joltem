@@ -23,7 +23,6 @@ class GatewaySession(SSHSession):
         Overridden to fix possible bug described here :
         http://twistedmatrix.com/trac/ticket/2754
         """
-        log.msg("CUSTOM LOSE CONNECTION")
         if self.client and self.client.transport:
             self.client.transport.loseConnection()
         SSHChannel.loseConnection(self)
@@ -37,6 +36,7 @@ class GatewaySessionInterface():
 
     def __init__(self, user):
         self.user = user
+        self._git_protocol = None
 
     def getPty(self, term, windowSize, modes):
         (rows, cols, xpixel, ypixel) = windowSize
@@ -52,22 +52,17 @@ class GatewaySessionInterface():
 
     def execCommand(self, protocol, command_string):  # protocol is instance of SSHSessionProcessProtocol
         log.msg("Execute command : %s" % command_string)
-
         command = shlex.split(command_string)
         process = command[0]
-
-        log.msg("COMMAND : %s" % command)
-
         if process == "git-upload-pack" or process == "git-receive-pack":
             repository_id = int(command[1])
             if process == "git-receive-pack":
-                git_protocol = GitReceivePackProcessProtocol(protocol)
+                self._git_protocol = GitReceivePackProcessProtocol(protocol)
             else:
-                git_protocol = GitProcessProtocol(protocol)
-
-            protocol.makeConnection(git_protocol)
+                self._git_protocol = GitProcessProtocol(protocol)
+            protocol.makeConnection(self._git_protocol)
             reactor.spawnProcess(
-                git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
+                self._git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
                 path=REPOSITORIES_DIRECTORY)
         else:
             protocol.write("Command not allowed.\n")
@@ -80,6 +75,8 @@ class GatewaySessionInterface():
 
     def eofReceived(self):
         log.msg("No more data will be sent (EOF).")
+        if self._git_protocol:
+            self._git_protocol.eof_received()
 
     def closed(self):
         log.msg("Connection closed")
