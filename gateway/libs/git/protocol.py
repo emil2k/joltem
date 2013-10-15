@@ -11,6 +11,7 @@ from gateway.libs.util import SubprocessProtocol
 # Utility functions for parsing git protocol
 
 FLUSH_PACKET_LINE = '0000'
+STATUS_OK = 'ok'
 
 
 def get_packet_line_size(raw, offset=0):
@@ -36,12 +37,12 @@ def get_packet_line(line):
 
 # For reporting push status
 
-def get_unpack_status(err_msg=None):
+def get_unpack_status(err_msg=None):  # todo default to ok
     result = err_msg if err_msg else 'ok'
     return "unpack %s\n" % result
 
 
-def get_command_status(ref, err_msg=None):
+def get_command_status(ref, err_msg=None):  # todo default to ok
     if err_msg:
         return "ng %s %s\n" % (ref, err_msg)
     else:
@@ -221,7 +222,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = True  # whether to buffer
         self._buffer = bytearray()  # buffer clients input here until authorized
         self._abilities = None
-        self._rejected = False  # whether request was rejected
+        self._rejected = False
+        self._command_statuses = []  # list of push statuses of each reference in order received, (reference, error_message)
 
     def flush(self):
         """
@@ -238,9 +240,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = False
 
     def write(self, data):
-        if self._rejected:
-            log.msg("\n" + data, system="client - ignored")
-        elif self._buffering:
+        if self._buffering:
             log.msg("\n" + data, system="client - buffered")
             self._buffer.extend(data)
             self._splitter.data_received(data)
@@ -262,8 +262,9 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 raise IOError('Multiple null bytes in abilities lines.')
         # Parse line
         self.handle_push_line(line)
-        # Flush buffer to process input, to pass through data
-        self.flush()
+        if not self._rejected:
+            # Flush buffer to process input, to pass through data
+            self.flush()
 
     def received_empty_packet_line(self):
         log.msg("empty packet line received.", system="packet-line")
@@ -282,19 +283,21 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             raise IOError("Push line does not contain 3 parts.")
         old, new, ref = parts
         log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
-        # todo testing rejection
-        if ref == 'refs/heads/master':
+        if ref == 'refs/heads/master':  # todo testing rejection
             self._rejected = True
+            self._command_statuses.append((ref, 'no'))
+        else:
+            self._command_statuses.append((ref, None))
 
     def eof_received(self):
-        GitProcessProtocol.eof_received(self)
+        GitProcessProtocol.eof_received(self)  # just logging
         if self._rejected:
-            # Emulate, report rejected status # todo dummy report
+            # Respond back with status report
 
-            # This does not behave like the documented protocol for status reporting
-            # It seems like all the packet lines in the report are concatenated into one packet line at the end.
-            # todo test with different client versions
+            # self.outReceived(get_report(self._command_statuses, 'permission-denied'))
+            # self.outReceived(FLUSH_PACKET_LINE)
 
+            # THIS WORKS todo remove
             self.outReceived('0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000')
             self.outReceived('0000')
 
@@ -303,3 +306,36 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             from twisted.python.failure import Failure
             from twisted.internet.error import ProcessDone
             self.processEnded(Failure(ProcessDone(None)))
+
+
+def get_report(command_statuses, unpack_status='ok'):
+    """
+    Form a report to send back to the client with the status of the push.
+
+    Keyword arguments:
+    unpack_status -- error message for the unpack status, defaults to 'ok'
+    command_statuses -- list of tuples representing each references push status, form (reference, error_message)
+
+    """
+    report = get_packet_line(get_unpack_status(unpack_status))
+    for ref, err_msg in command_statuses:
+        if err_msg:
+            report += get_packet_line(get_command_status(ref, err_msg))
+        else:
+            report += get_packet_line(get_command_status(ref))
+    report += FLUSH_PACKET_LINE
+    # This does not behave like the documented protocol for status reporting
+    # It seems like all the packet lines in the report are concatenated into one packet line at the end.
+    return get_packet_line(report)
+
+
+#
+# 2013-10-15 04:30:10-0500 [gateway]
+# 	005c000eunpack ok
+# 	0019ok refs/heads/master
+# 	0016ok refs/heads/s/1
+# 	0016ok refs/heads/s/2
+# 	0000
+# 2013-10-15 04:30:10-0500 [gateway] Process exited.
+# 2013-10-15 04:30:10-0500 [gateway]
+# 	0000

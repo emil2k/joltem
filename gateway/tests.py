@@ -1,6 +1,6 @@
 from unittest import TestCase
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
-from gateway.libs.git.protocol import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status
+from gateway.libs.git.protocol import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status, get_report
 
 
 class TestingPacketLineSplitter(TestCase):
@@ -74,6 +74,24 @@ class GitProtocol(TestCase):
     def test_get_command_status_error(self):
         self.assertEqual(get_command_status('refs/heads/master', 'permission denied'),
                          'ng refs/heads/master permission denied\n')
+
+    def test_get_report(self):
+        """
+        exceptions.AssertionError:
+        '0076001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
+        !=
+        '0077\x01001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
+        """
+        expected = '0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
+        command_statuses = [
+            ('refs/heads/master', 'permission-denied'),
+            ('refs/heads/s/1', 'push-seperately'),
+        ]
+        self.assertEqual(get_report(command_statuses, 'permission-denied'), expected)
+
+
+
+
 
 
 
