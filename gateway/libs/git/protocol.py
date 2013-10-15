@@ -213,6 +213,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = True  # whether to buffer
         self._buffer = bytearray()  # buffer clients input here until authorized
         self._abilities = None
+        self._rejected = False  # whether request was rejected
 
     def flush(self):
         """
@@ -229,11 +230,14 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = False
 
     def write(self, data):
-        log.msg("\n" + data, system="client")
-        if self._buffering:
+        if self._rejected:
+            log.msg("\n" + data, system="client - ignored")
+        elif self._buffering:
+            log.msg("\n" + data, system="client - buffered")
             self._buffer.extend(data)
             self._splitter.data_received(data)
         else:
+            log.msg("\n" + data, system="client - written")
             self.transport.write(data)
 
     # Receivers
@@ -270,5 +274,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             raise IOError("Push line does not contain 3 parts.")
         old, new, ref = parts
         log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
+        # todo Testing rejection
+        if ref == 'refs/heads/master':
+            self._rejected = True
 
 
