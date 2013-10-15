@@ -10,6 +10,9 @@ from gateway.libs.util import SubprocessProtocol
 
 # Utility functions for parsing git protocol
 
+FLUSH_PACKET_LINE = '0000'
+
+
 def get_packet_line_size(raw, offset=0):
     """
     Parses the line size in bytes out of the git transfer protocol.
@@ -30,6 +33,19 @@ def get_packet_line(line):
         raise IOError("Packet line exceeds maximum size : %d bytes" % size)
     return '%04x%s' % (size, line)
 
+
+# For reporting push status
+
+def get_unpack_status(err_msg=None):
+    result = err_msg if err_msg else 'ok'
+    return "unpack %s\n" % result
+
+
+def get_command_status(ref, err_msg=None):
+    if err_msg:
+        return "ng %s %s\n" % (ref, err_msg)
+    else:
+        return "ok %s\n" % ref
 
 # Buffering and splitting
 

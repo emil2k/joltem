@@ -1,6 +1,6 @@
 from unittest import TestCase
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
-from gateway.libs.git.protocol import get_packet_line, get_packet_line_size
+from gateway.libs.git.protocol import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status
 
 
 class TestingPacketLineSplitter(TestCase):
@@ -61,3 +61,20 @@ class GitProtocol(TestCase):
         """Pass an invalid packet line, less than 4 bytes long"""
         with self.assertRaises(IOError):
             get_packet_line_size("001")
+
+    def test_get_unpack_status(self):
+        self.assertEqual(get_unpack_status(), 'unpack ok\n')
+
+    def test_get_unpack_status_error(self):
+        self.assertEqual(get_unpack_status('permission denied'), 'unpack permission denied\n')
+
+    def test_get_command_status(self):
+        self.assertEqual(get_command_status('refs/heads/master'), 'ok refs/heads/master\n')
+
+    def test_get_command_status_error(self):
+        self.assertEqual(get_command_status('refs/heads/master', 'permission denied'),
+                         'ng refs/heads/master permission denied\n')
+
+
+
+
