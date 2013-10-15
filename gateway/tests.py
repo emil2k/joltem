@@ -76,13 +76,8 @@ class GitProtocol(TestCase):
                          'ng refs/heads/master permission denied\n')
 
     def test_get_report(self):
-        """
-        exceptions.AssertionError:
-        '0076001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
-        !=
-        '0077\x01001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
-        """
-        expected = '0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
+        expected = '0077\x01001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
+        # expected = '0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
         command_statuses = [
             ('refs/heads/master', 'permission-denied'),
             ('refs/heads/s/1', 'push-seperately'),

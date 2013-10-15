@@ -285,57 +285,36 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
         if ref == 'refs/heads/master':  # todo testing rejection
             self._rejected = True
-            self._command_statuses.append((ref, 'no'))
+            self._command_statuses.append((ref, 'permission denied'))
         else:
-            self._command_statuses.append((ref, None))
+            self._command_statuses.append((ref, 'ok, push separately'))
 
     def eof_received(self):
         GitProcessProtocol.eof_received(self)  # just logging
         if self._rejected:
             # Respond back with status report
-
-            # self.outReceived(get_report(self._command_statuses, 'permission-denied'))
-            # self.outReceived(FLUSH_PACKET_LINE)
-
-            # THIS WORKS todo remove
-            self.outReceived('0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000')
-            self.outReceived('0000')
-
-            # Manually end process
-            # todo move imports up
-            from twisted.python.failure import Failure
-            from twisted.internet.error import ProcessDone
-            self.processEnded(Failure(ProcessDone(None)))
+            self.outReceived(get_report(self._command_statuses))
+            self.outReceived(FLUSH_PACKET_LINE)
 
 
 def get_report(command_statuses, unpack_status='ok'):
     """
     Form a report to send back to the client with the status of the push.
 
+    NOTE : This does not behave like the documented protocol for status reporting
+    It seems like all the packet lines in the report are concatenated together preceded by a start of heading (\x01)
+    into one packet line.
+
     Keyword arguments:
     unpack_status -- error message for the unpack status, defaults to 'ok'
     command_statuses -- list of tuples representing each references push status, form (reference, error_message)
 
     """
-    report = get_packet_line(get_unpack_status(unpack_status))
+    report = '\x01' + get_packet_line(get_unpack_status(unpack_status))
     for ref, err_msg in command_statuses:
         if err_msg:
             report += get_packet_line(get_command_status(ref, err_msg))
         else:
             report += get_packet_line(get_command_status(ref))
     report += FLUSH_PACKET_LINE
-    # This does not behave like the documented protocol for status reporting
-    # It seems like all the packet lines in the report are concatenated into one packet line at the end.
     return get_packet_line(report)
-
-
-#
-# 2013-10-15 04:30:10-0500 [gateway]
-# 	005c000eunpack ok
-# 	0019ok refs/heads/master
-# 	0016ok refs/heads/s/1
-# 	0016ok refs/heads/s/2
-# 	0000
-# 2013-10-15 04:30:10-0500 [gateway] Process exited.
-# 2013-10-15 04:30:10-0500 [gateway]
-# 	0000
