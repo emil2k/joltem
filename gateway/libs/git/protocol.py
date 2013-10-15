@@ -1,54 +1,37 @@
 import struct
 import shlex
 
-from zope.interface import implements, Interface
+from zope.interface import implements
 from twisted.python import log
 from twisted.internet.interfaces import ITransport
-from twisted.conch.ssh.session import SSHSession
 
 from gateway.libs.util import SubprocessProtocol
 
 
 # Utility functions for parsing git protocol
 
-def parse_reference(raw):
-    """
-    Parses a reference and the object it is pointing to from the git transfer protocol
-    """
-    line = parse_line(raw).split('\x00')[0]
-    return shlex.split(line)
-
-
-def parse_line(raw):
-    """
-    Parses a line out of git transfer protocol
-    returns the cleaned up line
-    """
-    size = parse_line_size(raw)
-    return raw[4:size]
-
-
-def parse_line_size(raw, offset=0):
+def get_packet_line_size(raw, offset=0):
     """
     Parses the line size in bytes out of the git transfer protocol.
-    The size of the line is represented in the first 4 bytes
-    returns and int in bytes
+    The size of the line is represented in the first 4 bytes, returns and int in bytes
     """
+    if len(raw) < 4:
+        raise IOError("Packet line must be at least 4 bytes.")
     hexdigit = struct.unpack('4s', str(raw[offset:offset+4]))[0]
     return int(hexdigit, 16)
 
 
 def get_packet_line(line):
     """
-    Get packet line in the format
+    Get packet line in the format, described in the git protocol
     """
     size = len(line) + 4
     if size > 65535:
         raise IOError("Packet line exceeds maximum size : %d bytes" % size)
     return '%04x%s' % (size, line)
 
-# Buffering and splitting
 
+# Buffering and splitting
 
 class BaseBufferedSplitter():
     """
@@ -145,7 +128,7 @@ class PacketLineSplitter(BaseBufferedSplitter):
         Stops at an empty packet line (0000) or if a line is not fully buffered.
         """
         while len(self._buffer) >= 4:
-            line_size = parse_line_size(self._buffer)
+            line_size = get_packet_line_size(self._buffer)
             if line_size == 0:  # handle empty packet line 0000
                 self._buffer = self._buffer[4:]  # adjust buffer, in case it is used again
                 self._empty_line_callback()
