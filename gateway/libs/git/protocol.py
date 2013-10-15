@@ -3,6 +3,8 @@ import shlex
 
 from zope.interface import implements
 from twisted.python import log
+from twisted.python.failure import Failure
+from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import ITransport
 
 from gateway.libs.util import SubprocessProtocol
@@ -244,6 +246,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             log.msg("\n" + data, system="client - buffered")
             self._buffer.extend(data)
             self._splitter.data_received(data)
+        elif self._rejected:
+            log.msg("\n" + data, system="client - ignored")
         else:
             log.msg("\n" + data, system="client - written")
             self.transport.write(data)
@@ -292,9 +296,11 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     def eof_received(self):
         GitProcessProtocol.eof_received(self)  # just logging
         if self._rejected:
-            # Respond back with status report
+            # Respond back with a status report
             self.outReceived(get_report(self._command_statuses))
             self.outReceived(FLUSH_PACKET_LINE)
+            # Manually end the process
+            self.processEnded(Failure(ProcessDone(None)))
 
 
 def get_report(command_statuses, unpack_status='ok'):
