@@ -32,7 +32,13 @@ class TestingBaseBufferedSplitter(TestCase):
             b._process_buffer()
 
 
-class ParsingGitProtocol(TestCase):
+class GitProtocol(TestCase):
+
+    def test_get_packet_line(self):
+        from gateway.libs.git.protocol import get_packet_line
+        raw = 'ng refs/heads/master permission-denied\n'
+        expected = '002bng refs/heads/master permission-denied\n'
+        self.assertEqual(get_packet_line(raw), expected)
 
     def test_parse_line(self):
         from gateway.libs.git.protocol import parse_line

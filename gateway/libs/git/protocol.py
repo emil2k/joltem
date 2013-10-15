@@ -38,6 +38,15 @@ def parse_line_size(raw, offset=0):
     return int(hexdigit, 16)
 
 
+def get_packet_line(line):
+    """
+    Get packet line in the format
+    """
+    size = len(line) + 4
+    if size > 65535:
+        raise IOError("Packet line exceeds maximum size : %d bytes" % size)
+    return '%04x%s' % (size, line)
+
 # Buffering and splitting
 
 
@@ -291,8 +300,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             self.outReceived('0000')
 
             # Manually end process
+            # todo move imports up
             from twisted.python.failure import Failure
             from twisted.internet.error import ProcessDone
             self.processEnded(Failure(ProcessDone(None)))
-
-
