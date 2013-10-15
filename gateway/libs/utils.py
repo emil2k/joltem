@@ -5,6 +5,7 @@ class SubprocessProtocol(ProcessProtocol):
     """
     A process protocol that runs atop of another process protocol,
     by default all methods pass through to parent protocol
+
     """
 
     def __init__(self, protocol):
@@ -39,3 +40,36 @@ class SubprocessProtocol(ProcessProtocol):
 
     def processEnded(self, reason):
         self.protocol.processEnded(reason)
+
+
+class BaseBufferedSplitter():
+    """
+    Mechanism for buffering and splitting up data into splices
+
+    """
+
+    def __init__(self, callback):
+        self._buffer = bytearray()  # stores data until it is split up
+        self._callback = callback  # send splices here
+
+    def data_received(self, data):
+        self._buffer_data(data)
+        self._process_buffer()
+
+    def _buffer_data(self, data):
+        if type(data) is not bytearray:
+            data = bytearray(data)
+        self._buffer.extend(data)
+
+    def _process_buffer(self):
+        for splice in self._iterate_splices():
+            self._callback(splice)
+
+    def splices(self):
+        return tuple(splice for splice in self._iterate_splices())
+
+    def _iterate_splices(self):
+        """
+        Generator function to splice up the buffer, must implement in extending class
+        """
+        raise NotImplementedError("Splitting not implemented.")

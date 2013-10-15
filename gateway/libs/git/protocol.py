@@ -1,4 +1,3 @@
-import struct
 import shlex
 
 from zope.interface import implements
@@ -7,81 +6,8 @@ from twisted.python.failure import Failure
 from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import ITransport
 
-from gateway.libs.util import SubprocessProtocol
-
-
-# Utility functions for parsing git protocol
-
-FLUSH_PACKET_LINE = '0000'
-STATUS_OK = 'ok'
-
-
-def get_packet_line_size(raw, offset=0):
-    """
-    Parses the line size in bytes out of the git transfer protocol.
-    The size of the line is represented in the first 4 bytes, returns and int in bytes
-    """
-    if len(raw) < 4:
-        raise IOError("Packet line must be at least 4 bytes.")
-    hexdigit = struct.unpack('4s', str(raw[offset:offset+4]))[0]
-    return int(hexdigit, 16)
-
-
-def get_packet_line(line):
-    """
-    Get packet line in the format, described in the git protocol
-    """
-    size = len(line) + 4
-    if size > 65535:
-        raise IOError("Packet line exceeds maximum size : %d bytes" % size)
-    return '%04x%s' % (size, line)
-
-
-# For reporting push status
-
-def get_unpack_status(err_msg=None):  # todo default to ok
-    result = err_msg if err_msg else 'ok'
-    return "unpack %s\n" % result
-
-
-def get_command_status(ref, err_msg=None):  # todo default to ok
-    if err_msg:
-        return "ng %s %s\n" % (ref, err_msg)
-    else:
-        return "ok %s\n" % ref
-
-# Buffering and splitting
-
-class BaseBufferedSplitter():
-    """
-    Mechanism for buffering and splitting up data
-    """
-
-    def __init__(self, callback):
-        self._buffer = bytearray()  # stores data until it is split up
-        self._callback = callback  # send splices here
-
-    def data_received(self, data):
-        self._buffer_data(data)
-        self._process_buffer()
-
-    def _buffer_data(self, data):
-        if type(data) is not bytearray:
-            data = bytearray(data)
-        self._buffer.extend(data)
-
-    def _process_buffer(self):
-        for splice in self._iterate_splices():
-            self._callback(splice)
-
-    def splices(self):
-        return tuple(splice for splice in self._iterate_splices())
-
-    def _iterate_splices(self):
-        """
-        Generator function to splice up the buffer, must implement in extending class
-        """
-        raise NotImplementedError("Splitting not implemented.")
+from gateway.libs.utils import SubprocessProtocol, BaseBufferedSplitter
+from gateway.libs.git.utils import *
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -301,26 +227,3 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             self.outReceived(FLUSH_PACKET_LINE)
             # Manually end the process
             self.processEnded(Failure(ProcessDone(None)))
-
-
-def get_report(command_statuses, unpack_status='ok'):
-    """
-    Form a report to send back to the client with the status of the push.
-
-    NOTE : This does not behave like the documented protocol for status reporting
-    It seems like all the packet lines in the report are concatenated together preceded by a start of heading (\x01)
-    into one packet line.
-
-    Keyword arguments:
-    unpack_status -- error message for the unpack status, defaults to 'ok'
-    command_statuses -- list of tuples representing each references push status, form (reference, error_message)
-
-    """
-    report = '\x01' + get_packet_line(get_unpack_status(unpack_status))
-    for ref, err_msg in command_statuses:
-        if err_msg:
-            report += get_packet_line(get_command_status(ref, err_msg))
-        else:
-            report += get_packet_line(get_command_status(ref))
-    report += FLUSH_PACKET_LINE
-    return get_packet_line(report)
