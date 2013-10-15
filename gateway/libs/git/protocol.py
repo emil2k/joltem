@@ -274,8 +274,25 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             raise IOError("Push line does not contain 3 parts.")
         old, new, ref = parts
         log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
-        # todo Testing rejection
+        # todo testing rejection
         if ref == 'refs/heads/master':
             self._rejected = True
+
+    def eof_received(self):
+        GitProcessProtocol.eof_received(self)
+        if self._rejected:
+            # Emulate, report rejected status # todo dummy report
+
+            # This does not behave like the documented protocol for status reporting
+            # It seems like all the packet lines in the report are concatenated into one packet line at the end.
+            # todo test with different client versions
+
+            self.outReceived('0077001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000')
+            self.outReceived('0000')
+
+            # Manually end process
+            from twisted.python.failure import Failure
+            from twisted.internet.error import ProcessDone
+            self.processEnded(Failure(ProcessDone(None)))
 
 
