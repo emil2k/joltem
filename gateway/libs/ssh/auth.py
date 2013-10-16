@@ -11,6 +11,7 @@ from twisted.cred.error import UnauthorizedLogin
 
 from gateway.libs.ssh.session import GatewaySession
 
+from git.models import Authentication
 
 class GatewayUser(ConchUser):
 
@@ -45,7 +46,7 @@ class GatewayCredentialChecker():
 
     def requestAvatarId(self, credentials):
         log.msg("Request avatar id for %s." % credentials.username, system="auth")
-        key = Key.fromString(credentials.blob)
+        key = Key.fromString(credentials.blob)  # todo throws bad key error, catch it, use load_key
         fingerprint = key.fingerprint()
         log.msg("Fingerprint : %s" % fingerprint, system="auth")
         # todo look for an ssh key with the given fingerprint in the database for the username given
