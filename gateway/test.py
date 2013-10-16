@@ -8,7 +8,7 @@ from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.cred.portal import Portal
 
 from gateway.libs.ssh.factory import GatewayFactory
-from gateway.libs.ssh.auth import GatewayRealm, DummyEmilChecker
+from gateway.libs.ssh.auth import GatewayRealm, DummyEmilChecker, GatewayCredentialChecker
 
 # Start up the gateway ...
 
@@ -22,7 +22,8 @@ if __name__ == '__main__':
     factory = GatewayFactory()
     # Setup portal and credential checkers
     portal = Portal(GatewayRealm())
-    portal.registerChecker(DummyEmilChecker())
+    portal.registerChecker(GatewayCredentialChecker())
+    # portal.registerChecker(DummyEmilChecker())
     factory.portal = portal
     # Connect factory on endpoint
     d = TCP4ServerEndpoint(reactor, GATEWAY_PORT).listen(factory)

@@ -88,11 +88,3 @@ class GitProtocol(TestCase):
             ('refs/heads/s/1', 'push-seperately'),
         ]
         self.assertEqual(get_report(command_statuses, 'permission-denied'), expected)
-
-
-
-
-
-
-
-
