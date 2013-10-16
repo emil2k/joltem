@@ -4,14 +4,13 @@ from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import ISSHPrivateKey
 from twisted.cred.portal import IRealm
 from twisted.conch.avatar import ConchUser
-from twisted.conch.ssh.keys import Key
 from twisted.internet.defer import succeed
 from twisted.python.failure import Failure
 from twisted.cred.error import UnauthorizedLogin
 
+from git.models import Authentication, User, BadKeyError
 from gateway.libs.ssh.session import GatewaySession
 
-from git.models import Authentication
 
 class GatewayUser(ConchUser):
 
@@ -46,11 +45,24 @@ class GatewayCredentialChecker():
 
     def requestAvatarId(self, credentials):
         log.msg("Request avatar id for %s." % credentials.username, system="auth")
-        key = Key.fromString(credentials.blob)  # todo throws bad key error, catch it, use load_key
-        fingerprint = key.fingerprint()
-        log.msg("Fingerprint : %s" % fingerprint, system="auth")
-        # todo look for an ssh key with the given fingerprint in the database for the username given
-        return Failure(UnauthorizedLogin("Authentication key not found."))
+        try:
+            user = User.objects.get(username=credentials.username)
+        except User.DoesNotExist:
+            return Failure(UnauthorizedLogin("Username not found."))
+        except User.MultipleObjectsReturned:
+            return Failure(UnauthorizedLogin("Multiple usernames found."))  # should not happen
+        else:
+            try:
+                key = Authentication.load_key(credentials.blob)
+            except BadKeyError:
+                return Failure(UnauthorizedLogin("Invalid credentials provided, setup RSA keys for your SSH."))
+            else:
+                provided_fp = key.fingerprint()
+                log.msg("Fingerprint of provided RSA key : %s" % provided_fp, system="auth")
+                if user.authentication_set.filter(fingerprint=provided_fp).exists():
+                    return succeed(credentials.username)
+                else:
+                    return Failure(UnauthorizedLogin("Authentication failed, key not found."))
 
 
 class DummyEmilChecker():
