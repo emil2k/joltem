@@ -19,3 +19,8 @@ Following command will install every dependency that project needs,
 setup any networking and sync folders:
 
     $ vagrant up
+
+In order to reach development site add `33.33.33.33 joltem.local`
+to `/etc/hosts/`. Now it should work:
+
+    $ curl joltem.local
