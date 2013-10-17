@@ -2,8 +2,11 @@ Getting started developing Joltem
 =================================
 
 Let's assume that you have already installed
-[Vagrant](http://www.vagrantup.com). First you should add `precise64` box
-if you have not got it yet.
+[Vagrant](http://www.vagrantup.com). First, you have to install Salty Vagrant.
+
+    $ vagrant plugin install vagrant-salt
+
+Second, add `precise64` box if you have not got it yet
 
     $ vagrant box add precise64 http://files.vagrantup.com/precise64.box
 
