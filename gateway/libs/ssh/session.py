@@ -8,7 +8,7 @@ from twisted.conch.interfaces import ISession
 from twisted.conch.insults.insults import ServerProtocol
 from twisted.internet import reactor
 
-from git.models import REPOSITORIES_DIRECTORY
+from git.models import Repository, REPOSITORIES_DIRECTORY
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import GitProcessProtocol, GitReceivePackProcessProtocol
 
@@ -55,15 +55,20 @@ class GatewaySessionInterface():
         command = shlex.split(command_string)
         process = command[0]
         if process == "git-upload-pack" or process == "git-receive-pack":
-            repository_id = int(command[1])
-            if process == "git-receive-pack":
-                self._git_protocol = GitReceivePackProcessProtocol(protocol, self.avatar)
+            try:
+                repository_id = int(command[1])
+                repository = Repository.objects.get(id=repository_id)
+            except (ValueError, Repository.DoesNotExist, Repository.MultipleObjectsReturned):
+                protocol.write("Repository not found.")
             else:
-                self._git_protocol = GitProcessProtocol(protocol, self.avatar)
-            protocol.makeConnection(self._git_protocol)
-            reactor.spawnProcess(
-                self._git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
-                path=REPOSITORIES_DIRECTORY)
+                if process == "git-receive-pack":
+                    self._git_protocol = GitReceivePackProcessProtocol(protocol, self.avatar, repository)
+                else:
+                    self._git_protocol = GitProcessProtocol(protocol, self.avatar, repository)
+                protocol.makeConnection(self._git_protocol)
+                reactor.spawnProcess(
+                    self._git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
+                    path=REPOSITORIES_DIRECTORY)
         else:
             protocol.write("Command not allowed.\n")
             protocol.loseConnection()

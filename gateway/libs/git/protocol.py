@@ -97,9 +97,10 @@ class GitProcessProtocol(SubprocessProtocol):
 
     implements(ITransport)
 
-    def __init__(self, protocol, avatar):
+    def __init__(self, protocol, avatar, repository):
         SubprocessProtocol.__init__(self, protocol)
         self.avatar = avatar
+        self.repository = repository  # repository model instance
 
     def eof_received(self):
         """For receiving end of file requests, from the SSH connection"""
@@ -155,8 +156,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     OK_PUSH_SEPARATELY = 'ok, push separately'
     PERMISSION_DENIED = 'permission denied'
 
-    def __init__(self, protocol, avatar):
-        GitProcessProtocol.__init__(self, protocol, avatar)
+    def __init__(self, protocol, avatar, repository):
+        GitProcessProtocol.__init__(self, protocol, avatar, repository)
         self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
         self._buffering = True  # whether to buffer
         self._buffer = bytearray()  # buffer clients input here until authorized
@@ -246,7 +247,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         parts = reference.split('/')
         if parts[0] == 'refs' and parts[1] == 'heads':
             if parts[2] == 'master':
-                return False  # todo allow push by project admin
+                return self.repository.project.is_admin(self.avatar.user.id)
             elif parts[2] == 's':  # solution branches
                 try:
                     solution_id = int(parts[3])
