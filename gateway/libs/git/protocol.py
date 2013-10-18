@@ -249,8 +249,9 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 return False  # todo allow push by project admin
             elif parts[2] == 's':  # solution branches
                 try:
-                    solution = Solution.objects.get(id=parts[3])  # todo check weird pushes i.e s/asdfn*(080
-                except Solution.DoesNotExist, Solution.MultipleObjectsReturned:
+                    solution_id = int(parts[3])
+                    solution = Solution.objects.get(id=solution_id)
+                except (ValueError, Solution.DoesNotExist, Solution.MultipleObjectsReturned):
                     return False
                 else:
                     return solution.is_owner(self.avatar.user)
