@@ -42,3 +42,20 @@ virtualenv:
       - pkg: packages
       - pip: virtualenv
       - file: /var/www/joltem_venv
+
+/joltem/joltem/settings/local.py:
+  file:
+    - managed
+    - source: salt://django_project/local.py.template
+
+django-admin:
+  module:
+    - run
+    - name: django.syncdb
+    - bin_env: /var/www/joltem_venv
+    - settings_module: joltem.settings
+    - pythonpath: /joltem/
+    - migrate: True
+    - require:
+      - virtualenv: /var/www/joltem_venv
+      - file: /joltem/joltem/settings/local.py

@@ -12,6 +12,7 @@ mysql-client:
     - installed
     - names:
       - mysql-client
+      - libmysqlclient-dev
       - python-mysqldb
 
 database-setup:

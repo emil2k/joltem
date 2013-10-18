@@ -1,5 +1,5 @@
 base:
   '*':
     - mysql
-    - django
+    - django_project
     - webserver

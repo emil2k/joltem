@@ -1,0 +1,16 @@
+# coding: utf-8
+import os
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'joltem',
+        'USER': 'joltem',
+        'PASSWORD': 'bobcat',
+    }
+}
+
+SECRET_KEY = 'some secret key'
+
+MAIN_DIR = '/joltem/'
