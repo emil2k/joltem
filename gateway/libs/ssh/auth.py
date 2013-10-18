@@ -16,7 +16,7 @@ class GatewayUser(ConchUser):
 
     def __init__(self, username):
         ConchUser.__init__(self)
-        self.username = username
+        self.user = User.objects.get(username=username)  # django, user model instance for logged in avatar
         self.channelLookup['session'] = GatewaySession
 
     def logout(self):
@@ -66,6 +66,7 @@ class GatewayCredentialChecker():
 
 
 class DummyEmilChecker():
+    # todo remove this checker
     """
     Approves all users with the username `emil` for testing
     """

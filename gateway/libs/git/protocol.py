@@ -8,6 +8,7 @@ from twisted.internet.interfaces import ITransport
 
 from gateway.libs.utils import SubprocessProtocol, BaseBufferedSplitter
 from gateway.libs.git.utils import *
+from solution.models import Solution
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -61,6 +62,7 @@ class PacketLineSplitter(BaseBufferedSplitter):
       "000bfoobar\n"    "foobar\n"
       "0004"            ""
     ----
+
     """
 
     def __init__(self, callback, empty_line_callback):
@@ -71,6 +73,7 @@ class PacketLineSplitter(BaseBufferedSplitter):
         """
         Iterates through a packet line buffer pruning it as it goes.
         Stops at an empty packet line (0000) or if a line is not fully buffered.
+
         """
         while len(self._buffer) >= 4:
             line_size = get_packet_line_size(self._buffer)
@@ -93,6 +96,10 @@ class PacketLineSplitter(BaseBufferedSplitter):
 class GitProcessProtocol(SubprocessProtocol):
 
     implements(ITransport)
+
+    def __init__(self, protocol, avatar):
+        SubprocessProtocol.__init__(self, protocol)
+        self.avatar = avatar
 
     def eof_received(self):
         """For receiving end of file requests, from the SSH connection"""
@@ -142,20 +149,25 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     This command runs when someone attempts to push to the server.
 
     Buffer and parse clients input then either pass through inputs to the process or kill the connection.
+
     """
 
-    def __init__(self, protocol):
-        GitProcessProtocol.__init__(self, protocol)
+    OK_PUSH_SEPARATELY = 'ok, push separately'
+    PERMISSION_DENIED = 'permission denied'
+
+    def __init__(self, protocol, avatar):
+        GitProcessProtocol.__init__(self, protocol, avatar)
         self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
         self._buffering = True  # whether to buffer
         self._buffer = bytearray()  # buffer clients input here until authorized
         self._abilities = None
         self._rejected = False
-        self._command_statuses = []  # list of push statuses of each reference in order received, (reference, error_message)
+        self._command_statuses = []  # list of push statuses of each reference in order received, (reference, has_permission)
 
     def flush(self):
         """
         Flush input buffers into process
+
         """
         self.transport.write(str(self._buffer))
         self._buffer = bytearray()
@@ -163,6 +175,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     def stop_buffering(self):
         """
         Flush and stop buffering
+
         """
         self.flush()
         self._buffering = False
@@ -207,17 +220,41 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
         Example :
         a45c1e5fdc0938b97b0ac98e1ba6d8cdf81c4f5c f9d4af97f4b0b9e4188597dcff930fababce8fd8 refs/heads/master
+
         """
         parts = input.split(' ')
         if not len(parts) == 3:
             raise IOError("Push line does not contain 3 parts.")
         old, new, ref = parts
         log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
-        if ref == 'refs/heads/master':  # todo testing rejection
-            self._rejected = True
-            self._command_statuses.append((ref, 'permission denied'))
+        if self.has_push_permission(ref, old, new):
+            self._command_statuses.append((ref, GitReceivePackProcessProtocol.OK_PUSH_SEPARATELY))
         else:
-            self._command_statuses.append((ref, 'ok, push separately'))
+            self._rejected = True
+            self._command_statuses.append((ref, GitReceivePackProcessProtocol.PERMISSION_DENIED))
+
+    def has_push_permission(self, reference, old_oid, new_oid):
+        """
+        Determine whether the logged user has permission to push to the specified reference, returns a boolean.
+
+        Keyword arguments :
+        reference -- pushing to this reference
+        old_oid -- the old object id the reference pointed to
+        new_oid -- the new object id the reference will point to if the push is accepted
+
+        """
+        parts = reference.split('/')
+        if parts[0] == 'refs' and parts[1] == 'heads':
+            if parts[2] == 'master':
+                return False  # todo allow push by project admin
+            elif parts[2] == 's':  # solution branches
+                try:
+                    solution = Solution.objects.get(id=parts[3])  # todo check weird pushes i.e s/asdfn*(080
+                except Solution.DoesNotExist, Solution.MultipleObjectsReturned:
+                    return False
+                else:
+                    return solution.is_owner(self.avatar.user)
+        return False
 
     def eof_received(self):
         GitProcessProtocol.eof_received(self)  # just logging

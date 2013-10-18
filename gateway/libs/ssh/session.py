@@ -34,8 +34,8 @@ class GatewaySessionInterface():
     """
     implements(ISession)
 
-    def __init__(self, user):
-        self.user = user
+    def __init__(self, avatar):
+        self.avatar = avatar
         self._git_protocol = None
 
     def getPty(self, term, windowSize, modes):
@@ -57,9 +57,9 @@ class GatewaySessionInterface():
         if process == "git-upload-pack" or process == "git-receive-pack":
             repository_id = int(command[1])
             if process == "git-receive-pack":
-                self._git_protocol = GitReceivePackProcessProtocol(protocol)
+                self._git_protocol = GitReceivePackProcessProtocol(protocol, self.avatar)
             else:
-                self._git_protocol = GitProcessProtocol(protocol)
+                self._git_protocol = GitProcessProtocol(protocol, self.avatar)
             protocol.makeConnection(self._git_protocol)
             reactor.spawnProcess(
                 self._git_protocol, '/usr/bin/%s' % process, (process, '%d.git' % repository_id),
