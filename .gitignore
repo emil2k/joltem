@@ -1,10 +1,6 @@
 *.pyc
 workspace.xml
 joltem/settings/local.py
-git/gitolite/gitolite-admin
-git/gitolite/keydir
-git/repositories
-gitolite-update
 *.log
 *.pem
 _trial_temp
