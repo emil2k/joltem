@@ -51,6 +51,10 @@ STATIC_ROOT = ''
 # Example: "http://example.com/static/", "http://static.example.com/"
 STATIC_URL = '/static/'
 
+# Gateway settings
+
+GATEWAY_PORT = 22
+
 # Fabric deployment settings
 
 # Elastic IP to EC2 instance to deploy to
