@@ -23,14 +23,6 @@ class Repository(models.Model):
     project = models.ForeignKey(Project)
 
     @property
-    def full_name(self):
-        """
-        Full name of repository, i.e. joltem/web
-        """
-        return "%s/%s" % (self.project.name.lower(), self.name)
-
-
-    @property
     def absolute_path(self):
         """
         Absolute path to repository
@@ -43,9 +35,6 @@ class Repository(models.Model):
         """
         from pygit2 import Repository as PyGitRepository
         return PyGitRepository(self.absolute_path)
-
-    class Meta:
-        unique_together = ("name","project")
 
     def __unicode__(self):
         return self.full_name

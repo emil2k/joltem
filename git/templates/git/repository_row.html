@@ -9,14 +9,14 @@
     {% endif %}
     <div class="span9">
         <p>
-            <strong><a href="{% url 'project:git:repository' project.name repo.name %}">{{ repo.full_name }}</a></strong><br/>
+            <strong><a href="{% url 'project:git:repository' project.name repo.id %}">{{ repo.name }}</a></strong><br/>
             {% if repo.description %}
                 <small class="muted">{{ repo.description }}</small>
             {% else %}
                 <small class="muted">~</small>
             {% endif %}
             <br/>
-            <input type="text" disabled value="git clone {{ user.username }}@joltem.com:{{ repo.id }}" class="input-block-level">
+            <input type="text" disabled value="git clone {{ user.username }}@{{ host }}:{{ repo.id }}" class="input-block-level">
         </p>
     </div>
 </div>
