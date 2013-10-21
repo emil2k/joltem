@@ -6,7 +6,7 @@ Some notes here about things to be aware when setting up the gateway ( git serve
 
 I experienced issues when running Django in one process and the Twisted based gateway in another process. For example if I would add or remove a SSH key through the site's web interface it would not be reflected in the behaviour of the gateway until the web server was restarted. I was using MySQL with InnoDB tables on the local machine.
 
-After some research I found that even though Django is set by default to *autocommit* changes the underlying database may not be and its isolation behaviour may vary.
+After some research I found that even though Django is set by default to *autocommit* changes, the underlying database may not be and its isolation behaviour may vary.
 
 So for a *MySQL* database I needed to run this command to fix the problem :
 

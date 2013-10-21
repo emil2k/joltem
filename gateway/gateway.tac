@@ -23,7 +23,7 @@ from gateway.libs.ssh.auth import GatewayRealm, GatewayCredentialChecker
 
 from joltem.settings import GATEWAY_PORT
 
-# Set the `application` variable as for the .tac file
+# Set the `application` variable for the .tac file
 application = service.Application("Gateway")
 
 # Set up the gateway service

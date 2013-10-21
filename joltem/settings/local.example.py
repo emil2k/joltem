@@ -54,6 +54,8 @@ STATIC_URL = '/static/'
 # Gateway settings
 
 GATEWAY_PORT = 22
+GATEWAY_PRIVATE_KEY_FILE_PATH = None  # RSA key
+GATEWAY_PUBLIC_KEY_FILE_PATH = None
 
 # Fabric deployment settings
 
