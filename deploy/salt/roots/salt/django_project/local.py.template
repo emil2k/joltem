@@ -14,3 +14,7 @@ DATABASES = {
 SECRET_KEY = 'some secret key'
 
 MAIN_DIR = '/joltem/'
+
+STATIC_ROOT = ''
+
+STATIC_URL = '/static/'

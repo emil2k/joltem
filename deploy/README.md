@@ -24,6 +24,15 @@ setup any networking and sync folders:
     $ vagrant up
 
 In order to reach development site add `33.33.33.33 joltem.local`
-to `/etc/hosts/`. Now it should work:
+to `/etc/hosts/`. Now it should work (N.B. site is served by Nginx):
 
     $ curl joltem.local
+
+If you want to start Django dev server you need to log in to guest VM by ssh:
+
+    $ vagrant ssh
+    $ source /var/www/joltem_venv/bin/activate
+    $ cd /joltem
+    $ python manage.py runserver 33.33.33.33:8000
+
+Now `curl joltem.local:8000` requests are served by built in Django server.

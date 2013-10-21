@@ -11,7 +11,7 @@ Vagrant.configure('2') do |config|
   config.vm.hostname = 'joltem.local'
 
   config.vm.network :private_network, ip: '33.33.33.33'
-  config.vm.network :forwarded_port, host: 8000, guest: 80
+  config.vm.network :forwarded_port, host: 8000, guest: 8000
 
   config.vm.synced_folder '..', '/joltem/'
   config.vm.synced_folder 'salt/roots/', '/srv/'
