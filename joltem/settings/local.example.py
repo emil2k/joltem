@@ -54,13 +54,12 @@ STATIC_URL = '/static/'
 # Gateway settings
 
 GATEWAY_PORT = 22
-GATEWAY_PRIVATE_KEY_FILE_PATH = None  # RSA key
-GATEWAY_PUBLIC_KEY_FILE_PATH = None
+GATEWAY_PRIVATE_KEY_FILE_PATH = MAIN_DIR + "gateway/id_rsa"
+GATEWAY_PUBLIC_KEY_FILE_PATH = MAIN_DIR + "gateway/id_rsa.pub"
 GATEWAY_LOGGER_FILE_NAME = 'gateway.log'  # i.e. gateway.log
 GATEWAY_LOGGER_FILE_DIRECTORY = MAIN_DIR
 GATEWAY_LOGGER_MAX_BYTES = 500 * 1024 * 1024  # maximum bytes per log file, rotates logs when it reaches this
 GATEWAY_LOGGER_BACKUP_COUNT = 5  # how many rotated logs to keep
-
 
 # Fabric deployment settings
 

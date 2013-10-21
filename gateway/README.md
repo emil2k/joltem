@@ -1,6 +1,32 @@
-#### Gateway Setup
+### Gateway Setup
 
-Some notes here about things to be aware when setting up the gateway ( git server and shell ).
+Generate RSA public and private keys for the gateway and place them in `gateway` at `id_rsa` and `id_rsa.pub`, you can specify a different location with `GATEWAY_PRIVATE_KEY_FILE_PATH` and `GATEWAY_PUBLIC_KEY_FILE_PATH`.
+
+If starting it as a daemon specify the gateway logger settings.
+
+##### Testing 
+
+To run some to the gateway's unittests run :
+
+```
+trial gateway/tests.py
+```
+
+##### Starting it up
+
+To start up the gateway for testing purposes, outputs to standard output :
+
+```
+python gateway.tac
+```
+
+To start up the gatway as a daemon, setup the gateway logger settings and startup the gateway by running :
+
+```
+twistd -y gateway.tac
+```
+
+#### Notes
 
 ##### Database Isolation Transaction Level
 
