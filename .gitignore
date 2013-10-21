@@ -1,9 +1,10 @@
 *.pyc
+*.log
+*.log.*
+*.pem
+*.pid
 workspace.xml
 joltem/settings/local.py
-*.log
-*.pem
 _trial_temp
 gateway/id_rsa
 gateway/id_rsa.pub
-*.pid
