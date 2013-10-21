@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+
 from unittest import TestCase
 from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
