@@ -1,29 +1,46 @@
 packages:
-  pkgrepo:
-    - managed
-    - name: deb http://ppa.launchpad.net/xav0989/libgit2/ubuntu precise main
-    - keyid: 797674B4
-    - keyserver: keyserver.ubuntu.com
   pkg:
     - installed
     - names:
       - git
       - python-dev
-      - libgit2-0
-      - libgit2-dev
-    - require:
-      - pkgrepo: packages
+      - python-pip
+      - gcc
+      - make
+      - cmake
 
-pip:
-  pkg:
-    - installed
-    - name: python-pip
+libgit2:
+  git:
+    - latest
+    - name: git://github.com/libgit2/libgit2.git
+    - rev: v0.19.0
+    - target: /usr/local/src/libgit2
+    - require:
+      - pkg: packages
+  file:
+    - directory
+    - name: /usr/local/src/libgit2/build
+    - require:
+      - git: libgit2
+  cmd:
+    - wait
+    - name: >
+              cmake .. &&
+              cmake --build . &&
+              cmake --build . --target install &&
+              pwd > /etc/ld.so.conf.d/libgit.conf &&
+              ldconfig
+    - cwd: /usr/local/src/libgit2/build
+    - watch:
+      - git: libgit2
+    - require:
+      - file: libgit2
 
 virtualenv:
   pip:
     - installed
     - require:
-      - pkg: pip
+      - pkg: packages
 
 /var/www/joltem_venv:
   file:
@@ -39,7 +56,6 @@ virtualenv:
     - user: vagrant
     - no_chown: True
     - require:
-      - pkg: packages
       - pip: virtualenv
       - file: /var/www/joltem_venv
 
