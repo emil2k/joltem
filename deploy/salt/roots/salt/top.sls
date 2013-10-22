@@ -2,6 +2,6 @@ base:
   '*':
     - mysql
     - django_project
-    - gitolite
+    - twisted_gateway
     - wsgiserver
     - webserver
