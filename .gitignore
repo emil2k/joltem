@@ -7,3 +7,4 @@ git/repositories
 gitolite-update
 *.log
 *.pem
+/deploy/.vagrant
