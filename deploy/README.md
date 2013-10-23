@@ -2,7 +2,9 @@ Getting started developing Joltem
 =================================
 
 Let's assume that you have already installed
-[Vagrant](http://www.vagrantup.com). First, you have to install Salty Vagrant.
+[Vagrant](http://www.vagrantup.com) and
+[VirtualBox](https://www.virtualbox.org). First, you have to install
+Salty Vagrant.
 
     $ vagrant plugin install vagrant-salt
 
