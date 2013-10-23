@@ -8,3 +8,4 @@ gitolite-update
 *.log
 *.pem
 /deploy/.vagrant
+/collected_static/

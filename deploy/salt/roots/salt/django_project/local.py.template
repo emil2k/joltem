@@ -15,7 +15,7 @@ SECRET_KEY = 'some secret key'
 
 MAIN_DIR = '/joltem/'
 
-STATIC_ROOT = ''
+STATIC_ROOT = '/joltem/collected_static/'
 
 STATIC_URL = '/static/'
 

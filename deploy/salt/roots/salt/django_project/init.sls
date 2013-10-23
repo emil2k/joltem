@@ -64,7 +64,7 @@ virtualenv:
     - managed
     - source: salt://django_project/local.py.template
 
-django-admin:
+django-admin migrate:
   module:
     - run
     - name: django.syncdb
@@ -75,3 +75,14 @@ django-admin:
     - require:
       - virtualenv: /var/www/joltem_venv
       - file: /joltem/joltem/settings/local.py
+
+django-admin collectstatic:
+  module:
+    - run
+    - name: django.collectstatic
+    - bin_env: /var/www/joltem_venv
+    - settings_module: joltem.settings
+    - pythonpath: /joltem/
+    - noinput: True
+    - require:
+      - module: django-admin migrate
