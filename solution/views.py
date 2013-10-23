@@ -183,8 +183,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
     def get_context_data(self, **kwargs):
         kwargs['repositories'] = self.repository_set
         kwargs['repository'] = self.repository
-        pygit_repository = self.repository.load_pygit_object()
         try:
+            pygit_repository = self.repository.load_pygit_object()
             kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
             kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
         except KeyError:
