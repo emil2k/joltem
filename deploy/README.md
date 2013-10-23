@@ -38,3 +38,10 @@ If you want to start Django dev server you need to log in to guest VM by ssh:
     $ python manage.py runserver 33.33.33.33:8000
 
 Now `curl joltem.local:8000` requests are served by built in Django server.
+
+After all you might need to log in, so the simplest way is to create super user:
+
+    $ vagrant ssh
+    $ source /var/www/joltem_venv/bin/activate
+    $ cd /joltem
+    $ python manage.py createsuperuser
