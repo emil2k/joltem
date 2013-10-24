@@ -40,17 +40,14 @@
                             <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                         {% endif %}
                     {% endif %}
-                    {% if is_owner or is_acceptor %}
+                    {% if is_owner %}
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     {% endif %}
                 </div>
-                {% if is_acceptor %}
+                {% if not task.is_reviewed %}
                     <div class="btn-group">
-                        {% if not task.is_accepted %}
                             <button class="btn btn-success" type="submit" name="accept" value="1">accept</button>
-                        {% else %}
-                            <button class="btn" type="submit" name="unaccept" value="1">unaccept</button>
-                        {% endif %}
+                            <button class="btn" type="submit" name="reject" value="1">reject</button>
                     </div>
                 {% endif %}
             </form>

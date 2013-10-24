@@ -15,12 +15,10 @@ class TaskBaseView(ProjectBaseView):
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
         self.is_owner = self.task.is_owner(self.user)
-        self.is_acceptor = self.task.is_acceptor(self.user)
 
     def get_context_data(self, **kwargs):
         kwargs["task"] = self.task
         kwargs["is_owner"] = self.is_owner
-        kwargs["is_acceptor"] = self.is_acceptor
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
         return super(TaskBaseView, self).get_context_data(**kwargs)
@@ -31,16 +29,6 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
-
-        # Accept task
-        if self.is_acceptor and request.POST.get('accept'):
-            self.task.mark_accepted(self.user)
-            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
-
-        # Unaccept task
-        if self.is_acceptor and request.POST.get('unaccept'):
-            self.task.mark_unaccepted()
-            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         # Close task
         if self.is_owner and request.POST.get('close'):
@@ -72,7 +60,7 @@ class TaskEditView(TemplateView, TaskBaseView):
     template_name = "task/task_edit.html"
 
     def post(self, request, *args, **kwargs):
-        if not (self.is_owner or self.is_acceptor):
+        if not self.is_owner:
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
         title = request.POST.get('title')
         if title is not None:
@@ -155,6 +143,7 @@ class MyReviewTasksView(TaskBaseListView):
     List of unaccepted tasks that the user is responsible for accepting
     """
     tasks_tab = "my_review"
+    # todo this view needs to be altered
 
     def iterate_tasks_to_accept(self):
         for task in self.project.task_set.filter(is_accepted=False, is_closed=False).order_by('-time_posted'):
