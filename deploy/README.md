@@ -45,3 +45,9 @@ After all you might need to log in, so the simplest way is to create super user:
     $ source /var/www/joltem_venv/bin/activate
     $ cd /joltem
     $ python manage.py createsuperuser
+
+In order to clone repository you have to add your public key on
+``http://joltem.local/account/keys/`` page. Say your username is ``marsel``,
+repository id is ``1`` and git server listens ``222`` port:
+
+    $ git clone ssh://marsel@joltem.local:222/1
