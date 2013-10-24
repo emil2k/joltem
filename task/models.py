@@ -7,12 +7,28 @@ from joltem.models import Commentable
 NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
 NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
 
+
 class Task(Commentable):
+    """
+    A task is a description of work, the `owner` of the task is responsible for the administrating
+    and merging of the work as necessary. The `author` is the person who originally wrote up the task.
+
+    After creation a task must be curated through a staging process, if accepted the task is opened
+    and it is available for people to post solutions until it is closed by the owner.
+
+    States :
+    is_reviewed -- whether or not the task has been reviewed, if it hasn't then it is being reviewed. default False.
+    is_accepted -- if the task has been reviewed, whether or not it was accepted or rejected. default False.
+    is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. default False.
+
+    """
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    is_reviewed = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     time_posted = models.DateTimeField(default=timezone.now)
+    time_reviewed = models.DateTimeField(null=True, blank=True)
     time_accepted = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
