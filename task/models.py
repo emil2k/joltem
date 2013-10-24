@@ -19,7 +19,8 @@ class Task(Commentable):
     States :
     is_reviewed -- whether or not the task has been reviewed, if it hasn't then it is being reviewed. default False.
     is_accepted -- if the task has been reviewed, whether or not it was accepted or rejected. default False.
-    is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. default False.
+    is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. if a task is closed
+    otherwise it means it is deprecated. default False.
 
     """
     title = models.CharField(max_length=200)
@@ -161,3 +162,22 @@ class Task(Commentable):
         from django.core.urlresolvers import reverse
         return reverse("project:task:task", args=[self.project.name, self.id])
 
+
+class Vote(models.Model):
+    """
+    A simply yay or nay vote on a task that is being reviewed.
+
+    Attributes :
+    voter_impact -- the impact at the time of the vote
+    is_accepted -- whether the vote indicated and acceptance ( or rejection ) of the task. default false.
+    time_voted -- the time voted
+    voter -- the user who voted
+    task -- the task voted on
+
+    """
+    voter_impact = models.BigIntegerField()
+    is_accepted = models.BooleanField(default=False)
+    time_voted = models.DateTimeField(default=timezone.now)
+    # Relations
+    voter = models.ForeignKey(User, related_name="task_vote_set")
+    task = models.ForeignKey(Task)
