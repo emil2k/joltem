@@ -46,8 +46,16 @@
                 </div>
                 {% if not task.is_reviewed %}
                     <div class="btn-group">
-                            <button class="btn btn-success" type="submit" name="accept" value="1">accept</button>
-                            <button class="btn" type="submit" name="reject" value="1">reject</button>
+                        {% if vote and vote.is_accepted %}
+                            <button class="btn btn-success" type="submit" name="accept" value="1"><i class="icon-ok icon-white"></i></button>
+                        {% else %}
+                            <button class="btn" type="submit" name="accept" value="1"><i class="icon-ok"></i></button>
+                        {% endif %}
+                        {% if vote and not vote.is_accepted %}
+                            <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="icon-remove icon-white"></i></button>
+                        {% else %}
+                            <button class="btn" type="submit" name="reject" value="1"><i class="icon-remove"></i></button>
+                        {% endif %}
                     </div>
                 {% endif %}
             </form>
@@ -55,15 +63,22 @@
                 <div class="alert alert-info">
                     <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
                 </div>
-            {% endif %}
-            {% if task.is_accepted %}
-                <div class="alert alert-success">
-                    <strong>This task was accepted on {{ task.time_accepted|date }}</strong>.
-                </div>
             {% else %}
-                <div class="alert alert-danger">
-                    <strong>This task has not been accepted yet.</strong> It is only visible to you and the person responsible for accepting it.
-                </div>
+                {% if task.is_reviewed %}
+                    {% if task.is_accepted %}
+                        <div class="alert alert-success">
+                            <strong>This task was accepted on {{ task.time_reviewed|date }}</strong>.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <strong>This task was rejected on {{ task.time_reviewed|date }}</strong>.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert">
+                        <strong>This task should be reviewed.</strong> It was posted on {{ task.time_posted|date }}.
+                    </div>
+                {% endif %}
             {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">

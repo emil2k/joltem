@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 
 from joltem.holders import CommentHolder
-from task.models import Task
+from task.models import Task, Vote
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
@@ -21,6 +21,10 @@ class TaskBaseView(ProjectBaseView):
         kwargs["is_owner"] = self.is_owner
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
+        try:
+            kwargs["vote"] = self.user.task_vote_set.get(id=self.task.id)
+        except Vote.DoesNotExist:
+            kwargs["vote"] = None
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
@@ -29,6 +33,16 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
+
+        # Vote to accept task
+        if request.POST.get('accept'):
+            self.task.put_vote(self.user, True)
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
+
+        # Vote to reject task
+        if request.POST.get('reject'):
+            self.task.put_vote(self.user, False)
+            return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         # Close task
         if self.is_owner and request.POST.get('close'):

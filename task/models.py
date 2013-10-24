@@ -30,7 +30,7 @@ class Task(Commentable):
     is_closed = models.BooleanField(default=False)
     time_posted = models.DateTimeField(default=timezone.now)
     time_reviewed = models.DateTimeField(null=True, blank=True)
-    time_accepted = models.DateTimeField(null=True, blank=True)
+    time_accepted = models.DateTimeField(null=True, blank=True)  # todo deprecated not necessary since same as above
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     owner = models.ForeignKey(User)
@@ -74,7 +74,28 @@ class Task(Commentable):
         if created:
             self.notify_created()
 
-    def mark_accepted(self, acceptor):
+    def put_vote(self, voter, is_accepted):
+        """
+        Casts or overwrites a vote cast while reviewing a task.
+
+        Keyword arguments :
+        voter -- a model instance of the user casting the vote.
+        is_accepted -- whether the voter accepts the task as ready.
+
+        """
+        try:
+            vote = Vote.objects.all().get(voter=voter, task=self)
+        except Vote.DoesNotExist:
+            vote = Vote(
+                task=self,
+                voter=voter
+            )
+        vote.voter_impact = voter.get_profile().impact
+        vote.is_accepted = is_accepted
+        vote.time_voted = timezone.now()
+        vote.save()
+
+    def mark_accepted(self, acceptor):  # todo unsure whether to keep these functions
         """
         Mark task accepted, allow it to solicit solutions
         `owner`, specifies task owner responsible for administrating it if the task is a suggested task
@@ -90,7 +111,7 @@ class Task(Commentable):
         self.save()
         self.notify_accepted(acceptor)
 
-    def mark_unaccepted(self):
+    def mark_unaccepted(self):  # todo unsure whether to keep these functions
         """
         Mark task unaccepted, disallow it to solicit solutions
         """
