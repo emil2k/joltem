@@ -2,6 +2,7 @@
 MySQL-python==1.2.3
 South==0.8.2
 pygit2==0.19.1
+django-markup-deprecated==0.0.1
 Markdown==2.3.1
 django-mathfilters==0.1.3
 
