@@ -166,3 +166,6 @@ class Vote(models.Model):
     # Relations
     voter = models.ForeignKey(User, related_name="task_vote_set")
     task = models.ForeignKey(Task)
+
+    class Meta:
+        unique_together = ['voter', 'task']
