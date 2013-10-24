@@ -92,28 +92,30 @@
             {{ task.time_posted|timesince }} ago.
         </div>
     </div>
-    <div class="row">
-        <div class="offset2 span8">
-            <h5>Solutions</h5>
+    {% if task.is_accepted %}
+        <div class="row">
+            <div class="offset2 span8">
+                <h5>Solutions</h5>
+            </div>
         </div>
-    </div>
-    <form method="post">
-        {% csrf_token %}
-        {% for solution in solutions %}
-            <div class="row">
-                {% with offset="offset2" %}
-                    {% include 'solution/solution_row_cells.html' %}
-                {% endwith %}
-            </div>
-        {% empty %}
-            <div class="row">
-                <div class="offset2 span8">
-                    <p class="muted">No solutions have been offered to this task.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for solution in solutions %}
+                <div class="row">
+                    {% with offset="offset2" %}
+                        {% include 'solution/solution_row_cells.html' %}
+                    {% endwith %}
                 </div>
-            </div>
-        {% endfor %}
-    </form>
-    <hr/>
+            {% empty %}
+                <div class="row">
+                    <div class="offset2 span8">
+                        <p class="muted">No solutions have been offered to this task.</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </form>
+        <hr/>
+    {% endif %}
     {% include "joltem/commenting.html" %}
     {% block scripts %}
         <script>
