@@ -11,6 +11,7 @@ from twisted.internet import reactor
 from git.models import Repository, REPOSITORIES_DIRECTORY
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import GitProcessProtocol, GitReceivePackProcessProtocol
+from .utils import parse_repository_id
 
 
 class GatewaySession(SSHSession):
@@ -56,9 +57,10 @@ class GatewaySessionInterface():
         process = command[0]
         if process == "git-upload-pack" or process == "git-receive-pack":
             try:
-                repository_id = int(command[1])
+                repository_id = parse_repository_id(command[1])
                 repository = Repository.objects.get(id=repository_id)
-            except (ValueError, Repository.DoesNotExist, Repository.MultipleObjectsReturned):
+                print dir(repository)
+            except (Repository.DoesNotExist, Repository.MultipleObjectsReturned):
                 protocol.write("Repository not found.")
             else:
                 if process == "git-receive-pack":
