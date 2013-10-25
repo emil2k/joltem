@@ -22,7 +22,10 @@ class TaskBaseView(ProjectBaseView):
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
         try:
-            kwargs["vote"] = self.user.task_vote_set.get(id=self.task.id)
+            kwargs["vote"] = Vote.objects.get(
+                task_id=self.task.id,
+                voter_id=self.user.id
+            )
         except Vote.DoesNotExist:
             kwargs["vote"] = None
         return super(TaskBaseView, self).get_context_data(**kwargs)

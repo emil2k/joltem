@@ -75,14 +75,20 @@
                         </div>
                     {% endif %}
                 {% else %}
-                    <div class="alert">
-                        <strong>This task should be reviewed.</strong> It was posted on {{ task.time_posted|date }}.
-                    </div>
+                    {% if vote %}
+                        <div class="alert">
+                            <strong>This task is being reviewed.</strong> You voted on {{ vote.time_voted|date }}.
+                        </div>
+                    {% else %}
+                        <div class="alert">
+                            <strong>You should review this task.</strong> It was posted on {{ task.time_posted|date }}.
+                        </div>
+                    {% endif %}
                 {% endif %}
             {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">
-                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.default_title }}</a> by {{ task.parent.user.first_name }}
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.default_title }}</a> by {{ task.parent.owner.first_name }}
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>

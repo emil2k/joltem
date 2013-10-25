@@ -6,6 +6,7 @@ from joltem.models import Commentable
 
 NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
 NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
+NOTIFICATION_TYPE_TASK_REJECTED = "task_rejected"
 
 
 class Task(Commentable):
@@ -94,47 +95,56 @@ class Task(Commentable):
         vote.is_accepted = is_accepted
         vote.time_voted = timezone.now()
         vote.save()
+        self.determine_acceptance(vote)
 
-    def mark_accepted(self, acceptor):  # todo unsure whether to keep these functions
+    def determine_acceptance(self, vote):
         """
-        Mark task accepted, allow it to solicit solutions
-        `owner`, specifies task owner responsible for administrating it if the task is a suggested task
+        Called after each vote is cast on a task to determine if the task's review is complete, and if so
+        whether it was accepted or not.
+
+        Criteria for acceptance :
+        - An acceptance vote from a project admin.
+
+        Criteria for rejection :
+        - A rejection vote from a project admin.
+
+        Keyword argument :
+        vote -- the vote to process.
+
         """
-        if not self.parent or self.parent.owner_id != self.author_id:  # a suggested task, on master all considered suggested
-            self.owner = acceptor
-        else:
-            self.owner = self.author
-        self.is_accepted = True
-        self.time_accepted = timezone.now()
+        if self.project.is_admin(vote.voter_id):
+            self.mark_reviewed(vote.voter, vote.is_accepted)
+
+    def mark_reviewed(self, acceptor, is_accepted):
+        """
+        Indicate that the task has been reviewed, change the `is_reviewed` state and set `is_accepted`.
+
+        Keyword arguments :
+        acceptor -- person who accepted the task, might become owner of task
+        is_accepted -- whether the task was accepted or rejected
+
+        """
+        if is_accepted:
+            if not self.parent or self.parent.owner_id != self.author_id:  # a suggested task, on master all suggested
+                self.owner = acceptor  # todo this is wrong, the acceptor should not always be made the task owner, write tests
+        self.is_reviewed = True
+        self.is_accepted = is_accepted
+        self.time_reviewed = timezone.now()
         self.is_closed = False  # if task was closed, reopen it
         self.time_closed = None
         self.save()
-        self.notify_accepted(acceptor)
+        self.notify_reviewed(acceptor, is_accepted)
 
-    def mark_unaccepted(self):  # todo unsure whether to keep these functions
+    def notify_reviewed(self, acceptor, is_accepted):
         """
-        Mark task unaccepted, disallow it to solicit solutions
-        """
-        self.owner = self.author  # revert ownership back to author when unaccepted
-        self.is_accepted = False
-        self.time_accepted = None
-        self.save()
-        self.notify_unaccepted()
+        Notify task author, if not the acceptor, that the task was either accepted or rejected.
 
-    def notify_accepted(self, acceptor):
         """
-        Notify task author, if not the owner, that the task was accepted
-        """
+        type = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted else NOTIFICATION_TYPE_TASK_REJECTED
         if self.owner_id != self.author_id:  # suggested task accepted
-            self.notify(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED, True)
+            self.notify(self.author, type, True)
         elif acceptor.id != self.author_id:
-            self.notify(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED, True)
-
-    def notify_unaccepted(self):
-        """
-        Delete any notifications that the task was accepted
-        """
-        self.delete_notifications(self.author, NOTIFICATION_TYPE_TASK_ACCEPTED)
+            self.notify(self.author, type, True)
 
     def notify_created(self):
         """Send out appropriate notifications about the task being posted"""
@@ -157,11 +167,13 @@ class Task(Commentable):
             return "%s commented on task \"%s\"" % (list_string_join(first_names), self.title)
         elif NOTIFICATION_TYPE_TASK_POSTED == notification.type:
             if notification.kwargs["role"] == "parent_solution":
-                return "%s posted a task on your solution \"%s\"" % (self.owner.first_name, self.parent.default_title)
+                return "%s posted a task on your solution \"%s\"" % (self.author.first_name, self.parent.default_title)
             elif notification.kwargs["role"] == "project_admin":
-                return "%s posted a task" % self.owner.first_name
+                return "%s posted a task" % self.author.first_name
         elif NOTIFICATION_TYPE_TASK_ACCEPTED == notification.type:
             return "Your task \"%s\" was accepted" % self.title
+        elif NOTIFICATION_TYPE_TASK_REJECTED == notification.type:
+            return "Your task \"%s\" was not accepted" % self.title
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):
