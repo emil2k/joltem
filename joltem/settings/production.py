@@ -34,12 +34,14 @@ INSTALLED_APPS += (
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',   # using mysql
-        'NAME': 'joltem',                             # database name
-        'USER': 'joltem',                             # database user
-        'PASSWORD': 'joltem',                         # database password
-        'HOST': 'localhost',                             # host for database server
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'joltem',
+        'USER': 'joltem',
+        'PASSWORD': 'joltem',
+        'HOST': 'localhost',
     }
 }
 
 SECRET_KEY = 'imsosecret'
+
+logging.info("Production settings loaded.")
