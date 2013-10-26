@@ -1,4 +1,4 @@
-template "#{node[:nginx][:dir]}/sites-enabled/joltem.conf" do
+template "#{node[:nginx][:directories][:conf_dir]}/sites-enabled/joltem.conf" do
     source      "nginx/joltem.conf.erb"
     owner       'root'
     group       'root'

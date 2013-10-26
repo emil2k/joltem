@@ -19,33 +19,12 @@
 [submodule "vagrant/cookbooks/python"]
 	path = vagrant/cookbooks/python
 	url = https://github.com/opscode-cookbooks/python
-[submodule "vagrant/cookbooks/nginx"]
-	path = vagrant/cookbooks/nginx
-	url = https://github.com/opscode-cookbooks/nginx
 [submodule "vagrant/cookbooks/runit"]
 	path = vagrant/cookbooks/runit
 	url = https://github.com/opscode-cookbooks/runit
-[submodule "vagrant/cookbooks/ohai"]
-	path = vagrant/cookbooks/ohai
-	url = https://github.com/opscode-cookbooks/ohai
-[submodule "vagrant/cookbooks/windows"]
-	path = vagrant/cookbooks/windows
-	url = https://github.com/opscode-cookbooks/windows
-[submodule "vagrant/cookbooks/yum"]
-	path = vagrant/cookbooks/yum
-	url = https://github.com/opscode-cookbooks/yum
 [submodule "vagrant/cookbooks/redis"]
 	path = vagrant/cookbooks/redis
 	url = git://github.com/ctrabold/chef-redis.git
-[submodule "vagrant/cookbooks/postgresql"]
-	path = vagrant/cookbooks/postgresql
-	url = https://github.com/opscode-cookbooks/postgresql
 [submodule "vagrant/cookbooks/openssl"]
 	path = vagrant/cookbooks/openssl
 	url = https://github.com/opscode-cookbooks/openssl
-[submodule "vagrant/cookbooks/mysql"]
-	path = vagrant/cookbooks/mysql
-	url = https://github.com/opscode-cookbooks/mysql
-[submodule "vagrant/cookbooks/database"]
-	path = vagrant/cookbooks/database
-	url = https://github.com/opscode-cookbooks/database
