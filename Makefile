@@ -23,7 +23,7 @@ lint: $(ENV)
 .PHONY: run
 # target: run - Run Django development server
 run: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py runserver --settings=joltem.settings.$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py runserver 0.0.0.0:8000 --settings=joltem.settings.$(SETTINGS)
 
 .PHONY: db
 # target: db - Prepare database
@@ -41,5 +41,26 @@ $(ENV): requirements.txt
 	$(ENV)/bin/pip install -M -r requirements.txt
 	touch $(ENV)
 
-test: $(ENV)
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --failfast
+.PHONY: test
+# target: test - Run project's tests
+test: $(ENV) test_joltem test_project test_solution test_task test_git
+
+.PHONY: test_joltem
+test_joltem: $(ENV) joltem
+	$(ENV)/bin/python manage.py test joltem --settings=joltem.settings.test --failfast
+
+.PHONY: test_project
+test_project: $(ENV) project
+	$(ENV)/bin/python manage.py test project --settings=joltem.settings.test --failfast
+
+.PHONY: test_solution
+test_solution: $(ENV) solution
+	$(ENV)/bin/python manage.py test solution --settings=joltem.settings.test --failfast
+
+.PHONY: test_task
+test_task: $(ENV) task
+	$(ENV)/bin/python manage.py test task --settings=joltem.settings.test --failfast
+
+.PHONY: test_git
+test_git: $(ENV) git
+	$(ENV)/bin/python manage.py test git --settings=joltem.settings.test --failfast

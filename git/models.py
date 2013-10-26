@@ -1,3 +1,5 @@
+""" Git related modules. """
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -11,13 +13,13 @@ import logging
 logger = logging.getLogger('joltem')
 
 MAIN_DIR = op.dirname(settings.PROJECT_ROOT)
-REPOSITORIES_DIRECTORY = '%sgateway/repositories' % MAIN_DIR
+REPOSITORIES_DIRECTORY = '%s/gateway/repositories' % MAIN_DIR
 
 
 class Repository(models.Model):
-    """
-    Git repository
-    """
+
+    """ Git repository. """
+
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_hidden = models.BooleanField(default=False)
@@ -26,14 +28,19 @@ class Repository(models.Model):
 
     @property
     def absolute_path(self):
+        """ Absolute path to repository.
+
+        :return str: Path to repository
+
         """
-        Absolute path to repository
-        """
+
         return "%s/%d.git" % (REPOSITORIES_DIRECTORY, self.id)
 
     def load_pygit_object(self):
-        """
-        Loads pygit2 repository object for this repository
+        """ Load pygit2 repository object for this repository.
+
+        :return PyGitRepository:
+
         """
         from pygit2 import Repository as PyGitRepository
         return PyGitRepository(self.absolute_path)
@@ -41,24 +48,39 @@ class Repository(models.Model):
     def __unicode__(self):
         return self.full_name
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(
+            self, force_insert=False, force_update=False, using=None,
+            update_fields=None):
+        """ Save model and init git repository.
+
+        :return Model: A saved instance
+
+        """
         new = False if self.pk else True
-        super(Repository, self).save(force_insert, force_update, using, update_fields)
+        obj = super(Repository, self).save(
+            force_insert, force_update, using, update_fields)
         if new:
             from pygit2 import init_repository
             # Initiate bare repository on server
             init_repository(self.absolute_path, bare=True)
+        return obj
 
     def delete(self, using=None):
-        super(Repository, self).delete(using)
+        """ Delete repository from disk.
+
+        NOTE: Should be backup.
+
+        """
         from shutil import rmtree
         rmtree(self.absolute_path)
 
+        super(Repository, self).delete(using)
+
 
 class Authentication(models.Model):
-    """
-    A public authentication key for SSH
-    """
+
+    """ A public authentication key for SSH. """
+
     name = models.CharField(max_length=200)
     key = models.TextField()  # open ssh representation of public rsa key
     fingerprint = models.CharField(max_length=47)
@@ -67,9 +89,10 @@ class Authentication(models.Model):
 
     @classmethod
     def load_key(cls, data):
-        """
-        Attempts to parse data to check if it is a valid public ssh rsa key.
-        Returns an instance of a twisted Key object or raises BadKeyError.
+        """ Attempt to parse data to check if it is a valid public ssh rsa key.
+
+        :return: Returns an instance of a twisted Key object
+        :raise: BadKeyError.
 
         Keyword argument:
         blob -- data to parse as rsa public key
@@ -88,12 +111,18 @@ class Authentication(models.Model):
 
     @property
     def blob(self):
+        """ Key body.
+
+        :return blob:
+
+        """
         key = Authentication.load_key(self.key)
         return key.blob()
 
-
     @blob.setter
     def blob(self, value):
+        """ Load key. """
+
         key = Authentication.load_key(value)
         self.key = key.toString('OPENSSH')
         self.fingerprint = key.fingerprint()
