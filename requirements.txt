@@ -6,6 +6,9 @@ psycopg2==2.5.1
 pygit2==0.18.0
 markdown>=2.1
 django-mathfilters
+twisted==13.1.0
+pycrypto==2.6.1
+pyasn1==0.1.7
 
 # Develop
 # =======
