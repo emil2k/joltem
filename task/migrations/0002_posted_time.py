@@ -8,6 +8,9 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        db.add_column(u'task_task', 'parent',
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='tasks', null=True, to=orm['solution.Solution']))
+
         # Adding field 'Task.time_posted'
         db.add_column(u'task_task', 'time_posted',
                       self.gf('django.db.models.fields.DateTimeField')(default=timezone.now),

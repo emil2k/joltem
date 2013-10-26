@@ -25,11 +25,11 @@ INSTALLED_APPS += (
     'south',
 
     # Project
-    'git',
     'joltem',
     'project',
     'solution',
     'task',
+    'git',
 )
 
 DATABASES = {
