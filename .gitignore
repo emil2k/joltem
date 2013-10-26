@@ -1,8 +1,15 @@
 *.log
+*.log.*
 *.pem
+*.pid
 *.pyc
 .idea
+.ropeproject
+.tags
 .vagrant
+_trial_temp
+gateway/id_rsa
+gateway/id_rsa.pub
 git/gitolite/gitolite-admin
 git/gitolite/keydir
 git/repositories
@@ -11,4 +18,3 @@ joltem/settings/local.py
 pylama.ini
 pylama.report
 workspace.xml
-.tags

@@ -1,6 +1,14 @@
 ENV = $(shell echo $${VDIR:-.env})
 SETTINGS ?= chefenv
 
+.PHONY: clean
+# target: clean - Clean temporary files
+clean:
+	@rm -f *.py[co]
+	@rm -f *.orig
+	@rm -f */*.py[co]
+	@rm -f */*.orig
+ 
 .PHONY: help
 # target: help - Display callable targets
 help:
