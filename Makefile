@@ -32,3 +32,6 @@ $(ENV): requirements.txt
 	virtualenv --no-site-packages $(ENV)
 	$(ENV)/bin/pip install -M -r requirements.txt
 	touch $(ENV)
+
+test: $(ENV)
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --failfast
