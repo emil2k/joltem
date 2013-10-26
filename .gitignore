@@ -14,6 +14,7 @@ git/gitolite/gitolite-admin
 git/gitolite/keydir
 git/repositories
 gitolite-update
+joltem/settings/chefenv.py
 joltem/settings/local.py
 pylama.ini
 pylama.report
