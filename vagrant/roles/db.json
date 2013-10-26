@@ -4,6 +4,14 @@
     "chef_type": "role",
     "json_class": "Chef::Role",
     "default_attributes": {
+        "postgresql": {
+            "ssl": false,
+            "listen_addresses": "*",
+            "pg_hba": [
+                "host all all 0.0.0.0/0 md5",
+                "host all all ::1/0 md5"
+            ]
+        },
         "redis": {
             "bind": false
         }

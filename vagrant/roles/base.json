@@ -19,7 +19,8 @@
         "recipe[build-essential]",
         "recipe[locale]",
         "recipe[timezone]",
-        "recipe[user::data_bag]"
+        "recipe[user::data_bag]",
+        "recipe[joltem::base]"
     ]
 }
 

@@ -8,6 +8,7 @@
         "recipe[python]",
         "recipe[nginx]",
         "recipe[runit]",
+        "recipe[joltem::libgit]",
         "recipe[joltem::app]"
     ]
 }
