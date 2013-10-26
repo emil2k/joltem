@@ -1,9 +1,12 @@
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.tests")
+from django.conf import settings
+settings.configure()
 
 from unittest import TestCase
-from gateway.libs.git.utils import *
+
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
+from gateway.libs.git.utils import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status, get_report
 
 
 class TestingPacketLineSplitter(TestCase):

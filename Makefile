@@ -43,7 +43,7 @@ $(ENV): requirements.txt
 
 .PHONY: test
 # target: test - Run project's tests
-test: $(ENV) test_joltem test_project test_solution test_task test_git
+test: $(ENV) test_joltem test_project test_solution test_task test_git test_gateway
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem
@@ -64,3 +64,7 @@ test_task: $(ENV) task
 .PHONY: test_git
 test_git: $(ENV) git
 	$(ENV)/bin/python manage.py test git --settings=joltem.settings.test --failfast
+
+.PHONY: test_gateway
+test_gateway: $(ENV) gateway
+	trial gateway/tests.py

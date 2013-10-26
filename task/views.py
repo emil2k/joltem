@@ -21,8 +21,10 @@ class TaskBaseView(ProjectBaseView):
         kwargs["task"] = self.task
         kwargs["is_owner"] = self.is_owner
         kwargs["is_acceptor"] = self.is_acceptor
-        kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
-        kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
+        kwargs["comments"] = CommentHolder.get_comments(
+            self.task.comment_set.all().order_by('time_commented'), self.user)
+        kwargs["solutions"] = self.task.solution_set.all().order_by(
+            '-time_posted')
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
@@ -87,10 +89,12 @@ class TaskCreateView(TemplateView, ProjectBaseView):
     parent_solution = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(TaskCreateView, self).initiate_variables(request, *args, **kwargs)
+        super(TaskCreateView, self).initiate_variables(
+            request, *args, **kwargs)
         parent_solution_id = self.kwargs.get("parent_solution_id", None)
         if parent_solution_id is not None:
-            self.parent_solution = get_object_or_404(Solution, id=parent_solution_id)
+            self.parent_solution = get_object_or_404(
+                Solution, id=parent_solution_id)
             if self.parent_solution.is_completed:
                 return redirect('project:solution:solution', project_name=self.project.name, solution_id=self.parent_solution.id)
 
@@ -116,6 +120,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
 
 
 class TaskBaseListView(ListView, ProjectBaseView):
+
     """
     Base view for displaying lists of tasks
     """
@@ -151,6 +156,7 @@ class MyUnacceptedTasksView(TaskBaseListView):
 
 
 class MyReviewTasksView(TaskBaseListView):
+
     """
     List of unaccepted tasks that the user is responsible for accepting
     """
@@ -180,6 +186,7 @@ class AllClosedTasksView(TaskBaseListView):
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
+
     """
     Base view for displaying subtasks for a given task, grouped by the solutions they represent
     """
@@ -188,14 +195,17 @@ class SubtaskBaseView(ListView, ProjectBaseView):
     project_tab = "tasks"
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(SubtaskBaseView, self).initiate_variables(request, *args, **kwargs)
-        self.parent_task = get_object_or_404(Task, id=kwargs.get('parent_task_id', None))
+        super(SubtaskBaseView, self).initiate_variables(
+            request, *args, **kwargs)
+        self.parent_task = get_object_or_404(
+            Task, id=kwargs.get('parent_task_id', None))
 
     def get_context_data(self, **kwargs):
         kwargs["parent_task"] = self.parent_task
         return super(SubtaskBaseView, self).get_context_data(**kwargs)
 
     class SubtaskGroupHolder:
+
         def __init__(self, solution, tasks):
             self.solution = solution
             self.subtask_set = tasks
@@ -217,11 +227,13 @@ class SubtaskBaseView(ListView, ProjectBaseView):
         for solution in self.get_solution_queryset():
             subtasks = self.get_subtask_queryset(solution)
             if subtasks.count() > 0:
-                subtask_group = SubtaskBaseView.SubtaskGroupHolder(solution, subtasks)
+                subtask_group = SubtaskBaseView.SubtaskGroupHolder(
+                    solution, subtasks)
                 yield subtask_group
 
 
 class SubtaskView(SubtaskBaseView):
+
     """Filters out closed subtasks of closed solutions, currently the only view."""
 
     def get_solution_queryset(self):

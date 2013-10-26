@@ -7,6 +7,7 @@ from joltem.models import Commentable
 NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
 NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
 
+
 class Task(Commentable):
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
@@ -18,8 +19,10 @@ class Task(Commentable):
     # Relations
     owner = models.ForeignKey(User)
     project = models.ForeignKey('project.Project')
-    parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="subtask_set")
-    author = models.ForeignKey(User, related_name="tasks_authored_set")  # user who created the task
+    parent = models.ForeignKey(
+        'solution.Solution', null=True, blank=True, related_name="subtask_set")
+    author = models.ForeignKey(
+        User, related_name="tasks_authored_set")  # user who created the task
 
     def __unicode__(self):
         return self.title
@@ -68,7 +71,8 @@ class Task(Commentable):
         Override to notify at creation
         """
         created = not self.pk
-        super(Task, self).save(force_insert, force_update, using, update_fields)
+        super(Task, self).save(
+            force_insert, force_update, using, update_fields)
         if created:
             self.notify_created()
 
@@ -117,11 +121,13 @@ class Task(Commentable):
         """Send out appropriate notifications about the task being posted"""
         if self.parent:
             if self.parent.owner_id != self.author_id:
-                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "parent_solution"})
+                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
+                            "role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
                 if admin.id != self.author_id:
-                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "project_admin"})
+                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
+                                "role": "project_admin"})
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
@@ -144,4 +150,3 @@ class Task(Commentable):
     def get_notification_url(self, url):
         from django.core.urlresolvers import reverse
         return reverse("project:task:task", args=[self.project.name, self.id])
-
