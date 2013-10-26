@@ -11,3 +11,4 @@ joltem/settings/local.py
 pylama.ini
 pylama.report
 workspace.xml
+.tags
