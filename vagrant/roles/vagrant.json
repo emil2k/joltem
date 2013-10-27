@@ -1,6 +1,6 @@
 {
-    "name": "app",
-    "description": "Setup for running applications",
+    "name": "vagrant",
+    "description": "Setup Vagrant instance",
     "chef_type": "role",
     "json_class": "Chef::Role",
     "default_attributes": {

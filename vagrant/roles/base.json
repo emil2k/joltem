@@ -17,10 +17,10 @@
         "recipe[apt]",
         "recipe[sudo]",
         "recipe[build-essential]",
+        "recipe[joltem::base]",
         "recipe[locale]",
         "recipe[timezone]",
-        "recipe[user::data_bag]",
-        "recipe[joltem::base]"
+        "recipe[user::data_bag]"
     ]
 }
 

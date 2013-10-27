@@ -28,3 +28,27 @@
 [submodule "vagrant/cookbooks/openssl"]
 	path = vagrant/cookbooks/openssl
 	url = https://github.com/opscode-cookbooks/openssl
+[submodule "vagrant/cookbooks/yum"]
+	path = vagrant/cookbooks/yum
+	url = https://github.com/opscode-cookbooks/yum
+[submodule "vagrant/cookbooks/java"]
+	path = vagrant/cookbooks/java
+	url = https://github.com/opscode-cookbooks/java
+[submodule "vagrant/cookbooks/aws"]
+	path = vagrant/cookbooks/aws
+	url = https://github.com/opscode-cookbooks/aws
+[submodule "vagrant/cookbooks/windows"]
+	path = vagrant/cookbooks/windows
+	url = https://github.com/opscode-cookbooks/windows
+[submodule "vagrant/cookbooks/chef_handler"]
+	path = vagrant/cookbooks/chef_handler
+	url = https://github.com/opscode-cookbooks/chef_handler
+[submodule "vagrant/cookbooks/apache2"]
+	path = vagrant/cookbooks/apache2
+	url = https://github.com/opscode-cookbooks/apache2
+[submodule "vagrant/cookbooks/iptables"]
+	path = vagrant/cookbooks/iptables
+	url = https://github.com/opscode-cookbooks/iptables
+[submodule "vagrant/cookbooks/jenkins"]
+	path = vagrant/cookbooks/jenkins
+	url = https://github.com/opscode-cookbooks/jenkins

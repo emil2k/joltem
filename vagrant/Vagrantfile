@@ -1,0 +1,61 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby:fdm=marker
+
+# Options {{{
+#
+APP_HOST = '33.33.33.34'
+APP_HOSTNAME = 'tools.joltem.local'
+APP_ROLES = ['pypi', 'jenkins']
+APP_JSON = {
+    :chef_environment => 'vagrant',
+}
+CONFIGURATION = '.'
+
+# }}}
+
+
+# Vagrant 2.0.x {{{
+#
+Vagrant.configure("2") do |config|
+ 
+    # Every Vagrant virtual environment requires a box to build off of.
+    config.vm.box = "raring64"
+    config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
+
+    # Set hostname
+    config.vm.hostname = APP_HOSTNAME
+
+    # Configure network
+    config.vm.network :private_network, ip: APP_HOST
+
+    # Configure provider
+    config.vm.provider :virtualbox do |vb|
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--name", APP_HOSTNAME]
+    end
+
+    config.vm.provision :shell, :inline => "apt-get install ruby1.9.1-dev --no-upgrade"
+    config.vm.provision :shell, :inline => "gem install chef --version 11.6.0 --no-rdoc --no-ri --conservative"
+
+    # Enable provisioning with chef solo
+    config.vm.provision :chef_solo do |chef|
+        chef.log_level = :info
+        chef.cookbooks_path = "#{ CONFIGURATION }/cookbooks"
+        chef.roles_path = "#{ CONFIGURATION }/roles"
+        chef.data_bags_path = "#{ CONFIGURATION }/data_bags"
+
+        APP_ROLES.each do |role|
+            chef.add_role role
+        end
+        chef.json = APP_JSON
+
+    end
+
+    # SSH config
+    # config.ssh.forward_x11 = true
+    config.ssh.forward_agent = true
+end
+# }}}
+
+
