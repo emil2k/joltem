@@ -1,6 +1,8 @@
+from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
+
 
 from joltem.holders import CommentHolder
 from task.models import Task, Vote
@@ -33,6 +35,16 @@ class TaskBaseView(ProjectBaseView):
 
 class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     template_name = "task/task.html"
+
+    def get_context_data(self, **kwargs):
+        accept_votes_qs = self.task.vote_set.filter(is_accepted=True)
+        reject_votes_qs = self.task.vote_set.filter(is_accepted=False)
+        impact_total = lambda qs: qs.aggregate(impact_total=Sum('voter_impact'))['impact_total'] or 0
+        kwargs["task_accept_votes"] = accept_votes_qs.order_by('time_voted')
+        kwargs["task_reject_votes"] = reject_votes_qs.order_by('time_voted')
+        kwargs["task_accept_total"] = impact_total(accept_votes_qs)
+        kwargs["task_reject_total"] = impact_total(reject_votes_qs)
+        return super(TaskView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
