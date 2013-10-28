@@ -31,7 +31,6 @@ def get_mock_task(project, user, solution=None, author=None, is_closed=False, is
         project=project,
         parent=solution,
         is_accepted=is_accepted,
-        time_accepted=timezone.now() if is_accepted else None,
         is_closed=is_closed,
         time_closed=timezone.now() if is_closed else None,
     )

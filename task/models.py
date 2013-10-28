@@ -31,7 +31,6 @@ class Task(Commentable):
     is_closed = models.BooleanField(default=False)
     time_posted = models.DateTimeField(default=timezone.now)
     time_reviewed = models.DateTimeField(null=True, blank=True)
-    time_accepted = models.DateTimeField(null=True, blank=True)  # todo deprecated not necessary since same as above
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
     owner = models.ForeignKey(User)
