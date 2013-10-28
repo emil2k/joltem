@@ -70,7 +70,7 @@ class Task(Commentable):
     def iterate_parents(self):
         """
         Iterate through parents, returns a tuple with the parent solution and task.
-        
+
         """
         parent_solution, parent_task = self.parent, None
         yield parent_solution, parent_task

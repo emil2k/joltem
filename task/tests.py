@@ -36,6 +36,17 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
         self.task.put_vote(self.jack, False)  # overwrite vote
         self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=False).exists())
 
+    def test_determine_acceptance(self):
+        t = get_mock_task(self.project, self.jill)
+        t.put_vote(self.jack, False)
+        self.assertEqual(t.vote_set.count(), 1)
+        self.assertFalse(t.is_accepted)
+        self.project.admin_set.add(self.jill)  # make jill an admin of the project
+        self.project.save()
+        t.put_vote(self.jill, True)
+        self.assertEqual(t.vote_set.count(), 2)
+        self.assertTrue(t.is_accepted)
+
 
 class PermissionsTestCase(TestCaseDebugMixin, TestCase):
 
