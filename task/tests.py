@@ -13,9 +13,10 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
         self.project = get_mock_project("zune")
         self.jill = get_mock_user('jill')
         self.jack = get_mock_user('jack')  # other user
-        self.task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
+        self.task = get_mock_task(self.project, self.jill)
 
     def test_subtask_count(self):
+        self.task.mark_reviewed(self.jill, is_accepted=True)
         s = get_mock_solution(self.project, self.jill, task=self.task)
         t1 = get_mock_task(self.project, self.jack, solution=s, is_reviewed=True, is_accepted=True)
         t2 = get_mock_task(self.project, self.jack, solution=s)  # this one should not count
@@ -37,15 +38,37 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
         self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=False).exists())
 
     def test_determine_acceptance(self):
-        t = get_mock_task(self.project, self.jill)
-        t.put_vote(self.jack, False)
-        self.assertEqual(t.vote_set.count(), 1)
-        self.assertFalse(t.is_accepted)
+        self.task = get_mock_task(self.project, self.jill)
+        self.task.put_vote(self.jack, False)
+        self.assertEqual(self.task.vote_set.count(), 1)
+        self.assertFalse(self.task.is_accepted)
         self.project.admin_set.add(self.jill)  # make jill an admin of the project
         self.project.save()
-        t.put_vote(self.jill, True)
-        self.assertEqual(t.vote_set.count(), 2)
-        self.assertTrue(t.is_accepted)
+        self.task.put_vote(self.jill, True)
+        self.assertEqual(self.task.vote_set.count(), 2)
+        self.assertTrue(self.task.is_accepted)
+
+    def test_mark_reviewed_accepted(self):
+        self.task.mark_reviewed(self.jill, is_accepted=True)
+        self.assertTrue(self.task.is_accepted)
+
+    def test_mark_reviewed_rejected(self):
+        self.task.mark_reviewed(self.jill, is_accepted=False)
+        self.assertFalse(self.task.is_accepted)
+
+    def test_mark_reviewed_accepted_no_parent(self):
+        self.assertTrue(self.task.owner_id, self.jill.id)  # assumption, jill owns originally
+        self.task.mark_reviewed(self.jack, is_accepted=True)
+        self.assertTrue(self.task.owner_id, self.jack.id)  # has no parent solution, so acceptor takes ownership
+        self.assertTrue(self.task.is_accepted)
+
+    def test_mark_reviewed_accepted_with_parent(self):
+        self.task.mark_reviewed(self.jill, True)
+        s = get_mock_solution(self.project, self.jill, task=self.task)
+        t = get_mock_task(self.project, self.jack, solution=s)
+        t.mark_reviewed(self.jack, is_accepted=True)
+        self.assertTrue(t.owner_id, self.jill.id)  # jill is the owner of the parent solution, so it becomes her task
+        self.assertTrue(self.task.is_accepted)
 
 
 class PermissionsTestCase(TestCaseDebugMixin, TestCase):

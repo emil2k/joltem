@@ -27,6 +27,10 @@ class Task(Commentable):
     time_posted -- date and time when the task was originally posted.
     time_reviewed -- date and time of when the review of the task was completed.
     time_closed -- date and time of last time (could be reopened) when the task was marked closed.
+    owner -- the user responsible for administrating the task.
+    project -- the project the task belongs to.
+    parent -- if task is a subtask to a solution, this is the parent solution.
+    author -- the person who initially suggested the task.
 
     """
     title = models.CharField(max_length=200)
@@ -141,9 +145,9 @@ class Task(Commentable):
         is_accepted -- whether the task was accepted or rejected
 
         """
-        if is_accepted:
-            if not self.parent or self.parent.owner_id != self.author_id:  # a suggested task, on master all suggested
-                self.owner = acceptor  # todo this is wrong, the acceptor should not always be made the task owner, write tests
+        if is_accepted and \
+                (not self.parent or self.parent.owner_id != self.author_id):  # a suggested task
+                self.owner = acceptor
         self.is_reviewed = True
         self.is_accepted = is_accepted
         self.time_reviewed = timezone.now()
