@@ -169,18 +169,29 @@ class MyUnacceptedTasksView(TaskBaseListView):
 
 class MyReviewTasksView(TaskBaseListView):
     """
-    List of unaccepted tasks that the user is responsible for accepting
+    List of tasks the user should review.
+
     """
     tasks_tab = "my_review"
-    # todo this view needs to be altered
 
-    def iterate_tasks_to_accept(self):
-        for task in self.project.task_set.filter(is_accepted=False, is_closed=False).order_by('-time_posted'):
-            if task.is_acceptor(self.user):
+    def iterate_tasks_to_review(self):
+        for task in Task.objects.filter(is_reviewed=False, is_closed=False).order_by('-time_posted'):
+            if not self.user.task_vote_set.filter(task_id=task.id).exists():
                 yield task
 
     def get_queryset(self):
-        return (task for task in self.iterate_tasks_to_accept())
+        return (task for task in self.iterate_tasks_to_review())
+
+
+class MyReviewedTasksView(TaskBaseListView):
+    """
+    List of tasks the user has reviewed.
+
+    """
+    tasks_tab = "my_reviewed"
+
+    def get_queryset(self):
+        return (task_vote.task for task_vote in self.user.task_vote_set.all().order_by('-time_voted'))
 
 
 class AllOpenTasksView(TaskBaseListView):
