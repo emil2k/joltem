@@ -1,51 +1,22 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 from django.db import models
+from django.utils import timezone
 
 
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Adding model 'Vote'
-        db.create_table(u'task_vote', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(related_name='task_vote_set', to=orm['auth.User'])),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
-        ))
-        db.send_create_signal(u'task', ['Vote'])
-
-        # Adding unique constraint on 'Vote', fields ['voter', 'task']
-        db.create_unique(u'task_vote', ['voter_id', 'task_id'])
-
-        # Adding field 'Task.is_reviewed'
-        db.add_column(u'task_task', 'is_reviewed',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'Task.time_reviewed'
-        db.add_column(u'task_task', 'time_reviewed',
-                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
-                      keep_default=False)
-
+        # Assume all old tasks were reviewed
+        for task in orm.Task.objects.all():
+            task.is_reviewed = True
+            task.time_reviewed = task.time_accepted or timezone.now()
+            task.save()
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Vote', fields ['voter', 'task']
-        db.delete_unique(u'task_vote', ['voter_id', 'task_id'])
-
-        # Deleting model 'Vote'
-        db.delete_table(u'task_vote')
-
-        # Deleting field 'Task.is_reviewed'
-        db.delete_column(u'task_task', 'is_reviewed')
-
-        # Deleting field 'Task.time_reviewed'
-        db.delete_column(u'task_task', 'time_reviewed')
-
+        pass
 
     models = {
         u'auth.group': {
@@ -161,3 +132,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['task']
+    symmetrical = True

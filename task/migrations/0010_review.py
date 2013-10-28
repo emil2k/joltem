@@ -8,43 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Vote'
-        db.create_table(u'task_vote', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(related_name='task_vote_set', to=orm['auth.User'])),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
-        ))
-        db.send_create_signal(u'task', ['Vote'])
-
-        # Adding unique constraint on 'Vote', fields ['voter', 'task']
-        db.create_unique(u'task_vote', ['voter_id', 'task_id'])
-
-        # Adding field 'Task.is_reviewed'
-        db.add_column(u'task_task', 'is_reviewed',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'Task.time_reviewed'
-        db.add_column(u'task_task', 'time_reviewed',
-                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
-                      keep_default=False)
+        # Deleting field 'Task.time_accepted'
+        db.delete_column(u'task_task', 'time_accepted')
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Vote', fields ['voter', 'task']
-        db.delete_unique(u'task_vote', ['voter_id', 'task_id'])
-
-        # Deleting model 'Vote'
-        db.delete_table(u'task_vote')
-
-        # Deleting field 'Task.is_reviewed'
-        db.delete_column(u'task_task', 'is_reviewed')
-
-        # Deleting field 'Task.time_reviewed'
-        db.delete_column(u'task_task', 'time_reviewed')
+        # Adding field 'Task.time_accepted'
+        db.add_column(u'task_task', 'time_accepted',
+                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
+                      keep_default=False)
 
 
     models = {
@@ -143,7 +115,6 @@ class Migration(SchemaMigration):
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'subtask_set'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
-            'time_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'time_reviewed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
