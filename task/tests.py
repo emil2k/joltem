@@ -1,8 +1,9 @@
 from django.test import TestCase
-from django.utils import timezone
 
-from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
-from joltem.tests.mocking import *
+from task.models import Vote
+
+from joltem.tests import TestCaseDebugMixin
+from joltem.tests.mocking import get_mock_task, get_mock_project, get_mock_user, get_mock_solution
 
 
 class TaskTestCase(TestCaseDebugMixin, TestCase):
@@ -10,21 +11,30 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
     def setUp(self):
         super(TaskTestCase, self).setUp()
         self.project = get_mock_project("zune")
+        self.jill = get_mock_user('jill')
+        self.jack = get_mock_user('jack')  # other user
+        self.task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
 
     def test_subtask_count(self):
-        jill = get_mock_user('jill')
-        jack = get_mock_user('jack')
-        t0 = get_mock_task(self.project, jill, is_reviewed=True, is_accepted=True)
-        s = get_mock_solution(self.project, jill, task=t0)
-        t1 = get_mock_task(self.project, jack, solution=s, is_reviewed=True, is_accepted=True)
-        t2 = get_mock_task(self.project, jack, solution=s)  # this one should not count
-        self.assertEqual(t0.get_subtask_count(
+        s = get_mock_solution(self.project, self.jill, task=self.task)
+        t1 = get_mock_task(self.project, self.jack, solution=s, is_reviewed=True, is_accepted=True)
+        t2 = get_mock_task(self.project, self.jack, solution=s)  # this one should not count
+        self.assertEqual(self.task.get_subtask_count(
             solution_is_closed=False,
             solution_is_completed=False,
             task_is_reviewed=True,
             task_is_accepted=True,
             task_is_closed=False
         ), 1)
+
+    def test_put_vote(self):
+        self.task.put_vote(self.jack, True)
+        self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=True).exists())
+
+    def test_put_vote_overwrite(self):
+        self.task.put_vote(self.jack, True)
+        self.task.put_vote(self.jack, False)  # overwrite vote
+        self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=False).exists())
 
 
 class PermissionsTestCase(TestCaseDebugMixin, TestCase):
