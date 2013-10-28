@@ -1,4 +1,4 @@
--e git+git://github.com/django/django.git@1.6b4#egg=django
+-e git+https://github.com/django/django.git@1.6c1#egg=django
 MySQL-python==1.2.3
 South==0.8.2
 pygit2==0.19.1
