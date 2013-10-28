@@ -15,7 +15,14 @@ NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
 
 class Solution(Voteable, Commentable):
     """
-    A single task can be worked on by multiple groups at the same time, in different branches for variation.
+    A solution is an execution of work.
+
+    States :
+    is_completed -- whether or not the solution has been marked completed by its owner, when a solution is completed
+        it is placed into peer review.
+    is_closed -- indicates that work on the solution has ceased, without a completion, solution may be deprecated,
+        inactive, etc.
+
     """
     # Optional custom title to solution
     title = models.TextField(null=True, blank=True)

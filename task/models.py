@@ -21,7 +21,7 @@ class Task(Commentable):
     is_reviewed -- whether or not the task has been reviewed, if it hasn't then it is being reviewed. default False.
     is_accepted -- if the task has been reviewed, whether or not it was accepted or rejected. default False.
     is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. if a task is closed
-    otherwise it means it is deprecated. default False.
+        otherwise it means it is deprecated. default False.
 
     """
     title = models.CharField(max_length=200)

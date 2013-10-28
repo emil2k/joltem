@@ -22,11 +22,13 @@ def get_mock_project(name, title=None):
     return p
 
 
-def get_mock_task(project, user, is_reviewed=False, is_accepted=False, is_closed=False, solution=None, author=None):
-    author = user if author is None else author
+def get_mock_task(project, owner,
+                  is_reviewed=False, is_accepted=False, is_closed=False,
+                  solution=None, author=None):
+    author = owner if author is None else author
     t = Task(
-        title="A task by %s" % user.username,
-        owner=user,
+        title="A task by %s" % owner.username,
+        owner=owner,
         author=author,
         project=project,
         parent=solution,
@@ -40,7 +42,10 @@ def get_mock_task(project, user, is_reviewed=False, is_accepted=False, is_closed
     return t
 
 
-def get_mock_solution(project, owner, task=None, solution=None, is_completed=True, is_closed=False, title=None, description=None):
+def get_mock_solution(project, owner,
+                      is_completed=False, is_closed=False,
+                      task=None, solution=None,
+                      title=None, description=None):
     s = Solution(
         title=title,
         description=description,
@@ -79,16 +84,23 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     return v
 
 
-def get_mock_setup_solution(project_name, username, is_completed=True):
+def get_mock_setup_solution(project_name, username, is_completed=True, is_closed=False):
     """
     A shortcut to get a solution to a task.
 
     The task is reviewed, accepted, and open
+
+    Keyword arguments :
+    project_name -- the name of the project.
+    username -- a username for the task & solution owner.
+    is_completed -- whether or not the mock solution is_completed.
+    is_closed -- whether or not the mock solution is closed.
+
     """
     p = get_mock_project(project_name)
     u = get_mock_user(username)
     t = get_mock_task(p, u, is_reviewed=True, is_accepted=True)
-    s = get_mock_solution(p, u, t, None, is_completed)
+    s = get_mock_solution(p, u, task=t, is_completed=is_completed, is_closed=is_closed)
     return p, u, t, s
 
 
