@@ -3,9 +3,9 @@ from project.models import Project
 from git.models import Repository
 
 
-def repository(request, project_name, repository_name):
+def repository(request, project_name, repository_id):
     project = get_object_or_404(Project, name=project_name)
-    repository = get_object_or_404(Repository, name=repository_name, project=project)
+    repository = get_object_or_404(Repository, id=repository_id)
     context = {
         'project': project,
         'repository': repository
@@ -30,6 +30,7 @@ def repositories(request, project_name):
         'repositories_tab': "active",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=False),
+        'host': request.get_host().split(':')[0],
         'action': "hide",
         'is_admin': is_admin
     }
@@ -53,6 +54,7 @@ def repositories_hidden(request, project_name):
         'repositories_tab': "hidden",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=True),
+        'host': request.get_host().split(':')[0],
         'action': "unhide",
         'is_admin': is_admin
     }

@@ -10,7 +10,6 @@ It is meant as an outline of the process and may vary when installing on various
 * [Django](https://www.djangoproject.com) for a [Python](http://www.python.org) web framework.
 	* [South](http://south.readthedocs.org/) for database migrations.
 * [MySQL](http://www.mysql.com) for databases.
-* [Gitolite](http://gitolite.com/gitolite/) as a prelimanary git server which should be able to handle a couple of thousand users, but beyond that we will need a custom solution.
 * [Fabric](http://docs.fabfile.org/) for deployment. 
 * [Bootstrap](http://getbootstrap.com/2.3.2/) for a front-end framework.
 * [PyCharm](http://www.jetbrains.com/pycharm/) *(recommended)* a great Python and Django IDE by *JetBrains*, comes with a 30 day free trial.
@@ -18,18 +17,7 @@ It is meant as an outline of the process and may vary when installing on various
 
 ####Preparation
 
-We will assume the user you login with is named `ec2-user` (because I'm installing on EC2) and we will create a user  `git` for installation of a `gitolite` server and we will add both users to a `git-data` group to share git data.
-
-```
-ec2-user > sudo useradd git
-ec2-user > sudo groupadd git-data
-ec2-user > sudo usermod -a -G git-data git
-ec2-user > groups git
-git : git git-data
-ec2-user > sudo usermod -a -G git-data ec2-user
-ec2-user > groups ec2-user
-ec2-user : ec2-user wheel git-data
-```
+We will assume the user you login with is named `ec2-user` (because I'm installing on EC2).
 
 Generate ssh key **without** a passphrase for `ec2-user` and then copy it to `git` user's home and chown it. This will be used for making `ec2-user` the admin of the `gitolite` server.
 
@@ -64,55 +52,6 @@ ec2-user > sudo mkdir /var/www/
 ...
 ``` 
 
-#### Setup gitolite
-
-Install necessary packages and clone out the main repository so that 
-
-```
-ec2-user > cd ~
-ec2-user > sudo yum install git perl-Time-HiRes
-ec2-user > git clone git@joltem.com:joltem/main
-ec2-user > sudo chown -R git main
-ec2-user > sudo mv main /home/git/
-ec2-user > sudo su git
-```
-
-Switch to `git` user.
-
-```
-git > cd ~
-git > mkdir bin
-git > git clone git://github.com/sitaramc/gitolite
-git > gitolite/install -ln
-git > bin/gitolite setup -pk admin.pub 
-git > mkdir repositories/joltem
-git > mv main/ repositories/joltem/
-git > chgrp git-data .
-git > chmod g+rX .
-git > chgrp -Rv git-data repositories/
-git > chmod -Rv g+wrX repositories/
-```
-
-Change `UMASK` in `.gitolite.rc` to *0007* and set `LOCAL_CODE` path like so.
-
-```
-%RC = (
-
-    # ------------------------------------------------------------------
-    LOCAL_CODE                      =>  '/var/www/joltem/git/gitolite/local-code',
-    # default umask gives you perms of '0700'; see the rc file docs for
-    # how/why you might change this
-    UMASK                           =>  0007,
-
-...
-```
-
-Set the `git` user's `PYTHONPATH` in the `.bashrc` to point to the `virtualenv` that you created for the custom git hooks to run properly.
-
-```
-export PYTHONPATH=/var/www/venv/:/var/www/venv/lib/python2.6/site-packages
-```
-
 #### Setup site
 
 Set up site, and make sure that it has access to the gitolite data and update hook.
@@ -121,11 +60,6 @@ Set up site, and make sure that it has access to the gitolite data and update ho
 ec2-user > cd ~
 ec2-user > git clone git@joltem.com:joltem/main
 ec2-user > sudo mv main/ /var/www/joltem/
-ec2-user > cd /var/www/joltem/git/
-ec2-user > ln -s /home/git/repositories repositories
-ec2-user > ln -s /home/git/.gitolite/hooks/common/update gitolite-update
-ec2-user > cd gitolite
-ec2-user > git clone git@localhost:gitolite-admin
 ```
 
 Install `mysql` and create a database for the site, this will not be covered here there are plenty of [tutorials](http://www.samstarling.co.uk/2010/10/installing-mysql-on-an-ec2-micro-instance/) for this on the internet. 
