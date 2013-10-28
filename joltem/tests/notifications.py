@@ -78,7 +78,7 @@ class TasksNotificationTestCase(NotificationTestCase):
         """
         Test comment notifications delivery from task
         """
-        task = get_mock_task(self.project, self.jill)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         task.add_comment(self.bob, "Bob waz here.")
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task \"%s\"" % task.title)
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on task \"%s\"" % task.title)
@@ -90,7 +90,7 @@ class TasksNotificationTestCase(NotificationTestCase):
         """
         Test multiple comments by one user, notifications should update instead of creating new notifications
         """
-        task = get_mock_task(self.project, self.jill)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         task.add_comment(self.bob, "Bob waz here.")
         task.add_comment(self.jill, "Bob waz here.")
         task.add_comment(self.bob, "Bob waz here.")
@@ -107,12 +107,12 @@ class TasksNotificationTestCase(NotificationTestCase):
         self.project.save()
 
         parent_solution = get_mock_solution(self.project, self.jill, title="Wood Floor", is_completed=False, is_closed=False)
-        jill_task = get_mock_task(self.project, self.jill, solution=parent_solution, is_accepted=False, is_closed=False)
+        jill_task = get_mock_task(self.project, self.jill, solution=parent_solution, is_reviewed=True, is_accepted=False)
         self.assertNotificationNotReceived(self.jill, jill_task, NOTIFICATION_TYPE_TASK_POSTED)  # don't notify yourself
         self.assertNotificationNotReceived(self.ted, jill_task, NOTIFICATION_TYPE_TASK_POSTED)
         self.assertNotificationNotReceived(self.bob, jill_task, NOTIFICATION_TYPE_TASK_POSTED)
 
-        task = get_mock_task(self.project, self.bob, solution=parent_solution, is_accepted=False, is_closed=False)
+        task = get_mock_task(self.project, self.bob, solution=parent_solution, is_reviewed=True, is_accepted=False)
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task on your solution \"%s\"" % parent_solution.default_title)
         self.assertNotificationNotReceived(self.ted, task, NOTIFICATION_TYPE_TASK_POSTED)
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
@@ -127,12 +127,12 @@ class TasksNotificationTestCase(NotificationTestCase):
         self.project.admin_set.add(self.ted)
         self.project.save()
 
-        jill_task = get_mock_task(self.project, self.jill, is_accepted=False, is_closed=False)
+        jill_task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=False)
         self.assertNotificationReceived(self.ted, jill_task, NOTIFICATION_TYPE_TASK_POSTED, "Jill posted a task")
         self.assertNotificationNotReceived(self.jill, jill_task, NOTIFICATION_TYPE_TASK_POSTED)  # don't notify yourself
         self.assertNotificationNotReceived(self.bob, jill_task, NOTIFICATION_TYPE_TASK_POSTED)
 
-        task = get_mock_task(self.project, self.bob, is_accepted=False, is_closed=False)
+        task = get_mock_task(self.project, self.bob, is_reviewed=True, is_accepted=False)
         self.assertNotificationReceived(self.ted, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task")
         self.assertNotificationReceived(self.jill, task, NOTIFICATION_TYPE_TASK_POSTED, "Bob posted a task")
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
@@ -142,10 +142,10 @@ class TasksNotificationTestCase(NotificationTestCase):
         Test notifications when a regular task, created by the owner of a solution on a solution, is accepted
         """
         parent_solution = get_mock_solution(self.project, self.jill, title="Paint it Red", is_closed=False, is_completed=False)
-        parent_task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+        parent_task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
 
         solution = get_mock_solution(self.project, self.bob, task=parent_task, is_closed=False, is_completed=False)
-        task = get_mock_task(self.project, self.bob, solution=solution, is_closed=False, is_accepted=False )
+        task = get_mock_task(self.project, self.bob, solution=solution, is_reviewed=True, is_accepted=False)
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_POSTED)
 
         # Mark it accepted now
@@ -157,7 +157,7 @@ class TasksNotificationTestCase(NotificationTestCase):
         Test notifications when a suggested task is accepted
         """
         solution = get_mock_solution(self.project, self.jill, title="Paint it Blue", is_closed=False, is_completed=False)
-        task = get_mock_task(self.project, self.bob, solution=solution, is_closed=False, is_accepted=False)
+        task = get_mock_task(self.project, self.bob, solution=solution, is_reviewed=True, is_accepted=False)
         self.assertNotificationNotReceived(self.bob, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
         self.assertNotificationNotReceived(self.jill, task, NOTIFICATION_TYPE_TASK_ACCEPTED)
         task.mark_accepted(self.jill)
@@ -174,7 +174,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         """
         Test notification to task owner, when a solution for the task is marked complete
         """
-        task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
         solution.mark_complete()
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE, "Solution \"%s\" was marked complete" % solution.default_title)
@@ -187,7 +187,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         Test notification to a closed task owner, when a solution for the task is marked complete
         since the task is closed there should be no notification
         """
-        task = get_mock_task(self.project, self.jill, is_closed=True, is_accepted=True)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True, is_closed=True)
         solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
         solution.mark_complete()
         self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
@@ -197,7 +197,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         Test notification to a task owner, who did contributed a solution to her own task and marked it complete
         should not receive notification
         """
-        task = get_mock_task(self.project, self.jill, is_closed=False, is_accepted=True)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         solution = get_mock_solution(self.project, self.jill, task=task, is_completed=False, is_closed=False)
         solution.mark_complete()
         self.assertNotificationNotReceived(self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
@@ -227,7 +227,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         self.project.admin_set.add(self.ted)
         self.project.save()
 
-        task = get_mock_task(self.project, self.jill, is_accepted=True, is_closed=False)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         jill_solution = get_mock_solution(self.project, self.jill, task=task, is_completed=False, is_closed=False)
         self.assertNotificationNotReceived(self.jill, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED)  # don't notify yourself
         solution = get_mock_solution(self.project, self.bob, task=task, is_completed=False, is_closed=False)
@@ -276,7 +276,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
         """
         Test comment notifications delivery from solution
         """
-        task = get_mock_task(self.project, self.jill)
+        task = get_mock_task(self.project, self.jill, is_reviewed=True, is_accepted=True)
         solution = get_mock_solution(self.project, self.jill, task=task)
         solution.add_comment(self.bob, "Bob waz here.")
         self.assertNotificationReceived(self.jill, solution, NOTIFICATION_TYPE_COMMENT_ADDED, "Bob commented on solution \"%s\"" % solution.default_title)

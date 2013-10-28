@@ -25,7 +25,7 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Test for solution is_owner function
         """
-        t = get_mock_task(self.project, self.bob)
+        t = get_mock_task(self.project, self.bob, is_reviewed=True, is_accepted=True)
         s = get_mock_solution(self.project, self.zack, t)
 
         self.assertFalse(s.is_owner(self.jill))
@@ -66,7 +66,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         p = get_mock_project("apple")
         jill = get_mock_user("jill")
         ted = get_mock_user("ted")
-        t = get_mock_task(p, jill)
+        t = get_mock_task(p, jill, is_reviewed=True, is_accepted=True)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
         s = load_model(Solution, s)
@@ -76,7 +76,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         p = get_mock_project("apple")
         jill = get_mock_user("jill")
         ted = get_mock_user("ted")
-        t = get_mock_task(p, jill)
+        t = get_mock_task(p, jill, is_reviewed=True, is_accepted=True)
         s = get_mock_solution(p, ted, t)
         c = get_mock_comment(p, jill, s)
         get_mock_vote(ted, c, 100, 1)
@@ -90,7 +90,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         p = get_mock_project("apple")
         jill = get_mock_user("jill")
         ted = get_mock_user("ted")
-        t = get_mock_task(p, jill)
+        t = get_mock_task(p, jill, is_reviewed=True, is_accepted=True)
         self.assertProjectImpactExistence(p, ted, False)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
@@ -111,7 +111,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         self.assertProjectImpactExistence(p, hari, False)
         self.assertImpactEqual(hari, 0)
         # Now if we add a solution, without any votes, the project impact row should be inserted and impact should be 0
-        t = get_mock_task(p, hari)
+        t = get_mock_task(p, hari, is_reviewed=True, is_accepted=True)
         get_mock_solution(p, hari, t)
         self.assertProjectImpactEqual(p, hari, 0)
         self.assertImpactEqual(hari, 0)
@@ -138,7 +138,7 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         """
         p = get_mock_project("levy")
         jay = get_mock_user("jay")
-        t = get_mock_task(p, jay)
+        t = get_mock_task(p, jay, is_reviewed=True, is_accepted=True)
         self.assertImpactEqual(jay, 0)
         TEST_LOGGER.info("**** JAY IMPACT %d" % Profile.objects.get(id=jay.id).impact)
         self.assertCompletedEqual(jay, 0)

@@ -22,7 +22,7 @@ def get_mock_project(name, title=None):
     return p
 
 
-def get_mock_task(project, user, solution=None, author=None, is_closed=False, is_accepted=True):
+def get_mock_task(project, user, is_reviewed=False, is_accepted=False, is_closed=False, solution=None, author=None):
     author = user if author is None else author
     t = Task(
         title="A task by %s" % user.username,
@@ -30,6 +30,8 @@ def get_mock_task(project, user, solution=None, author=None, is_closed=False, is
         author=author,
         project=project,
         parent=solution,
+        is_reviewed=is_reviewed,
+        time_reviewed=timezone.now() if is_reviewed else None,
         is_accepted=is_accepted,
         is_closed=is_closed,
         time_closed=timezone.now() if is_closed else None,
@@ -79,11 +81,13 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
 
 def get_mock_setup_solution(project_name, username, is_completed=True):
     """
-    A shortcut to get a solution
+    A shortcut to get a solution to a task.
+
+    The task is reviewed, accepted, and open
     """
     p = get_mock_project(project_name)
     u = get_mock_user(username)
-    t = get_mock_task(p, u)
+    t = get_mock_task(p, u, is_reviewed=True, is_accepted=True)
     s = get_mock_solution(p, u, t, None, is_completed)
     return p, u, t, s
 

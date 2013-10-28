@@ -23,7 +23,7 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Test for task is_owner function
         """
-        t = get_mock_task(self.project, self.abby)
+        t = get_mock_task(self.project, self.abby, is_reviewed=True, is_accepted=True)
         self.assertFalse(t.is_owner(self.jill))  # admin check
         self.assertFalse(t.is_owner(self.bob))
         self.assertTrue(t.is_owner(self.abby))
@@ -34,9 +34,9 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         s0 = get_mock_solution(self.project, self.abby)
         s1 = get_mock_solution(self.project, self.abby, solution=s0)
-        t2 = get_mock_task(self.project, self.abby, solution=s1)
+        t2 = get_mock_task(self.project, self.abby, solution=s1, is_reviewed=True, is_accepted=True)
         s3 = get_mock_solution(self.project, self.abby, task=t2)
-        t4 = get_mock_task(self.project, self.abby, solution=s3)
+        t4 = get_mock_task(self.project, self.abby, solution=s3, is_reviewed=True, is_accepted=True)
 
         parents = []
         for parent_solution, parent_task in t4.iterate_parents():
