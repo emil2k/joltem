@@ -17,11 +17,16 @@ class Task(Commentable):
     After creation a task must be curated through a staging process, if accepted the task is opened
     and it is available for people to post solutions until it is closed by the owner.
 
-    States :
+    Attributes :
+    title -- title of task.
+    description -- description of task, formatted with markdown.
     is_reviewed -- whether or not the task has been reviewed, if it hasn't then it is being reviewed. default False.
     is_accepted -- if the task has been reviewed, whether or not it was accepted or rejected. default False.
     is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. if a task is closed
         otherwise it means it is deprecated. default False.
+    time_posted -- date and time when the task was originally posted.
+    time_reviewed -- date and time of when the review of the task was completed.
+    time_closed -- date and time of last time (could be reopened) when the task was marked closed.
 
     """
     title = models.CharField(max_length=200)
@@ -64,7 +69,8 @@ class Task(Commentable):
 
     def iterate_parents(self):
         """
-        Iterate through parents, returns a tuple with the parent solution and task
+        Iterate through parents, returns a tuple with the parent solution and task.
+        
         """
         parent_solution, parent_task = self.parent, None
         yield parent_solution, parent_task
@@ -79,6 +85,7 @@ class Task(Commentable):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         """
         Override to notify at creation
+
         """
         created = not self.pk
         super(Task, self).save(force_insert, force_update, using, update_fields)
