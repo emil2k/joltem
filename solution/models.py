@@ -59,15 +59,26 @@ class Solution(Voteable, Commentable):
         else:
             return self.task.title
 
-    @property
-    def get_subtask_count(self):
+    def get_subtask_count(self, solution_is_completed=False, solution_is_closed=False,
+                          task_is_reviewed=False, task_is_accepted=False, task_is_closed=False):
         """
-        Count of subtasks stemming from this solution
+        Count of tasks stemming from this solution
+
+        Keyword arguments :
+        solution_is_completed -- whether solutions included in the count should be completed.
+        solution_is_closed -- whether solutions included in the count should be closed.
+        task_is_reviewed -- whether tasks included in the count should be reviewed.
+        task_is_accepted -- whether tasks included in the count should be accepted.
+        task_is_closed -- whether tasks included in the count should be closed.
+
         """
-        subtasks = self.subtask_set.filter(is_accepted=True)
-        count = subtasks.count()
+        subtasks = self.subtask_set.filter(is_reviewed=task_is_reviewed, is_accepted=task_is_accepted,
+                                           is_closed=task_is_closed)
+        count = 0
         for subtask in subtasks:
-            count += subtask.get_subtask_count
+            count += 1  # for the task it self
+            count += subtask.get_subtask_count(solution_is_completed, solution_is_closed,
+                                               task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
     def has_commented(self, user_id):

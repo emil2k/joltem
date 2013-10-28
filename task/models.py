@@ -41,14 +41,25 @@ class Task(Commentable):
     def __unicode__(self):
         return self.title
 
-    @property
-    def get_subtask_count(self):
+    def get_subtask_count(self, solution_is_completed=False, solution_is_closed=False,
+                          task_is_reviewed=False, task_is_accepted=False, task_is_closed=False):
         """
-        Count of accepted subtasks stemming from this task
+        Count of tasks stemming from this task, that meet state criteria.
+
+        Keyword arguments :
+        solution_is_completed -- whether solutions included in the count should be completed.
+        solution_is_closed -- whether solutions included in the count should be closed.
+        task_is_reviewed -- whether tasks included in the count should be reviewed.
+        task_is_accepted -- whether tasks included in the count should be accepted.
+        task_is_closed -- whether tasks included in the count should be closed.
+
         """
         count = 0
-        for solution in self.solution_set.filter(is_accepted=True):
-            count += solution.get_subtask_count()
+        for solution in self.solution_set.filter(is_completed=solution_is_completed, is_closed=solution_is_closed):
+            count += solution.get_subtask_count(
+                solution_is_completed, solution_is_closed,
+                task_is_reviewed, task_is_accepted, task_is_closed
+            )
         return count
 
     def iterate_parents(self):

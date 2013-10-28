@@ -5,6 +5,28 @@ from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
 from joltem.tests.mocking import *
 
 
+class TaskTestCase(TestCaseDebugMixin, TestCase):
+
+    def setUp(self):
+        super(TaskTestCase, self).setUp()
+        self.project = get_mock_project("zune")
+
+    def test_subtask_count(self):
+        jill = get_mock_user('jill')
+        jack = get_mock_user('jack')
+        t0 = get_mock_task(self.project, jill, is_reviewed=True, is_accepted=True)
+        s = get_mock_solution(self.project, jill, task=t0)
+        t1 = get_mock_task(self.project, jack, solution=s, is_reviewed=True, is_accepted=True)
+        t2 = get_mock_task(self.project, jack, solution=s)  # this one should not count
+        self.assertEqual(t0.get_subtask_count(
+            solution_is_closed=False,
+            solution_is_completed=False,
+            task_is_reviewed=True,
+            task_is_accepted=True,
+            task_is_closed=False
+        ), 1)
+
+
 class PermissionsTestCase(TestCaseDebugMixin, TestCase):
 
     def setUp(self):
