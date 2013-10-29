@@ -1,6 +1,7 @@
 -e git+https://github.com/django/django.git@1.6c1#egg=django
 MySQL-python==1.2.3
 South==0.8.2
+factory-boy==2.2.1
 pygit2==0.19.1
 django-markup-deprecated==0.0.1
 Markdown==2.3.1
