@@ -59,7 +59,6 @@ class GatewaySessionInterface():
             try:
                 repository_id = parse_repository_id(command[1])
                 repository = Repository.objects.get(id=repository_id)
-                print dir(repository)
             except (Repository.DoesNotExist, Repository.MultipleObjectsReturned):
                 protocol.write("Repository not found.")
             else:
