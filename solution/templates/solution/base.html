@@ -1,4 +1,5 @@
 {% extends 'project/base.html' %}
+{% load static from staticfiles %}
 {% load filters %}
 {% load markup %}
 {% block title %}{{ solution.default_title }} - Joltem{% endblock %}
@@ -12,9 +13,21 @@
     </ul>
     {% block solution_content %}{% endblock %}
     {% block scripts %}
+        <script src="{% static 'joltem/js/jquery.jeditable.min.js' %}"></script>
         <script>
             $(document).ready(function() {
+                // Tooltips
                 $(".impact_vote").tooltip();
+                // Editable text
+                $('.editable_comment').each(function(){
+                    $(this).editable('{{ request.path }}', {
+                        type      : 'textarea',
+                        data      : $(this).attr('data-text'),
+                        cancel    : 'Cancel',
+                        submit    : 'Edit',
+                        tooltip   : 'Click to edit...'
+                    });
+                });
             });
         </script>
         {% block solution_scripts %}{% endblock %}

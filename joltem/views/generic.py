@@ -2,6 +2,8 @@ from django.utils import timezone
 from django.views.generic.base import View, ContextMixin
 from django.contrib.contenttypes.generic import ContentType
 from django.core.exceptions import ImproperlyConfigured
+from django.core import context_processors
+from django.template import RequestContext
 
 from solution.models import Solution
 from joltem.models import Comment, Vote
@@ -23,7 +25,11 @@ class RequestBaseView(ContextMixin, View):
 
     def get_context_data(self, **kwargs):
         kwargs["user"] = self.user
-        return super(RequestBaseView, self).get_context_data(**kwargs)
+        return RequestContext(
+            self.request,
+            super(RequestBaseView, self).get_context_data(**kwargs),
+            [context_processors.request]
+        )
 
 
 class TextContextMixin(ContextMixin):
