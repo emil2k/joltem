@@ -37,7 +37,7 @@ class Repository(models.Model):
         return PyGitRepository(self.absolute_path)
 
     def __unicode__(self):
-        return self.full_name
+        return self.name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         new = False if self.pk else True
@@ -88,7 +88,6 @@ class Authentication(models.Model):
     def blob(self):
         key = Authentication.load_key(self.key)
         return key.blob()
-
 
     @blob.setter
     def blob(self, value):
