@@ -3,6 +3,7 @@ from django.views.generic.base import View, ContextMixin
 from django.contrib.contenttypes.generic import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
+from django.http import HttpResponse, HttpResponseNotFound
 from django.template import RequestContext
 
 from solution.models import Solution
@@ -95,10 +96,22 @@ class CommentableView(RequestBaseView):
 
     def post(self, request, *args, **kwargs):
         commentable = self.get_commentable()
+        comment_edit = request.POST.get('comment_edit')
+        comment_id = request.POST.get('comment_id')
+        if request.is_ajax() and comment_edit is not None and comment_id is not None:
+            try:
+                comment = Comment.objects.get(id=comment_id)
+            except Comment.DoesNotExist, Comment.MultipleObjectsReturned:
+                return HttpResponseNotFound("Comment with not found with id : %s" % comment_id)
+            else:
+                comment.comment = comment_edit
+                comment.save()
+                return HttpResponse(comment.comment)  # for Jeditable return data to display # todo run thrown markdown filter
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             commentable.add_comment(self.user, comment_text)
             return self.get_comment_redirect()
+
         return super(CommentableView, self).post(request, *args, **kwargs)
 
     def get_commentable(self):
