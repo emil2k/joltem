@@ -21,11 +21,16 @@
                 // Editable text
                 $('.editable_comment').each(function(){
                     $(this).editable('{{ request.path }}', {
-                        type      : 'textarea',
-                        data      : $(this).attr('data-text'),
-                        cancel    : 'Cancel',
-                        submit    : 'Edit',
-                        tooltip   : 'Click to edit...'
+                        type        : 'textarea',
+                        data        : $(this).attr('data-text'),
+                        name        : 'comment_edit',
+                        submitdata  : {
+                            csrfmiddlewaretoken : '{{ csrf_token }}',
+                            comment_id: $(this).attr('data-id')
+                        },
+                        cancel      : 'Cancel',
+                        submit      : 'Edit',
+                        tooltip     : 'Click to edit...'
                     });
                 });
             });
