@@ -1,1 +1,0 @@
-[{"pk": 1, "model": "git.repository", "fields": {"project": 1, "is_hidden": false, "name": "main", "description": "Website and current git server setup."}}]
