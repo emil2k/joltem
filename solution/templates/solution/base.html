@@ -28,6 +28,7 @@
                             csrfmiddlewaretoken : '{{ csrf_token }}',
                             comment_id: $(this).attr('data-id')
                         },
+                        onblur      : 'ignore',
                         cancel      : 'Cancel',
                         submit      : 'Edit',
                         tooltip     : 'Click to edit...'
