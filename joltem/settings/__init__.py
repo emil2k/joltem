@@ -71,7 +71,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'django.contrib.markup',
+    'markup_deprecated',
     'mathfilters',
     # Database migrations
     'south',

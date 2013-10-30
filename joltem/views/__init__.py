@@ -188,16 +188,16 @@ def keys(request):
     if request.POST:
         remove_id = request.POST.get('remove')
         name = request.POST.get('name')
-        key = request.POST.get('key')
+        data = request.POST.get('key')
         if remove_id:
             key = Authentication.objects.get(id=remove_id)
             key.delete()
-        elif name and key:
+        elif name and data:
             key = Authentication(
                 user=user,
                 name=name,
-                key=key
             )
+            key.blob = data
             key.save()
         return redirect('account_keys')
 

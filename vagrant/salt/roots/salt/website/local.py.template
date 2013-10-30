@@ -1,0 +1,28 @@
+# coding: utf-8
+import os
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '{{ pillar['mysql_db'] }}',
+        'USER': '{{ pillar['mysql_user'] }}',
+        'PASSWORD': '{{ pillar['mysql_password'] }}',
+    }
+}
+
+SECRET_KEY = 'some secret key'
+
+MAIN_DIR = '{{ pillar['website_src_dir'] }}/'
+
+STATIC_ROOT = '{{ pillar['website_static_dir'] }}'
+
+STATIC_URL = '/static/'
+
+GATEWAY_PORT = 222
+GATEWAY_PRIVATE_KEY_FILE_PATH = '{{ pillar['gitserver_private_key_path'] }}'
+GATEWAY_PUBLIC_KEY_FILE_PATH = '{{ pillar['gitserver_public_key_path'] }}'
+GATEWAY_LOGGER_FILE_NAME = 'gateway.log'
+GATEWAY_LOGGER_FILE_DIRECTORY = MAIN_DIR
+GATEWAY_LOGGER_MAX_BYTES = 500 * 1024 * 1024
+GATEWAY_LOGGER_BACKUP_COUNT = 5
