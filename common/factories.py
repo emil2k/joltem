@@ -1,4 +1,7 @@
 # coding: utf-8
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+
 import factory
 from django.contrib.auth.models import User
 
@@ -63,3 +66,7 @@ def init_joltem_project():
     UserF(username='ian', first_name='Ian')
     UserF(username='will', first_name='Will')
     UserF(username='becky', first_name='Becky')
+
+
+if __name__ == '__main__':
+    init_joltem_project()

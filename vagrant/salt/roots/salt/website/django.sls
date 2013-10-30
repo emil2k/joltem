@@ -45,3 +45,13 @@ django-admin migrate:
     - require:
       - virtualenv: {{ pillar['website_venv_dir'] }}
       - file: django settings
+
+django initial data:
+  cmd:
+    - run
+    - cwd: {{ pillar['website_src_dir'] }}
+    - name: >
+              source {{ pillar['website_venv_activate_path'] }} &&
+              python -m common.factories
+    - require:
+      - module: django-admin migrate
