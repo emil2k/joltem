@@ -48,8 +48,3 @@ In order to clone repository you have to add your public key on
 repository id is ``1`` and git server listens ``222`` port:
 
     $ git clone ssh://marsel@joltem.local:222/1
-
-If you want to access mysql server, use following credentials
-(password is `bobcat`):
-
-    $ mysql -u joltem -h joltem.local -p
