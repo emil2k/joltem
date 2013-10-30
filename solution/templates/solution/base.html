@@ -22,7 +22,7 @@
                 $('.editable_comment').each(function(){
                     $(this).editable('{{ request.path }}', {
                         type        : 'textarea',
-                        data        : $(this).attr('data-text'),
+                        loadurl     : $(this).attr('data-loadurl'),
                         name        : 'comment_edit',
                         submitdata  : {
                             csrfmiddlewaretoken : '{{ csrf_token }}',
