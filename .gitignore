@@ -10,3 +10,4 @@ joltem/settings/local.py
 _trial_temp
 gateway/id_rsa
 gateway/id_rsa.pub
+.DS_Store
