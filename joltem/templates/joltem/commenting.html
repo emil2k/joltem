@@ -22,9 +22,13 @@
                 <p>
                     <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
                 </p>
-                <div class="{% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">
+                <div id="comment-edit-{{ comment.id }}" class="{% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">
                     {{ comment.comment|markdown:"tables,fenced_code" }}
                 </div>
+                {% if comment_holder.is_author %}
+                    <a id="activate-comment-edit-{{ comment.id }}" href="{{ comment_holder.url }}" onclick="$('#comment-edit-{{ comment.id }}').trigger('comment_edit_{{ comment.id }}'); $(this).hide();"
+                       class="muted">edit</a>
+                {% endif %}
             </div>
             <div class="span2 text-center">
                 {% with vote=comment_holder.vote %}

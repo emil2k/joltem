@@ -24,14 +24,23 @@
                         type        : 'textarea',
                         loadurl     : $(this).attr('data-loadurl'),
                         name        : 'comment_edit',
+                        event       : 'comment_edit_'+$(this).attr('data-id'),
                         submitdata  : {
                             csrfmiddlewaretoken : '{{ csrf_token }}',
                             comment_id: $(this).attr('data-id')
                         },
+                        callback    : function(value, settings){
+                            settings.activate.show();
+                        },
+                        activate    : $( "#activate-" + $(this).attr('id')),
                         onblur      : 'ignore',
+                        onreset     : function(original){
+                            original.activate.show();
+                            return true;
+                        },
                         cancel      : 'Cancel',
-                        submit      : 'Edit',
-                        tooltip     : 'Click to edit...'
+                        submit      : 'Save',
+                        loadtext    : 'Loading comment...'
                     });
                 });
             });
