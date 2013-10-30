@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.views.generic.base import View, ContextMixin
 from django.contrib.contenttypes.generic import ContentType
+from django.contrib.markup.templatetags.markup import markdown
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
 from django.http import HttpResponse, HttpResponseNotFound
@@ -106,7 +107,8 @@ class CommentableView(RequestBaseView):
             else:
                 comment.comment = comment_edit
                 comment.save()
-                return HttpResponse(comment.comment)  # for Jeditable return data to display # todo run thrown markdown filter
+                # For jeditable return data to display
+                return HttpResponse(markdown(comment.comment, arg='tables,fenced_code'))
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             commentable.add_comment(self.user, comment_text)
