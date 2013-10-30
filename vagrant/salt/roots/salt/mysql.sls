@@ -1,11 +1,18 @@
 mysql-server:
   pkg:
     - installed
+  file:
+    - replace
+    - name: /etc/mysql/my.cnf
+    - pattern: ^bind-address.*
+    - repl: bind-address = 0.0.0.0
+    - require:
+      - pkg: mysql-server
   service:
     - running
     - name: mysql
     - require:
-      - pkg: mysql-server
+      - file: mysql-server
 
 mysql-client:
   pkg:
@@ -20,6 +27,7 @@ database-setup:
     - present
     - name: {{ pillar['mysql_user'] }}
     - password: {{ pillar['mysql_password'] }}
+    - host: '%'
     - require:
       - pkg: python-mysqldb
       - service: mysql-server
@@ -35,5 +43,6 @@ database-setup:
     - grant: all privileges
     - database: {{ pillar['mysql_db'] }}.*
     - user: {{ pillar['mysql_user'] }}
+    - host: '%'
     - require:
       - mysql_database: database-setup
