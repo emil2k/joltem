@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.utils import timezone
 
+from django.utils import timezone
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -9,29 +10,46 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Project'
-        db.create_table(u'project_project', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'project', ['Project'])
+        # Deleting model 'Branch'
+        db.delete_table(u'git_branch')
 
-        # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
+        # Adding model 'Commit'
+        db.create_table(u'git_commit', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('sha', self.gf('django.db.models.fields.CharField')(unique=True, max_length=40)),
+            ('message', self.gf('django.db.models.fields.TextField')()),
+            ('message_encoding', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('commit_time', self.gf('django.db.models.fields.DateTimeField')()),
+            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
+            ('author', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('committer', self.gf('django.db.models.fields.CharField')(max_length=200)),
         ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        db.send_create_signal(u'git', ['Commit'])
+
+        # Adding M2M table for field parents on 'Commit'
+        db.create_table(u'git_commit_parents', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('from_commit', models.ForeignKey(orm[u'git.commit'], null=False)),
+            ('to_commit', models.ForeignKey(orm[u'git.commit'], null=False))
+        ))
+        db.create_unique(u'git_commit_parents', ['from_commit_id', 'to_commit_id'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Project'
-        db.delete_table(u'project_project')
+        # Adding model 'Branch'
+        db.create_table(u'git_branch', (
+            ('repository', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['git.Repository'])),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('reference', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'], null=True, blank=True)),
+        ))
+        db.send_create_signal(u'git', ['Branch'])
 
-        # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        # Deleting model 'Commit'
+        db.delete_table(u'git_commit')
+
+        # Removing M2M table for field parents on 'Commit'
+        db.delete_table('git_commit_parents')
 
 
     models = {
@@ -71,6 +89,31 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        u'git.authentication': {
+            'Meta': {'object_name': 'Authentication'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key': ('django.db.models.fields.TextField', [], {}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'git.commit': {
+            'Meta': {'object_name': 'Commit'},
+            'author': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'commit_time': ('django.db.models.fields.DateTimeField', [], {}),
+            'committer': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'message': ('django.db.models.fields.TextField', [], {}),
+            'message_encoding': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'parents': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'parents_rel_+'", 'to': u"orm['git.Commit']"}),
+            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
+            'sha': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'})
+        },
+        u'git.repository': {
+            'Meta': {'unique_together': "(('name', 'project'),)", 'object_name': 'Repository'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"})
+        },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -80,4 +123,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['project']
+    complete_apps = ['git']

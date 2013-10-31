@@ -10,28 +10,62 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding model 'Project'
-        db.create_table(u'project_project', (
+        db.create_table(u'joltem_project', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
         ))
-        db.send_create_signal(u'project', ['Project'])
+        db.send_create_signal(u'joltem', ['Project'])
 
         # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
+        db.create_table(u'joltem_project_users', (
             ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
+            ('project', models.ForeignKey(orm[u'joltem.project'], null=False)),
             ('user', models.ForeignKey(orm[u'auth.user'], null=False))
         ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        db.create_unique(u'joltem_project_users', ['project_id', 'user_id'])
+
+        # Adding model 'TaskBranch'
+        db.create_table(u'joltem_taskbranch', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Task'])),
+        ))
+        db.send_create_signal(u'joltem', ['TaskBranch'])
+
+        # Adding M2M table for field assignees on 'TaskBranch'
+        db.create_table(u'joltem_taskbranch_assignees', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('taskbranch', models.ForeignKey(orm[u'joltem.taskbranch'], null=False)),
+            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
+        ))
+        db.create_unique(u'joltem_taskbranch_assignees', ['taskbranch_id', 'user_id'])
+
+        # Adding model 'Task'
+        db.create_table(u'joltem_task', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Task'], null=True, blank=True)),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Project'])),
+        ))
+        db.send_create_signal(u'joltem', ['Task'])
 
 
     def backwards(self, orm):
         # Deleting model 'Project'
-        db.delete_table(u'project_project')
+        db.delete_table(u'joltem_project')
 
         # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        db.delete_table('joltem_project_users')
+
+        # Deleting model 'TaskBranch'
+        db.delete_table(u'joltem_taskbranch')
+
+        # Removing M2M table for field assignees on 'TaskBranch'
+        db.delete_table('joltem_taskbranch_assignees')
+
+        # Deleting model 'Task'
+        db.delete_table(u'joltem_task')
 
 
     models = {
@@ -71,13 +105,27 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'project.project': {
+        u'joltem.project': {
             'Meta': {'object_name': 'Project'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
+        },
+        u'joltem.task': {
+            'Meta': {'object_name': 'Task'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Task']", 'null': 'True', 'blank': 'True'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Project']"}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
+        u'joltem.taskbranch': {
+            'Meta': {'object_name': 'TaskBranch'},
+            'assignees': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.Task']"})
         }
     }
 
-    complete_apps = ['project']
+    complete_apps = ['joltem']

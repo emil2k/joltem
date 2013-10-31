@@ -9,29 +9,74 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Project'
-        db.create_table(u'project_project', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'project', ['Project'])
+        # Deleting model 'Project'
+        db.delete_table(u'joltem_project')
 
-        # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
+        # Removing M2M table for field users on 'Project'
+        db.delete_table('joltem_project_users')
+
+        # Deleting model 'TaskBranch'
+        db.delete_table(u'joltem_taskbranch')
+
+        # Removing M2M table for field assignees on 'TaskBranch'
+        db.delete_table('joltem_taskbranch_assignees')
+
+        # Deleting model 'Task'
+        db.delete_table(u'joltem_task')
+
+        # Adding model 'Profile'
+        db.create_table(u'joltem_profile', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('impact', self.gf('django.db.models.fields.BigIntegerField')(default=1)),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='profile', unique=True, to=orm['auth.User'])),
         ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        db.send_create_signal(u'joltem', ['Profile'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Project'
-        db.delete_table(u'project_project')
+        # Adding model 'Project'
+        db.create_table(u'joltem_project', (
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+        ))
+        db.send_create_signal(u'joltem', ['Project'])
 
-        # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        # Adding M2M table for field users on 'Project'
+        db.create_table(u'joltem_project_users', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('project', models.ForeignKey(orm[u'joltem.project'], null=False)),
+            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
+        ))
+        db.create_unique(u'joltem_project_users', ['project_id', 'user_id'])
+
+        # Adding model 'TaskBranch'
+        db.create_table(u'joltem_taskbranch', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Task'])),
+        ))
+        db.send_create_signal(u'joltem', ['TaskBranch'])
+
+        # Adding M2M table for field assignees on 'TaskBranch'
+        db.create_table(u'joltem_taskbranch_assignees', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('taskbranch', models.ForeignKey(orm[u'joltem.taskbranch'], null=False)),
+            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
+        ))
+        db.create_unique(u'joltem_taskbranch_assignees', ['taskbranch_id', 'user_id'])
+
+        # Adding model 'Task'
+        db.create_table(u'joltem_task', (
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Task'], null=True, blank=True)),
+            ('title', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.Project'])),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+        ))
+        db.send_create_signal(u'joltem', ['Task'])
+
+        # Deleting model 'Profile'
+        db.delete_table(u'joltem_profile')
 
 
     models = {
@@ -71,13 +116,12 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'project.project': {
-            'Meta': {'object_name': 'Project'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+        u'joltem.profile': {
+            'Meta': {'object_name': 'Profile'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '1'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': u"orm['auth.User']"})
         }
     }
 
-    complete_apps = ['project']
+    complete_apps = ['joltem']

@@ -9,29 +9,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Project'
-        db.create_table(u'project_project', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'project', ['Project'])
-
-        # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
-        ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        # Adding field 'Project.title'
+        db.add_column(u'project_project', 'title',
+                      self.gf('django.db.models.fields.CharField')(default='Joltem', max_length=200),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Project'
-        db.delete_table(u'project_project')
-
-        # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        # Deleting field 'Project.title'
+        db.delete_column(u'project_project', 'title')
 
 
     models = {
@@ -76,6 +62,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
         }
     }

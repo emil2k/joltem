@@ -9,29 +9,31 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Project'
-        db.create_table(u'project_project', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'project', ['Project'])
+        # Deleting field 'Profile.impact'
+        db.delete_column(u'joltem_profile', 'impact')
 
-        # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
-        ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        # Adding field 'Profile.gravatar_email'
+        db.add_column(u'joltem_profile', 'gravatar_email',
+                      self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Profile.gravatar_hash'
+        db.add_column(u'joltem_profile', 'gravatar_hash',
+                      self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Project'
-        db.delete_table(u'project_project')
+        # Adding field 'Profile.impact'
+        db.add_column(u'joltem_profile', 'impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(default=1),
+                      keep_default=False)
 
-        # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        # Deleting field 'Profile.gravatar_email'
+        db.delete_column(u'joltem_profile', 'gravatar_email')
+
+        # Deleting field 'Profile.gravatar_hash'
+        db.delete_column(u'joltem_profile', 'gravatar_hash')
 
 
     models = {
@@ -71,13 +73,13 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'project.project': {
-            'Meta': {'object_name': 'Project'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+        u'joltem.profile': {
+            'Meta': {'object_name': 'Profile'},
+            'gravatar_email': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'gravatar_hash': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': u"orm['auth.User']"})
         }
     }
 
-    complete_apps = ['project']
+    complete_apps = ['joltem']

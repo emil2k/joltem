@@ -9,29 +9,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Project'
-        db.create_table(u'project_project', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'project', ['Project'])
-
-        # Adding M2M table for field users on 'Project'
-        db.create_table(u'project_project_users', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('project', models.ForeignKey(orm[u'project.project'], null=False)),
-            ('user', models.ForeignKey(orm[u'auth.user'], null=False))
-        ))
-        db.create_unique(u'project_project_users', ['project_id', 'user_id'])
+        # Adding field 'Repository.is_hidden'
+        db.add_column(u'git_repository', 'is_hidden',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Project'
-        db.delete_table(u'project_project')
-
-        # Removing M2M table for field users on 'Project'
-        db.delete_table('project_project_users')
+        # Deleting field 'Repository.is_hidden'
+        db.delete_column(u'git_repository', 'is_hidden')
 
 
     models = {
@@ -71,6 +57,32 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        u'git.authentication': {
+            'Meta': {'object_name': 'Authentication'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key': ('django.db.models.fields.TextField', [], {}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'git.commit': {
+            'Meta': {'object_name': 'Commit'},
+            'author': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'commit_time': ('django.db.models.fields.DateTimeField', [], {}),
+            'committer': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'message': ('django.db.models.fields.TextField', [], {}),
+            'message_encoding': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'parents': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'parents_rel_+'", 'to': u"orm['git.Commit']"}),
+            'repository': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['git.Repository']"}),
+            'sha': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'})
+        },
+        u'git.repository': {
+            'Meta': {'unique_together': "(('name', 'project'),)", 'object_name': 'Repository'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"})
+        },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
@@ -80,4 +92,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['project']
+    complete_apps = ['git']

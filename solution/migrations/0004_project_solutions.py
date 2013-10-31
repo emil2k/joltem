@@ -9,46 +9,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Solution'
-        db.create_table(u'solution_solution', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('description', self.gf('django.db.models.fields.TextField')()),
-            ('is_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('is_completed', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('is_completion_accepted', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('time_posted', self.gf('django.db.models.fields.DateTimeField')(default=timezone.now)),
-            ('time_edited', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('time_completed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('time_completion_accepted', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('task', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal(u'solution', ['Solution'])
-
-        # Adding model 'CompletionVote'
-        db.create_table(u'solution_completionvote', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('voter_impact', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('vote', self.gf('django.db.models.fields.SmallIntegerField')()),
-            ('time_voted', self.gf('django.db.models.fields.DateTimeField')(default=timezone.now)),
-            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['solution.Solution'])),
-            ('voter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-        ))
-        db.send_create_signal(u'solution', ['CompletionVote'])
-
-        # Adding unique constraint on 'CompletionVote', fields ['solution', 'voter']
-        db.create_unique(u'solution_completionvote', ['solution_id', 'voter_id'])
+        # Adding field 'Solution.project'
+        db.add_column(u'solution_solution', 'project',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'CompletionVote', fields ['solution', 'voter']
-        db.delete_unique(u'solution_completionvote', ['solution_id', 'voter_id'])
-
-        # Deleting model 'Solution'
-        db.delete_table(u'solution_solution')
-
-        # Deleting model 'CompletionVote'
-        db.delete_table(u'solution_completionvote')
+        # Deleting field 'Solution.project'
+        db.delete_column(u'solution_solution', 'project_id')
 
 
     models = {
@@ -95,28 +64,28 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.User']", 'symmetrical': 'False'})
         },
-        u'solution.completionvote': {
-            'Meta': {'unique_together': "(('solution', 'voter'),)", 'object_name': 'CompletionVote'},
+        u'solution.solution': {
+            'Meta': {'object_name': 'Solution'},
+            'application': ('django.db.models.fields.TextField', [], {}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
+            'time_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'solution.vote': {
+            'Meta': {'unique_together': "(('solution', 'voter'),)", 'object_name': 'Vote'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['solution.Solution']"}),
             'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
             'vote': ('django.db.models.fields.SmallIntegerField', [], {}),
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
-        },
-        u'solution.solution': {
-            'Meta': {'object_name': 'Solution'},
-            'description': ('django.db.models.fields.TextField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_completion_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']"}),
-            'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_completion_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_edited': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'timezone.now'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'task.task': {
             'Meta': {'object_name': 'Task'},
