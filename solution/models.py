@@ -15,7 +15,14 @@ NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
 
 class Solution(Voteable, Commentable):
     """
-    A single task can be worked on by multiple groups at the same time, in different branches for variation.
+    A solution is an execution of work.
+
+    States :
+    is_completed -- whether or not the solution has been marked completed by its owner, when a solution is completed
+        it is placed into peer review.
+    is_closed -- indicates that work on the solution has ceased, without a completion, solution may be deprecated,
+        inactive, etc.
+
     """
     # Optional custom title to solution
     title = models.TextField(null=True, blank=True)
@@ -52,15 +59,26 @@ class Solution(Voteable, Commentable):
         else:
             return self.task.title
 
-    @property
-    def get_subtask_count(self):
+    def get_subtask_count(self, solution_is_completed=False, solution_is_closed=False,
+                          task_is_reviewed=False, task_is_accepted=False, task_is_closed=False):
         """
-        Count of subtasks stemming from this solution
+        Count of tasks stemming from this solution
+
+        Keyword arguments :
+        solution_is_completed -- whether solutions included in the count should be completed.
+        solution_is_closed -- whether solutions included in the count should be closed.
+        task_is_reviewed -- whether tasks included in the count should be reviewed.
+        task_is_accepted -- whether tasks included in the count should be accepted.
+        task_is_closed -- whether tasks included in the count should be closed.
+
         """
-        subtasks = self.subtask_set.filter(is_accepted=True)
-        count = subtasks.count()
+        subtasks = self.subtask_set.filter(is_reviewed=task_is_reviewed, is_accepted=task_is_accepted,
+                                           is_closed=task_is_closed)
+        count = 0
         for subtask in subtasks:
-            count += subtask.get_subtask_count
+            count += 1  # for the task it self
+            count += subtask.get_subtask_count(solution_is_completed, solution_is_closed,
+                                               task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
     def has_commented(self, user_id):

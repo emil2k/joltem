@@ -40,33 +40,27 @@
                             <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                         {% endif %}
                     {% endif %}
-                    {% if is_owner or is_acceptor %}
+                    {% if is_owner %}
                         <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
                     {% endif %}
                 </div>
-                {% if is_acceptor %}
-                    <div class="btn-group">
-                        {% if not task.is_accepted %}
-                            <button class="btn btn-success" type="submit" name="accept" value="1">accept</button>
-                        {% else %}
-                            <button class="btn" type="submit" name="unaccept" value="1">unaccept</button>
-                        {% endif %}
-                    </div>
-                {% endif %}
             </form>
             {% if task.is_closed %}
                 <div class="alert alert-info">
                     <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
                 </div>
-            {% endif %}
-            {% if task.is_accepted %}
-                <div class="alert alert-success">
-                    <strong>This task was accepted on {{ task.time_accepted|date }}</strong>.
-                </div>
             {% else %}
-                <div class="alert alert-danger">
-                    <strong>This task has not been accepted yet.</strong> It is only visible to you and the person responsible for accepting it.
-                </div>
+                {% if task.is_reviewed %}
+                    {% if task.is_accepted %}
+                        <div class="alert alert-success">
+                            <strong>This task was accepted on {{ task.time_reviewed|date }}</strong>.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <strong>This task was rejected on {{ task.time_reviewed|date }}</strong>.
+                        </div>
+                    {% endif %}
+                {% endif %}
             {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">
@@ -75,33 +69,94 @@
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
             <hr/>
+            {% if not task.is_reviewed %}
+                {% if vote %}
+                    <div class="alert">
+                        <strong>This task is being reviewed.</strong> You voted on {{ vote.time_voted|date }}.
+                    </div>
+                {% else %}
+                    <div class="alert">
+                        <strong>You should review this task.</strong> It was posted on {{ task.time_posted|date }}.
+                    </div>
+                {% endif %}
+                <div class="row">
+                    <div class="span8 text-center">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="btn-group">
+                                {% if vote and vote.is_accepted %}
+                                    <button class="btn btn-success" type="submit" name="accept" value="1"><i class="icon-ok icon-white"></i></button>
+                                {% else %}
+                                    <button class="btn" type="submit" name="accept" value="1"><i class="icon-ok"></i></button>
+                                {% endif %}
+                                {% if vote and not vote.is_accepted %}
+                                    <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="icon-remove icon-white"></i></button>
+                                {% else %}
+                                    <button class="btn" type="submit" name="reject" value="1"><i class="icon-remove"></i></button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span4 text-center">
+                        {% for task_vote in task_accept_votes %}
+                            <p>
+                                <i class="icon-ok"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
+                                <small class="muted">{{ task_vote.time_voted|date }} @ {{ task_vote.time_voted|time }}</small>
+                            </p>
+                        {% endfor %}
+                    </div>
+                    <div class="span4 text-center">
+                        {% for task_vote in task_reject_votes %}
+                            <p>
+                                <i class="icon-remove"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
+                                <small class="muted">{{ task_vote.time_voted|date }} @ {{ task_vote.time_voted|time }}</small>
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span8 text-center">
+                        <p class="muted">
+                            <strong>{{ task_accept_total }}</strong>
+                            <small>accepted</small>
+                            <strong>{{ task_reject_total }}</strong>
+                            <small>rejected</small>
+                        </p>
+                    </div>
+                </div>
+                <hr/>
+            {% endif %}
         </div>
         <div class="span2 muted text-right hidden-phone">
             {{ task.time_posted|timesince }} ago.
         </div>
     </div>
-    <div class="row">
-        <div class="offset2 span8">
-            <h5>Solutions</h5>
+    {% if task.is_accepted %}
+        <div class="row">
+            <div class="offset2 span8">
+                <h5>Solutions</h5>
+            </div>
         </div>
-    </div>
-    <form method="post">
-        {% csrf_token %}
-        {% for solution in solutions %}
-            <div class="row">
-                {% with offset="offset2" %}
-                    {% include 'solution/solution_row_cells.html' %}
-                {% endwith %}
-            </div>
-        {% empty %}
-            <div class="row">
-                <div class="offset2 span8">
-                    <p class="muted">No solutions have been offered to this task.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for solution in solutions %}
+                <div class="row">
+                    {% with offset="offset2" %}
+                        {% include 'solution/solution_row_cells.html' %}
+                    {% endwith %}
                 </div>
-            </div>
-        {% endfor %}
-    </form>
-    <hr/>
+            {% empty %}
+                <div class="row">
+                    <div class="offset2 span8">
+                        <p class="muted">No solutions have been offered to this task.</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </form>
+        <hr/>
+    {% endif %}
     {% include "joltem/commenting.html" %}
     {% block scripts %}
         <script>

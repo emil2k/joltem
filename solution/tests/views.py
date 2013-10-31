@@ -40,7 +40,7 @@ class SolutionViewTestCase(TestCaseDebugMixin, TestCase):
         self.admin = get_mock_user("sjobs", first_name="Steve")
         self.project.admin_set.add(self.admin)
         self.project.save()
-        self.solution = get_mock_solution(self.project, self.admin, is_completed=False, is_closed=True,
+        self.solution = get_mock_solution(self.project, self.admin,
                                           title="Build a Mouse", description="Building thing that eats cheese.")
 
     # todo test various states of solution, and the corresponding rendering of the page

@@ -242,7 +242,7 @@ class ReferenceTestCase(SolutionTestCase):
     def test_parent_reference_through_task(self):
         self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/master') # default solution is a suggested solution
         # Add it to a task to a root task
-        task = get_mock_task(self.project, get_mock_user('jill'))
+        task = get_mock_task(self.project, get_mock_user('jill'), is_reviewed=True, is_accepted=True)
         self.solution.task = task
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(), 'refs/heads/master') # still should default to master because branching from a root task

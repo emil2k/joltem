@@ -1,9 +1,11 @@
+from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 
+
 from joltem.holders import CommentHolder
-from task.models import Task
+from task.models import Task, Vote
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
@@ -15,31 +17,46 @@ class TaskBaseView(ProjectBaseView):
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
         self.is_owner = self.task.is_owner(self.user)
-        self.is_acceptor = self.task.is_acceptor(self.user)
 
     def get_context_data(self, **kwargs):
         kwargs["task"] = self.task
         kwargs["is_owner"] = self.is_owner
-        kwargs["is_acceptor"] = self.is_acceptor
         kwargs["comments"] = CommentHolder.get_comments(self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by('-time_posted')
+        try:
+            kwargs["vote"] = Vote.objects.get(
+                task_id=self.task.id,
+                voter_id=self.user.id
+            )
+        except Vote.DoesNotExist:
+            kwargs["vote"] = None
         return super(TaskBaseView, self).get_context_data(**kwargs)
 
 
 class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
     template_name = "task/task.html"
 
+    def get_context_data(self, **kwargs):
+        accept_votes_qs = self.task.vote_set.filter(is_accepted=True)
+        reject_votes_qs = self.task.vote_set.filter(is_accepted=False)
+        impact_total = lambda qs: qs.aggregate(impact_total=Sum('voter_impact'))['impact_total'] or 0
+        kwargs["task_accept_votes"] = accept_votes_qs.order_by('time_voted')
+        kwargs["task_reject_votes"] = reject_votes_qs.order_by('time_voted')
+        kwargs["task_accept_total"] = impact_total(accept_votes_qs)
+        kwargs["task_reject_total"] = impact_total(reject_votes_qs)
+        return super(TaskView, self).get_context_data(**kwargs)
+
     def post(self, request, *args, **kwargs):
         from django.utils import timezone
 
-        # Accept task
-        if self.is_acceptor and request.POST.get('accept'):
-            self.task.mark_accepted(self.user)
+        # Vote to accept task
+        if request.POST.get('accept'):
+            self.task.put_vote(self.user, True)
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
-        # Unaccept task
-        if self.is_acceptor and request.POST.get('unaccept'):
-            self.task.mark_unaccepted()
+        # Vote to reject task
+        if request.POST.get('reject'):
+            self.task.put_vote(self.user, False)
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
 
         # Close task
@@ -72,7 +89,7 @@ class TaskEditView(TemplateView, TaskBaseView):
     template_name = "task/task_edit.html"
 
     def post(self, request, *args, **kwargs):
-        if not (self.is_owner or self.is_acceptor):
+        if not self.is_owner:
             return redirect('project:task:task', project_name=self.project.name, task_id=self.task.id)
         title = request.POST.get('title')
         if title is not None:
@@ -152,17 +169,29 @@ class MyUnacceptedTasksView(TaskBaseListView):
 
 class MyReviewTasksView(TaskBaseListView):
     """
-    List of unaccepted tasks that the user is responsible for accepting
+    List of tasks the user should review.
+
     """
     tasks_tab = "my_review"
 
-    def iterate_tasks_to_accept(self):
-        for task in self.project.task_set.filter(is_accepted=False, is_closed=False).order_by('-time_posted'):
-            if task.is_acceptor(self.user):
+    def iterate_tasks_to_review(self):
+        for task in Task.objects.filter(is_reviewed=False, is_closed=False).order_by('-time_posted'):
+            if not self.user.task_vote_set.filter(task_id=task.id).exists():
                 yield task
 
     def get_queryset(self):
-        return (task for task in self.iterate_tasks_to_accept())
+        return (task for task in self.iterate_tasks_to_review())
+
+
+class MyReviewedTasksView(TaskBaseListView):
+    """
+    List of tasks the user has reviewed.
+
+    """
+    tasks_tab = "my_reviewed"
+
+    def get_queryset(self):
+        return (task_vote.task for task_vote in self.user.task_vote_set.all().order_by('-time_voted'))
 
 
 class AllOpenTasksView(TaskBaseListView):
