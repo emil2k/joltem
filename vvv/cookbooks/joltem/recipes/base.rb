@@ -1,5 +1,0 @@
-package "curl"
-package "git"
-package "screen"
-package "vim"
-package "language-pack-en-base"
