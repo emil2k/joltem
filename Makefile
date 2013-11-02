@@ -17,8 +17,8 @@ help:
 .PHONY: lint
 # target: lint - Code audit
 lint: $(ENV)
-	@rm -rf pylama.report
-	pylama . -r pylama.report || echo
+	@rm -rf pep8.pylama
+	pylama . -r pep8.pylama -l pep257,pep8,pyflakes,mccabe || echo
 
 ci:
 	$(ENV)/bin/pip install coverage
