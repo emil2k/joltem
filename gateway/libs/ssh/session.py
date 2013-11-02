@@ -47,7 +47,7 @@ class GatewaySessionInterface():
         peer_address = protocol.getPeer().address  # IAddress
         (host, port) = (peer_address.host, peer_address.port)
         log.msg("Open shell from %s:%d." % (host, port))
-        serverProtocol = ServerProtocol(GatewayTerminalProtocol, self.user)
+        serverProtocol = ServerProtocol(GatewayTerminalProtocol, self.avatar)
         serverProtocol.makeConnection(protocol)
         protocol.makeConnection(wrapProtocol(serverProtocol))
 

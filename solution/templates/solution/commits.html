@@ -10,7 +10,7 @@
             </ul>
         </div>
         <div class="span10">
-            <h4>{{ repository.full_name }}</h4>
+            <h4>{{ repository.name }}</h4>
             {% for commit in commits %}
                 <p>
                     <small class="muted">{{ commit.time_committed|date }} @ {{ commit.time_committed|time }} by {{ commit.author }}</small><br/>
