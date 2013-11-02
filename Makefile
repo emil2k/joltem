@@ -18,11 +18,14 @@ help:
 # target: lint - Code audit
 lint: $(ENV)
 	@rm -rf pep8.pylama
-	pylama . -r pep8.pylama -l pep257,pep8,pyflakes,mccabe || echo
+	$(ENV)/bin/pip install pylama
+	$(ENV)/bin/pip install pylama_pylint
+	$(ENV)/bin/pylama . -r pep8.pylama -l pep257,pep8,pyflakes,mccabe || echo
+	$(ENV)/bin/pylama . -r pylint.pylama -l pylint -f pylint || echo
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,gateway,common
 
 .PHONY: run
 # target: run - Run Django development server

@@ -17,13 +17,9 @@ Werkzeug==0.9.4
 django-extensions==1.2.5
 django-debug-toolbar==0.10.2
 
-# QA
-# ==
-pylama
-ipdb
-
 # Tests
 # =====
 mixer
+ipdb
 django-nose
 coverage

@@ -24,7 +24,6 @@ gitolite-update
 joltem/settings/chefenv.py
 joltem/settings/local.py
 nosetests.xml
-pylama.ini
-pylama.report
+*.pylama
 workspace.xml
 wsgi.py
