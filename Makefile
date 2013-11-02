@@ -7,7 +7,7 @@ clean:
 	@rm -f *.py[co]
 	@rm -f *.orig
 	@rm -f */*.py[co]
-	@rm -f */*.orig
+	@rm -f */*/*.orig
  
 .PHONY: help
 # target: help - Display callable targets
