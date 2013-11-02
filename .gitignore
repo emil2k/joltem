@@ -8,6 +8,7 @@
 .ropeproject
 .tags
 .vagrant
+.vimrc
 /collected_static/
 /deploy/.vagrant
 _trial_temp
@@ -19,6 +20,8 @@ git/repositories
 gitolite-update
 joltem/settings/chefenv.py
 joltem/settings/local.py
+nosetests.xml
 pylama.ini
 pylama.report
 workspace.xml
+wsgi.py
