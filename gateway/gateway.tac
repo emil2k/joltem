@@ -13,10 +13,10 @@ sys.path.append(MAIN_DIRECTORY)  # importing project modules should be done from
 # Continue imports
 from twisted.cred.portal import Portal
 
+from django.conf import settings
+
 from gateway.libs.ssh.factory import GatewayFactory
 from gateway.libs.ssh.auth import GatewayRealm, GatewayCredentialChecker
-
-from joltem.settings import GATEWAY_PORT
 
 # Set up the gateway service
 factory = GatewayFactory()
@@ -34,12 +34,15 @@ if __name__ == '__main__':
     from twisted.internet import reactor
     from twisted.internet.endpoints import TCP4ServerEndpoint
     log.startLogging(sys.stdout)
+
     # Connect factory on endpoint
-    d = TCP4ServerEndpoint(reactor, GATEWAY_PORT).listen(factory)
-    d.addCallback(lambda port: log.msg("Listening on port %d." % GATEWAY_PORT))
-    d.addErrback(lambda failure: log.err(failure, "Failed to open gateway on port %d." % GATEWAY_PORT))
+    d = TCP4ServerEndpoint(reactor, settings.GATEWAY_PORT).listen(factory)
+    d.addCallback(lambda port: log.msg("Listening on port %d." % settings.GATEWAY_PORT))
+    d.addErrback(lambda failure: log.err(failure, "Failed to open gateway on port %d." % settings.GATEWAY_PORT))
+
     # Run reactor :)
     reactor.run()
+
 else:
     """
     Start up the gateway as a daemon using twistd by running : twistd -y gateway.tac
@@ -48,11 +51,6 @@ else:
     from twisted.application import service, internet
     from twisted.python.logfile import LogFile
     from twisted.python.log import ILogObserver, FileLogObserver
-    from joltem.settings import (GATEWAY_LOGGER_FILE_NAME, GATEWAY_LOGGER_FILE_DIRECTORY,
-                                 GATEWAY_LOGGER_MAX_BYTES, GATEWAY_LOGGER_BACKUP_COUNT)
+
     application = service.Application("Gateway")
-    internet.TCPServer(GATEWAY_PORT, factory).setServiceParent(application)
-    # Setup gateway logging
-    logger = LogFile(GATEWAY_LOGGER_FILE_NAME, GATEWAY_LOGGER_FILE_DIRECTORY, rotateLength=GATEWAY_LOGGER_MAX_BYTES,
-                     maxRotatedFiles=GATEWAY_LOGGER_BACKUP_COUNT)
-    application.setComponent(ILogObserver, FileLogObserver(logger).emit)
+    internet.TCPServer(settings.GATEWAY_PORT, factory).setServiceParent(application)
