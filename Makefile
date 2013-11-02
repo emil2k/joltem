@@ -18,11 +18,11 @@ help:
 # target: lint - Code audit
 lint: $(ENV)
 	@rm -rf pylama.report
-	pylama . -r pylama.report
+	pylama . -r pylama.report || echo
 
-ci: lint
+ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --woth-coverage --with-xunit --cover-xml
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml
 
 .PHONY: run
 # target: run - Run Django development server
