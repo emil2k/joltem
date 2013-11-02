@@ -18,8 +18,8 @@ GATEWAY_TERMINAL_WELCOME = '''
 
 class GatewayTerminalProtocol(HistoricRecvLine):
 
-    def __init__(self, user):
-        self.user = user
+    def __init__(self, avatar):
+        self.avatar = avatar
 
     def connectionMade(self):
         HistoricRecvLine.connectionMade(self)
@@ -28,7 +28,7 @@ class GatewayTerminalProtocol(HistoricRecvLine):
         self.showPrompt()
 
     def showPrompt(self):
-        self.terminal.write("joltem : %s > " % self.user.username)
+        self.terminal.write("joltem : %s > " % self.avatar.user.username)
 
     def getCommandFunc(self, cmd):
         return getattr(self, 'do_' + cmd, None)
@@ -73,7 +73,7 @@ class GatewayTerminalProtocol(HistoricRecvLine):
 
     def do_whoami(self):
         "Prints your user name. Usage: whoami"
-        self.terminal.write(self.user.username)
+        self.terminal.write(self.avatar.user.username)
         self.terminal.nextLine()
 
     def do_quit(self):
