@@ -1,18 +1,15 @@
 from django.test import TestCase
+from pygit2 import Signature
 from unittest import TestCase as UnitTestCase
 
 from git.models import Repository
-from project.models import Project
-
 from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
-from joltem.tests.mocking import *
-
-from pygit2 import Repository as PyGitRepository, Signature
+from project.models import Project
+from joltem.tests.mocking import (
+    get_mock_user, get_mock_solution, get_mock_task)
 
 
 # Mocking helpers
-
-
 def get_mock_repository(name, project, is_hidden=False, description=None):
     r = Repository(
         name=name,
@@ -71,7 +68,7 @@ def mock_commits(number, pygit_repository, signature, branch_name, initial_paren
     Generator for sequential commits
     """
     commit_oid = None
-    for n in range(number):
+    for _ in range(number):
         parents = [commit_oid] if commit_oid else initial_parents
         commit_oid = make_mock_commit(pygit_repository, signature, branch_name, parents)
         yield commit_oid
@@ -167,20 +164,24 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
         self.repository = get_mock_repository("TEST", self.project)
         TEST_LOGGER.debug("CREATED REPO : %s" % self.repository.absolute_path)
         self.assertDirectoryExistence(self.repository.absolute_path, True)
+
         # Load repo
         self.pygit_repository = self.repository.load_pygit_object()
         TEST_LOGGER.debug("LOADED REPOSITORY : path : %s" % self.pygit_repository.path)
         TEST_LOGGER.debug("LOADED REPOSITORY : workdir : %s" % self.pygit_repository.workdir)
         TEST_LOGGER.debug("LOADED REPOSITORY : is_bare : %s" % self.pygit_repository.is_bare)
         self.assertTrue(self.pygit_repository.is_bare)
-        TEST_LOGGER.debug("LOADED REPOSITORY : is_empty : %s" % self.pygit_repository.is_empty)
-        self.assertTrue(self.pygit_repository.is_empty)
+        # TEST_LOGGER.debug("LOADED REPOSITORY : is_empty : %s" % self.pygit_repository.is_empty)
+        # self.assertTrue(self.pygit_repository.is_empty)
 
     def tearDown(self):
         super(RepositoryTestCase, self).tearDown()
+        rpath = self.repository.absolute_path
+
         self.repository.delete() # remove the repo
-        TEST_LOGGER.debug("DELETED REPO : %s" % self.repository.absolute_path)
-        self.assertDirectoryExistence(self.repository.absolute_path, False)
+
+        TEST_LOGGER.debug("DELETED REPO : %s" % rpath)
+        self.assertDirectoryExistence(rpath, False)
 
     # Custom assertions
 
@@ -190,9 +191,8 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
 
 class SolutionTestCase(RepositoryTestCase):
-    """
-    Tests regarding solution branches
-    """
+
+    """ Tests regarding solution branches. """
 
     def setUp(self):
         super(SolutionTestCase, self).setUp()
@@ -233,9 +233,9 @@ class SolutionTestCase(RepositoryTestCase):
 
 
 class ReferenceTestCase(SolutionTestCase):
-    """
-    Tests regarding references
-    """
+
+    """ Tests regarding references. """
+
     def test_reference(self):
         self.assertEqual(self.solution.get_reference(), 'refs/heads/s/%d' % self.solution.id)
 
@@ -262,20 +262,17 @@ class ReferenceTestCase(SolutionTestCase):
 
 
 class CommitSetTestCase(SolutionTestCase):
-    """
-    Tests regarding commit sets
-    """
+
+    """ Tests regarding commit sets. """
 
     def test_child_solution_commit_set_parent_closed(self):
         """
         Test commit set of a solution that is branched out of another solution branch, which is mark closed
         """
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, "master", [])
-        master_oid = commit_oid
 
         # Now checkout the parent solution branch
         commit_oid = make_mock_commit(self.pygit_repository, self.emil_signature, self.solution.get_branch_name(), [commit_oid])
-        parent_solution_oid = commit_oid
 
         # Create suggested solution for this solution branch and make a few commits to it
         child_solution = get_mock_solution(self.project, self.emil, solution=self.solution)
@@ -403,9 +400,8 @@ class CommitSetTestCase(SolutionTestCase):
 
 
 class CheckoutTestCase(SolutionTestCase):
-    """
-    Tests regarding finding initial checkout oid
-    """
+
+    """ Tests regarding finding initial checkout oid. """
 
     def test_get_initial_checkout_oid(self):
         """
@@ -501,4 +497,3 @@ class CheckoutTestCase(SolutionTestCase):
         debug_commits(self.pygit_repository, parent_oid)
 
         self.assertOidEqual(get_checkout_oid(self.pygit_repository, topic_oid, parent_oid), checkout_oid)
-

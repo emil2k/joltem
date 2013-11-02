@@ -1,3 +1,5 @@
+""" Git protocol. """
+
 import shlex
 
 from zope.interface import implements
@@ -7,14 +9,16 @@ from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import ITransport
 
 from gateway.libs.utils import SubprocessProtocol, BaseBufferedSplitter
-from gateway.libs.git.utils import *
+from gateway.libs.git.utils import get_packet_line_size
 from solution.models import Solution
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
-    """
-    Packet line format is used by gits transfer protocol, here is a description directly
-    from git's docs (technical/protocol-common.txt):
+
+    r""" Packet line format is used by gits transfer protocol.
+
+    Here is a description directly from git's docs
+    (technical/protocol-common.txt):
 
     pkt-line Format
     ---------------
@@ -70,20 +74,24 @@ class PacketLineSplitter(BaseBufferedSplitter):
         self._empty_line_callback = empty_line_callback
 
     def _iterate_splices(self):
-        """
-        Iterates through a packet line buffer pruning it as it goes.
-        Stops at an empty packet line (0000) or if a line is not fully buffered.
+        """ Iterate through a packet line buffer pruning it as it goes.
+
+        Stops at an empty packet line (0000) or if a line is not fully
+        buffered.
 
         """
         while len(self._buffer) >= 4:
             line_size = get_packet_line_size(self._buffer)
             if line_size == 0:  # handle empty packet line 0000
-                self._buffer = self._buffer[4:]  # adjust buffer, in case it is used again
+                # adjust buffer, in case it is used again
+                self._buffer = self._buffer[4:]
                 self._empty_line_callback()
                 break
             elif line_size < 4:
                 raise IOError("Packet line size is less than 4 but not 0.")
-            if line_size <= len(self._buffer):  # if line fully buffered, flush it out
+
+            # if line fully buffered, flush it out
+            if line_size <= len(self._buffer):
                 found = self._buffer[4:line_size]
                 self._buffer = self._buffer[line_size:]
                 yield found
@@ -95,6 +103,8 @@ class PacketLineSplitter(BaseBufferedSplitter):
 
 class GitProcessProtocol(SubprocessProtocol):
 
+    """ Implement Git Protocol. """
+
     implements(ITransport)
 
     def __init__(self, protocol, avatar, repository):
@@ -102,54 +112,74 @@ class GitProcessProtocol(SubprocessProtocol):
         self.avatar = avatar
         self.repository = repository  # repository model instance
 
-    def eof_received(self):
-        """For receiving end of file requests, from the SSH connection"""
+    @staticmethod
+    def eof_received():
+        """For receiving end of file requests, from the SSH connection."""
         log.msg("End of file received", system="client")
 
     # ProcessProtocol
 
     def outReceived(self, data):
+        """ Logging. """
         log.msg("\n" + data, system="gateway")
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
+        """ Logging. """
         log.msg("\n" + data, system="gateway error")
         SubprocessProtocol.errReceived(self, data)
 
     def processEnded(self, reason):
+        """ Logging. """
         log.msg("Process ended.", system="gateway")
         SubprocessProtocol.processEnded(self, reason)
 
     def processExited(self, reason):
+        """ Logging. """
         log.msg("Process exited.", system="gateway")
         SubprocessProtocol.processExited(self, reason)
 
     # ITransport
 
     def getHost(self):
+        """ Proxy to self.transport.
+
+        :return str:
+
+        """
         return self.transport.getHost()
 
     def getPeer(self):
+        """ Proxy to self.transport.
+
+        :return :
+
+        """
         return self.transport.getPeer()
 
     def write(self, data):
+        """ Proxy to self.transport. """
         log.msg("\n" + data, system="client")
         self.transport.write(data)
 
     def writeSequence(self, seq):
+        """ WTF?. """
         raise NotImplementedError("Write sequence is not implemented.")
 
     def loseConnection(self):
+        """ Proxy to self.transport. """
         log.msg("Lose connection.", system="gateway")
         self.transport.loseConnection()
 
 
 class GitReceivePackProcessProtocol(GitProcessProtocol):
-    """
-    Protocol for handling a `git receive pack` from a client.
+
+    """ Protocol for handling a `git receive pack` from a client.
+
     This command runs when someone attempts to push to the server.
 
-    Buffer and parse clients input then either pass through inputs to the process or kill the connection.
+    Buffer and parse clients input then either pass through inputs to
+    the process or kill the connection.
 
     """
 

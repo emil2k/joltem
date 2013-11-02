@@ -1,3 +1,5 @@
+""" Task's models.  """
+
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -10,29 +12,38 @@ NOTIFICATION_TYPE_TASK_REJECTED = "task_rejected"
 
 
 class Task(Commentable):
-    """
-    A task is a description of work, the `owner` of the task is responsible for the administrating
-    and merging of the work as necessary. The `author` is the person who originally wrote up the task.
 
-    After creation a task must be curated through a staging process, if accepted the task is opened
-    and it is available for people to post solutions until it is closed by the owner.
+    """ A task is a description of work.
+
+    The `owner` of the task is responsible for the administrating and merging
+    of the work as necessary. The `author` is the person who originally wrote
+    up the task.
+
+    After creation a task must be curated through a staging process, if
+    accepted the task is opened and it is available for people to post
+    solutions until it is closed by the owner.
 
     Attributes :
     title -- title of task.
     description -- description of task, formatted with markdown.
-    is_reviewed -- whether or not the task has been reviewed, if it hasn't then it is being reviewed. default False.
-    is_accepted -- if the task has been reviewed, whether or not it was accepted or rejected. default False.
-    is_closed -- if the task was reviewed and accepted, whether or not it is closed to new solutions. if a task is closed
-        otherwise it means it is deprecated. default False.
+    is_reviewed -- whether or not the task has been reviewed, if it hasn't
+        then it is being reviewed. default False.
+    is_accepted -- if the task has been reviewed, whether or not it was
+        accepted or rejected. default False.
+    is_closed -- if the task was reviewed and accepted, whether or not it is
+        closed to new solutions. if a task is closed otherwise it means it is
+        deprecated. default False.
     time_posted -- date and time when the task was originally posted.
-    time_reviewed -- date and time of when the review of the task was completed.
-    time_closed -- date and time of last time (could be reopened) when the task was marked closed.
+    time_reviewed -- date and time of when the review of the task was completed
+    time_closed -- date and time of last time (could be reopened) when the task
+        was marked closed.
     owner -- the user responsible for administrating the task.
     project -- the project the task belongs to.
     parent -- if task is a subtask to a solution, this is the parent solution.
     author -- the person who initially suggested the task.
 
     """
+
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_reviewed = models.BooleanField(default=False)
@@ -44,27 +55,38 @@ class Task(Commentable):
     # Relations
     owner = models.ForeignKey(User)
     project = models.ForeignKey('project.Project')
-    parent = models.ForeignKey('solution.Solution', null=True, blank=True, related_name="subtask_set")
-    author = models.ForeignKey(User, related_name="tasks_authored_set")  # user who created the task
+    parent = models.ForeignKey(
+        'solution.Solution', null=True, blank=True, related_name="subtask_set")
+    author = models.ForeignKey(
+        User, related_name="tasks_authored_set")  # user who created the task
 
     def __unicode__(self):
         return self.title
 
-    def get_subtask_count(self, solution_is_completed=False, solution_is_closed=False,
-                          task_is_reviewed=False, task_is_accepted=False, task_is_closed=False):
-        """
-        Count of tasks stemming from this task, that meet state criteria.
+    def get_subtask_count(
+            self, solution_is_completed=False, solution_is_closed=False,
+            task_is_reviewed=False, task_is_accepted=False,
+            task_is_closed=False):
+        """ Count of tasks stemming from this task, that meet state criteria.
 
         Keyword arguments :
-        solution_is_completed -- whether solutions included in the count should be completed.
-        solution_is_closed -- whether solutions included in the count should be closed.
-        task_is_reviewed -- whether tasks included in the count should be reviewed.
-        task_is_accepted -- whether tasks included in the count should be accepted.
+        solution_is_completed -- whether solutions included in the count should
+            be completed.
+        solution_is_closed -- whether solutions included in the count should
+            be closed.
+        task_is_reviewed -- whether tasks included in the count should
+            be reviewed.
+        task_is_accepted -- whether tasks included in the count should
+            be accepted.
         task_is_closed -- whether tasks included in the count should be closed.
+
+        :return int: Count
 
         """
         count = 0
-        for solution in self.solution_set.filter(is_completed=solution_is_completed, is_closed=solution_is_closed):
+        for solution in self.solution_set.filter(
+                is_completed=solution_is_completed,
+                is_closed=solution_is_closed):
             count += solution.get_subtask_count(
                 solution_is_completed, solution_is_closed,
                 task_is_reviewed, task_is_accepted, task_is_closed
@@ -72,33 +94,33 @@ class Task(Commentable):
         return count
 
     def iterate_parents(self):
-        """
-        Iterate through parents, returns a tuple with the parent solution and task.
+        """ Iterate through parents.
+
+        Returns a tuple with the parent solution and task.
 
         """
         parent_solution, parent_task = self.parent, None
         yield parent_solution, parent_task
         while parent_solution or parent_task:
             if parent_solution:
-                parent_solution, parent_task = parent_solution.solution, parent_solution.task
+                parent_solution, parent_task = (
+                    parent_solution.solution, parent_solution.task)
             elif parent_task:
                 parent_solution, parent_task = parent_task.parent, None
             if parent_solution or parent_task:
                 yield parent_solution, parent_task
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        """
-        Override to notify at creation
+        """ Override to notify at creation. """
 
-        """
         created = not self.pk
-        super(Task, self).save(force_insert, force_update, using, update_fields)
+        super(Task, self).save(
+            force_insert, force_update, using, update_fields)
         if created:
             self.notify_created()
 
     def put_vote(self, voter, is_accepted):
-        """
-        Casts or overwrites a vote cast while reviewing a task.
+        """ Casts or overwrites a vote cast while reviewing a task.
 
         Keyword arguments :
         voter -- a model instance of the user casting the vote.
@@ -171,11 +193,13 @@ class Task(Commentable):
         """Send out appropriate notifications about the task being posted"""
         if self.parent:
             if self.parent.owner_id != self.author_id:
-                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "parent_solution"})
+                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
+                            "role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
                 if admin.id != self.author_id:
-                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={"role": "project_admin"})
+                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
+                                "role": "project_admin"})
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
