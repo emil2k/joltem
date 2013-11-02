@@ -14,4 +14,9 @@ CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 # Disable south migrations on db creation in tests
 SOUTH_TESTS_MIGRATE = False
 
+# Nosetests
+INSTALLED_APPS += 'django_nose',
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+
 logging.info("Test settings loaded.")

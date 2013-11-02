@@ -7,6 +7,7 @@ from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
 from project.models import Project
 from joltem.tests.mocking import (
     get_mock_user, get_mock_solution, get_mock_task)
+from mixer.backend.django import mixer
 
 
 # Mocking helpers
@@ -158,7 +159,7 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     def setUp(self):
         super(RepositoryTestCase, self).setUp()
-        self.project = Project.objects.get(id=1)
+        self.project = mixer.blend(Project, name='joltem')
         TEST_LOGGER.debug("LOADED PROJECT : %d : %s" % (self.project.id, self.project.name))
         self.assertEqual(self.project.name, 'joltem')
         self.repository = get_mock_repository("TEST", self.project)

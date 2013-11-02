@@ -32,3 +32,12 @@ urlpatterns = patterns(
     url(r'^(?P<project_name>([-\w])+)/', include(
         'project.urls', namespace='project')),
 )
+
+from django.conf import settings
+if settings.DEBUG:
+    from django.conf.urls.static import static
+
+    urlpatterns += static(
+        settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# lint_ignore=E1120

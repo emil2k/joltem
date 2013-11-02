@@ -4,7 +4,7 @@ import logging
 from os import path as op, walk, listdir
 
 
-PROJECT_ROOT = op.abspath(op.dirname(op.dirname(__file__)))
+PROJECT_ROOT = op.abspath(op.dirname(op.dirname(op.dirname(__file__))))
 PROJECT_NAME = op.basename(PROJECT_ROOT)
 
 ENVIRONMENT_NAME = 'core'
@@ -33,6 +33,11 @@ MEDIA_ROOT = op.join(PROJECT_ROOT, 'media')
 STATIC_ROOT = op.join(PROJECT_ROOT, 'static')
 MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
 
 # Templates settings
 TEMPLATE_DIRS = ()

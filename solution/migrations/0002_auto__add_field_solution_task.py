@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("task", "0001_initial"),
+    )
+
     def forwards(self, orm):
         # Adding field 'Solution.task'
         db.add_column(u'solution_solution', 'task',

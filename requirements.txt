@@ -1,6 +1,6 @@
 # Production
 # ==========
--e git+https://github.com/django/django.git@1.6c1#egg=django
+django==1.5.5
 Markdown==2.3.1
 South==0.8.2
 Twisted==13.1.0
@@ -13,8 +13,9 @@ pygit2==0.19.0
 
 # Develop
 # =======
-django-extensions
-django-debug-toolbar
+Werkzeug==0.9.4
+django-extensions==1.2.5
+django-debug-toolbar==0.10.2
 
 # QA
 # ==
@@ -24,3 +25,5 @@ ipdb
 # Tests
 # =====
 mixer
+django-nose
+coverage

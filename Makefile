@@ -20,6 +20,10 @@ lint: $(ENV)
 	@rm -rf pylama.report
 	pylama . -r pylama.report
 
+ci: lint
+	$(ENV)/bin/pip install coverage
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --woth-coverage --with-xunit --cover-xml
+
 .PHONY: run
 # target: run - Run Django development server
 run: $(ENV)
@@ -32,9 +36,14 @@ db: $(ENV)
 	$(ENV)/bin/python $(CURDIR)/manage.py migrate --settings=joltem.settings.$(SETTINGS) --noinput
 
 .PHONY: shell
-# target: shell - Prepare database
+# target: shell - Run project shell
 shell: $(ENV)
 	$(ENV)/bin/python $(CURDIR)/manage.py shell_plus --settings=joltem.settings.$(SETTINGS)
+
+.PHONY: static
+# target: static - Compile project static
+static: $(ENV)
+	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS)
 
 $(ENV): requirements.txt
 	virtualenv --no-site-packages $(ENV)
@@ -43,7 +52,8 @@ $(ENV): requirements.txt
 
 .PHONY: test
 # target: test - Run project's tests
-test: $(ENV) test_joltem test_project test_solution test_task test_git test_gateway
+test: $(ENV)
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test -x
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem

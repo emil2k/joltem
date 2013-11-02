@@ -15,6 +15,7 @@ def home(request):
         # Currently there is only one project so just redirect to it
         project = Project.objects.get()
         return redirect('project:project', project_name=project.name)
+
     elif 'invite_code' in request.COOKIES:
         invite_code = request.COOKIES['invite_code']
         invite = Invite.is_valid(invite_code)
