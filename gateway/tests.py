@@ -2,8 +2,18 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
 
 from unittest import TestCase
+from gateway.libs.terminal.utils import *
 from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
+
+
+class TestTerminalProtocolUtilities(TestCase):
+
+    def test_unicode_force_ascii(self):
+        self.assertEqual(force_ascii(u'a'), 'a')
+
+    def test_default_force_ascii(self):
+        self.assertEqual(force_ascii('a'), 'a')
 
 
 class TestingPacketLineSplitter(TestCase):
@@ -36,7 +46,7 @@ class TestingBaseBufferedSplitter(TestCase):
             b._process_buffer()
 
 
-class GitProtocol(TestCase):
+class TestingGitProtocolUtilities(TestCase):
 
     def test_get_packet_line(self):
         raw = 'ng refs/heads/master permission-denied\n'
