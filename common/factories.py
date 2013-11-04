@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 
 import factory
 from django.contrib.auth.models import User
