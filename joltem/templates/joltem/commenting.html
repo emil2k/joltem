@@ -26,8 +26,10 @@
                     {{ comment.comment|markdown:"tables,fenced_code" }}
                 </div>
                 {% if comment_holder.is_author %}
-                    <a id="activate-comment-edit-{{ comment.id }}" href="{{ comment_holder.url }}" onclick="$('#comment-edit-{{ comment.id }}').trigger('comment_edit_{{ comment.id }}'); $(this).hide();"
-                       class="muted">edit</a>
+                    <span class="muted" id="activate-comment-edit-{{ comment.id }}">
+                        <a class="muted" href="{{ comment_holder.url }}" onclick="$('#comment-edit-{{ comment.id }}').trigger('comment_edit_{{ comment.id }}'); $('#activate-comment-edit-{{ comment.id }}').hide();">edit</a> -
+                        <a class="muted" href="#">delete</a>
+                    </span>
                 {% endif %}
             </div>
             <div class="span2 text-center">
