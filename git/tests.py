@@ -144,7 +144,7 @@ class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
         Test pygit2 version matches expectations
         """
         import pygit2
-        expecting = '0.19.0'
+        expecting = '0.19.1'
         actual = pygit2.__version__
         self.assertEqual(actual, expecting, "Using wrong version of pygit2, expecting %s, installed %s." % (expecting, actual))
 
