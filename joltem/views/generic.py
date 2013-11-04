@@ -97,9 +97,12 @@ class CommentableView(RequestBaseView):
 
     def post(self, request, *args, **kwargs):
         commentable = self.get_commentable()
+        # Edit or delete comment
         comment_edit = request.POST.get('comment_edit')
+        comment_delete = request.POST.get('comment_delete')
         comment_id = request.POST.get('comment_id')
-        if request.is_ajax() and comment_edit is not None and comment_id is not None:
+        if request.is_ajax() and \
+                (comment_edit or comment_delete) and comment_id:
             try:
                 comment = Comment.objects.get(id=comment_id)
             except Comment.DoesNotExist, Comment.MultipleObjectsReturned:
@@ -107,10 +110,15 @@ class CommentableView(RequestBaseView):
             else:
                 if not comment.is_owner(request.user):
                     return HttpResponseForbidden("Not your comment.")
-                comment.comment = comment_edit
-                comment.save()
-                # For jeditable return data to display
-                return HttpResponse(markdown(comment.comment, arg='tables,fenced_code'))
+                if comment_delete:
+                    comment.delete()
+                    return HttpResponse("Comment deleted")
+                elif comment_edit:
+                    comment.comment = comment_edit
+                    comment.save()
+                    # For jeditable return data to display
+                    return HttpResponse(markdown(comment.comment, arg='tables,fenced_code'))
+        # Post a comment
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             commentable.add_comment(self.user, comment_text)
