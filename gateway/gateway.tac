@@ -4,7 +4,7 @@ Gateway Daemon -- start up a gateway for the git server and shell
 """
 import sys
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 # Configure sys.path and current working directory
 GATEWAY_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 MAIN_DIRECTORY = os.path.split(GATEWAY_DIRECTORY)[0]

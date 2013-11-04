@@ -45,10 +45,5 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 logging.info('Develop settings are loaded.')
-try:
-    from .local import *
-except ImportError:
-    pass
 
 # lint_ignore=W0614,W0401,C0301,E501
-

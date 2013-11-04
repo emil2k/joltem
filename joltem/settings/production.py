@@ -21,7 +21,7 @@ MIDDLEWARE_CLASSES += 'django.middleware.csrf.CsrfViewMiddleware',
 INSTALLED_APPS += (
 
     # Contrib
-    'django.contrib.markup',
+    'markup_deprecated',
 
     # Vendors
     'mathfilters',
