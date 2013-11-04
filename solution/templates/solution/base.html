@@ -13,59 +13,7 @@
     </ul>
     {% block solution_content %}{% endblock %}
     {% block scripts %}
-        <script src="{% static 'joltem/js/jquery.jeditable.min.js' %}"></script>
-        <script>
-            function edit_comment(comment_id){
-                var editable = $('#comment-edit-' + comment_id);
-                var activate = $('#activate-comment-edit-' + comment_id);
-                editable.trigger('comment_edit');
-                activate.hide();
-            };
-            function delete_comment(comment_id){
-                if(confirm("Are you sure you want to delete this comment?")){
-                    var editable = $('#comment-edit-' + comment_id);
-                    var activate = $('#activate-comment-edit-' + comment_id);
-                    $.post('{{ request.path }}', {
-                        comment_delete: 1,
-                        csrfmiddlewaretoken : '{{ csrf_token }}',
-                        comment_id: comment_id
-                    }).done(function(){
-                                editable.addClass('muted deleted_comment');
-                                editable.text("comment deleted");
-                                activate.hide();
-                            });
-                }
-            };
-            $(document).ready(function() {
-                // Tooltips
-                $(".impact_vote").tooltip();
-                // Editable text
-                $('.editable_comment').each(function(){
-                    $(this).editable('{{ request.path }}', {
-                        type        : 'textarea',
-                        loadurl     : $(this).attr('data-loadurl'),
-                        name        : 'comment_edit',
-                        event       : 'comment_edit',
-                        submitdata  : {
-                            csrfmiddlewaretoken : '{{ csrf_token }}',
-                            comment_id: $(this).attr('data-id')
-                        },
-                        activate    : $( "#activate-" + $(this).attr('id')),
-                        callback    : function(value, settings){
-                            settings.activate.show();
-                        },
-                        onblur      : 'ignore',
-                        onreset     : function(original){
-                            original.activate.show();
-                            return true;
-                        },
-                        submit      : 'save',
-                        cancel      : 'cancel',
-                        loadtext    : 'Loading comment...'
-                    });
-                });
-            });
-        </script>
+        {% include "joltem/commenting_scripts.html" %}
         {% block solution_scripts %}{% endblock %}
     {% endblock %}
 {% endblock %}
