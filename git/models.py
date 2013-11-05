@@ -7,13 +7,12 @@ from twisted.conch.ssh.keys import Key, BadKeyError
 
 from project.models import Project
 from django.conf import settings
-from os import path as op
 
 import logging
 logger = logging.getLogger('joltem')
 
-MAIN_DIR = op.dirname(settings.PROJECT_ROOT)
-REPOSITORIES_DIRECTORY = '%s/gateway/repositories' % MAIN_DIR
+
+REPOSITORIES_DIRECTORY = '%sgateway/repositories' % settings.MAIN_DIR
 
 
 class Repository(models.Model):

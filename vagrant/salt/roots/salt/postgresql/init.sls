@@ -26,6 +26,7 @@ postgresql-database-setup:
     - present
     - name: {{ pillar['postgresql_user'] }}
     - password: {{ pillar['postgresql_password'] }}
+    - createdb: True
     - user: postgres
     - require:
       - service: postgresql
