@@ -1,4 +1,5 @@
 """ Git related modules. """
+import os
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -11,8 +12,8 @@ from django.conf import settings
 import logging
 logger = logging.getLogger('joltem')
 
-
-REPOSITORIES_DIRECTORY = '%sgateway/repositories' % settings.MAIN_DIR
+REPOSITORIES_DIRECTORY = os.path.join(settings.PROJECT_ROOT,
+                                      'gateway/repositories')
 
 
 class Repository(models.Model):
