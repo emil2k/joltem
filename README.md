@@ -6,7 +6,7 @@ This is a guide on how to setup the project in your local environment for develo
 
 Let's assume that you have already installed
 [Vagrant](http://www.vagrantup.com) and
-[VirtualBox](https://www.virtualbox.org). 
+[VirtualBox](https://www.virtualbox.org).
 
 First, you have to install Salty Vagrant :
 
@@ -57,14 +57,20 @@ The vagrant setup will create a few dummy users that you can sign in with immedi
 However you can also create a super user :
 
     (venv)$ python manage.py createsuperuser
-    
+
 ##### Gateway
 
 In order to clone repository you have to add your public key on
 ``http://joltem.local/account/keys/`` page. Say your username is ``marsel``, the repository id is ``1``, and the git server listens on port ``222`` :
 
     $ git clone ssh://marsel@joltem.local:222/1
-    
+
 Also you can access the site's shell by running :
 
 	$ ssh -p 222 marsel@joltem.local
+
+##### Tests
+
+You can run tests from VM:
+
+    (venv)$ python manage.py test
