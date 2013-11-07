@@ -159,10 +159,6 @@
     {% endif %}
     {% include "joltem/commenting.html" %}
     {% block scripts %}
-        <script>
-            $(document).ready(function() {
-                $(".impact_vote").tooltip();
-            });
-        </script>
+        {% include "joltem/commenting_scripts.html" %}
     {% endblock %}
 {% endblock %}

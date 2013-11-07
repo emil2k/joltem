@@ -1,7 +1,11 @@
 from django.utils import timezone
 from django.views.generic.base import View, ContextMixin
 from django.contrib.contenttypes.generic import ContentType
+from django.contrib.markup.templatetags.markup import markdown
 from django.core.exceptions import ImproperlyConfigured
+from django.core import context_processors
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.template import RequestContext
 
 from solution.models import Solution
 from joltem.models import Comment, Vote
@@ -23,7 +27,11 @@ class RequestBaseView(ContextMixin, View):
 
     def get_context_data(self, **kwargs):
         kwargs["user"] = self.user
-        return super(RequestBaseView, self).get_context_data(**kwargs)
+        return RequestContext(
+            self.request,
+            super(RequestBaseView, self).get_context_data(**kwargs),
+            [context_processors.request]
+        )
 
 
 class TextContextMixin(ContextMixin):
@@ -89,10 +97,33 @@ class CommentableView(RequestBaseView):
 
     def post(self, request, *args, **kwargs):
         commentable = self.get_commentable()
+        # Edit or delete comment
+        comment_edit = request.POST.get('comment_edit')
+        comment_delete = request.POST.get('comment_delete')
+        comment_id = request.POST.get('comment_id')
+        if request.is_ajax() and \
+                (comment_edit or comment_delete) and comment_id:
+            try:
+                comment = Comment.objects.get(id=comment_id)
+            except Comment.DoesNotExist, Comment.MultipleObjectsReturned:
+                return HttpResponseNotFound("Comment with not found with id : %s" % comment_id)
+            else:
+                if not comment.is_owner(request.user):
+                    return HttpResponseForbidden("Not your comment.")
+                if comment_delete:
+                    comment.delete()
+                    return HttpResponse("Comment deleted")
+                elif comment_edit:
+                    comment.comment = comment_edit
+                    comment.save()
+                    # For jeditable return data to display
+                    return HttpResponse(markdown(comment.comment, arg='tables,fenced_code'))
+        # Post a comment
         comment_text = request.POST.get('comment')
         if comment_text is not None:
             commentable.add_comment(self.user, comment_text)
             return self.get_comment_redirect()
+
         return super(CommentableView, self).post(request, *args, **kwargs)
 
     def get_commentable(self):

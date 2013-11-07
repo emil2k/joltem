@@ -1,11 +1,12 @@
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
 from django.views.generic.base import TemplateView, RedirectView
 
 from git.models import Authentication
-from joltem.models import User, Invite, Notification
+from joltem.models import User, Invite, Notification, Comment
 from joltem.views.generic import TextContextMixin, RequestBaseView
 from project.models import Project
 
@@ -268,6 +269,16 @@ def invites(request):
             invite.save()
         return redirect('invites')
     return render(request, 'joltem/invites.html', context)
+
+
+def comment(request, comment_id):
+    """Returns markdown for a comment
+
+    Used by JEditable to load markdown for editing.
+
+    """
+    comment = get_object_or_404(Comment, id=comment_id)
+    return HttpResponse(comment.comment)
 
 
 def invite(request, invite_id):

@@ -23,6 +23,8 @@ urlpatterns = patterns(
         name='notification_redirect'),
     url(r'^notifications/', login_required(
         views.NotificationsView.as_view()), name='notifications'),
+    url(r'^comment/(?P<comment_id>([0-9])+)/', login_required(
+        views.comment), name='comment'),
     url(r'^user/(?P<username>([-\w])+)/$', views.user, name='user'),
     url(r'^account/$', views.account, name='account'),
     url(r'^account/keys/$', views.keys, name='account_keys'),
