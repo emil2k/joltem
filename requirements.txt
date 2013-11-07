@@ -1,6 +1,6 @@
 # Production
 # ==========
--e git+https://github.com/django/django.git@1.6c1#egg=django
+Django==1.6
 Markdown==2.3.1
 South==0.8.2
 Twisted==13.1.0
