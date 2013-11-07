@@ -50,7 +50,7 @@ static: $(ENV)
 
 $(ENV): requirements.txt
 	virtualenv --no-site-packages $(ENV)
-	$(ENV)/bin/pip install -M -r requirements.txt
+	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
 	touch $(ENV)
 
 .PHONY: test
