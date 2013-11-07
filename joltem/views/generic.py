@@ -1,11 +1,11 @@
 from django.utils import timezone
 from django.views.generic.base import View, ContextMixin
-from django.contrib.contenttypes.generic import ContentType
-from django.contrib.markup.templatetags.markup import markdown
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.http import (HttpResponse, HttpResponseNotFound,
+                         HttpResponseForbidden)
 from django.template import RequestContext
+from markup_deprecated.templatetags.markup import markdown
 
 from solution.models import Solution
 from joltem.models import Comment, Vote
