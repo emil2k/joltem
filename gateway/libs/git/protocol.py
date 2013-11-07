@@ -1,15 +1,13 @@
 """ Git protocol. """
-
 import shlex
-
-from zope.interface import implements
-from twisted.python import log
-from twisted.python.failure import Failure
 from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import ITransport
+from twisted.python import log
+from twisted.python.failure import Failure
+from zope.interface import implements
 
-from gateway.libs.utils import SubprocessProtocol, BaseBufferedSplitter
-from gateway.libs.git.utils import get_packet_line_size
+from ..utils import SubprocessProtocol, BaseBufferedSplitter
+from .utils import get_report, FLUSH_PACKET_LINE, get_packet_line_size
 from solution.models import Solution
 
 
@@ -188,30 +186,29 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
     def __init__(self, protocol, avatar, repository):
         GitProcessProtocol.__init__(self, protocol, avatar, repository)
-        self._splitter = PacketLineSplitter(self.received_packet_line, self.received_empty_packet_line)
+        self._splitter = PacketLineSplitter(
+            self.received_packet_line, self.received_empty_packet_line)
         self._buffering = True  # whether to buffer
-        self._buffer = bytearray()  # buffer clients input here until authorized
+        self._buffer = bytearray()  # buffer clients input until authorized
         self._abilities = None
         self._rejected = False
-        self._command_statuses = []  # list of push statuses of each reference in order received, (reference, has_permission)
+        # list of push statuses of each reference in order received,
+        # (reference, has_permission)
+        self._command_statuses = []
 
     def flush(self):
-        """
-        Flush input buffers into process
+        """ Flush input buffers into process. """
 
-        """
         self.transport.write(str(self._buffer))
         self._buffer = bytearray()
 
     def stop_buffering(self):
-        """
-        Flush and stop buffering
-
-        """
+        """ Flush and stop buffering. """
         self.flush()
         self._buffering = False
 
     def write(self, data):
+        """ Write data to self.transport. """
         if self._buffering:
             log.msg("\n" + data, system="client - buffered")
             self._buffer.extend(data)
@@ -225,6 +222,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     # Receivers
 
     def received_packet_line(self, line):
+        """ Should have dosctrings. """
+
         log.msg(line, system="packet-line")
         if self._abilities is None:
             parts = line.split('\x00')
@@ -241,37 +240,44 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
             self.flush()
 
     def received_empty_packet_line(self):
+        """ Should have dosctrings. """
+
         log.msg("empty packet line received.", system="packet-line")
         self.stop_buffering()  # client should now send PACK data
 
-    def handle_push_line(self, input):
-        """
-        Process a push request line, end connection if not authorized.
+    def handle_push_line(self, inp):
+        """ Process a push request line, end connection if not authorized.
+
         Input should be a string in the form : {old_oid} {new_oid} {reference}
 
         Example :
-        a45c1e5fdc0938b97b0ac98e1ba6d8cdf81c4f5c f9d4af97f4b0b9e4188597dcff930fababce8fd8 refs/heads/master
+        a45c1e5fdc0938b97b0ac98e1ba6d8cdf81c4f5c f9d4af97f4b0b9e4188597dcff930fababce8fd8 refs/heads/master # noqa
 
         """
-        parts = input.split(' ')
+        parts = inp.split(' ')
         if not len(parts) == 3:
             raise IOError("Push line does not contain 3 parts.")
         old, new, ref = parts
-        log.msg("parse push line : %s -> %s : %s" % (old, new, ref), system='parser')
+        log.msg("parse push line : %s -> %s : %s" %
+                (old, new, ref), system='parser')
         if self.has_push_permission(ref, old, new):
-            self._command_statuses.append((ref, GitReceivePackProcessProtocol.OK_PUSH_SEPARATELY))
+            self._command_statuses.append((
+                ref, GitReceivePackProcessProtocol.OK_PUSH_SEPARATELY))
         else:
             self._rejected = True
-            self._command_statuses.append((ref, GitReceivePackProcessProtocol.PERMISSION_DENIED))
+            self._command_statuses.append((
+                ref, GitReceivePackProcessProtocol.PERMISSION_DENIED))
 
     def has_push_permission(self, reference, old_oid, new_oid):
-        """
-        Determine whether the logged user has permission to push to the specified reference, returns a boolean.
+        """ Determine whether the logged user has permission.
+
+        To push to the specified reference, returns a boolean.
 
         Keyword arguments :
         reference -- pushing to this reference
         old_oid -- the old object id the reference pointed to
-        new_oid -- the new object id the reference will point to if the push is accepted
+        new_oid -- the new object id the reference will point to
+                   if the push is accepted
 
         """
         parts = reference.split('/')
@@ -282,17 +288,30 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 try:
                     solution_id = int(parts[3])
                     solution = Solution.objects.get(id=solution_id)
-                except (ValueError, Solution.DoesNotExist, Solution.MultipleObjectsReturned):
+                except (
+                        ValueError,
+                        Solution.DoesNotExist,
+                        Solution.MultipleObjectsReturned):
                     return False
                 else:
                     return solution.is_owner(self.avatar.user)
         return False
 
     def eof_received(self):
-        GitProcessProtocol.eof_received(self)  # just logging
+        """ Should have docstring. """
+
+        GitProcessProtocol.eof_received()  # just logging
         if self._rejected:
             # Respond back with a status report
             self.outReceived(get_report(self._command_statuses))
             self.outReceived(FLUSH_PACKET_LINE)
             # Manually end the process
             self.processEnded(Failure(ProcessDone(None)))
+
+    def writeSequence(self, seq):
+        """ Redefine abstract method.
+
+        Do nothing for now.
+
+        """
+        pass

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+""" Django CLI support. """
+
 import os
 import sys
 

@@ -1,10 +1,15 @@
+""" Protocol utils. """
 
 
 def force_ascii(raw):
-    """Force the raw data to be ascii encoded, without error."""
+    """Force the raw data to be ascii encoded, without error.
+
+    :return unicode:
+
+    """
     try:
         unicode(raw, "ascii")
-    except TypeError, e:
+    except TypeError:
         return raw.encode('ascii')
-    else:
-        return raw
+
+    return raw
