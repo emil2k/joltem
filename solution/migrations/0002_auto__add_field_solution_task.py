@@ -7,29 +7,20 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("task", "0001_initial"),
+    )
+
     def forwards(self, orm):
-        # Adding model 'Solution'
-        db.create_table(u'solution_solution', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('impact', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
-            ('acceptance', self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True)),
-            ('title', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('is_completed', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('is_closed', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('time_posted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('time_completed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('time_closed', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['project.Project'])),
-            ('solution', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='solution_set', null=True, to=orm['solution.Solution'])),
-        ))
-        db.send_create_signal(u'solution', ['Solution'])
+        # Adding field 'Solution.task'
+        db.add_column(u'solution_solution', 'task',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['task.Task'], null=True, blank=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Solution'
-        db.delete_table(u'solution_solution')
+        # Deleting field 'Solution.task'
+        db.delete_column(u'solution_solution', 'task_id')
 
 
     models = {
@@ -88,10 +79,27 @@ class Migration(SchemaMigration):
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'solution': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'solution_set'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']", 'null': 'True', 'blank': 'True'}),
             'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'title': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
+        },
+        u'task.task': {
+            'Meta': {'object_name': 'Task'},
+            'author': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tasks_authored_set'", 'to': u"orm['auth.User']"}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_closed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_reviewed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'subtask_set'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_reviewed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }
 

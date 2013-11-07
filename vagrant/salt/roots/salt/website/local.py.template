@@ -1,13 +1,13 @@
 # coding: utf-8
-import os
+from .develop import *
 
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': '{{ pillar['mysql_db'] }}',
-        'USER': '{{ pillar['mysql_user'] }}',
-        'PASSWORD': '{{ pillar['mysql_password'] }}',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '{{ pillar['postgresql_db'] }}',
+        'USER': '{{ pillar['postgresql_user'] }}',
+        'PASSWORD': '{{ pillar['postgresql_password'] }}',
     }
 }
 

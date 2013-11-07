@@ -1,8 +1,0 @@
-django>=1.5.0
-twisted
-pyasn1
-south
-mysql-python
-pygit2==0.19.0
-markdown>=2.1
-django-mathfilters

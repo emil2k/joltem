@@ -1,5 +1,0 @@
--r requirements.txt
-
-django-extensions==1.2.3
-django-debug-toolbar==0.9.4
-mixer==1.1.6

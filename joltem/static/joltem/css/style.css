@@ -55,3 +55,18 @@ td.line_number {
     background-color: #e2e2e2;
     color: #8c8c8c;
 }
+
+/*
+    Comment related
+*/
+
+.comment{
+    padding: 0px;
+}
+
+.deleted_comment{
+    padding: 10px;
+    background:
+        #f9f9f9
+        repeat;
+}

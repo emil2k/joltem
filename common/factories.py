@@ -1,6 +1,9 @@
 # coding: utf-8
+
+""" Factories for tests. """
+
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 
 import factory
 from django.contrib.auth.models import User
@@ -11,11 +14,13 @@ from git.models import Repository
 
 class UserF(factory.DjangoModelFactory):
 
+    """ Generate users. """
+
     FACTORY_FOR = User
 
-    username = factory.Sequence(lambda num: u'jon_snow{}'.format(num))
-    first_name = factory.Sequence(lambda num: u'Jon{}'.format(num))
-    last_name = factory.Sequence(lambda num: u'Snow{}'.format(num))
+    username = factory.Sequence(u'jon_snow{}'.format)
+    first_name = factory.Sequence(u'Jon{}'.format)
+    last_name = factory.Sequence(u'Snow{}'.format)
     email = factory.LazyAttribute(
         lambda obj: u'{}@example.org'.format(obj.username))
     is_staff = False
@@ -37,23 +42,30 @@ class UserF(factory.DjangoModelFactory):
 
 class ProjectF(factory.DjangoModelFactory):
 
+    """ Generate projects. """
+
     FACTORY_FOR = Project
 
-    name = factory.Sequence(lambda num: u'joltem{}'.format(num))
-    title = factory.Sequence(lambda num: u'Joltem{}'.format(num))
+    name = factory.Sequence(u'joltem{}'.format)
+    title = factory.Sequence(u'Joltem{}'.format)
 
 
 class RepositoryF(factory.DjangoModelFactory):
 
+    """ Generate repositories. """
+
     FACTORY_FOR = Repository
 
     project = factory.SubFactory(ProjectF)
-    name = factory.Sequence(lambda num: u'repo{}'.format(num))
+    name = factory.Sequence(u'repo{}'.format)
 
 
 def init_joltem_project():
+    """ Setup project and some users. """
+
     if Project.objects.filter(pk=1).exists():
         return
+
     joltem_project = ProjectF(pk=1, name='joltem', title='Joltem')
 
     RepositoryF(project=joltem_project, name='main',
