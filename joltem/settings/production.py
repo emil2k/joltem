@@ -2,6 +2,7 @@
 
 from .core import *
 
+
 ENVIRONMENT_NAME = 'production'
 
 LOGIN_URL = 'sign_in'
@@ -53,9 +54,5 @@ SECRET_KEY = 'imsosecret'
 GATEWAY_PORT = 22
 GATEWAY_PRIVATE_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa"
 GATEWAY_PUBLIC_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa.pub"
-GATEWAY_LOGGER_FILE_NAME = 'gateway.log'  # i.e. gateway.log
-GATEWAY_LOGGER_FILE_DIRECTORY = PROJECT_ROOT
-GATEWAY_LOGGER_MAX_BYTES = 500 * 1024 * 1024
-GATEWAY_LOGGER_BACKUP_COUNT = 5
 
 logging.info("Production settings loaded.")
