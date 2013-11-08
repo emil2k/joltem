@@ -30,6 +30,7 @@ supervisored twisted:
   supervisord:
     - running
     - name: gitserver_twisted
+    - update: True
     - restart: True
     - watch:
       - file: supervisored twisted

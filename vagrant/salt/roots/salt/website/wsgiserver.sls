@@ -21,6 +21,7 @@ supervisored gunicorn:
   supervisord:
     - running
     - name: website_gunicorn
+    - update: True
     - restart: True
     - watch:
       - file: supervisord conf
