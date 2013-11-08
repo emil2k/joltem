@@ -78,3 +78,7 @@ You can run tests from VM:
 ##### Troubleshooting
 
 If something goes wrong, see logs at `/var/log/supervisor`.
+
+If you encounter intermittent 404s, you might have multiple VMs running
+at the same time. We suggest powering off all VMs and unregister
+the inaccessible ones and reran the Vagrant up progress.
