@@ -8,6 +8,8 @@ LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
 AUTH_PROFILE_MODULE = 'joltem.Profile'
+ALLOWED_HOSTS = [
+    ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'joltem.wsgi.application'
