@@ -74,3 +74,7 @@ Also you can access the site's shell by running :
 You can run tests from VM:
 
     (venv)$ python manage.py test
+
+##### Troubleshooting
+
+If something goes wrong, see logs at `/var/log/supervisor`.
