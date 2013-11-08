@@ -1,16 +1,30 @@
+""" Load keys and setup factory. """
+
 from twisted.conch.ssh.keys import Key
 from twisted.conch.ssh.factory import SSHFactory
 
-from joltem.settings import GATEWAY_PRIVATE_KEY_FILE_PATH, GATEWAY_PUBLIC_KEY_FILE_PATH
+from django.conf import settings
 
-# Load server keys
-
-SERVER_PRIVATE_KEY = Key.fromFile(GATEWAY_PRIVATE_KEY_FILE_PATH)
-SERVER_PUBLIC_KEY = Key.fromFile(GATEWAY_PUBLIC_KEY_FILE_PATH)
+SERVER_PRIVATE_KEY = Key.fromFile(settings.GATEWAY_PRIVATE_KEY_FILE_PATH)
+SERVER_PUBLIC_KEY = Key.fromFile(settings.GATEWAY_PUBLIC_KEY_FILE_PATH)
 
 
 class GatewayFactory(SSHFactory):
 
-    def __init__(self):
-        self.privateKeys = {'ssh-rsa': SERVER_PRIVATE_KEY}
-        self.publicKeys = {'ssh-rsa': SERVER_PUBLIC_KEY}
+    """ Factory with preloaded keys. """
+
+    def getPrivateKeys(self):
+        """ Load private key.
+
+        :return dict:
+
+        """
+        return {'ssh-rsa': SERVER_PRIVATE_KEY}
+
+    def getPublicKeys(self):
+        """ Load public key.
+
+        :return dict:
+
+        """
+        return {'ssh-rsa': SERVER_PUBLIC_KEY}

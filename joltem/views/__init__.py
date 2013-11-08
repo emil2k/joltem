@@ -1,11 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404, resolve_url
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout as auth_logout
-from joltem.models import User, Profile
-from project.models import Project
-from git.models import Authentication
-from joltem.models import Invite, Notification
+from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
+from django.views.generic.base import TemplateView, RedirectView
+
+from git.models import Authentication
+from joltem.models import User, Invite, Notification, Comment
+from joltem.views.generic import TextContextMixin, RequestBaseView
+from project.models import Project
 
 
 def home(request):
@@ -13,6 +16,7 @@ def home(request):
         # Currently there is only one project so just redirect to it
         project = Project.objects.get()
         return redirect('project:project', project_name=project.name)
+
     elif 'invite_code' in request.COOKIES:
         invite_code = request.COOKIES['invite_code']
         invite = Invite.is_valid(invite_code)
@@ -267,6 +271,16 @@ def invites(request):
     return render(request, 'joltem/invites.html', context)
 
 
+def comment(request, comment_id):
+    """Returns markdown for a comment
+
+    Used by JEditable to load markdown for editing.
+
+    """
+    comment = get_object_or_404(Comment, id=comment_id)
+    return HttpResponse(comment.comment)
+
+
 def invite(request, invite_id):
     user = request.user
     if not user.is_authenticated():
@@ -328,8 +342,6 @@ def invite(request, invite_id):
 
 # Class based views
 
-from django.views.generic.base import TemplateView, RedirectView
-from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
 class NotificationsView(TemplateView, RequestBaseView):

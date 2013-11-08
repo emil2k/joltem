@@ -1,5 +1,8 @@
 from django.contrib import admin
-import project, task, solution
+
+import project.models
+import task.models
+import solution.models
 
 admin.site.register(project.models.Project)
 admin.site.register(task.models.Task)

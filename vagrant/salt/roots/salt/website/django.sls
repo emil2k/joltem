@@ -9,6 +9,7 @@
     - no_site_packages: True
     - distribute: True
     - requirements: {{ pillar['website_requirements_path'] }}
+    - index_url: {{ pillar['website_pypi_url'] }}
     - user: joltem
     - no_chown: True
     - require:
@@ -27,7 +28,7 @@ django-admin collectstatic:
     - run
     - name: django.collectstatic
     - bin_env: {{ pillar['website_venv_dir'] }}
-    - settings_module: joltem.settings
+    - settings_module: joltem.settings.local
     - pythonpath: {{ pillar['website_src_dir'] }}
     - noinput: True
     - require:
@@ -39,7 +40,7 @@ django-admin migrate:
     - run
     - name: django.syncdb
     - bin_env: {{ pillar['website_venv_dir'] }}
-    - settings_module: joltem.settings
+    - settings_module: joltem.settings.local
     - pythonpath: {{ pillar['website_src_dir'] }}
     - migrate: True
     - require:
