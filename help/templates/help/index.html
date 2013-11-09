@@ -2,13 +2,30 @@
 {% load markup %}
 {% block content %}
     <div class="row">
-        <div class="span2">
+        <div class="span3">
             <ul class="nav nav-list well">
-                <li class="nav-header">Index</li>
-                <li><a href="#">Help link</a></li>
+                <li><a href="#">Overview</a></li>
+                <li class="nav-header">Workflow</li>
+                <li><a href="#task">What is a task?</a></li>
+                <li><a href="#">What is a solution?</a></li>
+                <li><a href="#">How are merges handled?</a></li>
+                <li class="nav-header">Impact & Equity</li>
+                <li><a href="#">What is impact?</a></li>
+                <li><a href="#">How does peer review work?</a></li>
+                <li><a href="#">How does impact turn into equity?</a></li>
+                <li class="nav-header">Starting a Company</li>
+                <li><a href="#">Have an idea?</a></li>
+                <li class="nav-header">The Joltem Project</li>
+                <li><a href="#">How is the company structured?</a></li>
+                <li><a href="#">How to get involved?</a></li>
+                <li class="nav-header">Get into Contact</li>
+                <li><a href="#">We are hiring.</a></li>
+                <li><a href="#">We talk to the press.</a></li>
+                <li><a href="#">We talk to investors.</a></li>
+                <li><a href="#">We can help.</a></li>
             </ul>
         </div>
-        <div class="span10">
+        <div class="span6">
             {{ help_1|markdown }}
         </div>
     </div>
