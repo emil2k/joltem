@@ -42,6 +42,18 @@ class RequestBaseView(ContextMixin, View):
             [context_processors.request]
         )
 
+class NavTabContextMixin(ContextMixin):
+
+    """ Mixin to pass the navigation tab to the template. """
+
+    nav_tab = None
+
+    def get_context_data(self, **kwargs):
+        """ Return context for template, add nav tab identifier. """
+        kwargs["nav_tab"] = self.nav_tab
+        return super(NavTabContextMixin, self).get_context_data(**kwargs)
+
+
 
 class TextContextMixin(ContextMixin):
 

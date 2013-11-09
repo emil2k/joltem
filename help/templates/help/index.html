@@ -1,0 +1,15 @@
+{% extends 'joltem/base.html' %}
+{% load markup %}
+{% block content %}
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Index</li>
+                <li><a href="#">Help link</a></li>
+            </ul>
+        </div>
+        <div class="span10">
+            {{ help_1|markdown }}
+        </div>
+    </div>
+{% endblock %}
