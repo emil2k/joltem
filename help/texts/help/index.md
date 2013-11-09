@@ -1,3 +1,4 @@
+<a name="what" class="anchor-fix"></a>
 ### What is this?
 
 Let us first start out by defining the problem we are looking to solve : 
@@ -6,13 +7,13 @@ Let us first start out by defining the problem we are looking to solve :
 
 The internet has scaled by orders of magnitude many of our interactions. In rare instances, it has shown us glimpses of what is possible if we work together. 
 
-However as it currently stands starting a business is a lonesome arduous process fueled by oudated fears and processes. Traditions of closed development are boxing in innovators, locking up talent, and creating unnecessary risk for both founders and investors.
+However as it currently stands starting a company is a lonesome arduous process fueled by oudated fears and processes. Traditions of closed development are boxing in innovators, locking up talent, and creating unnecessary risk for both founders and investors.
 
 We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with unimaginable ease. 
 
 What we propose here is the development of *an open incubator* to make this real by first focusing on the people most capable of accepting the idea - programmers.
 
-We are currently in the *alpha* stage of the development process and we are openly seeking colloborators to help us build this company.
+We are currently in the *alpha* stage of the development process and we are openly seeking colloborators to help us build the company.
 
 ---
 
@@ -36,7 +37,7 @@ On completion of a solution, a peer review is initiated to evaluate the complete
 <a name="impact" class="anchor-fix"></a>
 #### What is impact?
 
-To track each user's continous contribution to a project we use a metrice called **impact**. Impact is earned through the peer review of comments and solutions.
+To track each user's continuous contribution to a project we use a metric called **impact**. Impact is earned through the peer review of comments and solutions.
 
 <a name="peer-review" class="anchor-fix"></a>
 #### How does the peer review work?
@@ -50,7 +51,7 @@ If you find the work is acceptable you should decide whether the work is a 10, 1
 The peer review system is crucial to the health of the system, so it is important we get feedback and debate tweaks and alternatives. If you have a suggestion leave a comment on the [current live solution](http://joltem.com/joltem/solution/1/) or create your own solution on the [Determining Impact task](http://joltem.com/joltem/task/6/).
 
 <a name="exchange" class="anchor-fix"></a>
-### How is impact exchanged for equity?
+#### How is impact exchanged for equity?
 
 Impact will always be backed by a pool of company stock, like an employee pool in regular companies. As work is completed on the project, users will accumulate impact through the review process. The impact the user accumulates is treated as the contribution he or she has made to creating the company. The **total impact**, a sum of all the impacts accumulated by all the users on the project, can be viewed as the total contribution to get the project to that particular state.
 
@@ -62,23 +63,80 @@ At any point the company’s board, which is initially just the founders, can de
 
 ---
 
-Lorem ipsum dolor sit amet, modus inani dissentias eu per. Cum civibus menandri legendos at. Debet vitae repudiare mei ea. An malorum rationibus quo.
+<a name="idea" class="anchor-fix"></a>
+#### Have an idea?
 
-Posse delenit omittam his ad, ex ponderum dissentiet sed. Eu augue alienum reprehendunt pro. Ne nam inani docendi. Erat prodesset voluptatibus has ad. Dolore ubique deterruisset sit at, impetus scripta ei est. Usu at quaeque suavitate, duis vocent id per, posse graeci at vix.
+This will be a place where anybody will be able to draft out ideas, get feedback, and when ready openly solicit collaboration.
 
-Mei ad dolore voluptua, te eum possit appareat probatus, has et stet graece legendos. Ne sit decore salutandi, bonorum adolescens consequuntur cu qui. Sit cu detracto petentium democritum, ea dicam forensibus eos, augue soleat omittam ut his. Novum euismod verterem qui id, et recusabo repudiare mei, odio putent delicata cu mea. Nusquam placerat argumentum his eu, vim no bonorum singulis accommodare.
+However, in the *alpha* stage the only project available is the *Joltem* project itself. 
 
-Mucius dicunt tacimates eam ea, est ei malis oratio apeirian, ne mei facer altera. Sit movet tractatos id, vide paulo admodum eum ad, ei quaestio philosophia delicatissimi est. Facer placerat id eam, putent expetenda eos cu. Dicat nominavi per ut. Autem novum omnesque at ius.
+---
 
-Debitis fabellas mediocritatem vim et, sit at nonumy conceptam. Duo agam accusamus ei, libris recteque cum ea. Ei vel tollit libris, omnesque erroribus quaerendum ea has. Tacimates eloquentiam at pro, cum soluta dolores conclusionemque eu, cu nullam liberavisse usu. Cu quem delicata intellegebat nam.
+<a name="company" class="anchor-fix"></a>
+#### How is the company structured?
 
-Lorem ipsum dolor sit amet, modus inani dissentias eu per. Cum civibus menandri legendos at. Debet vitae repudiare mei ea. An malorum rationibus quo.
+The *Joltem* project itself is a proof of concept, an open company. 
 
-Posse delenit omittam his ad, ex ponderum dissentiet sed. Eu augue alienum reprehendunt pro. Ne nam inani docendi. Erat prodesset voluptatibus has ad. Dolore ubique deterruisset sit at, impetus scripta ei est. Usu at quaeque suavitate, duis vocent id per, posse graeci at vix.
+The company will be structured with *85%* of company's equity backing impact, the other *15%* is reserved for [Emil Davtyan](http://joltem.com/user/emil/) the founder and angel investor of the company.
 
-Mei ad dolore voluptua, te eum possit appareat probatus, has et stet graece legendos. Ne sit decore salutandi, bonorum adolescens consequuntur cu qui. Sit cu detracto petentium democritum, ea dicam forensibus eos, augue soleat omittam ut his. Novum euismod verterem qui id, et recusabo repudiare mei, odio putent delicata cu mea. Nusquam placerat argumentum his eu, vim no bonorum singulis accommodare.
+Annually on the anniversary of the public release of the site *25%* of non-exchanged impact will be available to exchange for equity.
 
-Mucius dicunt tacimates eam ea, est ei malis oratio apeirian, ne mei facer altera. Sit movet tractatos id, vide paulo admodum eum ad, ei quaestio philosophia delicatissimi est. Facer placerat id eam, putent expetenda eos cu. Dicat nominavi per ut. Autem novum omnesque at ius.
 
-Debitis fabellas mediocritatem vim et, sit at nonumy conceptam. Duo agam accusamus ei, libris recteque cum ea. Ei vel tollit libris, omnesque erroribus quaerendum ea has. Tacimates eloquentiam at pro, cum soluta dolores conclusionemque eu, cu nullam liberavisse usu. Cu quem delicata intellegebat nam.
+<a name="involved" class="anchor-fix"></a>
+#### How to get involved?
+
+You can follow our work without signing up, but if you want to contribute code or comment you will need to sign up.
+
+To contribute code :
+
+1. Sign up.
+2. Add a SSH key in *Account > Keys*, so you can clone the repository.
+3. Clone the repository.
+4. Read the `README.md` document, on how to setup the code for local development ( we use [Vagrant](http://www.vagrantup.com) ).
+5. Post a solution to one of the open tasks.
+6. Rinse and repeat.
+
+If you experience a problem contact the development team at <dev@joltem.com> and someone will respond promptly.
+
+---
+
+<a name="job" class="anchor-fix"></a>
+#### We are hiring.
+
+We don't interview though.
+
+If you already contribute to the project and want to work full time contact us. We are always looking to grow our core team.
+
+A full time position comes with a monthly salary and of course all the equity you can earn. Relocation is not necessary, we all work remotely.
+
+<job@joltem.com>
+
+<a name="press" class="anchor-fix"></a>
+#### We like the press.
+
+Writing a story about us?
+
+We will be happy to answer your questions, provide media, and talk your ear off about why what we are doing is important.
+
+<press@joltem.com>
+
+
+<a name="invest" class="anchor-fix"></a>
+#### We talk to investors.
+
+We have a plan, and we are looking for partners to help us execute it.
+
+<invest@joltem.com>
+
+
+
+<a name="support" class="anchor-fix"></a>
+#### We listen & help.
+
+If you have other questions or suggestions.
+
+<support@joltem.com>
+
+
+
 
