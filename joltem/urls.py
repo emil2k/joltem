@@ -31,6 +31,8 @@ urlpatterns = patterns(
     url(r'^invite/$', views.invites, name='invites'),
     url(r'^invite/(?P<invite_id>([-A-za-z0-9]+))/$',
         views.invite, name='invite'),
+    url(r'^help/$', include(
+        'help.urls', namespace='help')),
     url(r'^(?P<project_name>([-\w])+)/', include(
         'project.urls', namespace='project')),
 )
