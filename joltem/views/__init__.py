@@ -227,6 +227,60 @@ def keys(request):
     return render(request, 'joltem/keys.html', context)
 
 
+def comment(request, comment_id):
+    """ Return markdown for a comment.
+
+    Used by JEditable to load markdown for editing.
+
+    """
+    comment = get_object_or_404(Comment, id=comment_id)
+    return HttpResponse(comment.comment)
+
+
+class NotificationsView(TemplateView, RequestBaseView):
+    """
+    Displays the users notifications
+    """
+    template_name = "joltem/notifications.html"
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("clear_all"):
+            for notification in request.user.notification_set.filter(is_cleared=False):
+                notification.mark_cleared()
+        return redirect("notifications")
+
+    def get_context_data(self, **kwargs):
+        from joltem.holders import NotificationHolder
+        kwargs["nav_tab"] = "notifications"
+        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
+        return super(NotificationsView, self).get_context_data(**kwargs)
+
+
+class NotificationRedirectView(RedirectView):
+    """
+    A notification redirect, that marks a notification cleared and redirects to the notifications url
+    """
+    permanent = False
+    query_string = False
+
+    def get_redirect_url(self, notification_id):
+        notification = get_object_or_404(Notification, id=notification_id)
+        notification.mark_cleared()
+        return notification.notifying.get_notification_url(notification)
+
+
+
+class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+    """
+    A view to display a basic introduction to the site, displayed to new users after sign up.
+    """
+    template_name = "joltem/introduction.html"
+    text_names = ["joltem/introduction.md"]
+    text_context_object_prefix = "introduction_"
+
+
+# TODO Invitation views, deprecated no need to rewrite will be removed soon
+
 @login_required
 def invites(request):
     user = request.user
@@ -282,16 +336,6 @@ def invites(request):
             invite.save()
         return redirect('invites')
     return render(request, 'joltem/invites.html', context)
-
-
-def comment(request, comment_id):
-    """Returns markdown for a comment.
-
-    Used by JEditable to load markdown for editing.
-
-    """
-    comment = get_object_or_404(Comment, id=comment_id)
-    return HttpResponse(comment.comment)
 
 
 def invite(request, invite_id):
@@ -351,49 +395,3 @@ def invite(request, invite_id):
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)
-
-
-# Class based views
-
-
-
-class NotificationsView(TemplateView, RequestBaseView):
-    """
-    Displays the users notifications
-    """
-    template_name = "joltem/notifications.html"
-
-    def post(self, request, *args, **kwargs):
-        if request.POST.get("clear_all"):
-            for notification in request.user.notification_set.filter(is_cleared=False):
-                notification.mark_cleared()
-        return redirect("notifications")
-
-    def get_context_data(self, **kwargs):
-        from joltem.holders import NotificationHolder
-        kwargs["nav_tab"] = "notifications"
-        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
-        return super(NotificationsView, self).get_context_data(**kwargs)
-
-
-class NotificationRedirectView(RedirectView):
-    """
-    A notification redirect, that marks a notification cleared and redirects to the notifications url
-    """
-    permanent = False
-    query_string = False
-
-    def get_redirect_url(self, notification_id):
-        notification = get_object_or_404(Notification, id=notification_id)
-        notification.mark_cleared()
-        return notification.notifying.get_notification_url(notification)
-
-
-
-class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
-    """
-    A view to display a basic introduction to the site, displayed to new users after sign up.
-    """
-    template_name = "joltem/introduction.html"
-    text_names = ["joltem/introduction.md"]
-    text_context_object_prefix = "introduction_"
