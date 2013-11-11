@@ -1,15 +1,13 @@
 from django.test import TestCase
 
 from task.models import Vote
+from joltem.tests.mocking import (get_mock_task, get_mock_project,
+                                  get_mock_user, get_mock_solution)
 
-from joltem.tests import TestCaseDebugMixin
-from joltem.tests.mocking import get_mock_task, get_mock_project, get_mock_user, get_mock_solution
 
-
-class TaskTestCase(TestCaseDebugMixin, TestCase):
+class TaskTestCase(TestCase):
 
     def setUp(self):
-        super(TaskTestCase, self).setUp()
         self.project = get_mock_project("zune")
         self.jill = get_mock_user('jill')
         self.jack = get_mock_user('jack')  # other user
@@ -18,7 +16,8 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
     def test_subtask_count(self):
         self.task.mark_reviewed(self.jill, is_accepted=True)
         s = get_mock_solution(self.project, self.jill, task=self.task)
-        t1 = get_mock_task(self.project, self.jack, solution=s, is_reviewed=True, is_accepted=True)
+        t1 = get_mock_task(self.project, self.jack, solution=s,
+                           is_reviewed=True, is_accepted=True)
         t2 = get_mock_task(self.project, self.jack, solution=s)  # this one should not count
         self.assertEqual(self.task.get_subtask_count(
             solution_is_closed=False,
@@ -30,12 +29,16 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
 
     def test_put_vote(self):
         self.task.put_vote(self.jack, True)
-        self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=True).exists())
+        self.assertTrue(Vote.objects.filter(
+            voter_id=self.jack.id, task_id=self.task.id,
+            is_accepted=True).exists())
 
     def test_put_vote_overwrite(self):
         self.task.put_vote(self.jack, True)
         self.task.put_vote(self.jack, False)  # overwrite vote
-        self.assertTrue(Vote.objects.filter(voter_id=self.jack.id, task_id=self.task.id, is_accepted=False).exists())
+        self.assertTrue(Vote.objects.filter(
+            voter_id=self.jack.id, task_id=self.task.id,
+            is_accepted=False).exists())
 
     def test_determine_acceptance(self):
         self.task = get_mock_task(self.project, self.jill)
@@ -71,10 +74,9 @@ class TaskTestCase(TestCaseDebugMixin, TestCase):
         self.assertTrue(self.task.is_accepted)
 
 
-class PermissionsTestCase(TestCaseDebugMixin, TestCase):
+class PermissionsTestCase(TestCase):
 
     def setUp(self):
-        super(PermissionsTestCase, self).setUp()
         u = dict()
         self.jill = get_mock_user('jill')  # the project admin
         self.abby = get_mock_user('abby')
@@ -89,7 +91,8 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         Test for task is_owner function
         """
-        t = get_mock_task(self.project, self.abby, is_reviewed=True, is_accepted=True)
+        t = get_mock_task(self.project, self.abby, is_reviewed=True,
+                          is_accepted=True)
         self.assertFalse(t.is_owner(self.jill))  # admin check
         self.assertFalse(t.is_owner(self.bob))
         self.assertTrue(t.is_owner(self.abby))
@@ -100,9 +103,11 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
         """
         s0 = get_mock_solution(self.project, self.abby)
         s1 = get_mock_solution(self.project, self.abby, solution=s0)
-        t2 = get_mock_task(self.project, self.abby, solution=s1, is_reviewed=True, is_accepted=True)
+        t2 = get_mock_task(self.project, self.abby, solution=s1,
+                           is_reviewed=True, is_accepted=True)
         s3 = get_mock_solution(self.project, self.abby, task=t2)
-        t4 = get_mock_task(self.project, self.abby, solution=s3, is_reviewed=True, is_accepted=True)
+        t4 = get_mock_task(self.project, self.abby, solution=s3,
+                           is_reviewed=True, is_accepted=True)
 
         parents = []
         for parent_solution, parent_task in t4.iterate_parents():

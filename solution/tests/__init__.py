@@ -6,17 +6,15 @@ from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
 from solution.models import Solution
 
-from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
 from joltem.tests.mocking import *
 
 
-class PermissionsTestCase(TestCaseDebugMixin, TestCase):
+class PermissionsTestCase(TestCase):
 
     """ Test solution permissions.  """
 
     def setUp(self):
         """ Create project and four mock users. Jill is an admin. """
-        super(PermissionsTestCase, self).setUp()
         self.jill = get_mock_user('jill')  # the project admin
         self.abby = get_mock_user('abby')
         self.bob = get_mock_user('bob')
@@ -40,7 +38,7 @@ class PermissionsTestCase(TestCaseDebugMixin, TestCase):
     # TODO tests that check if views follow ownership rules for processing actions
 
 
-class ImpactTestCase(TestCaseDebugMixin, TestCase):
+class ImpactTestCase(TestCase):
 
     """ Test solution impact determination. """
 
@@ -150,15 +148,11 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         jay = get_mock_user("jay")
         t = get_mock_task(p, jay, is_reviewed=True, is_accepted=True)
         self.assertImpactEqual(jay, 0)
-        TEST_LOGGER.info("**** JAY IMPACT %d" %
-                         Profile.objects.get(id=jay.id).impact)
         self.assertCompletedEqual(jay, 0)
         s = get_mock_solution(p, jay, t)  # a completed solution added
         self.assertTrue(s.is_completed)
         get_mock_vote(get_mock_user("jill"), s, 300, 3)  # a vote is placed on the solution
         self.assertTrue(s.is_completed)
-        TEST_LOGGER.info("**** JAY IMPACT %d" %
-                         Profile.objects.get(id=jay.id).impact)
         self.assertImpactEqual(jay, 10)
         self.assertCompletedEqual(jay, 1)
         # Mark solution incomplete
@@ -166,8 +160,6 @@ class ImpactTestCase(TestCaseDebugMixin, TestCase):
         s.time_completed = None
         s.save()
         self.assertFalse(s.is_completed, 0)
-        TEST_LOGGER.info("**** JAY IMPACT %d" %
-                         Profile.objects.get(id=jay.id).impact)
         self.assertImpactEqual(jay, 0)
         self.assertCompletedEqual(jay, 0)
 

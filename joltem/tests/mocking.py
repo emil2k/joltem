@@ -5,9 +5,6 @@ from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution
 
-from joltem.tests import TEST_LOGGER
-
-
 def get_mock_user(username, **extra_fields):
     return User.objects.create_user(username, '%s@gmail.com' % username, '%s_password' % username, **extra_fields)
 
@@ -127,9 +124,3 @@ def load_project_impact(project, user):
     """
     if project and user:
         return Impact.objects.get(user_id=user.id, project_id=project.id)
-
-
-def debug_votes(voteable):
-    TEST_LOGGER.debug("DEBUG VOTES")
-    for vote in voteable.vote_set.all():
-        TEST_LOGGER.debug("VOTE : %s : %s : %d impact : %d mag" % (vote.time_voted, vote.voter.username, vote.voter_impact, vote.magnitude))

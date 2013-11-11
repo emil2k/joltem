@@ -1,13 +1,13 @@
-from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
+""" Loader related tests. """
+
 from django.test import TestCase
 
 from joltem.libs.loaders.text import TextLoader, app_text_dirs
 
 
-class TextsLoaderTestCase(TestCaseDebugMixin, TestCase):
+class TextsLoaderTestCase(TestCase):
 
     def setUp(self):
-        super(TextsLoaderTestCase, self).setUp()
         self.text_name = "joltem/introduction.md"
         self.loader = TextLoader()
 
@@ -26,8 +26,6 @@ class TextsLoaderTestCase(TestCaseDebugMixin, TestCase):
     # Tests
 
     def test_directory_cache(self):
-        for dir in app_text_dirs:
-            TEST_LOGGER.debug("TEXT DIR : %s" % dir)
         self.assertTrue(len(app_text_dirs) > 0)
 
     def test_text_sources(self):
