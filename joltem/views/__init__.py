@@ -3,29 +3,42 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import TemplateView, RedirectView, View
 
 from git.models import Authentication
 from joltem.models import User, Invite, Notification, Comment
 from joltem.views.generic import TextContextMixin, RequestBaseView
 from project.models import Project
 
+class HomeView(View):
 
-def home(request):
-    if request.user.is_authenticated():
-        # Currently there is only one project so just redirect to it
-        project = Project.objects.get()
-        return redirect('project:project', project_name=project.name)
+    """ View to serve up homepage. """
 
-    elif 'invite_code' in request.COOKIES:
-        invite_code = request.COOKIES['invite_code']
-        invite = Invite.is_valid(invite_code)
-        if invite:
-            context = {
-                "invite": invite
-            }
-            return render(request, 'joltem/invitation.html', context)
-    return redirect('sign_in')
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
+
+        If user is authenticated redirect to project dashboard, if not
+        check that the user has an invite cookie.
+
+        Otherwise redirect to sign in while closed alpha.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        if request.user.is_authenticated():
+            # Currently there is only one project so just redirect to it
+            project = Project.objects.get()
+            return redirect('project:project', project_name=project.name)
+        elif 'invite_code' in request.COOKIES:
+            invite_code = request.COOKIES['invite_code']
+            invite = Invite.is_valid(invite_code)
+            if invite:
+                context = { "invite": invite }
+                return render(request, 'joltem/invitation.html', context)
+        return redirect('sign_in')
 
 
 def is_email_valid(email):

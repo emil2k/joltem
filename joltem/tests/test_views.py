@@ -3,7 +3,7 @@
 from django.utils.unittest import TestCase
 from django.test.client import RequestFactory
 
-from joltem.views import home
+from joltem.views import HomeView
 from joltem.libs.mock.models import get_mock_project
 from joltem.libs.mock.requests import mock_authentication_middleware
 
@@ -20,7 +20,7 @@ class HomeTest(TestCase):
         """ Setup a project and request factory. """
         self.factory = RequestFactory()
         self.project = get_mock_project('main')
-        self.view = home
+        self.view = HomeView.as_view()
 
     def test_get(self):
         """ Test GET homepage request. """

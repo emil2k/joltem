@@ -21,8 +21,8 @@ class SolutionViewTestCase(TestCase):
     def test_get(self):
         """ Test GET request of a solution page. """
         view = SolutionView.as_view()
-        response = view(get_mock_get_request(user=self.admin,
-                                             is_authenticated=True),
+        response = view(get_mock_get_request(
+            user=self.admin, is_authenticated=True),
                         project_name="apple", solution_id=self.solution.id)
         response.render()
         self.assertEqual(response.status_code, 200)
