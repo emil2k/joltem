@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory
 
-from joltem.tests.mocking import (get_mock_user, get_mock_solution,
+from joltem.libs.mocking import (get_mock_user, get_mock_solution,
                                   get_mock_project)
 from solution.views import SolutionView
 

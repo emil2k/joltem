@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from task.models import Vote
-from joltem.tests.mocking import (get_mock_task, get_mock_project,
+from joltem.libs.mocking import (get_mock_task, get_mock_project,
                                   get_mock_user, get_mock_solution)
 
 

@@ -5,8 +5,10 @@ from django.test import TestCase
 from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
 from solution.models import Solution
-
-from joltem.tests.mocking import *
+from joltem.libs.mocking import (
+    get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
+    get_mock_vote, get_mock_comment, get_mock_setup_solution,
+    load_project_impact, load_model)
 
 
 class PermissionsTestCase(TestCase):
