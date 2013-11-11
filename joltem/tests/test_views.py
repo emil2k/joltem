@@ -3,9 +3,9 @@
 from django.utils.unittest import TestCase
 from django.test.client import RequestFactory
 
-from joltem.views import (home, )
-from joltem.libs.mocking import ( get_mock_project,
-                                  mock_authentication_middleware )
+from joltem.views import home
+from joltem.libs.mock.models import get_mock_project
+from joltem.libs.mock.requests import mock_authentication_middleware
 
 class HomeTest(TestCase):
 

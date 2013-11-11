@@ -12,7 +12,7 @@ from django.test import TestCase
 from git.utils import get_checkout_oid, get_branch_reference
 from git.models import Repository
 from project.models import Project
-from joltem.libs.mocking import (get_mock_user, get_mock_solution,
+from joltem.libs.mock.models import (get_mock_user, get_mock_solution,
                                   get_mock_task)
 
 
