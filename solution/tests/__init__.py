@@ -298,7 +298,3 @@ class ImpactTestCase(TestCase):
         self.assertEqual(c.acceptance, int(round(100 * float(750) / 1500)))  # < 75%
         self.assertImpactEqual(bill, 0)  # should not count here
         self.assertProjectImpactEqual(p, bill, 0)
-
-
-# Load other tests from submodules
-from solution.tests.views import *
