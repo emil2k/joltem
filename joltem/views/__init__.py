@@ -272,7 +272,7 @@ def invites(request):
 
 
 def comment(request, comment_id):
-    """Returns markdown for a comment
+    """Returns markdown for a comment.
 
     Used by JEditable to load markdown for editing.
 
