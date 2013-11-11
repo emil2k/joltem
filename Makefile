@@ -46,10 +46,10 @@ shell: $(ENV)
 .PHONY: static
 # target: static - Compile project static
 static: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS) --noinput -c
 
 $(ENV): requirements.txt
-	virtualenv --no-site-packages $(ENV)
+	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
 	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
 	touch $(ENV)
 
