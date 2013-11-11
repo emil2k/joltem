@@ -20,10 +20,19 @@ DATABASES = {
     }
 }
 
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_URL = 'redis://localhost:6379/0'
+
 # Caches
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': 'localhost:6379',
+        'OPTIONS': {
+            'DB': 1,
+            'PASSWORD': '',
+            'PARSER_CLASS': 'redis.connection.HiredisParser'
+        },
         'KEY_PREFIX': '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
     }
 }
@@ -85,9 +94,6 @@ USE_L10N = True
 USE_TZ = True
 MIDDLEWARE_CLASSES += ('django.middleware.locale.LocaleMiddleware',)
 TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.i18n',)
-
-SESSION_ENGINE = 'redis_sessions.session'
-SESSION_REDIS_URL = 'redis://localhost:6379/0'
 
 # Debug
 INTERNAL_IPS = ('127.0.0.1',)
