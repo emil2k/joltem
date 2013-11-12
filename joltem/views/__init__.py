@@ -180,11 +180,39 @@ class UserView(View):
         return render(request, 'joltem/user.html', context)
 
 
-@login_required
-def account(request):
-    error = None
-    user = request.user
-    if request.POST:
+# todo make form for this
+class AccountView(View):
+
+    """ View for displaying and editing user's account & profile. """
+
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        user = request.user
+        context = {
+            'nav_tab': "account",
+            'account_tab': "account",
+            'user': user,
+        }
+        return render(request, 'joltem/account.html', context)
+
+    def post(self, request, *args, **kwargs):
+        """ Handle POST request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        error = None
+        user = request.user
         first_name = request.POST.get('first_name') # Required
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')  # Required
@@ -208,14 +236,15 @@ def account(request):
                 profile.save()
         if not error:
             return redirect('account')
+        else:
+            context = {
+                'nav_tab': "account",
+                'account_tab': "account",
+                'user': user,
+                'error': error,
+            }
+            return render(request, 'joltem/account.html', context)
 
-    context = {
-        'nav_tab': "account",
-        'account_tab': "account",
-        'user': user,
-        'error': error,
-    }
-    return render(request, 'joltem/account.html', context)
 
 @login_required
 def keys(request):

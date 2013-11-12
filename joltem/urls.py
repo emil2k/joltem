@@ -27,7 +27,8 @@ urlpatterns = patterns(
         views.comment), name='comment'),
     url(r'^user/(?P<username>([-\w])+)/$', login_required(
         views.UserView.as_view()), name='user'),
-    url(r'^account/$', views.account, name='account'),
+    url(r'^account/$', login_required(
+        views.AccountView.as_view()), name='account'),
     url(r'^account/keys/$', views.keys, name='account_keys'),
     url(r'^invite/$', views.invites, name='invites'),
     url(r'^invite/(?P<invite_id>([-A-za-z0-9]+))/$',
