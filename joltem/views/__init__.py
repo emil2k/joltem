@@ -246,12 +246,40 @@ class AccountView(View):
             return render(request, 'joltem/account.html', context)
 
 
-@login_required
-def keys(request):
-    user = request.user
-    keys = user.authentication_set.all().order_by('name')
+# todo make a form for this
+# todo make the form handle BadKeyError at /account/keys/, add test for a bad key
+class KeysView(View):
 
-    if request.POST:
+    """ View for adding and removing SSH keys. """
+
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response.
+
+        """
+        user = request.user
+        keys = user.authentication_set.all().order_by('name')
+        context = {
+            'nav_tab': "account",
+            'account_tab': "keys",
+            'user': user,
+            'keys': keys,
+        }
+        return render(request, 'joltem/keys.html', context)
+
+    def post(self, request, *args, **kwargs):
+        """ Handle POST request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response.
+
+        """
         remove_id = request.POST.get('remove')
         name = request.POST.get('name')
         data = request.POST.get('key')
@@ -260,20 +288,12 @@ def keys(request):
             key.delete()
         elif name and data:
             key = Authentication(
-                user=user,
+                user=request.user,
                 name=name,
             )
             key.blob = data
             key.save()
         return redirect('account_keys')
-
-    context = {
-        'nav_tab': "account",
-        'account_tab': "keys",
-        'user': user,
-        'keys': keys,
-    }
-    return render(request, 'joltem/keys.html', context)
 
 
 def comment(request, comment_id):

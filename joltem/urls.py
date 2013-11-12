@@ -29,7 +29,8 @@ urlpatterns = patterns(
         views.UserView.as_view()), name='user'),
     url(r'^account/$', login_required(
         views.AccountView.as_view()), name='account'),
-    url(r'^account/keys/$', views.keys, name='account_keys'),
+    url(r'^account/keys/$', login_required(
+        views.KeysView.as_view()), name='account_keys'),
     url(r'^invite/$', views.invites, name='invites'),
     url(r'^invite/(?P<invite_id>([-A-za-z0-9]+))/$',
         views.invite, name='invite'),
