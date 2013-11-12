@@ -45,7 +45,7 @@ def is_email_valid(email):
     import re
     return re.match(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$', email, re.I )
 
-
+# todo make form for this
 def sign_up(request):
     if not 'invite_code' in request.COOKIES:
         return redirect('sign_in')
@@ -121,7 +121,7 @@ def sign_up(request):
                 context['gravatar_email'] = gravatar_email
             return render(request, 'joltem/sign_up.html', context)
 
-
+# todo make form for this
 def sign_in(request):
     context = {
         'nav_tab': "in"
@@ -144,11 +144,22 @@ def sign_in(request):
             context['error'] = "Password incorrect."
     return render(request, 'joltem/sign_in.html', context)
 
+class SignOutView(View):
 
-def sign_out(request):
-    if request.user.is_authenticated():
-        auth_logout(request)
-    return render(request, 'joltem/sign_out.html')
+    """ View for handling signing out. """
+
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response.
+
+        """
+        if request.user.is_authenticated():
+            auth_logout(request)
+        return render(request, 'joltem/sign_out.html')
 
 
 @login_required
