@@ -295,16 +295,24 @@ class KeysView(View):
             key.save()
         return redirect('account_keys')
 
+class CommentView(View):
 
-def comment(request, comment_id):
-    """ Return markdown for a comment.
+    """ View for loading markdown of a comment.
 
     Used by JEditable to load markdown for editing.
 
     """
-    comment = get_object_or_404(Comment, id=comment_id)
-    return HttpResponse(comment.comment)
 
+    def get(self, request, comment_id):
+        """ Return comment markdown.
+
+        :param request:
+        :param comment_id: if of comment to load.
+        :return: markdown of comment, for jeditable - to edit comments.
+
+        """
+        comment = get_object_or_404(Comment, id=comment_id)
+        return HttpResponse(comment.comment)
 
 class NotificationsView(TemplateView, RequestBaseView):
     """
