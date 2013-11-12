@@ -30,6 +30,8 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.logger.LoggingPanel',
 )
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Logging
 LOGGING['loggers']['django.request']['level'] = 'DEBUG'
 LOGGING['loggers']['django.db.backends'] = {
