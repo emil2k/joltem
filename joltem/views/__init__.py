@@ -5,9 +5,12 @@ from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
 from django.views.generic.base import TemplateView, RedirectView, View
 from git.models import Authentication
+
 from joltem.models import User, Invite, Notification, Comment
 from joltem.views.generic import TextContextMixin, RequestBaseView
+from joltem.forms.utils import is_valid_email
 from project.models import Project
+
 
 class HomeView(View):
 
@@ -40,9 +43,6 @@ class HomeView(View):
         return redirect('sign_in')
 
 
-def is_email_valid(email):
-    import re
-    return re.match(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$', email, re.I )
 
 # todo make form for this
 
@@ -94,9 +94,9 @@ class SignUpView(View):
                     error = "Password is required."
                 elif not password_confirm:
                     error = "Confirming the password is required."
-                elif not is_email_valid(email):
+                elif not is_valid_email(email):
                     error = "Email address is not valid."
-                elif gravatar_email and not is_email_valid(gravatar_email):
+                elif gravatar_email and not is_valid_email(gravatar_email):
                     error = "Your gravatar must have a valid email address."
                 elif not re.match(r'^[A-Za-z0-9_]+$', username):
                     error = "This username is not valid."
@@ -202,9 +202,9 @@ class AccountView(View):
             error = "First name is required."
         elif not email:
             error = "Email is required."
-        elif not is_email_valid(email):
+        elif not is_valid_email(email):
             error = "Email address (%s) is not valid." % email
-        elif gravatar_email and not is_email_valid(gravatar_email):
+        elif gravatar_email and not is_valid_email(gravatar_email):
             error = "Your gravatar (%s) must have a valid email address." % gravatar_email
         else:
             user.first_name = first_name
