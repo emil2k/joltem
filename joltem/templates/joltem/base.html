@@ -71,15 +71,25 @@
                     </li>
                 {% endif %}
             </ul>
-            <div class="nav-collapse">
+            <div class="nav-collapse collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
-                    {% if user.is_superuser %}
-                        <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
-                    {% endif %}
                     {% if user.is_authenticated %}
-                        <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
-                        <li><a href="{% url 'sign_out' %}" title="Click to sign out.">Hello, {{ user.first_name }}</a></li>
+                        <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                Hello, {{ user.first_name }} <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu pull-right">
+                                {% if user.is_superuser %}
+                                    <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
+                                {% endif %}
+                                <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'sign_out' %}">Sign Out</a></li>
+
+                            </ul>
+                        </li>
                     {% else %}
                         <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign in</a></li>
                         <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign up</a></li>

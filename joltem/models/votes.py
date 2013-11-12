@@ -1,7 +1,5 @@
 """ Voting related models. """
 
-import logging
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic, models as content_type_models
@@ -12,8 +10,6 @@ from django.utils import timezone
 from joltem import receivers
 from joltem.models.notifications import Notifying
 from joltem.models.generic import Owned, ProjectContext
-
-logger = logging.getLogger('joltem')
 
 
 # Votes related
@@ -174,26 +170,13 @@ class Voteable(Notifying, Owned, ProjectContext):
         impact_sum = 0
         weighted_sum = 0
         for vote in self.vote_set.all():
-            logger.debug(
-                "VOTE : accepted : %s : valid : %s : mag : %d : imp : %d" %
-                (vote.is_accepted, self.is_vote_valid(vote), vote.magnitude,
-                 vote.voter_impact))
             if not self.is_vote_valid(vote):
-                logger.info("VOTE : not valid")
                 continue
             elif vote.is_accepted:
                 weighted_sum += vote.voter_impact * self.get_vote_value(vote)
-                logger.debug("VOTE : accepted add to weighted sum : %d" %
-                             weighted_sum)
             impact_sum += vote.voter_impact
-            logger.debug("VOTE : added to impact sum : %d" % impact_sum)
         if impact_sum == 0:
-            logger.debug("VOTE : impact sum == 0 : %d" % impact_sum)
             return None
-        logger.info("VOTE : return impact : %d / %s" %
-                    (weighted_sum, float(impact_sum)))
-        logger.info("VOTE : return impact : %s" %
-                    int(round(weighted_sum / float(impact_sum))))
         return int(round(weighted_sum / float(impact_sum)))
 
     def get_impact_distribution(self):
@@ -264,8 +247,6 @@ class Voteable(Notifying, Owned, ProjectContext):
 
         """
         assert vote.magnitude > 0
-        logger.debug("GET VOTE VALUE : %d : %d" %
-                     (vote.magnitude, vote.voter_impact))
         excluding_total = \
             sum(self.get_impact_distribution()) - vote.voter_impact
         ie = self.get_impact_integrals_excluding_vote(vote)
@@ -273,9 +254,6 @@ class Voteable(Notifying, Owned, ProjectContext):
             for magnitude in reversed(range(1, 1 + vote.magnitude)):
                 excluding_integral = ie[magnitude]
                 p = float(excluding_integral) / excluding_total
-                logger.debug("** %d : %.3f : %d" %
-                             (magnitude, p, excluding_integral))
                 if p > Voteable.MAGNITUDE_THRESHOLD:
                     return pow(10, magnitude)
-        logger.info("** VOTE : defaulted to 10")
         return 10  # default

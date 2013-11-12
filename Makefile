@@ -25,7 +25,7 @@ lint: $(ENV)
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,gateway,common
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,common
 
 .PHONY: run
 # target: run - Run Django development server
@@ -46,10 +46,10 @@ shell: $(ENV)
 .PHONY: static
 # target: static - Compile project static
 static: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS) --noinput -c
 
 $(ENV): requirements.txt
-	virtualenv --no-site-packages $(ENV)
+	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
 	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
 	touch $(ENV)
 
@@ -77,6 +77,10 @@ test_task: $(ENV) task
 .PHONY: test_git
 test_git: $(ENV) git
 	$(ENV)/bin/python manage.py test git --settings=joltem.settings.test --failfast
+
+.PHONY: test_help
+test_help: $(ENV) help
+	$(ENV)/bin/python manage.py test help --settings=joltem.settings.test --failfast
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway

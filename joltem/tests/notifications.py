@@ -5,9 +5,8 @@ import time
 from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
 
-from joltem.tests import TestCaseDebugMixin, TEST_LOGGER
 from joltem.tests.mocking import (get_mock_project, get_mock_task,
-                                  get_mock_solution, get_mock_user, debug_votes)
+                                  get_mock_solution, get_mock_user)
 
 from joltem.models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
                                     NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
@@ -19,7 +18,7 @@ from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
                          NOTIFICATION_TYPE_TASK_ACCEPTED)
 
 
-class NotificationTestCase(TestCaseDebugMixin, TestCase):
+class NotificationTestCase(TestCase):
 
     """ Test the delivery of notifications, their text and urls. """
 
@@ -29,7 +28,6 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         Create a project and two mock users, jill and bob.
 
         """
-        super(NotificationTestCase, self).setUp()
         self.project = get_mock_project("bread", "Sliced Bread")
         self.jill = get_mock_user("jill", first_name="Jill")
         self.bob = get_mock_user("bob", first_name="Bob")
@@ -48,7 +46,6 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         expected_count -- the expected number of notifications expected.
 
         """
-        TEST_LOGGER.debug("ASSERT RECEIVED NOTIFICATION : %s" % user)
         notifying_type = ContentType.objects.get_for_model(notifying)
         notifications = user.notification_set.filter(
             user_id=user.id,
@@ -59,7 +56,6 @@ class NotificationTestCase(TestCaseDebugMixin, TestCase):
         match_count = 0
         for notification in notifications:
             actual_text = notifying.get_notification_text(notification)
-            TEST_LOGGER.debug("NOTIFICATION TEXT : %s" % actual_text)
             if not expected_text:
                 match_count += 1
             else:
@@ -453,7 +449,6 @@ class SolutionNotificationTestCase(NotificationTestCase):
             "Bob voted on your solution \"%s\"" % solution.default_title)
         time.sleep(1)  # so that the voting order is established, which effect notification text
         solution.put_vote(self.ted, 0)
-        debug_votes(solution)
         # Check that only one notification should just update
         self.assertNotificationReceived(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED,
@@ -521,7 +516,6 @@ class CommentNotificationTestCase(NotificationTestCase):
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Jill and Katy marked your comment helpful")
-        debug_votes(comment)
 
     def test_vote_regular_update_on_comment(self):
         """ Test notifications when votes are updated on a comment.

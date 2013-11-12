@@ -74,3 +74,11 @@ Also you can access the site's shell by running :
 You can run tests from VM:
 
     (venv)$ python manage.py test
+
+##### Troubleshooting
+
+If something goes wrong, see logs at `/var/log/supervisor`.
+
+If you encounter intermittent 404s, you might have multiple VMs running
+at the same time. We suggest powering off all VMs and unregister
+the inaccessible ones and reran the Vagrant up progress.

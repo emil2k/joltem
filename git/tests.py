@@ -1,15 +1,19 @@
 """ Tests for git app. """
 
-from django.test import TestCase
-from pygit2 import Signature
+import uuid
+import pygit2
+from datetime import datetime
+from os.path import isdir
+from mixer.backend.django import mixer
 from unittest import TestCase as UnitTestCase
+from django.utils import timezone
+from django.test import TestCase
 
+from git.utils import get_checkout_oid, get_branch_reference
 from git.models import Repository
-from joltem.tests import TEST_LOGGER, TestCaseDebugMixin
 from project.models import Project
 from joltem.tests.mocking import (get_mock_user, get_mock_solution,
                                   get_mock_task)
-from mixer.backend.django import mixer
 
 
 def get_mock_repository(name, project, is_hidden=False, description=None):
@@ -35,7 +39,7 @@ def get_mock_signature(name, email=None):
 
     """
     email = '%s@gmail.com' % name if email is None else email
-    return Signature(name, email)
+    return pygit2.Signature(name, email)
 
 
 def get_mock_commit(repository, tree_oid, signature,
@@ -49,7 +53,6 @@ def get_mock_commit(repository, tree_oid, signature,
         tree_oid,               # commit tree, representing file structure
         parents                 # commit parents
     )
-    TEST_LOGGER.debug("CREATED COMMIT : %s - %s" % (commit_oid.hex, commit_oid))
     return commit_oid
 
 
@@ -60,17 +63,13 @@ def put_mock_file(name, data, repository, tree=None):
     Emulate addition or update of files, returns new tree Oid.
 
     """
-    from pygit2 import GIT_FILEMODE_BLOB
     blob_oid = repository.create_blob(data)
-    TEST_LOGGER.debug("CREATED BLOB : blob.hex : %s" % blob_oid.hex)
     # Put blob into tree
     builder = repository.TreeBuilder(tree) if tree is not None \
         else repository.TreeBuilder()
-    builder.insert(name, blob_oid, GIT_FILEMODE_BLOB)
+    builder.insert(name, blob_oid, pygit2.GIT_FILEMODE_BLOB)
     # Create tree
     tree_oid = builder.write()
-    TEST_LOGGER.debug("CREATING TREE : tree.hex : %s" % tree_oid.hex)
-    debug_tree(repository, tree_oid)
     return tree_oid
 
 
@@ -87,10 +86,7 @@ def mock_commits(number, pygit_repository, signature,
 
 def make_mock_commit(pygit_repository, signature, branch_name, parents):
     """ Make a mock commit and returns its commit Oid. """
-    from git.utils import get_branch_reference
-    from datetime import datetime
     datetime_string = datetime.now().strftime("%X on %x")
-    import uuid
     tree_oid = put_mock_file(
         "test.txt", "Line added at %s.\n%s" % (datetime_string, uuid.uuid4()),
         pygit_repository)
@@ -105,51 +101,14 @@ def make_mock_commit(pygit_repository, signature, branch_name, parents):
     return commit_oid
 
 
-# Debugging helpers
-
-def debug_branches(repository):
-    """ Output all branches of a repository for debugging. """
-    TEST_LOGGER.debug("\nDEBUG BRANCHES for %s" % repository.path)
-    for branch_name in repository.listall_branches():
-        branch = repository.lookup_branch(branch_name)
-        TEST_LOGGER.debug("BRANCH : %s : is head? %s" %
-                          (branch.branch_name, branch.is_head()))
-    TEST_LOGGER.debug("\n")
-
-
-def debug_commits(repository, start_commit_oid, end_commit_oid=None):
-    """ Output all commits in given range for debugging. """
-    from git.utils import walk_branch
-    TEST_LOGGER.debug("\nDEBUG COMMITS for %s" % repository.path)
-    for c in walk_branch(repository, start_commit_oid):
-        TEST_LOGGER.debug("COMMIT : %s - %s by %s - parents - %s" %
-                          (c.hex[:6], c.message, c.author.name,
-                           [p.hex[:6] for p in c.parents]))
-        if end_commit_oid and c.hex == end_commit_oid.hex:
-            TEST_LOGGER.debug("END COMMIT.")
-            break
-    TEST_LOGGER.debug("\n")
-
-
-def debug_tree(repository, tree_oid):
-    """ Debug a tree by outputting all entries. """
-    TEST_LOGGER.debug("\nDEBUG TREE for %s" % repository.path)
-    tree = repository.get(tree_oid)
-    TEST_LOGGER.debug("LOADED TREE : %d items : %s" % (len(tree), tree.hex))
-    for entry in tree:
-        TEST_LOGGER.debug("TREE ENTRY : %s - %s" % (entry.name, entry.hex))
-    TEST_LOGGER.debug("\n")
-
-
 # Test cases
 
-class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
+class PyGit2TestCase(UnitTestCase):
 
     """ Tests related to pygit2 module. """
 
     def test_pygit2_version(self):
         """ Test pygit2 version matches expectations. """
-        import pygit2
         expecting = '0.19.1'
         actual = pygit2.__version__
         self.assertEqual(
@@ -158,7 +117,7 @@ class PyGit2TestCase(TestCaseDebugMixin, UnitTestCase):
             (expecting, actual))
 
 
-class RepositoryTestCase(TestCaseDebugMixin, TestCase):
+class RepositoryTestCase(TestCase):
 
     """ Test containing a repository.
 
@@ -170,42 +129,26 @@ class RepositoryTestCase(TestCaseDebugMixin, TestCase):
 
     def setUp(self):
         """ Setup project and repository. """
-        super(RepositoryTestCase, self).setUp()
         self.project = mixer.blend(Project, name='joltem')
-        TEST_LOGGER.debug("LOADED PROJECT : %d : %s" %
-                          (self.project.id, self.project.name))
         self.assertEqual(self.project.name, 'joltem')
         self.repository = get_mock_repository("TEST", self.project)
-        TEST_LOGGER.debug("CREATED REPO : %s" % self.repository.absolute_path)
         self.assertDirectoryExistence(self.repository.absolute_path, True)
 
         # Load repo
         self.pygit_repository = self.repository.load_pygit_object()
-        TEST_LOGGER.debug("LOADED REPOSITORY : path : %s" %
-                          self.pygit_repository.path)
-        TEST_LOGGER.debug("LOADED REPOSITORY : workdir : %s" %
-                          self.pygit_repository.workdir)
-        TEST_LOGGER.debug("LOADED REPOSITORY : is_bare : %s" %
-                          self.pygit_repository.is_bare)
         self.assertTrue(self.pygit_repository.is_bare)
-        # TEST_LOGGER.debug("LOADED REPOSITORY : is_empty : %s" % self.pygit_repository.is_empty)
-        # self.assertTrue(self.pygit_repository.is_empty)
 
     def tearDown(self):
         """ Teardown repository. """
         super(RepositoryTestCase, self).tearDown()
         rpath = self.repository.absolute_path
-
         self.repository.delete()  # remove the repo
-
-        TEST_LOGGER.debug("DELETED REPO : %s" % rpath)
         self.assertDirectoryExistence(rpath, False)
 
     # Custom assertions
 
     def assertDirectoryExistence(self, path, expected=True):
         """ Assert directory exists or not. """
-        from os.path import isdir
         self.assertEqual(isdir(path), expected)
 
 
@@ -251,12 +194,7 @@ class SolutionTestCase(RepositoryTestCase):
         """
         if solution is None:
             solution = self.solution
-        TEST_LOGGER.debug("LOAD OID SET from solution: %d" % solution.id)
         commit_oid_set = solution.get_commit_oid_set(self.pygit_repository)
-        TEST_LOGGER.debug("EXPECTED OID SET : %s" %
-                          [commit.hex for commit in expected_commit_oid_set])
-        TEST_LOGGER.debug("ACTUAL OID SET: %s" %
-                          [commit.hex for commit in commit_oid_set])
         self.assertListEqual(expected_commit_oid_set, commit_oid_set)
 
 # todo Diff tests
@@ -330,12 +268,11 @@ class CommitSetTestCase(SolutionTestCase):
 
         # Test commit set
         child_solution_commits.reverse()
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitOidSetEqual(child_solution_commits,
                                      solution=child_solution)
 
         # Now mark the parent solution and closed and check again
-        from django.utils import timezone  # todo this should be some function on the model
+        # todo this should be some function on the model
         self.solution.is_closed = True
         self.solution.time_closed = timezone.now()
         self.assertCommitOidSetEqual(child_solution_commits,
@@ -375,7 +312,6 @@ class CommitSetTestCase(SolutionTestCase):
 
         # Test commit set
         child_solution_commits.reverse()
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitOidSetEqual(child_solution_commits,
                                      solution=child_solution)
 
@@ -383,7 +319,6 @@ class CommitSetTestCase(SolutionTestCase):
         commit_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [parent_solution_oid, commit_oid])
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitOidSetEqual(child_solution_commits,
                                      solution=child_solution)
 
@@ -391,7 +326,6 @@ class CommitSetTestCase(SolutionTestCase):
         commit_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature, "master",
             [master_oid, commit_oid])
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitOidSetEqual(child_solution_commits,
                                      solution=child_solution)
 
@@ -400,7 +334,6 @@ class CommitSetTestCase(SolutionTestCase):
         # Make initial commit to master
         commit_oid = make_mock_commit(self.pygit_repository,
                                       self.emil_signature, "master", [])
-        debug_branches(self.pygit_repository)
         parent_oid = commit_oid  # to test get_parent_pygit_branch
         checkout_oid = commit_oid
 
@@ -409,19 +342,14 @@ class CommitSetTestCase(SolutionTestCase):
         commit_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [commit_oid])
-        debug_branches(self.pygit_repository)
         solution_commits.append(commit_oid)
 
         # Now modify the file again
         commit_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [commit_oid])
-        debug_branches(self.pygit_repository)
         solution_commits.append(commit_oid)
         solution_oid = commit_oid  # to test get_pygit_branch
-
-        # Walk through commits
-        debug_commits(self.pygit_repository, commit_oid)
 
         # Test get pygit branch methods
         self.assertEqual(self.solution.get_pygit_branch(
@@ -454,7 +382,6 @@ class CommitSetTestCase(SolutionTestCase):
             self.solution.get_branch_name(), [commit_oid])]
         commit_oid = solution_commits[-1]
         solution_oid = commit_oid
-        debug_commits(self.pygit_repository, commit_oid)
 
         # Merge solution branch into master
         commit_oid = make_mock_commit(
@@ -464,7 +391,6 @@ class CommitSetTestCase(SolutionTestCase):
 
         # Test range and commit set
         solution_commits.reverse()
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
         self.assertCommitOidSetEqual(solution_commits)
 
@@ -475,7 +401,6 @@ class CommitSetTestCase(SolutionTestCase):
             self.pygit_repository, self.emil_signature, "master", [commit_oid])
 
         # Test range again
-        debug_commits(self.pygit_repository, commit_oid)
         self.assertCommitRangeEqual(solution_oid, checkout_oid)
         self.assertCommitOidSetEqual(solution_commits)
 
@@ -498,13 +423,11 @@ class CheckoutTestCase(SolutionTestCase):
             self.solution.get_branch_name(), [commit_oid])
         topic_oid = commit_oid
 
-        from git.utils import get_checkout_oid
         self.assertEqual(get_checkout_oid(
             self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
     def test_get_initial_checkout_oid_concurrent(self):
         """ Test utility function get_initial_checkout_oid(). """
-        from git.utils import get_checkout_oid
         # Commits to master
         parent_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature, "master", [])  # initial commit
@@ -537,8 +460,6 @@ class CheckoutTestCase(SolutionTestCase):
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [topic_oid])
 
-        debug_commits(self.pygit_repository, topic_oid)
-
         self.assertOidEqual(get_checkout_oid(
             self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
@@ -549,7 +470,6 @@ class CheckoutTestCase(SolutionTestCase):
         tests initial checkout oid.
 
         """
-        from git.utils import get_checkout_oid
         # Commits to master
         parent_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature, "master", [])  # initial commit
@@ -573,9 +493,6 @@ class CheckoutTestCase(SolutionTestCase):
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [topic_oid])
 
-        debug_commits(self.pygit_repository, topic_oid)
-        debug_commits(self.pygit_repository, parent_oid)
-
         self.assertOidEqual(get_checkout_oid(
             self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
@@ -585,7 +502,6 @@ class CheckoutTestCase(SolutionTestCase):
         Where a topic branch is merged into parent branch.
 
         """
-        from git.utils import get_checkout_oid
         # Commits to master
         parent_oid = make_mock_commit(
             self.pygit_repository, self.emil_signature, "master", [])  # initial commit
@@ -602,9 +518,6 @@ class CheckoutTestCase(SolutionTestCase):
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [parent_oid, topic_oid])
 
-        debug_commits(self.pygit_repository, topic_oid)
-        debug_commits(self.pygit_repository, parent_oid)
-
         self.assertOidEqual(get_checkout_oid(
             self.pygit_repository, topic_oid, parent_oid), checkout_oid)
 
@@ -612,9 +525,6 @@ class CheckoutTestCase(SolutionTestCase):
         parent_oid = [c for c in mock_commits(
             3, self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [parent_oid])][-1]
-
-        debug_commits(self.pygit_repository, topic_oid)
-        debug_commits(self.pygit_repository, parent_oid)
 
         self.assertOidEqual(get_checkout_oid(
             self.pygit_repository, topic_oid, parent_oid), checkout_oid)
