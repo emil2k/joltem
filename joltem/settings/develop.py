@@ -33,10 +33,10 @@ DEBUG_TOOLBAR_PANELS = (
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Logging
-LOGGING['loggers']['django.request']['level'] = 'DEBUG'
+LOGGING['loggers']['django.request']['level'] = 'WARNING'
 LOGGING['loggers']['django.db.backends'] = {
     'handlers': ['console'],
-    'level': 'DEBUG'
+    'level': 'WARNING'
 }
 
 # Caches
