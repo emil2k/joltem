@@ -45,17 +45,36 @@ def is_email_valid(email):
     return re.match(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$', email, re.I )
 
 # todo make form for this
-def sign_up(request):
-    if not 'invite_code' in request.COOKIES:
-        return redirect('sign_in')
-    else:
-        invite_code = request.COOKIES['invite_code']
-        invite = Invite.is_valid(invite_code)
-        if not invite:
+
+class SignUpView(View):
+
+    """ View for new users to sign up. """
+
+    def get(self, request, *args, **kwargs):
+        if not 'invite_code' in request.COOKIES:
             return redirect('sign_in')
         else:
-            error = None
-            if request.POST:
+            invite_code = request.COOKIES['invite_code']
+            invite = Invite.is_valid(invite_code)
+            if not invite:
+                return redirect('sign_in')
+            else:
+                context = {
+                    'nav_tab': "up",
+                    'invite': invite
+                }
+                return render(request, 'joltem/sign_up.html', context)
+
+    def post(self, request, *args, **kwargs):
+        if not 'invite_code' in request.COOKIES:
+            return redirect('sign_in')
+        else:
+            invite_code = request.COOKIES['invite_code']
+            invite = Invite.is_valid(invite_code)
+            if not invite:
+                return redirect('sign_in')
+            else:
+                error = None
                 username = request.POST.get('username')
                 email = request.POST.get('email')
                 first_name = request.POST.get('first_name')
@@ -107,18 +126,18 @@ def sign_up(request):
                     invite.user = user
                     invite.save()
                     return redirect('intro')
-            context = {
-                'nav_tab': "up",
-                'error': error,
-                'invite': invite
-            }
-            if error:
-                context['username'] = username
-                context['email'] = email
-                context['first_name'] = first_name
-                context['last_name'] = last_name
-                context['gravatar_email'] = gravatar_email
-            return render(request, 'joltem/sign_up.html', context)
+                context = {
+                    'nav_tab': "up",
+                    'error': error,
+                    'invite': invite
+                }
+                if error:
+                    context['username'] = username
+                    context['email'] = email
+                    context['first_name'] = first_name
+                    context['last_name'] = last_name
+                    context['gravatar_email'] = gravatar_email
+                return render(request, 'joltem/sign_up.html', context)
 
 
 class UserView(View):

@@ -13,7 +13,7 @@ urlpatterns = patterns(
     '',
     url(r'^$', views.HomeView.as_view(), name='home'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^up/', views.sign_up, name='sign_up'),
+    url(r'^up/', views.SignUpView.as_view(), name='sign_up'),
     url(r'^intro/', login_required(
         views.IntroductionView.as_view()), name='intro'),
     url(r'^notifications/(?P<notification_id>([0-9])+)/', login_required(
@@ -25,9 +25,7 @@ urlpatterns = patterns(
         views.CommentView.as_view()), name='comment'),
     url(r'^user/(?P<username>([-\w])+)/$', login_required(
         views.UserView.as_view()), name='user'),
-
     url(r'^account/', include('account.urls')),
-
     url(r'^account/$', login_required(
         views.AccountView.as_view()), name='account'),
     url(r'^account/keys/$', login_required(
