@@ -25,7 +25,8 @@ urlpatterns = patterns(
         views.NotificationsView.as_view()), name='notifications'),
     url(r'^comment/(?P<comment_id>([0-9])+)/', login_required(
         views.comment), name='comment'),
-    url(r'^user/(?P<username>([-\w])+)/$', views.user, name='user'),
+    url(r'^user/(?P<username>([-\w])+)/$', login_required(
+        views.UserView.as_view()), name='user'),
     url(r'^account/$', views.account, name='account'),
     url(r'^account/keys/$', views.keys, name='account_keys'),
     url(r'^invite/$', views.invites, name='invites'),

@@ -4,7 +4,6 @@ from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
 from django.views.generic.base import TemplateView, RedirectView, View
-
 from git.models import Authentication
 from joltem.models import User, Invite, Notification, Comment
 from joltem.views.generic import TextContextMixin, RequestBaseView
@@ -161,15 +160,25 @@ class SignOutView(View):
             auth_logout(request)
         return render(request, 'joltem/sign_out.html')
 
+class UserView(View):
 
-@login_required
-def user(request, username):
-    profile_user = get_object_or_404(User, username=username)
-    context = {
-        'user': request.user,  # user viewing the page
-        'profile_user': profile_user  # the user whose profile it is
-    }
-    return render(request, 'joltem/user.html', context)
+    """ View for displaying user profile page. """
+
+    def get(self, request, username):
+        """ Handle GET request.
+
+        :param request:
+        :param username:
+        :return:
+
+        """
+        profile_user = get_object_or_404(User, username=username)
+        context = {
+            'user': request.user,  # user viewing the page
+            'profile_user': profile_user  # the user whose profile it is
+        }
+        return render(request, 'joltem/user.html', context)
+
 
 @login_required
 def account(request):
