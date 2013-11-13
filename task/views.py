@@ -196,6 +196,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
     """
     template_name = 'task/tasks_list.html'
     context_object_name = 'tasks'
+    paginate_by = 10
     project_tab = "tasks"
     tasks_tab = None
 
