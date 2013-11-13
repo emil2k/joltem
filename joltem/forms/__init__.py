@@ -49,7 +49,6 @@ class SignUpForm(forms.Form):
         :return: cleaned data dict.
 
         """
-        # todo add test for this
         password = self.cleaned_data.get('password')
         password_confirm = self.cleaned_data.get('password_confirm')
         if password and password_confirm and password != password_confirm:
