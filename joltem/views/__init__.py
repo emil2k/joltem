@@ -121,23 +121,6 @@ def sign_up(request):
             return render(request, 'joltem/sign_up.html', context)
 
 
-class SignOutView(View):
-
-    """ View for handling signing out. """
-
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        if request.user.is_authenticated():
-            auth_logout(request)
-        return render(request, 'joltem/sign_out.html')
-
 class UserView(View):
 
     """ View for displaying user profile page. """
