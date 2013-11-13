@@ -120,45 +120,6 @@ def sign_up(request):
                 context['gravatar_email'] = gravatar_email
             return render(request, 'joltem/sign_up.html', context)
 
-# todo make form for this
-def sign_in(request):
-    context = {
-        'nav_tab': "in"
-    }
-    if request.POST:
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                next = request.GET.get('next')
-                if next is not None:
-                    return redirect(next)
-                else:
-                    return redirect('home')
-            else:
-                context['error'] = "This account is disabled."
-        else:
-            context['error'] = "Password incorrect."
-    return render(request, 'joltem/sign_in.html', context)
-
-class SignOutView(View):
-
-    """ View for handling signing out. """
-
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        if request.user.is_authenticated():
-            auth_logout(request)
-        return render(request, 'joltem/sign_out.html')
 
 class UserView(View):
 

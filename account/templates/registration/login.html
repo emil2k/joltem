@@ -4,6 +4,12 @@
 <form action="" method="post" class="form-horizontal">
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {{ form.non_field_errors|join:' ' }}
+        </div>
+    {% endif %}
+
     {% for field in form %}
     <div class="control-group{% if field.errors %} error{% endif %}">
         <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -16,7 +22,11 @@
 
     <div class="control-group">
         <div class="controls">
-            <button type="submit" class="btn btn-success">Change password</button>
+            <button type="submit" class="btn btn-success">Sign In</button>
+            <small>
+                or <a href="{% url 'password_reset' %}">reset password</a>
+                if you forgot it.
+            </small>
         </div>
     </div>
 </form>
