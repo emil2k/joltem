@@ -5,6 +5,10 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns(
     '',
 
+    url(r'^sign-in/$', 'django.contrib.auth.views.login',
+        {'extra_context': {'nav_tab': 'in'}},
+        'sign_in'),
+
     url(r'^password_change/$', 'django.contrib.auth.views.password_change',
         {'extra_context': {'account_tab': 'change_password'}},
         'password_change'),
