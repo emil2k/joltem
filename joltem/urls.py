@@ -14,7 +14,6 @@ urlpatterns = patterns(
     url(r'^$', views.HomeView.as_view(), name='home'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^up/', views.sign_up, name='sign_up'),
-    url(r'^in/', views.sign_in, name='sign_in'),
     url(r'^out/', views.SignOutView.as_view(), name='sign_out'),
     url(r'^intro/', login_required(
         views.IntroductionView.as_view()), name='intro'),
