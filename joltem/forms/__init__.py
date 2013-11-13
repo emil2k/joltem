@@ -1,14 +1,11 @@
-import re
-from django.forms import forms, fields, widgets
-from django.core.validators import RegexValidator
+""" Forms for core app. """
 
-username_re = re.compile(r'^[a-zA-Z0-9_]+$')
-validate_username = RegexValidator(username_re, u'Enter a valid username consisting of letters, numbers, or underscores.', 'invalid')
+from django.forms import forms, fields, widgets
+from joltem.forms.utils import validate_username, validate_username_available
 
 class UsernameField(fields.CharField):
 
-    # TODO make validator to check if username is available
-    default_validators = [validate_username]
+    default_validators = [validate_username, validate_username_available]
 
     def clean(self, value):
         value = self.to_python(value).strip()
@@ -18,10 +15,7 @@ class SignUpForm(forms.Form):
 
     """ Form for processing a sign up. """
 
-    # todo add invite code hidden field
-    # todo check that username is available
-
-    # todo make custom username field that doesn't allow hypens and checks if username is available
+    # todo add invite code hidden field, and invite code validator
     username = UsernameField(
         max_length=30,
         required=True,
@@ -55,6 +49,7 @@ class SignUpForm(forms.Form):
         :return: cleaned data dict.
 
         """
+        # todo add test for this
         password = self.cleaned_data.get('password')
         password_confirm = self.cleaned_data.get('password_confirm')
         if password and password_confirm and password != password_confirm:

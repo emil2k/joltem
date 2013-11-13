@@ -1,12 +1,36 @@
 """ Form related utilities. """
 
 import re
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 
-def is_valid_email(email):
-    """ Validate if the passed string is a valid email address.
+username_re = re.compile(r'^[a-zA-Z0-9_]+$')
 
-    :param email: string to test.
-    :return: boolean of whether email is considered valid.
+def validate_username(username):
+    """ Validate that passed username is valid.
+
+    Username must contain numbers, letters, or underscores.
+    This does not enforce length constraints, use the field to
+    enforce those.
+
+    :param username: check if valid
+    :return: nothing if available, raise ValidationError otherwise.
 
     """
-    return re.match(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$', email, re.I )
+    v = RegexValidator(
+        username_re,
+        u'Enter a valid username consisting of letters, numbers, '
+        u'or underscores.',
+        'invalid')
+    return v(username)
+
+def validate_username_available(username):
+    """ Validate that username is available to sign up with.
+
+    :param username: check if this is available.
+    :return: nothing if available, raise ValidationError otherwise.
+
+    """
+    if User.objects.filter(username=username).exists():
+        raise ValidationError('The username is taken.', 'taken')
