@@ -64,7 +64,11 @@
             <label class="control-label" for="id_password">Password</label>
             <div class="controls" id="id_password">
                 {{ form.password }}
-                {% include 'joltem/form_field_errors.html' with errors=form.password.errors %}
+                {% if form.password.errors %}
+                    {% include 'joltem/form_field_errors.html' with errors=form.password.errors %}
+                {% else %}
+                    <small class="help-inline">At least 8 characters.</small>
+                {% endif %}
             </div>
          </div>
         <div class="control-group {% if form.password_confirm.errors %}error{% endif %}">
