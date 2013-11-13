@@ -1,58 +1,77 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
-    {% if error %}
-        <div class="alert alert-error">
-            {{ error }}
-        </div>
+    {# TODO move this passwords don't match error below #}
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-error">
+                <strong>{{ error }}</strong>
+            </div>
+        {% endfor %}
     {% endif %}
     <form method="post" class="form-horizontal">
         {% csrf_token %}
         <input type="hidden" name="invite_code" value="{{ invite.invite_code }}" />
-        <div class="control-group">
-            <label class="control-label" for="input_username">Username</label>
-            <div class="controls" id="input_username">
-                <input type="text" name="username" value="{{ username }}" placeholder="Username"/>
-                <small class="help-inline">Make it unique.</small>
+        <div class="control-group {% if form.username.errors %}error{% endif %}">
+            <label class="control-label" for="id_username">Username</label>
+            <div class="controls" id="id_username">
+                {{ form.username }}
+                {% if form.username.errors %}
+                    {% include 'joltem/form_field_errors.html' with errors=form.username.errors %}
+                {% else %}
+                    <small class="help-inline">Make it unique.</small>
+                {% endif %}
             </div>
         </div>
         <hr/>
-        <div class="control-group">
-            <label class="control-label" for="input_first_name">First Name</label>
-            <div class="controls" id="input_first_name">
-                <input type="text" name="first_name" value="{{ first_name }}" placeholder="First Name"/>
+        <div class="control-group {% if form.first_name.errors %}error{% endif %}">
+            <label class="control-label" for="id_first_name">First Name</label>
+            <div class="controls" id="id_first_name">
+                {{ form.first_name }}
+                {% include 'joltem/form_field_errors.html' with errors=form.first_name.errors %}
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label" for="input_last_name">Last Name</label>
-            <div class="controls" id="input_last_name">
-                <input type="text" name="last_name" value="{{ last_name }}" placeholder="Last Name"/>
-                <small class="help-inline">Optional.</small>
+        <div class="control-group {% if form.last_name.errors %}error{% endif %}">
+            <label class="control-label" for="id_last_name">Last Name</label>
+            <div class="controls" id="id_last_name">
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    {% include 'joltem/form_field_errors.html' with errors=form.last_name.errors %}
+                {% else %}
+                    <small class="help-inline">Optional.</small>
+                {% endif %}
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label" for="input_email">Email</label>
-            <div class="controls" id="input_email">
-                <input type="text" name="email" value="{{ email }}" placeholder="Email"/>
+        <div class="control-group {% if form.email.errors %}error{% endif %}">
+            <label class="control-label" for="id_email">Email</label>
+            <div class="controls" id="id_email">
+                {{ form.email }}
+                {% include 'joltem/form_field_errors.html' with errors=form.email.errors %}
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label" for="input_gravatar_email">Gravatar</label>
-            <div class="controls" id="input_gravatar_email">
-                <input type="text" name="gravatar_email" value="{{ gravatar_email }}" placeholder="Gravatar Email"/>
-                <small class="help-inline">Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i> </small>
+        <div class="control-group {% if form.gravatar.errors %}error{% endif %}">
+            <label class="control-label" for="id_gravatar">Gravatar</label>
+            <div class="controls" id="id_gravatar">
+                {{ form.gravatar }}
+                {% if form.gravatar.errors %}
+                    {% include 'joltem/form_field_errors.html' with errors=form.gravatar.errors %}
+                {% else %}
+                    <small class="help-inline">Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i> </small>
+                {% endif %}
             </div>
         </div>
         <hr/>
-         <div class="control-group">
-            <label class="control-label" for="input_password">Password</label>
-            <div class="controls" id="input_password">
-                <input type="password" name="password" placeholder="Password"/>
+         <div class="control-group {% if form.password.errors %}error{% endif %}">
+            <label class="control-label" for="id_password">Password</label>
+            <div class="controls" id="id_password">
+                {{ form.password }}
+                {% include 'joltem/form_field_errors.html' with errors=form.password.errors %}
             </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="input_password">Password</label>
-            <div class="controls" id="input_password">
-                <input type="password" name="password_confirm" placeholder="Confirm password"/>
+         </div>
+        <div class="control-group {% if form.password_confirm.errors %}error{% endif %}">
+            <label class="control-label" for="id_password">Confirm</label>
+            <div class="controls" id="id_password">
+                {{ form.password_confirm }}
+                {% include 'joltem/form_field_errors.html' with errors=form.password_confirm.errors %}
             </div>
         </div>
         <div class="control-group">
