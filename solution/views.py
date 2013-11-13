@@ -368,6 +368,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
 
     template_name = 'solution/solutions_list.html'
     context_object_name = 'solutions'
+    paginate_by = 10
     project_tab = "solutions"
     solutions_tab = None
 
