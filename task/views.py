@@ -247,7 +247,8 @@ class MyReviewTasksView(TaskBaseListView):
                 yield task
 
     def get_queryset(self):
-        return (task for task in self.iterate_tasks_to_review())
+        # TODO: It should return QS.
+        return [task for task in self.iterate_tasks_to_review()]
 
 
 class MyReviewedTasksView(TaskBaseListView):
@@ -259,9 +260,11 @@ class MyReviewedTasksView(TaskBaseListView):
     tasks_tab = "my_reviewed"
 
     def get_queryset(self):
-        return (
+        # TODO: It should return QS.
+        return [
             task_vote.task for task_vote in self.user.task_vote_set.order_by(
-                '-time_voted'))
+                '-time_voted')
+        ]
 
 
 class AllOpenTasksView(TaskBaseListView):
@@ -318,7 +321,8 @@ class SubtaskBaseView(ListView, ProjectBaseView):
 
     def get_queryset(self):
         """Generate subtask groups"""
-        return (g for g in self.generate_subtasks())
+        # TODO: It should return QS.
+        return [g for g in self.generate_subtasks()]
 
     def generate_subtasks(self):
         """Generator for subtask groups"""
