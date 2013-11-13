@@ -21,6 +21,7 @@ class SignUpFormTest(unittest.TestCase):
         password = 'bill2bill'
         password_confirm = password if match else password + "oops"
         data = {
+            'invite_code': 'dummycode',
             'username': 'bill',
             'first_name': 'Billy',
             'email': 'bill@gmail.com',

@@ -15,23 +15,26 @@ class SignUpForm(forms.Form):
 
     """ Form for processing a sign up. """
 
-    # todo add invite code hidden field, and invite code validator
+    invite_code = fields.CharField(
+        required=True,
+        widget=widgets.HiddenInput()
+    )
     username = UsernameField(
         max_length=30,
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Username'}))
+        widget=widgets.TextInput(attrs={'placeholder': 'Username'}))
     first_name = fields.CharField(
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'First Name'}))
+        widget=widgets.TextInput(attrs={'placeholder': 'First Name'}))
     last_name = fields.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Last Name'}))
+        widget=widgets.TextInput(attrs={'placeholder': 'Last Name'}))
     email = fields.EmailField(
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Email'}))
+        widget=widgets.TextInput(attrs={'placeholder': 'Email'}))
     gravatar = fields.EmailField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Gravatar Email'}))
+        widget=widgets.TextInput(attrs={'placeholder': 'Gravatar Email'}))
     password = fields.CharField(
         min_length=8,
         max_length=30,
@@ -49,6 +52,7 @@ class SignUpForm(forms.Form):
         :return: cleaned data dict.
 
         """
+        # todo test with blanks in passwords
         password = self.cleaned_data.get('password')
         password_confirm = self.cleaned_data.get('password_confirm')
         if password and password_confirm and password != password_confirm:
