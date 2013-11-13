@@ -9,6 +9,8 @@ urlpatterns = patterns(
         {'extra_context': {'nav_tab': 'in'}},
         'sign_in'),
 
+    url(r'^sign-out/$', 'django.contrib.auth.views.logout', name='sign_out'),
+
     url(r'^password_change/$', 'django.contrib.auth.views.password_change',
         {'extra_context': {'account_tab': 'change_password'}},
         'password_change'),
