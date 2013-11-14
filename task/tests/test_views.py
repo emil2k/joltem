@@ -145,3 +145,39 @@ class TaskCreateViewTest(BaseProjectViewTest):
             'title': '  '
         })
         self.assertEqual(response.status_code, 200)
+
+class TaskListViewTests(BaseProjectViewTest):
+
+    def _test_get_task_list(self, view):
+        """ Test generator for GET on a task list
+
+        :param view: list view to test.
+
+        """
+        response = self._get(view)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_my_open_tasks(self):
+        """ Test simple GET of my open tasks view. """
+        self._test_get_task_list(views.MyOpenTasksView.as_view())
+
+    def test_get_my_closed_tasks(self):
+        """ Test simple GET of my closed tasks view. """
+        self._test_get_task_list(views.MyClosedTasksView.as_view())
+
+    def test_get_my_review_tasks(self):
+        """ Test simple GET of my tasks to review view. """
+        self._test_get_task_list(views.MyReviewTasksView.as_view())
+
+    def test_get_my_reviewed_tasks(self):
+        """ Test simple GET of my reviewed tasks view. """
+        self._test_get_task_list(views.MyReviewedTasksView.as_view())
+
+    def test_get_all_open_tasks(self):
+        """ Test simple GET of all open tasks view. """
+        self._test_get_task_list(views.AllOpenTasksView.as_view())
+
+    def test_get_all_closed_tasks(self):
+        """ Test simple GET of all closed tasks view. """
+        self._test_get_task_list(views.AllClosedTasksView.as_view())
+

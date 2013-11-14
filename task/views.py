@@ -227,15 +227,6 @@ class MyClosedTasksView(TaskBaseListView):
             owner_id=self.user.id).order_by('-time_closed')
 
 
-class MyUnacceptedTasksView(TaskBaseListView):
-    tasks_tab = "my_unaccepted"
-
-    def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=False,
-            owner_id=self.user.id).order_by('-time_posted')
-
-
 class MyReviewTasksView(TaskBaseListView):
 
     """
