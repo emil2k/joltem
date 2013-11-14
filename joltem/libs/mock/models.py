@@ -20,6 +20,8 @@ def load_model(model_object):
 def load_project_impact(project, user):
     """ Reload votable to check if metrics updated properly.
 
+    Uses one time on the project's test.
+
     :return Impact:
 
     """
