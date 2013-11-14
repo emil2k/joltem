@@ -5,20 +5,24 @@ from joltem.libs.mock import models, requests
 from task import views
 
 
-class TaskViewsTest(TestCase):
+class BaseProjectViewTest(TestCase):
 
-    """ Test task view's requests. """
+    """ Test case for view that requires a project. """
 
     def setUp(self):
-        """ Setup user, project, and task. """
-        self.project = models.get_mock_project("bread")
-        # Extend this class and replace task and user to test state variations
+        self.project = models.get_mock_project('bread')
+
+class BaseTaskViewTest(BaseProjectViewTest):
+
+    """ Test case for view that requires a task. """
+
+    def setUp(self):
+        super(BaseTaskViewTest, self).setUp()
         self.user = models.get_mock_user('bill')
         self.task = models.get_mock_task(self.project, self.user)
 
-    # Tests
 
-    def _get_test_view(self, view):
+    def _get(self, view):
         """ Get GET response on given task view.
 
         :param view: view to test.
@@ -30,7 +34,7 @@ class TaskViewsTest(TestCase):
         return view(request, project_name=self.project.name,
                         task_id=self.task.id)
 
-    def _post_test_view(self, view, data):
+    def _post(self, view, data):
         """ Get POST response on given task view.
 
         :param view: view to test.
@@ -42,16 +46,18 @@ class TaskViewsTest(TestCase):
         return view(request, project_name=self.project.name,
                         task_id=self.task.id)
 
-    # Task view
+class TaskViewTest(BaseTaskViewTest):
+
+    """ Test TaskView responses. """
 
     def test_task_view_get(self):
         """ Test simple GET of task view. """
-        response = self._get_test_view(views.TaskView.as_view())
+        response = self._get(views.TaskView.as_view())
         self.assertTrue(response.status_code, 200)
 
     def _test_task_view_action(self, action):
         """ Generate test for task action. """
-        response = self._post_test_view(
+        response = self._post(
             views.TaskView.as_view(), {action: 1})
         self.assertEqual(response.status_code, 302)
 
@@ -72,14 +78,14 @@ class TaskViewsTest(TestCase):
         self._test_task_view_action('reopen')
 
 
-    # Task edit view
+class TaskEditViewTest(BaseTaskViewTest):
 
     def test_task_edit_view_get(self):
-        response = self._get_test_view(views.TaskEditView.as_view())
+        response = self._get(views.TaskEditView.as_view())
         self.assertEqual(response.status_code, 200)
 
     def test_task_edit_view_post_edit(self):
-        response = self._post_test_view(views.TaskEditView.as_view(), {
+        response = self._post(views.TaskEditView.as_view(), {
             'title': 'A title for the task.',
             'description': 'The stuff you write'
         })
@@ -87,7 +93,7 @@ class TaskViewsTest(TestCase):
 
     def test_task_edit_view_post_blank_title(self):
         """ Test edit with blank title. """
-        response = self._post_test_view(views.TaskEditView.as_view(), {
+        response = self._post(views.TaskEditView.as_view(), {
             'title': '  '
         })
         self.assertEqual(response.status_code, 200)
