@@ -1,6 +1,9 @@
 {% extends 'project/base.html' %}
 {% block title %}New Task - Joltem{% endblock %}
 {% block project_content %}
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
         <div class="row">

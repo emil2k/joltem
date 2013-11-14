@@ -5,8 +5,10 @@ from django.test import TestCase
 from joltem.models import Profile, Comment, Vote, Voteable
 from project.models import Impact
 from solution.models import Solution
-
-from joltem.tests.mocking import *
+from joltem.libs.mock.models import (
+    get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
+    get_mock_vote, get_mock_comment, get_mock_setup_solution,
+    load_project_impact, load_model)
 
 
 class PermissionsTestCase(TestCase):
@@ -296,7 +298,3 @@ class ImpactTestCase(TestCase):
         self.assertEqual(c.acceptance, int(round(100 * float(750) / 1500)))  # < 75%
         self.assertImpactEqual(bill, 0)  # should not count here
         self.assertProjectImpactEqual(p, bill, 0)
-
-
-# Load other tests from submodules
-from solution.tests.views import *

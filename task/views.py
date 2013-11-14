@@ -1,10 +1,10 @@
 """ Task related views. """
 
 from django.db.models import Sum
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
-
+from django.utils import timezone
 
 from joltem.holders import CommentHolder
 from task.models import Task, Vote
@@ -75,7 +75,6 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
     def post(self, request, *args, **kwargs):
         """ Parse post data. """
-        from django.utils import timezone
 
         # Vote to accept task
         if request.POST.get('accept'):
@@ -140,14 +139,17 @@ class TaskEditView(TemplateView, TaskBaseView):
                 'project:task:task', project_name=self.project.name,
                 task_id=self.task.id)
         title = request.POST.get('title')
-        if title is not None:
+        if title and title.strip():
             self.task.title = title
             self.task.description = request.POST.get('description')
             self.task.save()
             return redirect(
                 'project:task:task', project_name=self.project.name,
                 task_id=self.task.id)
-
+        else:
+            context = self.get_context_data(**kwargs)
+            context['error'] = "Title is required."
+            return render(request, 'task/task_edit.html', context)
 
 class TaskCreateView(TemplateView, ProjectBaseView):
     template_name = "task/new_task.html"
@@ -171,23 +173,25 @@ class TaskCreateView(TemplateView, ProjectBaseView):
         return super(TaskCreateView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        if request.POST.get('action') == 'create_task':
-            title = request.POST.get('title')
-            description = request.POST.get('description')
-            if title is not None:
-                created_task = Task(
-                    project=self.project,
-                    parent=self.parent_solution,
-                    owner=self.user,
-                    author=self.user,
-                    title=title,
-                    description=description
-                )
-                created_task.save()
-                return redirect(
-                    'project:task:task', project_name=self.project.name,
-                    task_id=created_task.id)
-
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        if title and title.strip():
+            created_task = Task(
+                project=self.project,
+                parent=self.parent_solution,
+                owner=self.user,
+                author=self.user,
+                title=title,
+                description=description
+            )
+            created_task.save()
+            return redirect(
+                'project:task:task', project_name=self.project.name,
+                task_id=created_task.id)
+        else:
+            context = self.get_context_data(**kwargs)
+            context['error'] = "Title is required."
+            return render(request, 'task/new_task.html', context)
 
 class TaskBaseListView(ListView, ProjectBaseView):
 
@@ -196,6 +200,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
     """
     template_name = 'task/tasks_list.html'
     context_object_name = 'tasks'
+    paginate_by = 10
     project_tab = "tasks"
     tasks_tab = None
 
@@ -222,15 +227,6 @@ class MyClosedTasksView(TaskBaseListView):
             owner_id=self.user.id).order_by('-time_closed')
 
 
-class MyUnacceptedTasksView(TaskBaseListView):
-    tasks_tab = "my_unaccepted"
-
-    def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=False,
-            owner_id=self.user.id).order_by('-time_posted')
-
-
 class MyReviewTasksView(TaskBaseListView):
 
     """
@@ -246,7 +242,8 @@ class MyReviewTasksView(TaskBaseListView):
                 yield task
 
     def get_queryset(self):
-        return (task for task in self.iterate_tasks_to_review())
+        # TODO: It should return QS.
+        return [task for task in self.iterate_tasks_to_review()]
 
 
 class MyReviewedTasksView(TaskBaseListView):
@@ -258,9 +255,11 @@ class MyReviewedTasksView(TaskBaseListView):
     tasks_tab = "my_reviewed"
 
     def get_queryset(self):
-        return (
+        # TODO: It should return QS.
+        return [
             task_vote.task for task_vote in self.user.task_vote_set.order_by(
-                '-time_voted'))
+                '-time_voted')
+        ]
 
 
 class AllOpenTasksView(TaskBaseListView):
@@ -317,7 +316,8 @@ class SubtaskBaseView(ListView, ProjectBaseView):
 
     def get_queryset(self):
         """Generate subtask groups"""
-        return (g for g in self.generate_subtasks())
+        # TODO: It should return QS.
+        return [g for g in self.generate_subtasks()]
 
     def generate_subtasks(self):
         """Generator for subtask groups"""

@@ -5,8 +5,29 @@ from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution
 
+# Reload
+
+def load_model(model_class, model_object):
+    """
+    Load model to check if metrics updated properly
+    """
+    if model_object:
+        return model_class.objects.get(id=model_object.id)
+
+
+def load_project_impact(project, user):
+    """
+    Reload votable to check if metrics updated properly
+    """
+    if project and user:
+        return Impact.objects.get(user_id=user.id, project_id=project.id)
+
+# Models
+
 def get_mock_user(username, **extra_fields):
-    return User.objects.create_user(username, '%s@gmail.com' % username, '%s_password' % username, **extra_fields)
+    return User.objects.create_user(
+        username, '%s@gmail.com' % username,
+        '%s_password' % username, **extra_fields)
 
 
 def get_mock_project(name, title=None):
@@ -80,6 +101,7 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     v.save()
     return v
 
+# Setups
 
 def get_mock_setup_solution(project_name, username, is_completed=True, is_closed=False):
     """
@@ -108,19 +130,3 @@ def get_mock_setup_comment(project_name, username):
     p, u, t, s = get_mock_setup_solution(project_name, username)
     c = get_mock_comment(p, u, s)
     return p, u, t, s, c
-
-
-def load_model(model_class, model_object):
-    """
-    Load model to check if metrics updated properly
-    """
-    if model_object:
-        return model_class.objects.get(id=model_object.id)
-
-
-def load_project_impact(project, user):
-    """
-    Reload votable to check if metrics updated properly
-    """
-    if project and user:
-        return Impact.objects.get(user_id=user.id, project_id=project.id)

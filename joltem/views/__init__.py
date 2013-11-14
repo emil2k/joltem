@@ -1,157 +1,99 @@
-from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
-from django.views.generic.base import TemplateView, RedirectView
-
+from django.views.generic.base import TemplateView, RedirectView, View
 from git.models import Authentication
+
 from joltem.models import User, Invite, Notification, Comment
-from joltem.views.generic import TextContextMixin, RequestBaseView
 from project.models import Project
+from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
-def home(request):
-    if request.user.is_authenticated():
-        # Currently there is only one project so just redirect to it
-        project = Project.objects.get()
-        return redirect('project:project', project_name=project.name)
+class HomeView(View):
 
-    elif 'invite_code' in request.COOKIES:
-        invite_code = request.COOKIES['invite_code']
-        invite = Invite.is_valid(invite_code)
-        if invite:
-            context = {
-                "invite": invite
-            }
-            return render(request, 'joltem/invitation.html', context)
-    return redirect('sign_in')
+    """ View to serve up homepage. """
 
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
 
-def is_email_valid(email):
-    import re
-    return re.match(r'^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$', email, re.I )
+        If user is authenticated redirect to project dashboard, if not
+        check that the user has an invite cookie.
 
+        Otherwise redirect to sign in while closed alpha.
 
-def sign_up(request):
-    if not 'invite_code' in request.COOKIES:
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        if request.user.is_authenticated():
+            # Currently there is only one project so just redirect to it
+            project = Project.objects.get()
+            return redirect('project:project', project_name=project.name)
+        elif 'invite_code' in request.COOKIES:
+            invite_code = request.COOKIES['invite_code']
+            invite = Invite.is_valid(invite_code)
+            if invite:
+                context = { "invite": invite }
+                return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
-    else:
-        invite_code = request.COOKIES['invite_code']
-        invite = Invite.is_valid(invite_code)
-        if not invite:
-            return redirect('sign_in')
-        else:
-            error = None
-            if request.POST:
-                username = request.POST.get('username')
-                email = request.POST.get('email')
-                first_name = request.POST.get('first_name')
-                last_name = request.POST.get('last_name')
-                gravatar_email = request.POST.get('gravatar_email')
-                password = request.POST.get('password')
-                password_confirm = request.POST.get('password_confirm')
-                # Check if username is available
-                import re
-                if not username:
-                    error = "Username is required."
-                elif not first_name:
-                    error = "First name is required."
-                elif not email:
-                    error = "Email is required."
-                elif not password:
-                    error = "Password is required."
-                elif not password_confirm:
-                    error = "Confirming the password is required."
-                elif not is_email_valid(email):
-                    error = "Email address is not valid."
-                elif gravatar_email and not is_email_valid(gravatar_email):
-                    error = "Your gravatar must have a valid email address."
-                elif not re.match(r'^[A-Za-z0-9_]+$', username):
-                    error = "This username is not valid."
-                elif User.objects.filter(username=username).count() > 0:
-                    error = "This username already exists."
-                elif User.objects.filter(email=email).count() > 0:
-                    error = "Somebody already has an account with this password. Did you forget your password?"
-                elif password != password_confirm:
-                    error = "Passwords don't match."
-                elif len(password) < 8:
-                    error = "Password must be at least 8 characters."
-                else:
-                    user = User.objects.create_user(username, email, password)
-                    user.first_name = first_name
-                    user.last_name = last_name
-                    user.save()
-                    # Setup profile
-                    profile = user.get_profile()
-                    if profile.set_gravatar_email(gravatar_email):
-                        profile.save()
-                        # Login and redirect to authentication keys page
-                    user = authenticate(username=username, password=password)
-                    login(request, user)
-                    # Track invite
-                    invite.is_signed_up = True
-                    invite.time_signed_up = timezone.now()
-                    invite.user = user
-                    invite.save()
-                    return redirect('intro')
-            context = {
-                'nav_tab': "up",
-                'error': error,
-                'invite': invite
-            }
-            if error:
-                context['username'] = username
-                context['email'] = email
-                context['first_name'] = first_name
-                context['last_name'] = last_name
-                context['gravatar_email'] = gravatar_email
-            return render(request, 'joltem/sign_up.html', context)
 
 
-def sign_in(request):
-    context = {
-        'nav_tab': "in"
-    }
-    if request.POST:
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                next = request.GET.get('next')
-                if next is not None:
-                    return redirect(next)
-                else:
-                    return redirect('home')
-            else:
-                context['error'] = "This account is disabled."
-        else:
-            context['error'] = "Password incorrect."
-    return render(request, 'joltem/sign_in.html', context)
+class UserView(View):
+
+    """ View for displaying user profile page. """
+
+    def get(self, request, username):
+        """ Handle GET request.
+
+        :param request:
+        :param username:
+        :return:
+
+        """
+        profile_user = get_object_or_404(User, username=username)
+        context = {
+            'user': request.user,  # user viewing the page
+            'profile_user': profile_user  # the user whose profile it is
+        }
+        return render(request, 'joltem/user.html', context)
 
 
-def sign_out(request):
-    if request.user.is_authenticated():
-        auth_logout(request)
-    return render(request, 'joltem/sign_out.html')
+# todo make form for this
+class AccountView(View):
 
+    """ View for displaying and editing user's account & profile. """
 
-@login_required
-def user(request, username):
-    profile_user = get_object_or_404(User, username=username)
-    context = {
-        'user': request.user,  # user viewing the page
-        'profile_user': profile_user  # the user whose profile it is
-    }
-    return render(request, 'joltem/user.html', context)
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
 
-@login_required
-def account(request):
-    error = None
-    user = request.user
-    if request.POST:
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        user = request.user
+        context = {
+            'nav_tab': "account",
+            'account_tab': "account",
+            'user': user,
+        }
+        return render(request, 'joltem/account.html', context)
+
+    def post(self, request, *args, **kwargs):
+        """ Handle POST request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+
+        """
+        error = None
+        user = request.user
         first_name = request.POST.get('first_name') # Required
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')  # Required
@@ -161,10 +103,10 @@ def account(request):
             error = "First name is required."
         elif not email:
             error = "Email is required."
-        elif not is_email_valid(email):
-            error = "Email address (%s) is not valid." % email
-        elif gravatar_email and not is_email_valid(gravatar_email):
-            error = "Your gravatar (%s) must have a valid email address." % gravatar_email
+        # elif not is_valid_email(email):
+        #     error = "Email address (%s) is not valid." % email
+        # elif gravatar_email and not is_valid_email(gravatar_email):
+        #     error = "Your gravatar (%s) must have a valid email address." % gravatar_email
         else:
             user.first_name = first_name
             user.last_name = last_name
@@ -175,21 +117,50 @@ def account(request):
                 profile.save()
         if not error:
             return redirect('account')
+        else:
+            context = {
+                'nav_tab': "account",
+                'account_tab': "account",
+                'user': user,
+                'error': error,
+            }
+            return render(request, 'joltem/account.html', context)
 
-    context = {
-        'nav_tab': "account",
-        'account_tab': "account",
-        'user': user,
-        'error': error,
-    }
-    return render(request, 'joltem/account.html', context)
 
-@login_required
-def keys(request):
-    user = request.user
-    keys = user.authentication_set.all().order_by('name')
+# todo make a form for this
+# todo make the form handle BadKeyError at /account/keys/, add test for a bad key
+class KeysView(View):
 
-    if request.POST:
+    """ View for adding and removing SSH keys. """
+
+    def get(self, request, *args, **kwargs):
+        """ Handle GET request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response.
+
+        """
+        user = request.user
+        keys = user.authentication_set.all().order_by('name')
+        context = {
+            'nav_tab': "account",
+            'account_tab': "keys",
+            'user': user,
+            'keys': keys,
+        }
+        return render(request, 'joltem/keys.html', context)
+
+    def post(self, request, *args, **kwargs):
+        """ Handle POST request.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response.
+
+        """
         remove_id = request.POST.get('remove')
         name = request.POST.get('name')
         data = request.POST.get('key')
@@ -198,21 +169,75 @@ def keys(request):
             key.delete()
         elif name and data:
             key = Authentication(
-                user=user,
+                user=request.user,
                 name=name,
             )
             key.blob = data
             key.save()
         return redirect('account_keys')
 
-    context = {
-        'nav_tab': "account",
-        'account_tab': "keys",
-        'user': user,
-        'keys': keys,
-    }
-    return render(request, 'joltem/keys.html', context)
+class CommentView(View):
 
+    """ View for loading markdown of a comment.
+
+    Used by JEditable to load markdown for editing.
+
+    """
+
+    def get(self, request, comment_id):
+        """ Return comment markdown.
+
+        :param request:
+        :param comment_id: if of comment to load.
+        :return: markdown of comment, for jeditable - to edit comments.
+
+        """
+        comment = get_object_or_404(Comment, id=comment_id)
+        return HttpResponse(comment.comment)
+
+class NotificationsView(TemplateView, RequestBaseView):
+    """
+    Displays the users notifications
+    """
+    template_name = "joltem/notifications.html"
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("clear_all"):
+            for notification in request.user.notification_set.filter(is_cleared=False):
+                notification.mark_cleared()
+        return redirect("notifications")
+
+    def get_context_data(self, **kwargs):
+        from joltem.holders import NotificationHolder
+        kwargs["nav_tab"] = "notifications"
+        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
+        return super(NotificationsView, self).get_context_data(**kwargs)
+
+
+class NotificationRedirectView(RedirectView):
+    """
+    A notification redirect, that marks a notification cleared and redirects to the notifications url
+    """
+    permanent = False
+    query_string = False
+
+    def get_redirect_url(self, notification_id):
+        notification = get_object_or_404(Notification, id=notification_id)
+        notification.mark_cleared()
+        return notification.notifying.get_notification_url(notification)
+
+
+
+class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+    """
+    A view to display a basic introduction to the site, displayed to new users after sign up.
+    """
+    template_name = "joltem/introduction.html"
+    text_names = ["joltem/introduction.md"]
+    text_context_object_prefix = "introduction_"
+
+
+# TODO Invitation views, deprecated no need to rewrite will be removed soon
 
 @login_required
 def invites(request):
@@ -269,16 +294,6 @@ def invites(request):
             invite.save()
         return redirect('invites')
     return render(request, 'joltem/invites.html', context)
-
-
-def comment(request, comment_id):
-    """Returns markdown for a comment
-
-    Used by JEditable to load markdown for editing.
-
-    """
-    comment = get_object_or_404(Comment, id=comment_id)
-    return HttpResponse(comment.comment)
 
 
 def invite(request, invite_id):
@@ -338,49 +353,3 @@ def invite(request, invite_id):
             invite.save()
         return redirect('invite', invite_id=invite_id)
     return render(request, 'joltem/invite.html', context)
-
-
-# Class based views
-
-
-
-class NotificationsView(TemplateView, RequestBaseView):
-    """
-    Displays the users notifications
-    """
-    template_name = "joltem/notifications.html"
-
-    def post(self, request, *args, **kwargs):
-        if request.POST.get("clear_all"):
-            for notification in request.user.notification_set.filter(is_cleared=False):
-                notification.mark_cleared()
-        return redirect("notifications")
-
-    def get_context_data(self, **kwargs):
-        from joltem.holders import NotificationHolder
-        kwargs["nav_tab"] = "notifications"
-        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
-        return super(NotificationsView, self).get_context_data(**kwargs)
-
-
-class NotificationRedirectView(RedirectView):
-    """
-    A notification redirect, that marks a notification cleared and redirects to the notifications url
-    """
-    permanent = False
-    query_string = False
-
-    def get_redirect_url(self, notification_id):
-        notification = get_object_or_404(Notification, id=notification_id)
-        notification.mark_cleared()
-        return notification.notifying.get_notification_url(notification)
-
-
-
-class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
-    """
-    A view to display a basic introduction to the site, displayed to new users after sign up.
-    """
-    template_name = "joltem/introduction.html"
-    text_names = ["joltem/introduction.md"]
-    text_context_object_prefix = "introduction_"

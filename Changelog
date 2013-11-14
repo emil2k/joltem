@@ -1,3 +1,9 @@
+2013-11-14  klen
+
+	* Version 0.2.0
+	* Add sign-up mechanism without invite restrictions
+	* Finish deployment joltem.com with chef
+
 2013-11-12  vagrant
 
 	* Version 0.1.5

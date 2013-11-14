@@ -1,19 +1,32 @@
+""" Git views. """
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from project.models import Project
+
 from git.models import Repository
+from project.models import Project
 
 
 def repository(request, project_name, repository_id):
+    """ Render repository template.
+
+    :return str: A rendered template
+
+    """
     project = get_object_or_404(Project, name=project_name)
-    repository = get_object_or_404(Repository, id=repository_id)
+    repo = get_object_or_404(Repository, id=repository_id)
     context = {
         'project': project,
-        'repository': repository
+        'repository': repo
     }
     return render(request, 'git/repository.html', context)
 
 
 def repositories(request, project_name):
+    """ Render list of repositories.
+
+    :return str: A rendered page
+
+    """
     project = get_object_or_404(Project, name=project_name)
     is_admin = project.is_admin(request.user.id)
     if is_admin and request.POST:
@@ -23,14 +36,15 @@ def repositories(request, project_name):
             hide_repo = Repository.objects.get(id=hidden_repo_id)
             hide_repo.is_hidden = True
             hide_repo.save()
-            return redirect('project:git:repositories', project_name=project_name)
+            return redirect(
+                'project:git:repositories', project_name=project_name)
 
     context = {
         'project_tab': "repositories",
         'repositories_tab': "active",
         'project': project,
         'repositories': project.repository_set.filter(is_hidden=False),
-        'host': request.get_host().split(':')[0],
+        'host': settings.GATEWAY_HOST,
         'action': "hide",
         'is_admin': is_admin
     }
@@ -38,6 +52,11 @@ def repositories(request, project_name):
 
 
 def repositories_hidden(request, project_name):
+    """ Render hidden repository.
+
+    :return str: A rendered page
+
+    """
     project = get_object_or_404(Project, name=project_name)
     is_admin = project.is_admin(request.user.id)
     if is_admin and request.POST:
@@ -47,7 +66,8 @@ def repositories_hidden(request, project_name):
             unhide_repo = Repository.objects.get(id=unhidden_repo_id)
             unhide_repo.is_hidden = False
             unhide_repo.save()
-            return redirect('project:git:repositories_hidden', project_name=project_name)
+            return redirect(
+                'project:git:repositories_hidden', project_name=project_name)
 
     context = {
         'project_tab': "repositories",
@@ -62,10 +82,16 @@ def repositories_hidden(request, project_name):
 
 
 def new_repository(request, project_name):
+    """ Support creation of new repository.
+
+    :return str: A rendered page
+
+    """
     project = get_object_or_404(Project, name=project_name)
     is_admin = project.is_admin(request.user.id)
     if not is_admin:
         return redirect('project:git:repositories', project_name=project_name)
+
     if is_admin and request.POST:
         action = request.POST.get('action')
         # Create a repository
@@ -79,7 +105,8 @@ def new_repository(request, project_name):
                     description=description
                 )
                 created_repo.save()
-                return redirect('project:git:repositories', project_name=project_name)
+                return redirect(
+                    'project:git:repositories', project_name=project_name)
 
     context = {
         'project_tab': "repositories",
@@ -88,4 +115,3 @@ def new_repository(request, project_name):
         'is_admin': is_admin
     }
     return render(request, 'git/new_repository.html', context)
-

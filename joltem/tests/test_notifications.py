@@ -5,7 +5,7 @@ import time
 from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
 
-from joltem.tests.mocking import (get_mock_project, get_mock_task,
+from joltem.libs.mock.models import (get_mock_project, get_mock_task,
                                   get_mock_solution, get_mock_user)
 
 from joltem.models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,

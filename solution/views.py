@@ -368,6 +368,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
 
     template_name = 'solution/solutions_list.html'
     context_object_name = 'solutions'
+    paginate_by = 10
     project_tab = "solutions"
     solutions_tab = None
 
@@ -393,7 +394,8 @@ class MyReviewedSolutionsView(SolutionBaseListView):
 
     def get_queryset(self):
         """ Return generator of reviewed solutions. """
-        return (solution for solution in self.reviewed_filter())
+        # TODO: It should return QS.
+        return [solution for solution in self.reviewed_filter()]
 
 
 class MyReviewSolutionsView(SolutionBaseListView):
@@ -418,7 +420,8 @@ class MyReviewSolutionsView(SolutionBaseListView):
 
     def get_queryset(self):
         """ Return generator of solutions to review. """
-        return (solution for solution in self.review_filter())
+        # TODO: It should return QS.
+        return [solution for solution in self.review_filter()]
 
 
 class MyIncompleteSolutionsView(SolutionBaseListView):
