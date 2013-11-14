@@ -13,7 +13,6 @@ urlpatterns = patterns(
     '',
     url(r'^$', views.HomeView.as_view(), name='home'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^up/', views.SignUpView.as_view(), name='sign_up'),
     url(r'^intro/', login_required(
         views.IntroductionView.as_view()), name='intro'),
     url(r'^notifications/(?P<notification_id>([0-9])+)/', login_required(
