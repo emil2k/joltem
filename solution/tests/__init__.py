@@ -1,14 +1,12 @@
 """ Solution related tests. """
-
 from django.test import TestCase
 
-from joltem.models import Profile, Comment, Vote, Voteable
-from project.models import Impact
-from solution.models import Solution
 from joltem.libs.mock.models import (
     get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
     get_mock_vote, get_mock_comment, get_mock_setup_solution,
     load_project_impact, load_model)
+from joltem.models import Profile, Vote, Voteable
+from project.models import Impact
 
 
 class PermissionsTestCase(TestCase):
@@ -35,9 +33,6 @@ class PermissionsTestCase(TestCase):
         self.assertFalse(s.is_owner(self.jill))
         self.assertFalse(s.is_owner(self.bob))
         self.assertTrue(s.is_owner(self.zack))
-
-    # TODO tests that actually test interface using client or selenium
-    # TODO tests that check if views follow ownership rules for processing actions
 
 
 class ImpactTestCase(TestCase):
@@ -81,7 +76,7 @@ class ImpactTestCase(TestCase):
         t = get_mock_task(p, jill, is_reviewed=True, is_accepted=True)
         s = get_mock_solution(p, ted, t)
         get_mock_vote(jill, s, 100, 1)
-        s = load_model(Solution, s)
+        s = load_model(s)
         self.assertTrue(s.impact > 0)
 
     def test_comment_impact(self):
@@ -93,7 +88,7 @@ class ImpactTestCase(TestCase):
         s = get_mock_solution(p, ted, t)
         c = get_mock_comment(p, jill, s)
         get_mock_vote(ted, c, 100, 1)
-        c = load_model(Comment, c)
+        c = load_model(c)
         self.assertTrue(c.impact > 0)
 
     def test_project_impact(self):
@@ -137,7 +132,7 @@ class ImpactTestCase(TestCase):
 
     def test_impact_one_accept(self):
         """ Test impact with a single acceptance vote. """
-        p, bill, t, s = get_mock_setup_solution("lipton", "bill")
+        _, _, _, s = get_mock_setup_solution("lipton", "bill")
         self.assertEqual(s.get_impact(), None)
         self.assertEqual(s.get_acceptance(), None)
         get_mock_vote(get_mock_user("jill"), s, 300, 3)
@@ -178,7 +173,7 @@ class ImpactTestCase(TestCase):
         self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 75,
                          "Comment acceptance threshold changed.")
 
-        p, gary, t, s = get_mock_setup_solution("sonics", "gary")
+        p, _, _, s = get_mock_setup_solution("sonics", "gary")
 
         # Initial
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 0, 0, 0, 0])
@@ -242,30 +237,30 @@ class ImpactTestCase(TestCase):
         Rejection vote requires comment to count.
 
         """
-        p, ted, t, s = get_mock_setup_solution("lipton", "ted")
+        p, _, _, s = get_mock_setup_solution("lipton", "ted")
         self.assertEqual(s.impact, None)
         self.assertEqual(s.acceptance, None)
         get_mock_vote(get_mock_user("jill"), s, 300, 1)
-        s = load_model(Solution, s)
+        s = load_model(s)
         self.assertEqual(s.impact, 10)
         self.assertEqual(s.acceptance, 100)
         # Now the rejection vote
         kate = get_mock_user("kate")
         get_mock_vote(kate, s, 100, 0)
         # Vote should not count until commented
-        s = load_model(Solution, s)
+        s = load_model(s)
         self.assertEqual(s.impact, 10)
         self.assertEqual(s.acceptance, 100)
         # Add comment and it should count now
         get_mock_comment(p, kate, s)
-        s = load_model(Solution, s)
+        s = load_model(s)
         self.assertEqual(s.impact, 8)  # using impact instead of get_impact() because want to check DB state
         self.assertEqual(s.acceptance, 75)
 
     def test_comment_acceptance_threshold(self):
         """ Test of comment acceptance threshold. """
         self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 75)  # test assumes this value
-        p, u, t, s = get_mock_setup_solution("air", "kate")
+        p, u, _, s = get_mock_setup_solution("air", "kate")
         bill = get_mock_user("bill")
 
         self.assertImpactEqual(bill, 0)
@@ -276,25 +271,25 @@ class ImpactTestCase(TestCase):
         self.assertEqual(c.acceptance, None)
 
         get_mock_vote(u, c, 750, 3)
-        c = load_model(Comment, c)
+        c = load_model(c)
         self.assertEqual(c.acceptance, 100)
         self.assertImpactEqual(bill, 10)
         self.assertProjectImpactEqual(p, bill, 10)
 
         # Now rejection votes to lower acceptance
         get_mock_vote(get_mock_user("jade"), c, 100, 0)
-        c = load_model(Comment, c)
+        c = load_model(c)
         self.assertEqual(c.acceptance, int(round(100 * float(750) / 850)))  # > 75%
         self.assertImpactEqual(bill, 9)
         self.assertProjectImpactEqual(p, bill, 9)
 
         get_mock_vote(get_mock_user("jill"), c, 150, 0)
-        c = load_model(Comment, c)
+        c = load_model(c)
         self.assertEqual(c.acceptance, int(round(100 * float(750) / 1000)))  # = 75%
         self.assertImpactEqual(bill, 8)
         self.assertProjectImpactEqual(p, bill, 8)
         get_mock_vote(get_mock_user("gary"), c, 500, 0)
-        c = load_model(Comment, c)
+        c = load_model(c)
         self.assertEqual(c.acceptance, int(round(100 * float(750) / 1500)))  # < 75%
         self.assertImpactEqual(bill, 0)  # should not count here
         self.assertProjectImpactEqual(p, bill, 0)

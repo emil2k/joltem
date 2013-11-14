@@ -74,7 +74,11 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         return super(TaskView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        """ Parse post data. """
+        """ Parse post data.
+
+        :return HttpRedirect:
+
+        """
 
         # Vote to accept task
         if request.POST.get('accept'):
@@ -122,9 +126,19 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             task_id=self.task.id)
 
     def get_commentable(self):
+        """ I should have docstring.
+
+        :return Task:
+
+        """
         return self.task
 
     def get_comment_redirect(self):
+        """ I should have docstring.
+
+        :return HttpRedirect:
+
+        """
         return redirect(
             'project:task:task', project_name=self.project.name,
             task_id=self.task.id)
@@ -195,9 +209,8 @@ class TaskCreateView(TemplateView, ProjectBaseView):
 
 class TaskBaseListView(ListView, ProjectBaseView):
 
-    """
-    Base view for displaying lists of tasks
-    """
+    """ Base view for displaying lists of tasks. """
+
     template_name = 'task/tasks_list.html'
     context_object_name = 'tasks'
     paginate_by = 10
@@ -263,11 +276,20 @@ class MyReviewedTasksView(TaskBaseListView):
 
 
 class AllOpenTasksView(TaskBaseListView):
+
+    """ Render all open tasks. """
+
     tasks_tab = "all_open"
 
     def get_queryset(self):
+        """ Load data to list.
+
+        :return Queryset:
+
+        """
         return self.project.task_set.filter(
-            is_accepted=True, is_closed=False).order_by('-time_posted')
+            is_accepted=True, is_closed=False
+        ).order_by('-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):

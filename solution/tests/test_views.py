@@ -1,31 +1,175 @@
-from django.test import TestCase
+""" View related tests for solution app. """
 
-from joltem.libs.mock.models import (get_mock_user, get_mock_solution,
-                                     get_mock_project)
-from joltem.libs.mock.requests import get_mock_get_request
-from solution.views import SolutionView
+from joltem.libs.mock import models, requests
+from project.tests.test_views import BaseProjectViewTest
+from solution import views
+from solution.models import Solution
 
 
-class SolutionViewTestCase(TestCase):
+class BaseSolutionViewTest(BaseProjectViewTest):
+
+    """ Test case for view that requires a solution. """
 
     def setUp(self):
-        self.project = get_mock_project(name="apple", title="Macintosh")
-        self.admin = get_mock_user("sjobs", first_name="Steve")
-        self.project.admin_set.add(self.admin)
-        self.project.save()
-        self.solution = get_mock_solution(
-            self.project, self.admin,
-            title="Build a Mouse",
-            description="Building thing that eats cheese.")
+        super(BaseSolutionViewTest, self).setUp()
+        self.solution = models.get_mock_solution(self.project, self.user)
 
-    def test_get(self):
-        """ Test GET request of a solution page. """
-        view = SolutionView.as_view()
-        response = view(get_mock_get_request(
-            user=self.admin, is_authenticated=True),
-                        project_name="apple", solution_id=self.solution.id)
-        response.render()
+
+    def _get(self, view):
+        """ Get GET response on given solution view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_get_request(
+            user=self.user, is_authenticated=True)
+        return view(request, project_name=self.project.name,
+                        solution_id=self.solution.id)
+
+    def _post(self, view, data):
+        """ Get POST response on given solution view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_post_request(
+            user=self.user, is_authenticated=True, data=data)
+        return view(request, project_name=self.project.name,
+                        solution_id=self.solution.id)
+
+class SolutionViewTest(BaseSolutionViewTest):
+
+    """ Test SolutionView responses. """
+
+    def test_solution_view_get(self):
+        """ Test simple GET of solution view. """
+        response = self._get(views.SolutionView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+    def _test_solution_view_action(self, action):
+        """ Generate test for solution action. """
+        response = self._post(
+            views.SolutionView.as_view(), {action: 1})
+        self.assertEqual(response.status_code, 302)
+
+    def test_solution_view_post_complete(self):
+        """ Test mark solution complete. """
+        self._test_solution_view_action('complete')
+
+    def test_solution_view_post_incomplete(self):
+        """ Test mark solution incomplete. """
+        self._test_solution_view_action('incomplete')
+
+    def test_solution_view_post_close(self):
+        """ Test close solution. """
+        self._test_solution_view_action('close')
+
+    def test_solution_view_post_reopen(self):
+        """ Test reopen solution. """
+        self._test_solution_view_action('reopen')
+
+
+class SolutionEditView(BaseSolutionViewTest):
+
+    """ Test SolutionEditView responses. """
+
+    def test_solution_edit_view_get(self):
+        """ Test simple GET of solution edit view. """
+        response = self._get(views.SolutionEditView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+    def test_solution_edit_post(self):
+        """ Test edit. """
+        response = self._post(views.SolutionEditView.as_view(), {
+            'title': 'new title',
+            'description': 'new description'
+        })
+        self.assertTrue(response.status_code, 302)
+        reloaded = models.load_model(self.solution)
+        self.assertEqual(reloaded.title, 'new title')
+        self.assertEqual(reloaded.description, 'new description')
+
+
+class SolutionReviewView(BaseSolutionViewTest):
+
+    """ Test SolutionReviewView responses. """
+
+    def test_solution_review_view_get(self):
+        """ Test simple GET of solution review view. """
+        response = self._get(views.SolutionReviewView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+class SolutionCommitsView(BaseSolutionViewTest):
+
+    """ Test SolutionCommitsView responses. """
+
+    def test_solution_commits_view_get(self):
+        """ Test simple GET of solution commits view. """
+        response = self._get(views.SolutionCommitsView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+
+class SolutionCreateView(BaseSolutionViewTest):
+
+    """ Test SolutionCreateView responses. """
+
+    def test_solution_create_view_get(self):
+        """ Test simple GET of solution commits view. """
+        response = self._get(views.SolutionCreateView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+    def test_solution_create(self):
+        """ Test creating solution with no title and description.
+
+        When viewed defaults to tasks title.
+
+        """
+        response = self._post(views.SolutionCreateView.as_view(), {})
+        self.assertTrue(response.status_code, 302)
+
+
+class SolutionListViewTests(BaseProjectViewTest):
+
+    def _test_get_solution_list(self, view):
+        """ Test generator for GET on a solution list
+
+        :param view: list view to test.
+
+        """
+        response = self._get(view)
         self.assertEqual(response.status_code, 200)
-        content = response.content
-        self.assertInHTML("<h4>Build a Mouse</h4>", content)
-        self.assertInHTML("<p>Building thing that eats cheese.</p>", content)
+
+    def test_get_my_incomplete_solutions(self):
+        """ Test simple GET of my incomplete solutions view. """
+        self._test_get_solution_list(views.MyIncompleteSolutionsView.as_view())
+
+    def test_get_my_complete_solutions(self):
+        """ Test simple GET of my complete solutions view. """
+        self._test_get_solution_list(views.MyCompleteSolutionsView.as_view())
+
+    def test_get_my_review_solutions(self):
+        """ Test simple GET of my solutions to review view. """
+        for i in range(0,3):  # to test generators
+            s = models.get_mock_solution(
+                self.project, models.get_mock_user('dan'+str(i)),
+                is_completed=True)
+        self._test_get_solution_list(views.MyReviewSolutionsView.as_view())
+
+    def test_get_my_reviewed_solutions(self):
+        """ Test simple GET of my reviewed solutions view. """
+        for i in range(0,3):  # to test generators
+            s = models.get_mock_solution(
+                self.project, models.get_mock_user('dan'+str(i)),
+                is_completed=True)
+            s.put_vote(self.user, 3)
+        self._test_get_solution_list(views.MyReviewedSolutionsView.as_view())
+
+    def test_get_all_incomplete_solutions(self):
+        """ Test simple GET of all incomplete solutions view. """
+        self._test_get_solution_list(views.AllIncompleteSolutionsView.as_view())
+
+    def test_get_all_complete_solutions(self):
+        """ Test simple GET of all complete solutions view. """
+        self._test_get_solution_list(views.AllCompleteSolutionsView.as_view())
