@@ -128,3 +128,48 @@ class SolutionCreateView(BaseSolutionViewTest):
         """
         response = self._post(views.SolutionCreateView.as_view(), {})
         self.assertTrue(response.status_code, 302)
+        
+        
+class SolutionListViewTests(BaseProjectViewTest):
+
+    def _test_get_solution_list(self, view):
+        """ Test generator for GET on a solution list
+
+        :param view: list view to test.
+
+        """
+        response = self._get(view)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_my_incomplete_solutions(self):
+        """ Test simple GET of my incomplete solutions view. """
+        self._test_get_solution_list(views.MyIncompleteSolutionsView.as_view())
+
+    def test_get_my_complete_solutions(self):
+        """ Test simple GET of my complete solutions view. """
+        self._test_get_solution_list(views.MyCompleteSolutionsView.as_view())
+
+    def test_get_my_review_solutions(self):
+        """ Test simple GET of my solutions to review view. """
+        for i in range(0,3):  # to test generators
+            s = models.get_mock_solution(
+                self.project, models.get_mock_user('dan'+str(i)),
+                is_completed=True)
+        self._test_get_solution_list(views.MyReviewSolutionsView.as_view())
+
+    def test_get_my_reviewed_solutions(self):
+        """ Test simple GET of my reviewed solutions view. """
+        for i in range(0,3):  # to test generators
+            s = models.get_mock_solution(
+                self.project, models.get_mock_user('dan'+str(i)),
+                is_completed=True)
+            s.put_vote(self.user, 3)
+        self._test_get_solution_list(views.MyReviewedSolutionsView.as_view())
+
+    def test_get_all_incomplete_solutions(self):
+        """ Test simple GET of all incomplete solutions view. """
+        self._test_get_solution_list(views.AllIncompleteSolutionsView.as_view())
+
+    def test_get_all_complete_solutions(self):
+        """ Test simple GET of all complete solutions view. """
+        self._test_get_solution_list(views.AllCompleteSolutionsView.as_view())
