@@ -109,3 +109,22 @@ class SolutionCommitsView(BaseSolutionViewTest):
         """ Test simple GET of solution commits view. """
         response = self._get(views.SolutionCommitsView.as_view())
         self.assertTrue(response.status_code, 200)
+
+
+class SolutionCreateView(BaseSolutionViewTest):
+
+    """ Test SolutionCreateView responses. """
+
+    def test_solution_create_view_get(self):
+        """ Test simple GET of solution commits view. """
+        response = self._get(views.SolutionCreateView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+    def test_solution_create(self):
+        """ Test creating solution with no title and description.
+
+        When viewed defaults to tasks title.
+
+        """
+        response = self._post(views.SolutionCreateView.as_view(), {})
+        self.assertTrue(response.status_code, 302)
