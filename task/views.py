@@ -173,23 +173,25 @@ class TaskCreateView(TemplateView, ProjectBaseView):
         return super(TaskCreateView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
-        if request.POST.get('action') == 'create_task':
-            title = request.POST.get('title')
-            description = request.POST.get('description')
-            if title is not None:
-                created_task = Task(
-                    project=self.project,
-                    parent=self.parent_solution,
-                    owner=self.user,
-                    author=self.user,
-                    title=title,
-                    description=description
-                )
-                created_task.save()
-                return redirect(
-                    'project:task:task', project_name=self.project.name,
-                    task_id=created_task.id)
-
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        if title and title.strip():
+            created_task = Task(
+                project=self.project,
+                parent=self.parent_solution,
+                owner=self.user,
+                author=self.user,
+                title=title,
+                description=description
+            )
+            created_task.save()
+            return redirect(
+                'project:task:task', project_name=self.project.name,
+                task_id=created_task.id)
+        else:
+            context = self.get_context_data(**kwargs)
+            context['error'] = "Title is required."
+            return render(request, 'task/new_task.html', context)
 
 class TaskBaseListView(ListView, ProjectBaseView):
 

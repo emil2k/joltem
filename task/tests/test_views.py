@@ -11,6 +11,29 @@ class BaseProjectViewTest(TestCase):
 
     def setUp(self):
         self.project = models.get_mock_project('bread')
+        self.user = models.get_mock_user('bill')
+
+    def _get(self, view):
+        """ Get GET response on given project view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_get_request(
+            user=self.user, is_authenticated=True)
+        return view(request, project_name=self.project.name)
+
+    def _post(self, view, data):
+        """ Get POST response on given project view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_post_request(
+            user=self.user, is_authenticated=True, data=data)
+        return view(request, project_name=self.project.name)
 
 class BaseTaskViewTest(BaseProjectViewTest):
 
@@ -18,7 +41,6 @@ class BaseTaskViewTest(BaseProjectViewTest):
 
     def setUp(self):
         super(BaseTaskViewTest, self).setUp()
-        self.user = models.get_mock_user('bill')
         self.task = models.get_mock_task(self.project, self.user)
 
 
@@ -81,10 +103,12 @@ class TaskViewTest(BaseTaskViewTest):
 class TaskEditViewTest(BaseTaskViewTest):
 
     def test_task_edit_view_get(self):
+        """ Test simple GET of edit view. """
         response = self._get(views.TaskEditView.as_view())
         self.assertEqual(response.status_code, 200)
 
     def test_task_edit_view_post_edit(self):
+        """ Test edit. """
         response = self._post(views.TaskEditView.as_view(), {
             'title': 'A title for the task.',
             'description': 'The stuff you write'
@@ -92,8 +116,32 @@ class TaskEditViewTest(BaseTaskViewTest):
         self.assertEqual(response.status_code, 302)
 
     def test_task_edit_view_post_blank_title(self):
-        """ Test edit with blank title. """
+        """ Test edit with blank title. Should fail and stay on page. """
         response = self._post(views.TaskEditView.as_view(), {
+            'title': '  '
+        })
+        self.assertEqual(response.status_code, 200)
+
+
+class TaskCreateViewTest(BaseProjectViewTest):
+
+    def test_task_create_view_get(self):
+        """ Test simple GET of create task view. """
+        response = self._get(views.TaskCreateView.as_view())
+        self.assertEqual(response.status_code, 200)
+
+    def test_task_create_view_post_create(self):
+        """ Test create. """
+        response = self._post(views.TaskCreateView.as_view(), {
+            'title': 'A title for the task.',
+            'description': 'The stuff you write'
+        })
+        print response
+        self.assertEqual(response.status_code, 302)
+
+    def test_task_create_view_post_blank_title(self):
+        """ Test create with blank title. Should fail and stay on page. """
+        response = self._post(views.TaskCreateView.as_view(), {
             'title': '  '
         })
         self.assertEqual(response.status_code, 200)
