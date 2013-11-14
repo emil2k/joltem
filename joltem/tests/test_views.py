@@ -1,6 +1,6 @@
 """ View related tests for core app. """
 
-from django.utils.unittest import TestCase
+from django.test.testcases import TestCase
 from django.test.client import RequestFactory
 
 from joltem.views import HomeView
