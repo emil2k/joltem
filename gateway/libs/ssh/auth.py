@@ -1,7 +1,7 @@
 """ SSH Authentication. """
 
 from twisted.python import log
-from zope.interface import implements
+from zope.interface import implements  # noqa
 from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import ISSHPrivateKey
 from twisted.cred.portal import IRealm

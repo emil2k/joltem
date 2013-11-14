@@ -54,6 +54,7 @@ SECRET_KEY = 'imsosecret'
 
 # Gateway settings
 GATEWAY_PORT = 22
+GATEWAY_HOST = 'joltem.com'
 GATEWAY_PRIVATE_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa"
 GATEWAY_PUBLIC_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa.pub"
 
