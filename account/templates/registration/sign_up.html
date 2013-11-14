@@ -1,7 +1,7 @@
 {% extends 'joltem/base.html' %}
 
 {% block content %}
-<form action="" method="post" class="form-horizontal">
+<form action="" method="post" class="form-horizontal" id="sign-up-form">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
