@@ -87,7 +87,7 @@ class SolutionEditView(BaseSolutionViewTest):
             'description': 'new description'
         })
         self.assertTrue(response.status_code, 302)
-        reloaded = models.load_model(Solution, self.solution)
+        reloaded = models.load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
 
@@ -128,8 +128,8 @@ class SolutionCreateView(BaseSolutionViewTest):
         """
         response = self._post(views.SolutionCreateView.as_view(), {})
         self.assertTrue(response.status_code, 302)
-        
-        
+
+
 class SolutionListViewTests(BaseProjectViewTest):
 
     def _test_get_solution_list(self, view):
