@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
@@ -9,9 +8,7 @@ from git.models import Authentication
 from joltem.models import User, Invite, Notification, Comment
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
-from joltem.forms import SignUpForm
 
-import logging
 
 class HomeView(View):
 
@@ -42,87 +39,6 @@ class HomeView(View):
                 context = { "invite": invite }
                 return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
-
-
-class SignUpView(View):
-
-    """ View for new users to sign up. """
-
-    def dispatch(self, request, *args, **kwargs):
-        """ Check if invite is valid.
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        if not 'invite_code' in request.COOKIES:
-            return redirect('sign_in')
-        invite_code = request.COOKIES['invite_code']
-        self.invite = Invite.is_valid(invite_code)
-        if not invite:
-            return redirect('sign_in')
-        return super(SignUpView, self).dispatch(request, *args, **kwargs)
-
-
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        context = {
-            'nav_tab': "up",
-            'invite': self.invite,
-            'form': SignUpForm(
-                initial={'invite_code': self.invite.invite_code})
-        }
-        return render(request, 'joltem/sign_up.html', context)
-
-    def post(self, request, *args, **kwargs):
-        """ Handle POST request, process sign up form.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            email = form.cleaned_data['email']
-            gravatar = form.cleaned_data['gravatar']
-            password = form.cleaned_data['password']
-            # Create user
-            user = User.objects.create_user(username, email, password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            # Setup profile
-            if gravatar:
-                profile = user.get_profile()
-                if profile.set_gravatar_email(gravatar):
-                    profile.save()
-            # Login and redirect to authentication keys page
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            # Track invite
-            self.invite.is_signed_up = True
-            self.invite.time_signed_up = timezone.now()
-            self.invite.user = user
-            self.invite.save()
-            return redirect('intro')
-        else:
-            # TODO handle hidden field errors
-            logging.info("SIGN UP FORM FAILED : %s " % form.errors)
-            context = { 'form': form }
-            return render(request, 'joltem/sign_up.html', context)
 
 
 class UserView(View):
