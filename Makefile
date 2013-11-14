@@ -8,7 +8,7 @@ clean:
 	@rm -f *.orig
 	@rm -f */*.py[co]
 	@rm -f */*/*.orig
- 
+
 .PHONY: help
 # target: help - Display callable targets
 help:
@@ -25,7 +25,7 @@ lint: $(ENV)
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,common
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,common,account
 
 .PHONY: run
 # target: run - Run Django development server
@@ -81,6 +81,10 @@ test_git: $(ENV) git
 .PHONY: test_help
 test_help: $(ENV) help
 	$(ENV)/bin/python manage.py test help --settings=joltem.settings.test --failfast
+
+.PHONY: test_account
+test_account: $(ENV) account
+	$(ENV)/bin/python manage.py test account --settings=joltem.settings.test --failfast
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
