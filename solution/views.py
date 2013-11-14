@@ -1,20 +1,16 @@
 """ Solution related views. """
-
-from django.http.response import Http404
-from django.shortcuts import redirect, get_object_or_404
-from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from joltem.models import Vote
-from joltem.holders import CommentHolder
 from git.models import Repository
-
-from task.models import Task
-from solution.models import Solution
+from joltem.holders import CommentHolder
+from joltem.models import Vote
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
+from solution.models import Solution
+from task.models import Task
 
 
 class SolutionBaseView(ProjectBaseView):
@@ -22,6 +18,11 @@ class SolutionBaseView(ProjectBaseView):
     """ Base view for solution related views. """
 
     solution_tab = None
+
+    def __init__(self, *args, **kwargs):
+        self.solution = None
+        self.is_owner = None
+        super(SolutionBaseView, self).__init__(*args, **kwargs)
 
     def initiate_variables(self, request, *args, **kwargs):
         """ Initiate variables for view.
@@ -78,40 +79,29 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
         """
         # Mark solution complete
-        if request.POST.get('complete'):
-            if not self.solution.is_completed \
-                    and not self.solution.is_closed \
-                    and self.solution.is_owner(self.user):
+        if request.POST and self.solution.is_owner(self.user):
+
+            if request.POST.get('complete')\
+                    and not self.solution.is_completed \
+                    and not self.solution.is_closed:
                 self.solution.mark_complete()
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
 
-        # Mark solution incomplete
-        if request.POST.get('incomplete'):
-            if self.solution.is_completed \
-                    and not self.solution.is_closed \
-                    and self.solution.is_owner(self.user):
+            # Mark solution incomplete
+            if request.POST.get('incomplete') \
+                and self.solution.is_completed \
+                    and not self.solution.is_closed:
                 self.solution.mark_incomplete()
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
 
-        # Close solution
-        if request.POST.get('close'):
-            if not self.solution.is_completed \
-                    and not self.solution.is_closed \
-                    and self.solution.is_owner(self.user):
+            # Close solution
+            if request.POST.get('close') \
+                and not self.solution.is_completed \
+                    and not self.solution.is_closed:
                 self.solution.mark_close()
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
 
-        # Reopen solution
-        if request.POST.get('reopen'):
-            if self.solution.is_closed \
-                    and self.solution.is_owner(self.user):
+            # Reopen solution
+            if request.POST.get('reopen') and self.solution.is_closed:
                 self.solution.mark_open()
+
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
@@ -233,7 +223,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
                                                 project_id=self.project.id,
                                                 name=repository_name)
         else:
-            self.repository = self.repository_set[0]  # load the default active repository
+            self.repository = self.repository_set[
+                0]  # load the default active repository
 
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add repositories and commits. """
@@ -242,7 +233,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
             kwargs['repository'] = self.repository
             try:
                 pygit_repository = self.repository.load_pygit_object()
-                kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
+                kwargs['commits'] = self.solution.get_commit_set(
+                    pygit_repository)
                 kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
             except KeyError:
                 kwargs['commits'] = []

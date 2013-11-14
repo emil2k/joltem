@@ -1,6 +1,6 @@
 {% extends 'solution/base.html' %}
 {% block solution_content %}
-    {% if repository %}
+    {% if not repository %}
         <div class="alert">The project has no repositories.</div>
     {% else %}
         <div class="row">
