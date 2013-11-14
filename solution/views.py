@@ -458,8 +458,9 @@ class AllIncompleteSolutionsView(SolutionBaseListView):
 
     def get_queryset(self):
         """ Return queryset of all incomplete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=False, is_closed=False)\
+        return self.project.solution_set\
+            .select_related('task', 'owner')\
+            .filter(is_completed=False, is_closed=False)\
             .order_by('-time_posted')
 
 
@@ -471,6 +472,7 @@ class AllCompleteSolutionsView(SolutionBaseListView):
 
     def get_queryset(self):
         """ Return queryset of complete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=True,  is_closed=False)\
+        return self.project.solution_set\
+            .select_related('task', 'owner')\
+            .filter(is_completed=True,  is_closed=False)\
             .order_by('-time_completed')
