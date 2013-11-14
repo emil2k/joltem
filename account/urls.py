@@ -1,9 +1,15 @@
 # coding: utf-8
 from django.conf.urls import patterns, url
 
+from account.views import SignUpView
+
 
 urlpatterns = patterns(
     '',
+
+    url(r'^sign-up/$', SignUpView.as_view(),
+        {'extra_context': {'nav_tab': 'up'}},
+        'sign_up'),
 
     url(r'^sign-in/$', 'django.contrib.auth.views.login',
         {'extra_context': {'nav_tab': 'in'}},
