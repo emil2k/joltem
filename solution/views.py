@@ -78,44 +78,40 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
         """
         # Mark solution complete
-        if request.POST.get('complete') \
-                and not self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.is_completed = True
-            self.solution.time_completed = timezone.now()
-            self.solution.save()
+        if request.POST.get('complete'):
+            if not self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_complete()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Mark solution incomplete
-        if request.POST.get('incomplete') \
-                and self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.mark_incomplete()
+        if request.POST.get('incomplete'):
+            if self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_incomplete()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Close solution
-        if request.POST.get('close') \
-                and not self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.mark_complete()
+        if request.POST.get('close'):
+            if not self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_close()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Reopen solution
-        if request.POST.get('reopen') \
-                and self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.is_closed = False
-            self.solution.time_closed = None
-            self.solution.save()
+        if request.POST.get('reopen'):
+            if self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_open()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)

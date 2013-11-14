@@ -135,6 +135,18 @@ class Solution(Voteable, Commentable):
         self.save()
         self.notify_incomplete()
 
+    def mark_close(self):
+        """ Mark the solution closed. """
+        self.is_closed = True
+        self.time_closed = timezone.now()
+        self.save()
+
+    def mark_opened(self):
+        """ Mark the solution opened, for reopening. """
+        self.is_closed = False
+        self.time_closed = None
+        self.save()
+
     def notify_created(self):
         """ Send out notifications about the solution being posted. """
         if self.task and self.task.owner_id != self.owner_id:  # notify parent task owner

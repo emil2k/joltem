@@ -1,31 +1,70 @@
-from django.test import TestCase
+""" View related tests for solution app. """
 
-from joltem.libs.mock.models import (get_mock_user, get_mock_solution,
-                                     get_mock_project)
-from joltem.libs.mock.requests import get_mock_get_request
-from solution.views import SolutionView
+from joltem.libs.mock import models, requests
+from project.tests.test_views import BaseProjectViewTest
+from solution import views
 
 
-class SolutionViewTestCase(TestCase):
+class BaseSolutionViewTest(BaseProjectViewTest):
+
+    """ Test case for view that requires a solution. """
 
     def setUp(self):
-        self.project = get_mock_project(name="apple", title="Macintosh")
-        self.admin = get_mock_user("sjobs", first_name="Steve")
-        self.project.admin_set.add(self.admin)
-        self.project.save()
-        self.solution = get_mock_solution(
-            self.project, self.admin,
-            title="Build a Mouse",
-            description="Building thing that eats cheese.")
+        super(BaseSolutionViewTest, self).setUp()
+        self.solution = models.get_mock_solution(self.project, self.user)
 
-    def test_get(self):
-        """ Test GET request of a solution page. """
-        view = SolutionView.as_view()
-        response = view(get_mock_get_request(
-            user=self.admin, is_authenticated=True),
-                        project_name="apple", solution_id=self.solution.id)
-        response.render()
-        self.assertEqual(response.status_code, 200)
-        content = response.content
-        self.assertInHTML("<h4>Build a Mouse</h4>", content)
-        self.assertInHTML("<p>Building thing that eats cheese.</p>", content)
+
+    def _get(self, view):
+        """ Get GET response on given solution view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_get_request(
+            user=self.user, is_authenticated=True)
+        return view(request, project_name=self.project.name,
+                        solution_id=self.solution.id)
+
+    def _post(self, view, data):
+        """ Get POST response on given solution view.
+
+        :param view: view to test.
+        :return: HTTP response.
+
+        """
+        request = requests.get_mock_post_request(
+            user=self.user, is_authenticated=True, data=data)
+        return view(request, project_name=self.project.name,
+                        solution_id=self.solution.id)
+
+class SolutionViewTest(BaseSolutionViewTest):
+
+    """ Test SolutionView responses. """
+
+    def test_solution_view_get(self):
+        """ Test simple GET of solution view. """
+        response = self._get(views.SolutionView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+    def _test_solution_view_action(self, action):
+        """ Generate test for solution action. """
+        response = self._post(
+            views.SolutionView.as_view(), {action: 1})
+        self.assertEqual(response.status_code, 302)
+
+    def test_solution_view_post_complete(self):
+        """ Test mark solution complete. """
+        self._test_solution_view_action('complete')
+
+    def test_solution_view_post_incomplete(self):
+        """ Test mark solution incomplete. """
+        self._test_solution_view_action('incomplete')
+
+    def test_solution_view_post_close(self):
+        """ Test close solution. """
+        self._test_solution_view_action('close')
+
+    def test_solution_view_post_reopen(self):
+        """ Test reopen solution. """
+        self._test_solution_view_action('reopen')
