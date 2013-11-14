@@ -34,9 +34,6 @@ class PermissionsTestCase(TestCase):
         self.assertFalse(s.is_owner(self.bob))
         self.assertTrue(s.is_owner(self.zack))
 
-    # TODO tests that actually test interface using client or selenium
-    # TODO tests that check if views follow ownership rules for processing actions
-
 
 class ImpactTestCase(TestCase):
 

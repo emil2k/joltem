@@ -78,74 +78,40 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
         """
         # Mark solution complete
-        if request.POST.get('complete') \
-                and not self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.is_completed = True
-            self.solution.time_completed = timezone.now()
-            self.solution.save()
+        if request.POST.get('complete'):
+            if not self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_complete()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Mark solution incomplete
-        if request.POST.get('incomplete') \
-                and self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.mark_incomplete()
+        if request.POST.get('incomplete'):
+            if self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_incomplete()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Close solution
-        if request.POST.get('close') \
-                and not self.solution.is_completed \
-                and not self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.mark_complete()
+        if request.POST.get('close'):
+            if not self.solution.is_completed \
+                    and not self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_close()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
         # Reopen solution
-        if request.POST.get('reopen') \
-                and self.solution.is_closed \
-                and self.solution.is_owner(self.user):
-            self.solution.is_closed = False
-            self.solution.time_closed = None
-            self.solution.save()
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
-
-        # Vote on completed solution
-        # todo i'm not sure this is necessary since the voteable class should handle this
-        vote_input = request.POST.get('vote')
-        if vote_input and not self.solution.is_owner(self.user):
-            # Get or create with other parameters
-            try:
-                vote = Vote.objects.get(
-                    solution_id=self.solution.id,
-                    voter_id=self.user.id
-                )
-            except Vote.DoesNotExist:
-                vote = Vote(
-                    solution=self.solution,
-                    voter=self.user
-                )
-
-            if vote_input == 'reject':
-                vote.is_accepted = False
-                vote.vote = None
-            else:
-                vote.is_accepted = True
-                vote.vote = vote_input
-            vote.comment = request.POST.get('comment')
-            vote.time_voted = timezone.now()
-            vote.voter_impact = self.user.get_profile().impact
-            vote.save()
+        if request.POST.get('reopen'):
+            if self.solution.is_closed \
+                    and self.solution.is_owner(self.user):
+                self.solution.mark_open()
             return redirect('project:solution:solution',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
@@ -261,9 +227,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
             is_hidden=False).order_by('name')
         repository_name = kwargs.get("repository_name")
         if self.repository_set.count() == 0:
-            raise Http404
+            self.repository = None
         elif repository_name is not None:
-            # todo for some reason a non existent repository is not returning 404
             self.repository = get_object_or_404(Repository,
                                                 project_id=self.project.id,
                                                 name=repository_name)
@@ -272,15 +237,16 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
 
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add repositories and commits. """
-        kwargs['repositories'] = self.repository_set
-        kwargs['repository'] = self.repository
-        try:
-            pygit_repository = self.repository.load_pygit_object()
-            kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
-            kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
-        except KeyError:
-            kwargs['commits'] = []
-            kwargs['diff'] = []
+        if self.repository:
+            kwargs['repositories'] = self.repository_set
+            kwargs['repository'] = self.repository
+            try:
+                pygit_repository = self.repository.load_pygit_object()
+                kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
+                kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
+            except KeyError:
+                kwargs['commits'] = []
+                kwargs['diff'] = []
         return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
