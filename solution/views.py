@@ -116,36 +116,6 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
                             project_name=self.project.name,
                             solution_id=self.solution.id)
 
-        # Vote on completed solution
-        # todo i'm not sure this is necessary since the voteable class should handle this
-        vote_input = request.POST.get('vote')
-        if vote_input and not self.solution.is_owner(self.user):
-            # Get or create with other parameters
-            try:
-                vote = Vote.objects.get(
-                    solution_id=self.solution.id,
-                    voter_id=self.user.id
-                )
-            except Vote.DoesNotExist:
-                vote = Vote(
-                    solution=self.solution,
-                    voter=self.user
-                )
-
-            if vote_input == 'reject':
-                vote.is_accepted = False
-                vote.vote = None
-            else:
-                vote.is_accepted = True
-                vote.vote = vote_input
-            vote.comment = request.POST.get('comment')
-            vote.time_voted = timezone.now()
-            vote.voter_impact = self.user.get_profile().impact
-            vote.save()
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
-
         return super(SolutionView, self).post(request, *args, **kwargs)
 
     def get_vote_redirect(self):
