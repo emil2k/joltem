@@ -1,10 +1,10 @@
 """ Task related views. """
 
 from django.db.models import Sum
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
-
+from django.utils import timezone
 
 from joltem.holders import CommentHolder
 from task.models import Task, Vote
@@ -75,7 +75,6 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
     def post(self, request, *args, **kwargs):
         """ Parse post data. """
-        from django.utils import timezone
 
         # Vote to accept task
         if request.POST.get('accept'):
@@ -140,14 +139,17 @@ class TaskEditView(TemplateView, TaskBaseView):
                 'project:task:task', project_name=self.project.name,
                 task_id=self.task.id)
         title = request.POST.get('title')
-        if title is not None:
+        if title and title.strip():
             self.task.title = title
             self.task.description = request.POST.get('description')
             self.task.save()
             return redirect(
                 'project:task:task', project_name=self.project.name,
                 task_id=self.task.id)
-
+        else:
+            context = self.get_context_data(**kwargs)
+            context['error'] = "Title is required."
+            return render(request, 'task/task_edit.html', context)
 
 class TaskCreateView(TemplateView, ProjectBaseView):
     template_name = "task/new_task.html"

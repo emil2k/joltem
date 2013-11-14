@@ -7,14 +7,10 @@ from task import views
 
 class TaskViewsTest(TestCase):
 
-    """ Test tasks views request. """
+    """ Test task view's requests. """
 
     def setUp(self):
-        """ Setup user, project, and task.
-
-        :return: nothing.
-
-        """
+        """ Setup user, project, and task. """
         self.project = models.get_mock_project("bread")
         # Extend this class and replace task and user to test state variations
         self.user = models.get_mock_user('bill')
@@ -79,4 +75,19 @@ class TaskViewsTest(TestCase):
     # Task edit view
 
     def test_task_edit_view_get(self):
-        self._get_test_view(views.TaskEditView.as_view())
+        response = self._get_test_view(views.TaskEditView.as_view())
+        self.assertEqual(response.status_code, 200)
+
+    def test_task_edit_view_post_edit(self):
+        response = self._post_test_view(views.TaskEditView.as_view(), {
+            'title': 'A title for the task.',
+            'description': 'The stuff you write'
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_task_edit_view_post_blank_title(self):
+        """ Test edit with blank title. """
+        response = self._post_test_view(views.TaskEditView.as_view(), {
+            'title': '  '
+        })
+        self.assertEqual(response.status_code, 200)
