@@ -1,3 +1,5 @@
+""" Mocking utils. """
+
 from django.utils import timezone
 
 from joltem.models import User, Vote, Comment
@@ -5,19 +7,21 @@ from project.models import Project, Impact
 from task.models import Task
 from solution.models import Solution
 
-# Reload
 
-def load_model(model_class, model_object):
+def load_model(model_object):
+    """ Reload model to check if metrics updated properly.
+
+    :return Model: Reloaded instance.
+
     """
-    Load model to check if metrics updated properly
-    """
-    if model_object:
-        return model_class.objects.get(id=model_object.id)
+    return model_object.__class__.objects.get(id=model_object.id)
 
 
 def load_project_impact(project, user):
-    """
-    Reload votable to check if metrics updated properly
+    """ Reload votable to check if metrics updated properly.
+
+    :return Impact:
+
     """
     if project and user:
         return Impact.objects.get(user_id=user.id, project_id=project.id)
