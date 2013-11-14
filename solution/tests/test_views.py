@@ -91,3 +91,21 @@ class SolutionEditView(BaseSolutionViewTest):
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
 
+
+class SolutionReviewView(BaseSolutionViewTest):
+
+    """ Test SolutionReviewView responses. """
+
+    def test_solution_review_view_get(self):
+        """ Test simple GET of solution review view. """
+        response = self._get(views.SolutionReviewView.as_view())
+        self.assertTrue(response.status_code, 200)
+
+class SolutionCommitsView(BaseSolutionViewTest):
+
+    """ Test SolutionCommitsView responses. """
+
+    def test_solution_commits_view_get(self):
+        """ Test simple GET of solution commits view. """
+        response = self._get(views.SolutionCommitsView.as_view())
+        self.assertTrue(response.status_code, 200)

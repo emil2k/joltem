@@ -227,9 +227,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
             is_hidden=False).order_by('name')
         repository_name = kwargs.get("repository_name")
         if self.repository_set.count() == 0:
-            raise Http404
+            self.repository = None
         elif repository_name is not None:
-            # todo for some reason a non existent repository is not returning 404
             self.repository = get_object_or_404(Repository,
                                                 project_id=self.project.id,
                                                 name=repository_name)
@@ -238,15 +237,16 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
 
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add repositories and commits. """
-        kwargs['repositories'] = self.repository_set
-        kwargs['repository'] = self.repository
-        try:
-            pygit_repository = self.repository.load_pygit_object()
-            kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
-            kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
-        except KeyError:
-            kwargs['commits'] = []
-            kwargs['diff'] = []
+        if self.repository:
+            kwargs['repositories'] = self.repository_set
+            kwargs['repository'] = self.repository
+            try:
+                pygit_repository = self.repository.load_pygit_object()
+                kwargs['commits'] = self.solution.get_commit_set(pygit_repository)
+                kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
+            except KeyError:
+                kwargs['commits'] = []
+                kwargs['diff'] = []
         return super(SolutionCommitsView, self).get_context_data(**kwargs)
 
 
