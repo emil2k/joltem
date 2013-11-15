@@ -36,7 +36,7 @@ class HomeView(View):
             invite_code = request.COOKIES['invite_code']
             invite = Invite.is_valid(invite_code)
             if invite:
-                context = { "invite": invite }
+                context = {"invite": invite}
                 return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
 
@@ -56,7 +56,7 @@ class UserView(View):
         profile_user = get_object_or_404(User, username=username)
         context = {
             'user': request.user,  # user viewing the page
-            'profile_user': profile_user  # the user whose profile it is
+            'profile_user': request.user  # the user whose profile it is
         }
         return render(request, 'joltem/user.html', context)
 
@@ -94,7 +94,7 @@ class AccountView(View):
         """
         error = None
         user = request.user
-        first_name = request.POST.get('first_name') # Required
+        first_name = request.POST.get('first_name')  # Required
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')  # Required
         gravatar_email = request.POST.get('gravatar_email')
@@ -106,15 +106,15 @@ class AccountView(View):
         # elif not is_valid_email(email):
         #     error = "Email address (%s) is not valid." % email
         # elif gravatar_email and not is_valid_email(gravatar_email):
-        #     error = "Your gravatar (%s) must have a valid email address." % gravatar_email
+        # error = "Your gravatar (%s) must have a valid email address." %
+        # gravatar_email
         else:
             user.first_name = first_name
             user.last_name = last_name
             user.email = email
             user.save()
-            profile = user.get_profile()
-            if profile.set_gravatar_email(gravatar_email):
-                profile.save()
+            if user.set_gravatar_email(gravatar_email):
+                user.save()
         if not error:
             return redirect('account')
         else:
@@ -128,7 +128,8 @@ class AccountView(View):
 
 
 # todo make a form for this
-# todo make the form handle BadKeyError at /account/keys/, add test for a bad key
+# todo make the form handle BadKeyError at /account/keys/, add test for a
+# bad key
 class KeysView(View):
 
     """ View for adding and removing SSH keys. """
@@ -176,6 +177,7 @@ class KeysView(View):
             key.save()
         return redirect('account_keys')
 
+
 class CommentView(View):
 
     """ View for loading markdown of a comment.
@@ -195,7 +197,9 @@ class CommentView(View):
         comment = get_object_or_404(Comment, id=comment_id)
         return HttpResponse(comment.comment)
 
+
 class NotificationsView(TemplateView, RequestBaseView):
+
     """
     Displays the users notifications
     """
@@ -210,11 +214,13 @@ class NotificationsView(TemplateView, RequestBaseView):
     def get_context_data(self, **kwargs):
         from joltem.holders import NotificationHolder
         kwargs["nav_tab"] = "notifications"
-        kwargs["notifications"] = NotificationHolder.get_notifications(self.user)
+        kwargs["notifications"] = NotificationHolder.get_notifications(
+            self.user)
         return super(NotificationsView, self).get_context_data(**kwargs)
 
 
 class NotificationRedirectView(RedirectView):
+
     """
     A notification redirect, that marks a notification cleared and redirects to the notifications url
     """
@@ -227,8 +233,8 @@ class NotificationRedirectView(RedirectView):
         return notification.notifying.get_notification_url(notification)
 
 
-
 class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+
     """
     A view to display a basic introduction to the site, displayed to new users after sign up.
     """
@@ -247,7 +253,7 @@ def invites(request):
     from joltem.models import Invite
     context = {
         'nav_tab': "invite",
-        'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted','-time_sent'),
+        'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted', '-time_sent'),
         'signed_up_invites': Invite.objects.filter(is_signed_up=True).order_by('-time_signed_up', '-time_sent'),
         'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-id'),
     }
@@ -300,7 +306,8 @@ def invite(request, invite_id):
     user = request.user
     if not user.is_authenticated():
         from django.http.response import HttpResponseRedirect
-        invitation_redirect = HttpResponseRedirect(resolve_url('home'))  # TODO change to redirect to home which is the invitation page
+        invitation_redirect = HttpResponseRedirect(resolve_url(
+            'home'))  # TODO change to redirect to home which is the invitation page
         invite = Invite.is_valid(invite_id)
         if invite:
             invite.is_clicked = True

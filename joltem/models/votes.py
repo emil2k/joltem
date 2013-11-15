@@ -76,7 +76,7 @@ class Voteable(Notifying, Owned, ProjectContext):
             is_accepted=vote_magnitude > 0,
             magnitude=vote_magnitude,
             time_voted=timezone.now(),
-            voter_impact=voter.get_profile().impact
+            voter_impact=voter.impact
         )
         vote.save()
         self.notify_vote_added(vote)
@@ -104,7 +104,7 @@ class Voteable(Notifying, Owned, ProjectContext):
                 vote.is_accepted = vote_magnitude > 0
                 vote.magnitude = vote_magnitude
                 vote.time_voted = timezone.now()
-                vote.voter_impact = voter.get_profile().impact
+                vote.voter_impact = voter.impact
                 vote.save()
                 self.notify_vote_updated(vote, old_vote_magnitude)
             return True
@@ -120,8 +120,10 @@ class Voteable(Notifying, Owned, ProjectContext):
         self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False,
                     {"voter_first_name": vote.voter.first_name})
 
-    def iterate_voters(self, queryset=None, exclude=[]):
+    def iterate_voters(self, queryset=None, exclude=None):
         """ Iterate through votes and return distinct voters. """
+        if exclude is None:
+            exclude = []
         queryset = self.vote_set.all() if queryset is None else queryset
         voter_ids = []
         for vote in queryset:

@@ -134,7 +134,7 @@ class Task(Commentable):
                 task=self,
                 voter=voter
             )
-        vote.voter_impact = voter.get_profile().impact
+        vote.voter_impact = voter.impact
         vote.is_accepted = is_accepted
         vote.time_voted = timezone.now()
         vote.save()

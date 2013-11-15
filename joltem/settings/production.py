@@ -8,7 +8,6 @@ ENVIRONMENT_NAME = 'production'
 LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
-AUTH_PROFILE_MODULE = 'joltem.Profile'
 AUTH_USER_MODEL = 'joltem.User'
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
