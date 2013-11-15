@@ -17,7 +17,7 @@ class SignUpView(CreateView):
     In addition to creating new user it:
 
     - logs user in;
-    - creates profile.
+    - sets gravatar.
 
     """
 
@@ -41,7 +41,6 @@ class SignUpView(CreateView):
         )
         login(self.request, user)
 
-        # Setup profile.
         if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
             user.save()
 

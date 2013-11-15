@@ -62,21 +62,6 @@ class SignUpTest(WebTest):
 
         self.assertTrue(user.is_authenticated())
 
-    def test_user_has_profile_after_registration(self):
-        response = self.app.get(SIGN_UP_URL)
-
-        form = response.forms[SIGN_UP_FORM_ID]
-        form['username'] = 'bob'
-        form['first_name'] = 'Bob'
-        form['email'] = 'bob@example.com'
-        form['gravatar_email'] = 'rob@example.com'
-        form['password1'] = '123'
-        form['password2'] = '123'
-        response = form.submit()
-
-        user = User.objects.get(username='bob')
-        self.assertTrue(user.gravatar_email, 'rob@example.com')
-
 
 class SignUpRequiredFieldsTest(WebTest):
 
@@ -286,17 +271,6 @@ class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
         response = form.submit()
 
         self.assertRedirects(response, ACCOUNT_URL)
-
-    def test_user_has_updated_profile_after_saving_settings(self):
-        response = self.app.get(ACCOUNT_URL, user=self.user)
-
-        form = response.forms[GENERAL_SETTINGS_FORM_ID]
-        form['gravatar_email'] = 'rob@example.com'
-        response = form.submit()
-
-        user = User.objects.get()
-
-        self.assertTrue(user.gravatar_email, 'rob@example.com')
 
 
 class GeneralSettingsRequiredFieldsTest(WebTest):
