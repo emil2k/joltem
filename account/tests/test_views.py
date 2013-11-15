@@ -1,8 +1,9 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django_webtest import WebTest
 
-from common import factories, tests
+from common import tests
+from common.mix import mixer
+from joltem.models import User
 
 
 MAIN_PAGE_URL = '/'
@@ -14,10 +15,10 @@ class SignUpTest(WebTest):
 
     def setUp(self):
         # We need at least one project.
-        factories.ProjectF()
+        mixer.blend('project')
 
     def test_redirect_to_main_page_when_user_is_logged_in(self):
-        user = factories.UserF()
+        user = mixer.blend('user')
 
         with self.settings(LOGIN_REDIRECT_URL=MAIN_PAGE_URL):
             response = self.app.get(SIGN_UP_URL, user=user)
@@ -73,9 +74,7 @@ class SignUpTest(WebTest):
         response = form.submit()
 
         user = User.objects.get(username='bob')
-        profile = user.get_profile()
-
-        self.assertTrue(profile.gravatar_email, 'rob@example.com')
+        self.assertTrue(user.gravatar_email, 'rob@example.com')
 
 
 class SignUpRequiredFieldsTest(WebTest):
@@ -272,7 +271,7 @@ GENERAL_SETTINGS_FORM_ID = 'account-general-settings-form'
 class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('user')
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(ACCOUNT_URL)
@@ -295,9 +294,8 @@ class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
         response = form.submit()
 
         user = User.objects.get()
-        profile = user.get_profile()
 
-        self.assertTrue(profile.gravatar_email, 'rob@example.com')
+        self.assertTrue(user.gravatar_email, 'rob@example.com')
 
 
 class GeneralSettingsRequiredFieldsTest(WebTest):
@@ -305,7 +303,7 @@ class GeneralSettingsRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('user')
 
     def test_first_name_is_required(self):
         response = self.app.get(ACCOUNT_URL, user=self.user)
