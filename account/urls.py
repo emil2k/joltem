@@ -1,11 +1,15 @@
 # coding: utf-8
 from django.conf.urls import patterns, url
 
-from account.views import SignUpView
+from account.views import SignUpView, GeneralSettingsView
 
 
 urlpatterns = patterns(
     '',
+
+    url(r'^$', GeneralSettingsView.as_view(),
+        {'extra_context': {'nav_tab': 'account', 'account_tab': 'account'}},
+        'account'),
 
     url(r'^sign-up/$', SignUpView.as_view(),
         {'extra_context': {'nav_tab': 'up'}},
