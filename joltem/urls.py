@@ -25,8 +25,6 @@ urlpatterns = patterns(
     url(r'^user/(?P<username>([-\w])+)/$', login_required(
         views.UserView.as_view()), name='user'),
     url(r'^account/', include('account.urls')),
-    url(r'^account/$', login_required(
-        views.AccountView.as_view()), name='account'),
     url(r'^account/keys/$', login_required(
         views.KeysView.as_view()), name='account_keys'),
     url(r'^invite/$', views.invites, name='invites'),

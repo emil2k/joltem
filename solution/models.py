@@ -4,8 +4,8 @@ import logging
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
+from django.conf import settings
 
 from joltem import receivers as joltem_receivers
 from joltem.models import Voteable, Commentable
@@ -49,7 +49,7 @@ class Solution(Voteable, Commentable):
     time_completed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     project = models.ForeignKey('project.Project')
     task = models.ForeignKey('task.Task', null=True, blank=True)
     solution = models.ForeignKey('solution.Solution', null=True,

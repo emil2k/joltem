@@ -64,7 +64,7 @@
                 {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'notifications' %}">
-                            {% with count=user.get_profile.notifications %}
+                            {% with count=user.notifications %}
                                 <span class="notification-counter {% if count > 0 %}notifications-some{% else %}notifications-none{% endif %}">{{ count }}</span>
                             {% endwith %}
                         </a>

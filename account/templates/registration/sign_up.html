@@ -10,77 +10,19 @@
         </div>
     {% endif %}
 
-    <div class="control-group{% if form.username.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
-        <div class="controls">
-            {{ form.username }}
-            {% if form.username.errors %}
-                <span class="help-inline">{{ form.username.errors|join:' ' }}</span>
-            {% else%}
-                <small class="help-inline">Make it unique.</small>
-            {% endif %}
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.username help_html='Make it unique.' %}
 
-    <div class="control-group{% if form.first_name.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-        <div class="controls">
-            {{ form.first_name }}
-            <span class="help-inline">{{ form.first_name.errors|join:' ' }}</span>
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.first_name %}
 
-    <div class="control-group{% if form.last_name.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-        <div class="controls">
-            {{ form.last_name }}
-            {% if form.last_name.errors %}
-                <span class="help-inline">{{ form.last_name.errors|join:' ' }}</span>
-            {% else %}
-                <small class="help-inline">Optional.</small>
-            {% endif %}
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.last_name help_html='Optional.' %}
 
-    <div class="control-group{% if form.email.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-        <div class="controls">
-            {{ form.email }}
-            <span class="help-inline">{{ form.email.errors|join:' ' }}</span>
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.email %}
 
-    <div class="control-group{% if form.gravatar_email.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.gravatar_email.id_for_label }}">{{ form.gravatar_email.label }}</label>
-        <div class="controls">
-            {{ form.gravatar_email }}
-            {% if form.gravatar_email.errors %}
-                <span class="help-inline">{{ form.gravatar_email.errors|join:' ' }}</span>
-            {% else %}
-                <small class="help-inline">
-                    Optional, for avatar,
-                    <a href="http://gravatar.com" target="_blank">more info</a>
-                    <i class="icon-globe"></i>
-                </small>
-            {% endif %}
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.gravatar_email help_html='Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i>' %}
 
-    <div class="control-group{% if form.password1.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
-        <div class="controls">
-            {{ form.password1 }}
-            <span class="help-inline">{{ form.password1.errors|join:' ' }}</span>
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.password1 %}
 
-    <div class="control-group{% if form.password2.errors %} error{% endif %}">
-        <label class="control-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
-        <div class="controls">
-            {{ form.password2 }}
-            <span class="help-inline">{{ form.password2.errors|join:' ' }}</span>
-        </div>
-    </div>
+    {% include 'joltem/includes/form_field.html' with field=form.password2 %}
 
     <div class="control-group">
         <div class="controls">

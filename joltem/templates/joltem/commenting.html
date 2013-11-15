@@ -5,14 +5,14 @@
         <div class="row">
             <div class="row hidden-desktop hidden-tablet">
                 <div class="span8">
-                    <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ comment.owner.get_profile.gravatar_hash }}?s=50" /></p>
+                    <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/{{ comment.owner.gravatar_hash }}?s=50" /></p>
                     <h4><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a></h4>
-                    <p><b>{{ comment.owner.get_profile.impact }}</b> impact <b>{{ comment.owner.get_profile.completed }}</b> solutions</p>
+                    <p><b>{{ comment.owner.impact }}</b> impact <b>{{ comment.owner.completed }}</b> solutions</p>
                 </div>
             </div>
             <div class="span2 text-center hidden-phone">
                 <p>
-                    <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.owner.get_profile.gravatar_hash }}?s=75" /><br/>
+                    <img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ comment.owner.gravatar_hash }}?s=75" /><br/>
                 </p>
                 <p>
                     <b><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a></b><br/>
