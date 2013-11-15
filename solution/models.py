@@ -43,7 +43,8 @@ class Solution(Voteable, Commentable):
     is_completed = models.BooleanField(default=False)
     # Alternative to deletion of solution, to keep all relationships intact
     is_closed = models.BooleanField(default=False)
-    # NOTE : No parenthesis on timezone.now because I'm passing the function not the current value
+    # NOTE : No parenthesis on timezone.now
+    # because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
     time_completed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
@@ -149,10 +150,12 @@ class Solution(Voteable, Commentable):
 
     def notify_created(self):
         """ Send out notifications about the solution being posted. """
-        if self.task and self.task.owner_id != self.owner_id:  # notify parent task owner
+        # notify parent task owner
+        if self.task and self.task.owner_id != self.owner_id:
             self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_POSTED,
                         True, kwargs={"role": "parent_task"})
-        elif self.solution and self.solution.owner_id != self.owner_id:  # notify parent solution owner
+        # notify parent solution owner
+        elif self.solution and self.solution.owner_id != self.owner_id:
             self.notify(self.solution.owner, NOTIFICATION_TYPE_SOLUTION_POSTED,
                         True, kwargs={"role": "parent_solution"})
         else:  # no parent, notify project admins
@@ -163,10 +166,10 @@ class Solution(Voteable, Commentable):
 
     def notify_complete(self):
         """ Send out completion notifications. """
-        # Notify task owner
+        # Notify task owner (dont notify youself)
         if self.task \
                 and not self.task.is_closed \
-                and self.task.owner_id != self.owner_id:  # don't notify yourself
+                and self.task.owner_id != self.owner_id:
             self.notify(self.task.owner,
                         NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                         True, kwargs={"role": "task_owner"})
@@ -313,7 +316,7 @@ class Solution(Voteable, Commentable):
 
     def get_pygit_checkout(self, pygit_repository):
         """ Return pygit2 Oid of merge base. """
-        solution_branch_oid, range_checkout_oid = \
+        _, range_checkout_oid = \
             self.get_pygit_solution_range(pygit_repository)
         return range_checkout_oid
 

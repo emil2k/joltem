@@ -211,8 +211,8 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
 
     def initiate_variables(self, request, *args, **kwargs):
         """ Initiate variables for view, add repository set. """
-        super(SolutionCommitsView, self).initiate_variables(request,
-                                                            *args, **kwargs)
+        super(SolutionCommitsView, self).initiate_variables(
+            request, *args, **kwargs)
         self.repository_set = self.project.repository_set.filter(
             is_hidden=False).order_by('name')
         repository_name = kwargs.get("repository_name")
