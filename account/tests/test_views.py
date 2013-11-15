@@ -1,7 +1,9 @@
 # coding: utf-8
 from django_webtest import WebTest
-from joltem.models import User
+
+from common import tests
 from common.mix import mixer
+from joltem.models import User
 
 
 MAIN_PAGE_URL = '/'
@@ -260,3 +262,91 @@ class SignUpValidateUsernameTest(WebTest):
             'username',
             errors=self.error_message,
         )
+
+
+ACCOUNT_URL = '/account/'
+GENERAL_SETTINGS_FORM_ID = 'account-general-settings-form'
+
+
+class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('user')
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(ACCOUNT_URL)
+
+        self._test_sign_in_redirect_url(response, ACCOUNT_URL)
+
+    def test_user_is_redirected_to_account_page_after_saving_settings(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        response = form.submit()
+
+        self.assertRedirects(response, ACCOUNT_URL)
+
+    def test_user_has_updated_profile_after_saving_settings(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['gravatar_email'] = 'rob@example.com'
+        response = form.submit()
+
+        user = User.objects.get()
+
+        self.assertTrue(user.gravatar_email, 'rob@example.com')
+
+
+class GeneralSettingsRequiredFieldsTest(WebTest):
+
+    error_message = 'This field is required.'
+
+    def setUp(self):
+        self.user = mixer.blend('user')
+
+    def test_first_name_is_required(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['first_name'] = ''
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'first_name',
+            errors=self.error_message,
+        )
+
+    def test_last_name_is_not_required(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['last_name'] = ''
+        response = form.submit()
+
+        self.assertRedirects(response, ACCOUNT_URL)
+
+    def test_email_is_required(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['email'] = ''
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'email',
+            errors=self.error_message,
+        )
+
+    def test_gravatar_email_is_not_required(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['gravatar_email'] = ''
+        response = form.submit()
+
+        self.assertRedirects(response, ACCOUNT_URL)
