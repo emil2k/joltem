@@ -1,0 +1,71 @@
+{% extends 'joltem/account_base.html' %}
+
+{% load widget_tweaks %}
+
+{% block account_content %}
+{% for key in ssh_key_list %}
+<div class="row">
+    <div class="pull-right hidden-desktop hidden-tablet">
+        <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+    </div>
+    <div class="span1 hidden-phone">
+        <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+    </div>
+    <div class="span9">
+        <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
+        <pre>{{ key.key }}</pre>
+    </div>
+</div>
+{% empty %}
+<div class="row">
+    <div class="span10">
+        <div class="alert alert-info">
+            <strong>Add an authentication key</strong> to get started.
+        </div>
+        <p class="muted">
+            You have not added any SSH authentication keys yet, add an authentication key below to be able to push and pull commits.
+        </p>
+    </div>
+</div>
+{% endfor %}
+
+<hr/>
+
+<div class="row">
+    <div class="span10">
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+        {% endif %}
+
+        <form action="" method="post" id="account-ssh-keys-form">
+            {% csrf_token %}
+
+            <small class="help-block">
+                <i class="icon-question-sign"></i>
+                Authentication keys are used to identify and authenticate your workstation,
+                so you can push and pull commits without entering a password each time.<br/>
+            </small>
+
+            {% render_field form.name class="input-block-level" placeholder=form.name.help_text %}
+
+            {% if form.name.errors %}
+                <div class="alert alert-error">{{ form.name.errors|join:' ' }}</div>
+            {% endif %}
+
+            <small class="help-block">
+                <i class="icon-globe"></i> <a class="text-info" href="http://www.linuxproblem.org/art_9.html" target="_blank">How to get a SSH key?</a>
+            </small>
+
+            {% render_field form.key class="input-block-level" rows="10" placeholder=form.name.help_text %}
+
+            {% if form.key.errors %}
+                <div class="alert alert-error">{{ form.key.errors|join:' ' }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-success">Add</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
