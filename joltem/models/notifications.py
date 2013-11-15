@@ -2,7 +2,7 @@ import logging
 
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
@@ -21,7 +21,7 @@ class Notification(models.Model):
     """
     Notification to a user
     """
-    user = models.ForeignKey(User)  # user to notify
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)  # user to notify
     type = models.CharField(max_length=200, null=True, blank=True) # notification type, since each model may have multiple different notifications
     json_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
     is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared

@@ -1,7 +1,7 @@
 """ Voting related models. """
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
 from django.db.models.signals import post_save, post_delete
@@ -23,7 +23,7 @@ class Vote(models.Model):
     magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
     time_voted = models.DateTimeField(default=timezone.now)
     # Relations
-    voter = models.ForeignKey(User)
+    voter = models.ForeignKey(settings.AUTH_USER_MODEL)
     # Generic relations
     voteable_type = models.ForeignKey(content_type_models.ContentType)
     voteable_id = models.PositiveIntegerField()

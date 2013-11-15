@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.conf import settings
 
 from joltem.models import Commentable
 
@@ -53,12 +53,12 @@ class Task(Commentable):
     time_reviewed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
     # Relations
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
     author = models.ForeignKey(
-        User, related_name="tasks_authored_set")  # user who created the task
+        settings.AUTH_USER_MODEL, related_name="tasks_authored_set")  # user who created the task
 
     def __unicode__(self):
         return self.title
@@ -227,6 +227,7 @@ class Task(Commentable):
 
 
 class Vote(models.Model):
+
     """
     A simply yay or nay vote on a task that is being reviewed.
 
@@ -242,7 +243,8 @@ class Vote(models.Model):
     is_accepted = models.BooleanField(default=False)
     time_voted = models.DateTimeField(default=timezone.now)
     # Relations
-    voter = models.ForeignKey(User, related_name="task_vote_set")
+    voter = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="task_vote_set")
     task = models.ForeignKey(Task)
 
     class Meta:
