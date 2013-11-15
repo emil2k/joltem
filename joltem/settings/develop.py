@@ -17,6 +17,7 @@ DEBUG_TOOLBAR_CONFIG = {
     "INTERCEPT_REDIRECTS": False,
     "HIDE_DJANGO_SQL": False,
     "ENABLE_STACKTRACES": True,
+    "SHOW_TOOLBAR_CALLBACK": lambda request: True,
 }
 DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.version.VersionDebugPanel',
