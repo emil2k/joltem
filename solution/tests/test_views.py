@@ -1,9 +1,9 @@
 """ View related tests for solution app. """
+from mixer.backend.django import mixer
 
 from joltem.libs.mock import models, requests
 from project.tests.test_views import BaseProjectViewTest
 from solution import views
-from solution.models import Solution
 
 
 class BaseSolutionViewTest(BaseProjectViewTest):
@@ -108,7 +108,13 @@ class SolutionCommitsView(BaseSolutionViewTest):
     def test_solution_commits_view_get(self):
         """ Test simple GET of solution commits view. """
         response = self._get(views.SolutionCommitsView.as_view())
-        self.assertTrue(response.status_code, 200)
+        response = response.render()
+        self.assertContains(response, 'The project has no repositories.')
+
+        mixer.blend('repository', project=self.project, name='test')
+        response = self._get(views.SolutionCommitsView.as_view())
+        response = response.render()
+        self.assertNotContains(response, 'The project has no repositories.')
 
 
 class SolutionCreateView(BaseSolutionViewTest):
