@@ -41,9 +41,8 @@ class SignUpView(CreateView):
         login(self.request, user)
 
         # Setup profile.
-        profile = user.get_profile()
-        if profile.set_gravatar_email(form.cleaned_data['gravatar_email']):
-            profile.save()
+        if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
+            user.save()
 
         return response
 
@@ -71,9 +70,8 @@ class GeneralSettingsView(ValidUserMixin, UpdateView):
         response = super(GeneralSettingsView, self).form_valid(form)
 
         user = form.instance
-        profile = user.get_profile()
-        if profile.set_gravatar_email(form.cleaned_data['gravatar_email']):
-            profile.save()
+        if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
+            user.save()
 
         return response
 

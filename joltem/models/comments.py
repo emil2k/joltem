@@ -1,7 +1,7 @@
 import logging
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
@@ -26,7 +26,7 @@ class Comment(Voteable):
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     project = models.ForeignKey('project.Project')
     # Generic relations
     commentable_type = models.ForeignKey(content_type_models.ContentType)

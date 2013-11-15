@@ -2,12 +2,11 @@
 import os
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 from twisted.conch.ssh.keys import Key, BadKeyError
 
 from project.models import Project
-from django.conf import settings
 
 import logging
 logger = logging.getLogger('joltem')
@@ -85,7 +84,7 @@ class Authentication(models.Model):
     key = models.TextField()  # open ssh representation of public rsa key
     fingerprint = models.CharField(max_length=47)
     # Relations
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     @classmethod
     def load_key(cls, data):

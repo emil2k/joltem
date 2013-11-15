@@ -1,7 +1,7 @@
 """ Voting related models. """
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
 from django.db.models.signals import post_save, post_delete
@@ -23,7 +23,7 @@ class Vote(models.Model):
     magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
     time_voted = models.DateTimeField(default=timezone.now)
     # Relations
-    voter = models.ForeignKey(User)
+    voter = models.ForeignKey(settings.AUTH_USER_MODEL)
     # Generic relations
     voteable_type = models.ForeignKey(content_type_models.ContentType)
     voteable_id = models.PositiveIntegerField()
@@ -76,7 +76,7 @@ class Voteable(Notifying, Owned, ProjectContext):
             is_accepted=vote_magnitude > 0,
             magnitude=vote_magnitude,
             time_voted=timezone.now(),
-            voter_impact=voter.get_profile().impact
+            voter_impact=voter.impact
         )
         vote.save()
         self.notify_vote_added(vote)
@@ -104,7 +104,7 @@ class Voteable(Notifying, Owned, ProjectContext):
                 vote.is_accepted = vote_magnitude > 0
                 vote.magnitude = vote_magnitude
                 vote.time_voted = timezone.now()
-                vote.voter_impact = voter.get_profile().impact
+                vote.voter_impact = voter.impact
                 vote.save()
                 self.notify_vote_updated(vote, old_vote_magnitude)
             return True
@@ -120,8 +120,10 @@ class Voteable(Notifying, Owned, ProjectContext):
         self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False,
                     {"voter_first_name": vote.voter.first_name})
 
-    def iterate_voters(self, queryset=None, exclude=[]):
+    def iterate_voters(self, queryset=None, exclude=None):
         """ Iterate through votes and return distinct voters. """
+        if exclude is None:
+            exclude = []
         queryset = self.vote_set.all() if queryset is None else queryset
         voter_ids = []
         for vote in queryset:
