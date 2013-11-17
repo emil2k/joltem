@@ -7,45 +7,21 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+            ('project', '0001_initial'),
+    )
+
     def forwards(self, orm):
-        db.rename_table('auth_user', 'joltem_user')
-        db.add_column('joltem_user', 'gravatar_email', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True))
-        db.add_column('joltem_user', 'gravatar_hash', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True))
-        db.add_column('joltem_user', 'impact', self.gf('django.db.models.fields.BigIntegerField')(default=0))
-        db.add_column('joltem_user', 'completed', self.gf('django.db.models.fields.IntegerField')(default=0))
-        db.add_column('joltem_user', 'notifications', self.gf('django.db.models.fields.IntegerField')(default=0))
+        # Adding field 'Comment.project'
+        db.add_column(u'joltem_comment', 'project',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
+                      keep_default=False)
 
-        # Adding M2M table for field groups on 'User'
-        m2m_table_name = db.shorten_name(u'joltem_user_groups')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'joltem.user'], null=False)),
-            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['user_id', 'group_id'])
-
-        # Adding M2M table for field user_permissions on 'User'
-        m2m_table_name = db.shorten_name(u'joltem_user_user_permissions')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('user', models.ForeignKey(orm[u'joltem.user'], null=False)),
-            ('permission', models.ForeignKey(orm[u'auth.permission'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['user_id', 'permission_id'])
 
     def backwards(self, orm):
-        db.rename_table('joltem_user', 'auth_user')
-        db.delete_column('joltem_user', 'gravatar_email')
-        db.delete_column('joltem_user', 'gravatar_hash')
-        db.delete_column('joltem_user', 'impact')
-        db.delete_column('joltem_user', 'completed')
-        db.delete_column('joltem_user', 'notifications')
+        # Deleting field 'Comment.project'
+        db.delete_column(u'joltem_comment', 'project_id')
 
-        # Removing M2M table for field groups on 'User'
-        db.delete_table(db.shorten_name(u'joltem_user_groups'))
-
-        # Removing M2M table for field user_permissions on 'User'
-        db.delete_table(db.shorten_name(u'joltem_user_user_permissions'))
 
     models = {
         u'auth.group': {
@@ -114,16 +90,6 @@ class Migration(SchemaMigration):
             'time_notified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"})
-        },
-        u'joltem.profile': {
-            'Meta': {'object_name': 'Profile'},
-            'completed': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'gravatar_email': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'gravatar_hash': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
-            'notifications': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': u"orm['joltem.User']"})
         },
         u'joltem.user': {
             'Meta': {'object_name': 'User'},
