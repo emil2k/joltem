@@ -5,6 +5,8 @@ from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
 from gateway.libs.git.utils import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status, get_report
 
+from mixer.backend.django import mixer
+
 
 class TestTerminalProtocolUtilities(TestCase):
 
@@ -100,3 +102,37 @@ class TestingGitProtocolUtilities(TestCase):
             ('refs/heads/s/1', 'push-seperately'),
         ]
         self.assertEqual(get_report(command_statuses, 'permission-denied'), expected)
+
+
+class TestSSH(TestCase):
+
+    def setUp(self):
+        from django.core.management import call_command
+        from django.db.utils import OperationalError
+
+        try:
+            mixer.blend('user')
+        except OperationalError:
+            call_command('syncdb')
+            call_command('migrate')
+
+    def test_auth(self):
+        from gateway.libs.ssh.auth import GatewayCredentialChecker
+
+        key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD6qRSV4zDxKXp5vqLiGYj0y3CmoBtXSXuh3ZUyBLwwgw62Wmn1JyqbqlM9dOJysz+gwAi8YlPKCRsAPSr2moR3ThZlk/5qflaiTT4NgGwl/n5XNHVW8Ot5n2KrtnwOMbX7PtSomARhXE9ejpGZwL3SKDaScIGRNbz8cWmVKG1JqdiBo+qTe4HeabREunqztN0Oq44FXCuqlYbvkRud4lkjnzZTP2XL36MfeT3AdCDCs30AgzuVq2nerCnVdRD5v/MkUW2uzonLuJaLDvJZ75ha/vn/l2XINgsfl4SzZtYe50r04YHVflK/p2TdQNhV69eK87WBDwp8xsSR4Rr0swcd joltem@joltem.local"
+
+        authentication = mixer.blend('authentication')
+        authentication.blob = key
+        authentication.save()
+        authentication.user.blob = key
+
+        checker = GatewayCredentialChecker()
+
+        result = checker.requestAvatarId(authentication.user)
+        self.assertEqual(result.result, authentication.user.username)
+
+        wrong_user = mixer.blend('user')
+        wrong_user.blob = key
+
+        result = checker.requestAvatarId(wrong_user)
+        self.assertTrue(isinstance(result.value, Exception))

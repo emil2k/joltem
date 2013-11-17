@@ -1,17 +1,17 @@
 """ SSH Authentication. """
-
-from twisted.python import log
-from zope.interface import implements  # noqa
+from twisted.conch.avatar import ConchUser
 from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import ISSHPrivateKey
-from twisted.cred.portal import IRealm
-from twisted.conch.avatar import ConchUser
-from twisted.internet.defer import succeed
-from twisted.python.failure import Failure
 from twisted.cred.error import UnauthorizedLogin
+from twisted.cred.portal import IRealm
+from twisted.internet.defer import succeed
+from twisted.python import log
+from twisted.python.failure import Failure
+from zope.interface import implements  # noqa
 
-from git.models import Authentication, User, BadKeyError
 from gateway.libs.ssh.session import GatewaySession
+from git.models import Authentication, BadKeyError
+from joltem.models import User
 
 
 class GatewayUser(ConchUser):

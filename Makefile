@@ -91,4 +91,4 @@ test_account: $(ENV) account
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
-	trial gateway/tests.py
+	DJANGO_SETTINGS_MODULE=joltem.settings.test trial gateway/tests.py
