@@ -1,6 +1,9 @@
 ENV = $(shell echo $${VDIR:-.env})
 SETTINGS ?= chefenv
 
+all: $(ENV)
+	$(ENV)/bin/python manage.py $(ARGS) --settings=joltem.settings.$(SETTINGS)
+
 .PHONY: clean
 # target: clean - Clean temporary files
 clean:
