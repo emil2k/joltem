@@ -2,6 +2,10 @@
 import os
 import sys
 
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
+
+
 from django.conf import settings
 from gitserverglue import ssh
 from twisted.conch.ssh.keys import Key
@@ -125,9 +129,9 @@ class JoltemGitConfiguration(object):
 
 ssh_factory = ssh.create_factory(
     public_keys={'ssh-rsa': Key.fromFile(
-        settings.GATEWAY_PRIVATE_KEY_FILE_PATH)},
-    private_keys={'ssh-rsa': Key.fromFile(
         settings.GATEWAY_PUBLIC_KEY_FILE_PATH)},
+    private_keys={'ssh-rsa': Key.fromFile(
+        settings.GATEWAY_PRIVATE_KEY_FILE_PATH)},
     authnz=JoltemAuth(),
     git_configuration=JoltemGitConfiguration()
 )
