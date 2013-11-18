@@ -1,8 +1,7 @@
 # coding: utf-8
 from django_webtest import WebTest
 
-from common import tests
-from common.mix import mixer
+from common import tests, factories
 from joltem.models import User
 from git.models import Authentication
 
@@ -16,10 +15,10 @@ class SignUpTest(WebTest):
 
     def setUp(self):
         # We need at least one project.
-        mixer.blend('project')
+        factories.ProjectF()
 
     def test_redirect_to_main_page_when_user_is_logged_in(self):
-        user = mixer.blend('user')
+        user = factories.UserF()
 
         with self.settings(LOGIN_REDIRECT_URL=MAIN_PAGE_URL):
             response = self.app.get(SIGN_UP_URL, user=user)
@@ -257,7 +256,7 @@ GENERAL_SETTINGS_FORM_ID = 'account-general-settings-form'
 class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
 
     def setUp(self):
-        self.user = mixer.blend('user')
+        self.user = factories.UserF()
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(ACCOUNT_URL)
@@ -278,7 +277,7 @@ class GeneralSettingsRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = mixer.blend('user')
+        self.user = factories.UserF()
 
     def test_first_name_is_required(self):
         response = self.app.get(ACCOUNT_URL, user=self.user)
@@ -343,7 +342,7 @@ class AccountSSHKeysTest(WebTest, tests.ViewTestMixin):
     )
 
     def setUp(self):
-        self.user = mixer.blend('user')
+        self.user = factories.UserF()
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL)
@@ -371,7 +370,7 @@ class AccountSSHKeysRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = mixer.blend('user')
+        self.user = factories.UserF()
 
     def test_name_is_required(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL, user=self.user)
@@ -445,7 +444,7 @@ vLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH
     )
 
     def setUp(self):
-        self.user = mixer.blend('user')
+        self.user = factories.UserF()
 
     def test_validation_passes_when_public_rsa_key_is_given(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL, user=self.user)
