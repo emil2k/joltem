@@ -1,9 +1,10 @@
 # coding: utf-8
 from django_webtest import WebTest
 
-from common import tests, factories
-from joltem.models import User
+from common import tests
 from git.models import Authentication
+from joltem.libs.mix import mixer
+from joltem.models import User
 
 
 MAIN_PAGE_URL = '/'
@@ -15,10 +16,10 @@ class SignUpTest(WebTest):
 
     def setUp(self):
         # We need at least one project.
-        factories.ProjectF()
+        mixer.blend('project.project')
 
     def test_redirect_to_main_page_when_user_is_logged_in(self):
-        user = factories.UserF()
+        user = mixer.blend('joltem.user')
 
         with self.settings(LOGIN_REDIRECT_URL=MAIN_PAGE_URL):
             response = self.app.get(SIGN_UP_URL, user=user)
@@ -256,7 +257,7 @@ GENERAL_SETTINGS_FORM_ID = 'account-general-settings-form'
 class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('joltem.user')
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(ACCOUNT_URL)
@@ -277,7 +278,7 @@ class GeneralSettingsRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('joltem.user')
 
     def test_first_name_is_required(self):
         response = self.app.get(ACCOUNT_URL, user=self.user)
@@ -342,7 +343,7 @@ class AccountSSHKeysTest(WebTest, tests.ViewTestMixin):
     )
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('joltem.user')
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL)
@@ -370,7 +371,7 @@ class AccountSSHKeysRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('joltem.user')
 
     def test_name_is_required(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL, user=self.user)
@@ -444,7 +445,7 @@ vLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH
     )
 
     def setUp(self):
-        self.user = factories.UserF()
+        self.user = mixer.blend('joltem.user')
 
     def test_validation_passes_when_public_rsa_key_is_given(self):
         response = self.app.get(ACCOUNT_SSH_KEYS_URL, user=self.user)
@@ -536,8 +537,9 @@ SSH_KEY_DELETE_FORM_ID = 'account-ssh-key-delete-form'
 class AccountSSHKeyDeleteTest(WebTest, tests.ViewTestMixin):
 
     def setUp(self):
-        self.user = factories.UserF()
-        self.ssh_key = factories.AuthenticationF(user=self.user, name='key666')
+        self.user = mixer.blend('joltem.user')
+        self.ssh_key = mixer.blend('git.authentication',
+                                   user=self.user, name='key666')
 
         self.delete_url = ACCOUNT_SSH_KEY_DELETE_URL.format(self.ssh_key.pk)
 
@@ -547,7 +549,7 @@ class AccountSSHKeyDeleteTest(WebTest, tests.ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.delete_url)
 
     def test_user_can_delete_only_his_keys(self):
-        stranger = factories.UserF()
+        stranger = mixer.blend('joltem.user')
         self.app.get(self.delete_url, user=stranger, status=404)
 
     def test_user_successfully_deleted_ssh_key(self):
