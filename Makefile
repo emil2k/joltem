@@ -1,5 +1,8 @@
 ENV = $(shell echo $${VDIR:-.env})
-SETTINGS ?= chefenv
+SETTINGS ?= joltem.settings.local
+
+all: $(ENV)
+	$(ENV)/bin/python manage.py $(ARGS) --settings=$(SETTINGS)
 
 .PHONY: clean
 # target: clean - Clean temporary files
@@ -30,23 +33,23 @@ ci:
 .PHONY: run
 # target: run - Run Django development server
 run: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py runserver 0.0.0.0:8000 --settings=joltem.settings.$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py runserver 0.0.0.0:8000 --settings=$(SETTINGS)
 
 .PHONY: db
 # target: db - Prepare database
 db: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py syncdb --settings=joltem.settings.$(SETTINGS) --noinput
-	$(ENV)/bin/python $(CURDIR)/manage.py migrate --settings=joltem.settings.$(SETTINGS) --noinput
+	$(ENV)/bin/python $(CURDIR)/manage.py syncdb --settings=$(SETTINGS) --noinput
+	$(ENV)/bin/python $(CURDIR)/manage.py migrate --settings=$(SETTINGS) --noinput
 
 .PHONY: shell
 # target: shell - Run project shell
 shell: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py shell_plus --settings=joltem.settings.$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py shell_plus --settings=$(SETTINGS)
 
 .PHONY: static
 # target: static - Compile project static
 static: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=joltem.settings.$(SETTINGS) --noinput -c
+	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
@@ -88,4 +91,4 @@ test_account: $(ENV) account
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
-	trial gateway/tests.py
+	DJANGO_SETTINGS_MODULE=joltem.settings.test trial gateway/tests.py
