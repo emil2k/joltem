@@ -55,7 +55,9 @@ SECRET_KEY = 'imsosecret'
 # Gateway settings
 GATEWAY_PORT = 22
 GATEWAY_HOST = 'joltem.com'
-GATEWAY_PRIVATE_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa"
-GATEWAY_PUBLIC_KEY_FILE_PATH = PROJECT_ROOT + "/gateway/id_rsa.pub"
+GATEWAY_DIR = op.join(PROJECT_ROOT, 'gateway')
+GATEWAY_REPOSITORIES_DIR = op.join(GATEWAY_DIR, 'repositories')
+GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa')
+GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa.pub')
 
 logging.info("Production settings loaded.")

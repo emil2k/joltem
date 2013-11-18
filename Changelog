@@ -1,3 +1,9 @@
+2013-11-17  klen
+
+	* Version 0.2.6
+	* Fix gateway authentication
+	* Added new gateway version
+
 2013-11-15  klen
 
 	* Version 0.2.3
