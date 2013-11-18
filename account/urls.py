@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.conf.urls import patterns, url
 
-from account.views import SignUpView, GeneralSettingsView
+from account.views import SignUpView, GeneralSettingsView, SSHKeyCreateView
 
 
 urlpatterns = patterns(
@@ -10,6 +10,10 @@ urlpatterns = patterns(
     url(r'^$', GeneralSettingsView.as_view(),
         {'extra_context': {'nav_tab': 'account', 'account_tab': 'account'}},
         'account'),
+
+    url(r'^keys/$', SSHKeyCreateView.as_view(),
+        {'extra_context': {'nav_tab': 'account', 'account_tab': 'keys'}},
+        'account_keys'),
 
     url(r'^sign-up/$', SignUpView.as_view(),
         {'extra_context': {'nav_tab': 'up'}},
