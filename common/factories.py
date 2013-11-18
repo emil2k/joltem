@@ -6,8 +6,8 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 
 import factory
-from django.contrib.auth.models import User
 
+from joltem.models import User
 from project.models import Project
 from git.models import Repository
 
