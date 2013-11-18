@@ -1,9 +1,9 @@
 # coding: utf-8
 from django_webtest import WebTest
 
-from common import tests
 from git.models import Authentication
 from joltem.libs.mix import mixer
+from joltem.libs.tests import ViewTestMixin
 from joltem.models import User
 
 
@@ -254,7 +254,7 @@ ACCOUNT_URL = '/account/'
 GENERAL_SETTINGS_FORM_ID = 'account-general-settings-form'
 
 
-class GeneralSettingsTest(WebTest, tests.ViewTestMixin):
+class GeneralSettingsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
@@ -331,7 +331,7 @@ ACCOUNT_SSH_KEYS_URL = '/account/keys/'
 SSH_KEY_FORM_ID = 'account-ssh-keys-form'
 
 
-class AccountSSHKeysTest(WebTest, tests.ViewTestMixin):
+class AccountSSHKeysTest(WebTest, ViewTestMixin):
 
     public_rsa_openssh = (
         "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBE"
@@ -534,7 +534,7 @@ ACCOUNT_SSH_KEY_DELETE_URL = '/account/keys/{}/delete/'
 SSH_KEY_DELETE_FORM_ID = 'account-ssh-key-delete-form'
 
 
-class AccountSSHKeyDeleteTest(WebTest, tests.ViewTestMixin):
+class AccountSSHKeyDeleteTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
