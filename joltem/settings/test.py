@@ -1,3 +1,5 @@
+""" Settings for tests running. """
+
 from .production import *
 
 
@@ -17,6 +19,9 @@ SOUTH_TESTS_MIGRATE = False
 # Nosetests
 INSTALLED_APPS += 'django_nose',
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Celery
+CELERY_ALWAYS_EAGER = True
 
 
 logging.info("Test settings loaded.")

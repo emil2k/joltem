@@ -92,3 +92,8 @@ test_account: $(ENV) account
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
 	DJANGO_SETTINGS_MODULE=joltem.settings.test trial gateway/tests.py
+
+.PHONY: celery
+celery: $(ENV)
+	$(ENV)/bin/celery -A joltem worker -l info
+

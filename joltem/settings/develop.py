@@ -46,6 +46,9 @@ CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
+# Celery settings
+CELERYD_CONCURRENCY = 1
+
 logging.info('Develop settings are loaded.')
 
 # lint_ignore=W0614,W0401,C0301,E501
