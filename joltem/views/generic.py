@@ -1,5 +1,7 @@
 """ Generic base views used across the site. """
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.generic.base import View, ContextMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
@@ -42,6 +44,7 @@ class RequestBaseView(ContextMixin, View):
             [context_processors.request]
         )
 
+
 class NavTabContextMixin(ContextMixin):
 
     """ Mixin to pass the navigation tab to the template. """
@@ -52,7 +55,6 @@ class NavTabContextMixin(ContextMixin):
         """ Return context for template, add nav tab identifier. """
         kwargs["nav_tab"] = self.nav_tab
         return super(NavTabContextMixin, self).get_context_data(**kwargs)
-
 
 
 class TextContextMixin(ContextMixin):
@@ -176,3 +178,10 @@ class CommentableView(RequestBaseView):
     def get_comment_redirect(self):
         """ Override to return url to redirect to after commenting. """
         raise ImproperlyConfigured("Comment redirect needs to be defined in extending class.")
+
+
+class ValidUserMixin(object):
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)

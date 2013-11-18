@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import user_passes_test
 
-from common.views import ValidUserMixin
+from joltem.views.generic import ValidUserMixin
 from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
 
 
