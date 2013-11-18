@@ -30,6 +30,7 @@ INSTALLED_APPS += (
     # Vendors
     'mathfilters',
     'south',
+    'widget_tweaks',
 
     # Project
     'joltem',

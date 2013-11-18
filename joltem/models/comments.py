@@ -20,6 +20,7 @@ NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
 
 
 class Comment(Voteable):
+
     """
     Comments in a solution review
     """
@@ -31,7 +32,8 @@ class Comment(Voteable):
     # Generic relations
     commentable_type = models.ForeignKey(content_type_models.ContentType)
     commentable_id = models.PositiveIntegerField()
-    commentable = generic.GenericForeignKey('commentable_type', 'commentable_id')
+    commentable = generic.GenericForeignKey(
+        'commentable_type', 'commentable_id')
 
     class Meta:
         app_label = "joltem"
@@ -44,7 +46,8 @@ class Comment(Voteable):
         Override to only notify of "Helpful" or positive votes
         """
         if vote.is_accepted:
-            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
+            self.notify(self.owner,
+                        NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
 
     def notify_vote_updated(self, vote, old_vote_magnitude):
         """
@@ -53,7 +56,8 @@ class Comment(Voteable):
         Except when a vote goes from accepted to
         """
         if vote.is_accepted and old_vote_magnitude == 0:  # became accepted
-            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
+            self.notify(self.owner,
+                        NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
         elif vote.is_rejected and old_vote_magnitude > 0:  # became rejected
             # Check if there is any other positive votes
             positive_votes = self.get_voters(
@@ -61,14 +65,16 @@ class Comment(Voteable):
                 exclude=[vote.voter]
             )
             if len(positive_votes) == 0:
-                self.delete_notifications(self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
+                self.delete_notifications(
+                    self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
     def get_notification_text(self, notification):
         from joltem.utils import list_string_join
         if NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL == notification.type:
             # Get first names of all people who marked the comment helpful
             first_names = self.get_voter_first_names(
-                queryset=self.vote_set.filter(is_accepted=True).order_by("-time_voted"),
+                queryset=self.vote_set.filter(
+                    is_accepted=True).order_by("-time_voted"),
                 exclude=[notification.user]
             )
             return "%s marked your comment helpful" % list_string_join(first_names)
@@ -84,29 +90,35 @@ class Comment(Voteable):
         from django.core.urlresolvers import reverse
         from solution.models import Solution
         # Depends on the commentable type
-        anchor = lambda path: path + "#comment-%s" % self.id  # add a comment anchor
+        anchor = lambda path: path + \
+            "#comment-%s" % self.id  # add a comment anchor
         if isinstance(self.commentable, Solution):
             return anchor(reverse("project:solution:solution", args=[self.project.name, self.commentable_id]))
         else:  # it is a Task
             return anchor(reverse("project:task:task", args=[self.project.name, self.commentable_id]))
 
 
+post_save.connect(
+    receivers.update_solution_metrics_from_comment, sender=Comment)
+post_delete.connect(
+    receivers.update_solution_metrics_from_comment, sender=Comment)
 
-post_save.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
-post_delete.connect(receivers.update_solution_metrics_from_comment, sender=Comment)
-
-post_save.connect(receivers.update_project_impact_from_voteables, sender=Comment)
-post_delete.connect(receivers.update_project_impact_from_voteables, sender=Comment)
+post_save.connect(
+    receivers.update_project_impact_from_voteables, sender=Comment)
+post_delete.connect(
+    receivers.update_project_impact_from_voteables, sender=Comment)
 
 NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
 
 
 class Commentable(Notifying, Owned, ProjectContext):
+
     """
     Abstract, an object that can be commented on
     """
     # Generic relations
-    comment_set = generic.GenericRelation('joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
+    comment_set = generic.GenericRelation(
+        'joltem.Comment', content_type_field='commentable_type', object_id_field='commentable_id')
 
     class Meta:
         abstract = True

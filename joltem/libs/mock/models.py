@@ -30,6 +30,7 @@ def load_project_impact(project, user):
 
 # Models
 
+
 def get_mock_user(username, **extra_fields):
     return User.objects.create_user(
         username, '%s@gmail.com' % username,
@@ -109,6 +110,7 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
 
 # Setups
 
+
 def get_mock_setup_solution(project_name, username, is_completed=True, is_closed=False):
     """
     A shortcut to get a solution to a task.
@@ -125,7 +127,8 @@ def get_mock_setup_solution(project_name, username, is_completed=True, is_closed
     p = get_mock_project(project_name)
     u = get_mock_user(username)
     t = get_mock_task(p, u, is_reviewed=True, is_accepted=True)
-    s = get_mock_solution(p, u, task=t, is_completed=is_completed, is_closed=is_closed)
+    s = get_mock_solution(
+        p, u, task=t, is_completed=is_completed, is_closed=is_closed)
     return p, u, t, s
 
 

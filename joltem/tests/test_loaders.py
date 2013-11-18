@@ -35,5 +35,3 @@ class TextsLoaderTestCase(TestCase):
     def test_loading_text(self):
         text, filepath = self.loader(self.text_name)
         self.assertIn("work", text.lower())
-
-

@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from task.models import Vote
 from joltem.libs.mock.models import (get_mock_task, get_mock_project,
-                                  get_mock_user, get_mock_solution)
+                                     get_mock_user, get_mock_solution)
 
 
 class TaskTestCase(TestCase):
@@ -18,7 +18,8 @@ class TaskTestCase(TestCase):
         s = get_mock_solution(self.project, self.jill, task=self.task)
         t1 = get_mock_task(self.project, self.jack, solution=s,
                            is_reviewed=True, is_accepted=True)
-        t2 = get_mock_task(self.project, self.jack, solution=s)  # this one should not count
+        # this one should not count
+        t2 = get_mock_task(self.project, self.jack, solution=s)
         self.assertEqual(self.task.get_subtask_count(
             solution_is_closed=False,
             solution_is_completed=False,
@@ -45,7 +46,8 @@ class TaskTestCase(TestCase):
         self.task.put_vote(self.jack, False)
         self.assertEqual(self.task.vote_set.count(), 1)
         self.assertFalse(self.task.is_accepted)
-        self.project.admin_set.add(self.jill)  # make jill an admin of the project
+        # make jill an admin of the project
+        self.project.admin_set.add(self.jill)
         self.project.save()
         self.task.put_vote(self.jill, True)
         self.assertEqual(self.task.vote_set.count(), 2)
@@ -60,9 +62,11 @@ class TaskTestCase(TestCase):
         self.assertFalse(self.task.is_accepted)
 
     def test_mark_reviewed_accepted_no_parent(self):
-        self.assertTrue(self.task.owner_id, self.jill.id)  # assumption, jill owns originally
+        # assumption, jill owns originally
+        self.assertTrue(self.task.owner_id, self.jill.id)
         self.task.mark_reviewed(self.jack, is_accepted=True)
-        self.assertTrue(self.task.owner_id, self.jack.id)  # has no parent solution, so acceptor takes ownership
+        # has no parent solution, so acceptor takes ownership
+        self.assertTrue(self.task.owner_id, self.jack.id)
         self.assertTrue(self.task.is_accepted)
 
     def test_mark_reviewed_accepted_with_parent(self):
@@ -70,7 +74,8 @@ class TaskTestCase(TestCase):
         s = get_mock_solution(self.project, self.jill, task=self.task)
         t = get_mock_task(self.project, self.jack, solution=s)
         t.mark_reviewed(self.jack, is_accepted=True)
-        self.assertTrue(t.owner_id, self.jill.id)  # jill is the owner of the parent solution, so it becomes her task
+        # jill is the owner of the parent solution, so it becomes her task
+        self.assertTrue(t.owner_id, self.jill.id)
         self.assertTrue(self.task.is_accepted)
 
 

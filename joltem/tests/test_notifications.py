@@ -6,7 +6,7 @@ from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
 
 from joltem.libs.mock.models import (get_mock_project, get_mock_task,
-                                  get_mock_solution, get_mock_user)
+                                     get_mock_solution, get_mock_user)
 
 from joltem.models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
                                     NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
@@ -174,7 +174,8 @@ class TasksNotificationTestCase(NotificationTestCase):
 
         """
         self.project.admin_set.add(self.jill)
-        self.ted = get_mock_user("ted", first_name="Ted")  # test with multiple project admins
+        # test with multiple project admins
+        self.ted = get_mock_user("ted", first_name="Ted")
         self.project.admin_set.add(self.ted)
         self.project.save()
 
@@ -301,7 +302,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         their vote if necessary.
 
         """
-        solution = get_mock_solution(self.project, self.bob, title="Making Jam")
+        solution = get_mock_solution(
+            self.project, self.bob, title="Making Jam")
         solution.mark_complete()  # solution marked complete for first time
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
@@ -378,7 +380,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
 
         """
         self.project.admin_set.add(self.jill)
-        self.ted = get_mock_user("ted", first_name="Ted")  # test with multiple project admins
+        # test with multiple project admins
+        self.ted = get_mock_user("ted", first_name="Ted")
         self.project.admin_set.add(self.ted)
         self.project.save()
 
@@ -447,7 +450,9 @@ class SolutionNotificationTestCase(NotificationTestCase):
         self.assertNotificationNotReceived(
             self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED,
             "Bob voted on your solution \"%s\"" % solution.default_title)
-        time.sleep(1)  # so that the voting order is established, which effect notification text
+        # so that the voting order is established, which effect notification
+        # text
+        time.sleep(1)
         solution.put_vote(self.ted, 0)
         # Check that only one notification should just update
         self.assertNotificationReceived(
@@ -472,7 +477,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
                                         NOTIFICATION_TYPE_VOTE_ADDED,
                                         "Bob voted on your solution \"%s\"" %
                                         solution.default_title)
-        solution.put_vote(self.bob, 0)  # same vote, check that updated notification is not sent
+        # same vote, check that updated notification is not sent
+        solution.put_vote(self.bob, 0)
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
@@ -482,7 +488,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
             solution.default_title)
-        solution.put_vote(self.bob, 1)  # check that it creates another notification todo
+        # check that it creates another notification todo
+        solution.put_vote(self.bob, 1)
         self.assertReceivedNotificationCount(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
@@ -504,7 +511,8 @@ class CommentNotificationTestCase(NotificationTestCase):
         solution = get_mock_solution(self.project, self.jill,
                                      title="Cleaning up")
         comment = solution.add_comment(self.bob, "You should add some tests.")
-        comment.put_vote(self.ted, 0)  # negative vote on comment should not trigger notification
+        # negative vote on comment should not trigger notification
+        comment.put_vote(self.ted, 0)
         self.assertNotificationNotReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
         comment.put_vote(self.katy, 2)
@@ -559,7 +567,8 @@ class CommentNotificationTestCase(NotificationTestCase):
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Ted marked your comment helpful")
-        comment.put_vote(self.ted, 0)  # notification should now be gone as there are no positive votes left
+        # notification should now be gone as there are no positive votes left
+        comment.put_vote(self.ted, 0)
         self.assertNotificationNotReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
@@ -576,6 +585,7 @@ class CommentNotificationTestCase(NotificationTestCase):
         comment.put_vote(self.jill, 0)
         self.assertNotificationNotReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-        comment.put_vote(self.jill, 2)  # now accepted, should remove notification above
+        # now accepted, should remove notification above
+        comment.put_vote(self.jill, 2)
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)

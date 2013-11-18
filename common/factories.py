@@ -6,10 +6,10 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 
 import factory
-from django.contrib.auth.models import User
 
+from joltem.models import User
 from project.models import Project
-from git.models import Repository
+from git.models import Repository, Authentication
 
 
 class UserF(factory.DjangoModelFactory):
@@ -58,6 +58,20 @@ class RepositoryF(factory.DjangoModelFactory):
 
     project = factory.SubFactory(ProjectF)
     name = factory.Sequence(u'repo{}'.format)
+
+
+class AuthenticationF(factory.DjangoModelFactory):
+
+    FACTORY_FOR = Authentication
+
+    user = factory.SubFactory(UserF)
+    name = factory.Sequence(u'ssh-key-{}'.format)
+    key = (
+        "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBE"
+        "vLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH"
+        "5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV comment"
+    )
+    fingerprint = '3d:13:5f:cb:c9:79:8a:93:06:27:65:bc:3d:0b:8f:af'
 
 
 def init_joltem_project():

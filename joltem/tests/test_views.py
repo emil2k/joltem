@@ -7,6 +7,7 @@ from joltem.views import HomeView
 from joltem.libs.mock.models import get_mock_project
 from joltem.libs.mock.requests import mock_authentication_middleware
 
+
 class HomeTest(TestCase):
 
     """ Test home view.
@@ -28,5 +29,3 @@ class HomeTest(TestCase):
         request.user._is_authenticated = True
         response = self.view(request)
         self.assertEqual(response.status_code, 302)
-
-

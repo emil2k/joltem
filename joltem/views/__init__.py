@@ -1,11 +1,12 @@
+""" Joltem views. """
+
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
 from django.views.generic.base import TemplateView, RedirectView, View
-from git.models import Authentication
 
-from joltem.models import User, Invite, Notification, Comment
+from joltem.models import Invite, Notification, Comment
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
@@ -32,11 +33,12 @@ class HomeView(View):
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
             return redirect('project:project', project_name=project.name)
-        elif 'invite_code' in request.COOKIES:
+
+        if 'invite_code' in request.COOKIES:
             invite_code = request.COOKIES['invite_code']
-            invite = Invite.is_valid(invite_code)
-            if invite:
-                context = {"invite": invite}
+            invite_ = Invite.is_valid(invite_code)
+            if invite_:
+                context = {"invite": invite_}
                 return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
 
@@ -53,129 +55,11 @@ class UserView(View):
         :return:
 
         """
-        profile_user = get_object_or_404(User, username=username)
         context = {
             'user': request.user,  # user viewing the page
             'profile_user': request.user  # the user whose profile it is
         }
         return render(request, 'joltem/user.html', context)
-
-
-# todo make form for this
-class AccountView(View):
-
-    """ View for displaying and editing user's account & profile. """
-
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-
-        """
-        user = request.user
-        context = {
-            'nav_tab': "account",
-            'account_tab': "account",
-            'user': user,
-        }
-        return render(request, 'joltem/account.html', context)
-
-    def post(self, request, *args, **kwargs):
-        """ Handle POST request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-
-        """
-        error = None
-        user = request.user
-        first_name = request.POST.get('first_name')  # Required
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')  # Required
-        gravatar_email = request.POST.get('gravatar_email')
-        # Validate inputs
-        if not first_name:
-            error = "First name is required."
-        elif not email:
-            error = "Email is required."
-        # elif not is_valid_email(email):
-        #     error = "Email address (%s) is not valid." % email
-        # elif gravatar_email and not is_valid_email(gravatar_email):
-        # error = "Your gravatar (%s) must have a valid email address." %
-        # gravatar_email
-        else:
-            user.first_name = first_name
-            user.last_name = last_name
-            user.email = email
-            user.save()
-            if user.set_gravatar_email(gravatar_email):
-                user.save()
-        if not error:
-            return redirect('account')
-        else:
-            context = {
-                'nav_tab': "account",
-                'account_tab': "account",
-                'user': user,
-                'error': error,
-            }
-            return render(request, 'joltem/account.html', context)
-
-
-# todo make a form for this
-# todo make the form handle BadKeyError at /account/keys/, add test for a
-# bad key
-class KeysView(View):
-
-    """ View for adding and removing SSH keys. """
-
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        user = request.user
-        keys = user.authentication_set.all().order_by('name')
-        context = {
-            'nav_tab': "account",
-            'account_tab': "keys",
-            'user': user,
-            'keys': keys,
-        }
-        return render(request, 'joltem/keys.html', context)
-
-    def post(self, request, *args, **kwargs):
-        """ Handle POST request.
-
-        :param request:
-        :param args:
-        :param kwargs:
-        :return: HTTP response.
-
-        """
-        remove_id = request.POST.get('remove')
-        name = request.POST.get('name')
-        data = request.POST.get('key')
-        if remove_id:
-            key = Authentication.objects.get(id=remove_id)
-            key.delete()
-        elif name and data:
-            key = Authentication(
-                user=request.user,
-                name=name,
-            )
-            key.blob = data
-            key.save()
-        return redirect('account_keys')
 
 
 class CommentView(View):
@@ -200,12 +84,17 @@ class CommentView(View):
 
 class NotificationsView(TemplateView, RequestBaseView):
 
-    """
-    Displays the users notifications
-    """
+    """ Displays the users notifications. """
+
     template_name = "joltem/notifications.html"
 
     def post(self, request, *args, **kwargs):
+        """ Clear all notification.
+
+        :return redirect:
+
+        """
+
         if request.POST.get("clear_all"):
             for notification in request.user.notification_set.filter(is_cleared=False):
                 notification.mark_cleared()
