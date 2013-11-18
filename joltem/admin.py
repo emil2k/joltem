@@ -1,3 +1,5 @@
+""" Register models in Django admin. """
+
 from django.contrib import admin
 
 import project.models

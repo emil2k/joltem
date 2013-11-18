@@ -1,4 +1,5 @@
 """ View related tests for solution app. """
+
 from mixer.backend.django import mixer
 
 from joltem.libs.mock import models, requests
@@ -14,7 +15,6 @@ class BaseSolutionViewTest(BaseProjectViewTest):
         super(BaseSolutionViewTest, self).setUp()
         self.solution = models.get_mock_solution(self.project, self.user)
 
-
     def _get(self, view):
         """ Get GET response on given solution view.
 
@@ -24,8 +24,9 @@ class BaseSolutionViewTest(BaseProjectViewTest):
         """
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
-        return view(request, project_name=self.project.name,
-                        solution_id=self.solution.id)
+        return view(
+            request, project_name=self.project.name,
+            solution_id=self.solution.id)
 
     def _post(self, view, data):
         """ Get POST response on given solution view.
@@ -36,8 +37,10 @@ class BaseSolutionViewTest(BaseProjectViewTest):
         """
         request = requests.get_mock_post_request(
             user=self.user, is_authenticated=True, data=data)
-        return view(request, project_name=self.project.name,
-                        solution_id=self.solution.id)
+        return view(
+            request, project_name=self.project.name,
+            solution_id=self.solution.id)
+
 
 class SolutionViewTest(BaseSolutionViewTest):
 
@@ -101,6 +104,7 @@ class SolutionReviewView(BaseSolutionViewTest):
         response = self._get(views.SolutionReviewView.as_view())
         self.assertTrue(response.status_code, 200)
 
+
 class SolutionCommitsView(BaseSolutionViewTest):
 
     """ Test SolutionCommitsView responses. """
@@ -157,24 +161,25 @@ class SolutionListViewTests(BaseProjectViewTest):
 
     def test_get_my_review_solutions(self):
         """ Test simple GET of my solutions to review view. """
-        for i in range(0,3):  # to test generators
-            s = models.get_mock_solution(
-                self.project, models.get_mock_user('dan'+str(i)),
+        for i in range(0, 3):  # to test generators
+            models.get_mock_solution(
+                self.project, models.get_mock_user('dan' + str(i)),
                 is_completed=True)
         self._test_get_solution_list(views.MyReviewSolutionsView.as_view())
 
     def test_get_my_reviewed_solutions(self):
         """ Test simple GET of my reviewed solutions view. """
-        for i in range(0,3):  # to test generators
+        for i in range(0, 3):  # to test generators
             s = models.get_mock_solution(
-                self.project, models.get_mock_user('dan'+str(i)),
+                self.project, models.get_mock_user('dan' + str(i)),
                 is_completed=True)
             s.put_vote(self.user, 3)
         self._test_get_solution_list(views.MyReviewedSolutionsView.as_view())
 
     def test_get_all_incomplete_solutions(self):
         """ Test simple GET of all incomplete solutions view. """
-        self._test_get_solution_list(views.AllIncompleteSolutionsView.as_view())
+        self._test_get_solution_list(
+            views.AllIncompleteSolutionsView.as_view())
 
     def test_get_all_complete_solutions(self):
         """ Test simple GET of all complete solutions view. """

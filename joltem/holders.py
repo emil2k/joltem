@@ -1,7 +1,13 @@
+""" Rare using functionality. """
+
 
 class CommentHolder:
+
+    """ Should have a docstring. """
+
     def __init__(self, comment, user):
         from joltem.models import Vote
+
         self.comment = comment
         self.url = comment.get_comment_url()
         try:
@@ -13,13 +19,18 @@ class CommentHolder:
 
     @classmethod
     def get_comments(cls, query_set, user):
-        """
-        Get all comments in query set, and determine the passed user's vote on them
+        """ Get all comments in queryset and determine the passed user's vote.
+
+        :return list:
+
         """
         return [CommentHolder(comment, user) for comment in query_set]
 
 
 class NotificationHolder:
+
+    """ Should have a docstring. """
+
     def __init__(self, notification):
         self.notification = notification
         self.notifying = notification.notifying
@@ -28,7 +39,12 @@ class NotificationHolder:
 
     @classmethod
     def get_notifications(cls, user):
+        """ Get all notifications (in holders) for the passed user.
+
+        :return list:
+
         """
-        Get all notifications (in holders) for the passed user
-        """
-        return [NotificationHolder(notification) for notification in user.notification_set.all().order_by("-time_notified")]
+        return [
+            NotificationHolder(notification)
+            for notification in user.notification_set.all().order_by(
+                "-time_notified")]

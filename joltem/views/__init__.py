@@ -1,10 +1,12 @@
+""" Joltem views. """
+
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.utils import timezone
 from django.views.generic.base import TemplateView, RedirectView, View
 
-from joltem.models import User, Invite, Notification, Comment
+from joltem.models import Invite, Notification, Comment
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
@@ -31,11 +33,12 @@ class HomeView(View):
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
             return redirect('project:project', project_name=project.name)
-        elif 'invite_code' in request.COOKIES:
+
+        if 'invite_code' in request.COOKIES:
             invite_code = request.COOKIES['invite_code']
-            invite = Invite.is_valid(invite_code)
-            if invite:
-                context = {"invite": invite}
+            invite_ = Invite.is_valid(invite_code)
+            if invite_:
+                context = {"invite": invite_}
                 return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
 
@@ -52,7 +55,6 @@ class UserView(View):
         :return:
 
         """
-        profile_user = get_object_or_404(User, username=username)
         context = {
             'user': request.user,  # user viewing the page
             'profile_user': request.user  # the user whose profile it is
@@ -82,12 +84,17 @@ class CommentView(View):
 
 class NotificationsView(TemplateView, RequestBaseView):
 
-    """
-    Displays the users notifications
-    """
+    """ Displays the users notifications. """
+
     template_name = "joltem/notifications.html"
 
     def post(self, request, *args, **kwargs):
+        """ Clear all notification.
+
+        :return redirect:
+
+        """
+
         if request.POST.get("clear_all"):
             for notification in request.user.notification_set.filter(is_cleared=False):
                 notification.mark_cleared()

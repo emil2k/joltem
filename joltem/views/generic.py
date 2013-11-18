@@ -42,6 +42,7 @@ class RequestBaseView(ContextMixin, View):
             [context_processors.request]
         )
 
+
 class NavTabContextMixin(ContextMixin):
 
     """ Mixin to pass the navigation tab to the template. """
@@ -52,7 +53,6 @@ class NavTabContextMixin(ContextMixin):
         """ Return context for template, add nav tab identifier. """
         kwargs["nav_tab"] = self.nav_tab
         return super(NavTabContextMixin, self).get_context_data(**kwargs)
-
 
 
 class TextContextMixin(ContextMixin):
@@ -75,8 +75,8 @@ class TextContextMixin(ContextMixin):
         """ Return context for template, load file contents into context. """
         text_loader = TextLoader()
         for i, text_name in enumerate(self.text_names):
-            kwargs[self.text_context_object_prefix + str(i + 1)], filepath = \
-                text_loader(text_name)
+            kwargs[self.text_context_object_prefix + str(i + 1)] = text_loader(
+                text_name)
         return super(TextContextMixin, self).get_context_data(**kwargs)
 
 
@@ -100,7 +100,7 @@ class VoteableView(RequestBaseView):
                 and input_voteable_type is not None:
             input_vote = int(input_vote)
             input_voteable_id = int(input_voteable_id)
-            input_vote = Vote.MAXIMUM_MAGNITUDE if input_vote > Vote.MAXIMUM_MAGNITUDE else input_vote  # enforce max
+            input_vote = Vote.MAXIMUM_MAGNITUDE if input_vote > Vote.MAXIMUM_MAGNITUDE else input_vote  # noqa: enforce max
             input_vote = 0 if input_vote < 0 else input_vote  # enforce min
             # Determine voteable type
             if input_voteable_type == 'solution':
@@ -119,9 +119,11 @@ class VoteableView(RequestBaseView):
         kwargs["maximum_magnitude"] = Vote.MAXIMUM_MAGNITUDE
         return super(VoteableView, self).get_context_data(**kwargs)
 
-    def get_vote_redirect(self):
+    @staticmethod
+    def get_vote_redirect():
         """ Override to return url to redirect to after voting. """
-        raise ImproperlyConfigured("Vote redirect needs to be defined in extending class.")
+        raise ImproperlyConfigured(
+            "Vote redirect needs to be defined in extending class.")
 
 
 class CommentableView(RequestBaseView):
@@ -135,7 +137,7 @@ class CommentableView(RequestBaseView):
         on the commentable instance. Returns HTTP response.
 
         """
-        commentable = self.get_commentable()
+        commentable = self.get_commentable() # noqa
         # Edit or delete comment
         comment_edit = request.POST.get('comment_edit')
         comment_delete = request.POST.get('comment_delete')
@@ -144,8 +146,10 @@ class CommentableView(RequestBaseView):
                 (comment_edit or comment_delete) and comment_id:
             try:
                 comment = Comment.objects.get(id=comment_id)
-            except Comment.DoesNotExist, Comment.MultipleObjectsReturned:
-                return HttpResponseNotFound("Comment with not found with id : %s" % comment_id)
+            except Comment.DoesNotExist as xxx_todo_changeme:
+                Comment.MultipleObjectsReturned = xxx_todo_changeme
+                return HttpResponseNotFound(
+                    "Comment with not found with id : %s" % comment_id)
             else:
                 if not comment.is_owner(request.user):
                     return HttpResponseForbidden("Not your comment.")
@@ -156,7 +160,8 @@ class CommentableView(RequestBaseView):
                     comment.comment = comment_edit
                     comment.save()
                     # For jeditable return data to display
-                    return HttpResponse(markdown(comment.comment, arg='tables,fenced_code'))
+                    return HttpResponse(
+                        markdown(comment.comment, arg='tables,fenced_code'))
         # Post a comment
         comment_text = request.POST.get('comment')
         if comment_text is not None:
@@ -165,14 +170,19 @@ class CommentableView(RequestBaseView):
 
         return super(CommentableView, self).post(request, *args, **kwargs)
 
-    def get_commentable(self):
+    @staticmethod
+    def get_commentable():
         """ Override to return the commentable instance. """
-        raise ImproperlyConfigured("Commentable needs to be defined in extending class.")
+        raise ImproperlyConfigured(
+            "Commentable needs to be defined in extending class.")
 
-    def get_commentable_owner(self):
+    @staticmethod
+    def get_commentable_owner():
         """ Override to return commentable owner. """
         return None
 
-    def get_comment_redirect(self):
+    @staticmethod
+    def get_comment_redirect():
         """ Override to return url to redirect to after commenting. """
-        raise ImproperlyConfigured("Comment redirect needs to be defined in extending class.")
+        raise ImproperlyConfigured(
+            "Comment redirect needs to be defined in extending class.")
