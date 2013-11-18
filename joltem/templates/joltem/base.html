@@ -81,13 +81,9 @@
                                 Hello, {{ user.first_name }} <b class="caret"></b>
                             </a>
                             <ul class="dropdown-menu pull-right">
-                                {% if user.is_superuser %}
-                                    <li class="{{ nav_tab|active:"invite"}}"><a href="{% url 'invites' %}">Invite</a></li>
-                                {% endif %}
                                 <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
                                 <li class="divider"></li>
                                 <li><a href="{% url 'sign_out' %}">Sign Out</a></li>
-
                             </ul>
                         </li>
                     {% else %}

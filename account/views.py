@@ -7,12 +7,24 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import user_passes_test
 
-from common.views import ValidUserMixin
+from joltem.views.generic import ValidUserMixin
 from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
 
 
-class SignUpView(CreateView):
+class ExtraContextMixin(object):
+    """Accepts ``extra_context`` dict in ``django.contrib.auth`` way."""
 
+    def get_context_data(self, **kwargs):
+        context = super(ExtraContextMixin, self).get_context_data(**kwargs)
+
+        extra_context = self.kwargs.get('extra_context')
+        if extra_context is not None:
+            context.update(extra_context)
+
+        return context
+
+
+class SignUpView(ExtraContextMixin, CreateView):
     """Creates new user.
 
     In addition to creating new user it:
@@ -47,18 +59,13 @@ class SignUpView(CreateView):
 
         return response
 
-    def get_context_data(self, **kwargs):
-        context = super(SignUpView, self).get_context_data(**kwargs)
 
-        extra_context = self.kwargs.get('extra_context')
-        if extra_context is not None:
-            context.update(extra_context)
-
-        return context
+class BaseAccountView(ValidUserMixin, ExtraContextMixin):
+    """Provides ``login_required`` decorator and extra context acceptance.
+    """
 
 
-class GeneralSettingsView(ValidUserMixin, UpdateView):
-
+class GeneralSettingsView(BaseAccountView, UpdateView):
     """Updates user's general settings."""
 
     form_class = GeneralSettingsForm
@@ -77,18 +84,8 @@ class GeneralSettingsView(ValidUserMixin, UpdateView):
 
         return response
 
-    def get_context_data(self, **kwargs):
-        context = super(GeneralSettingsView, self).get_context_data(**kwargs)
 
-        extra_context = self.kwargs.get('extra_context')
-        if extra_context is not None:
-            context.update(extra_context)
-
-        return context
-
-
-class SSHKeyCreateView(ValidUserMixin, CreateView):
-
+class SSHKeyCreateView(BaseAccountView, CreateView):
     """Adds public SSH key to account and shows available ones."""
 
     form_class = SSHKeyForm
@@ -105,16 +102,12 @@ class SSHKeyCreateView(ValidUserMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(SSHKeyCreateView, self).get_context_data(**kwargs)
 
-        extra_context = self.kwargs.get('extra_context')
-        if extra_context is not None:
-            context.update(extra_context)
         context['ssh_key_list'] = self.request.user.authentication_set.all()
 
         return context
 
 
-class SSHKeyDeleteView(ValidUserMixin, DeleteView):
-
+class SSHKeyDeleteView(BaseAccountView, DeleteView):
     """Deletes public SSH key by id from account."""
 
     template_name = 'account/ssh_key_confirm_delete.html'
@@ -122,12 +115,3 @@ class SSHKeyDeleteView(ValidUserMixin, DeleteView):
 
     def get_queryset(self):
         return self.request.user.authentication_set
-
-    def get_context_data(self, **kwargs):
-        context = super(SSHKeyDeleteView, self).get_context_data(**kwargs)
-
-        extra_context = self.kwargs.get('extra_context')
-        if extra_context is not None:
-            context.update(extra_context)
-
-        return context

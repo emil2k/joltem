@@ -1,5 +1,7 @@
 """ Generic base views used across the site. """
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.generic.base import View, ContextMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
@@ -186,3 +188,10 @@ class CommentableView(RequestBaseView):
         """ Override to return url to redirect to after commenting. """
         raise ImproperlyConfigured(
             "Comment redirect needs to be defined in extending class.")
+
+
+class ValidUserMixin(object):
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)

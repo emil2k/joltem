@@ -1,12 +1,10 @@
+# coding: utf-8
 """ Joltem views. """
-
-from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404, resolve_url
-from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.base import TemplateView, RedirectView, View
 
-from joltem.models import Invite, Notification, Comment
+from joltem.models import Notification, Comment
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
@@ -18,9 +16,7 @@ class HomeView(View):
     def get(self, request, *args, **kwargs):
         """ Handle GET request.
 
-        If user is authenticated redirect to project dashboard, if not
-        check that the user has an invite cookie.
-
+        If user is authenticated redirect to project dashboard.
         Otherwise redirect to sign in while closed alpha.
 
         :param request:
@@ -33,13 +29,6 @@ class HomeView(View):
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
             return redirect('project:project', project_name=project.name)
-
-        if 'invite_code' in request.COOKIES:
-            invite_code = request.COOKIES['invite_code']
-            invite_ = Invite.is_valid(invite_code)
-            if invite_:
-                context = {"invite": invite_}
-                return render(request, 'joltem/invitation.html', context)
         return redirect('sign_in')
 
 
@@ -130,122 +119,3 @@ class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
     template_name = "joltem/introduction.html"
     text_names = ["joltem/introduction.md"]
     text_context_object_prefix = "introduction_"
-
-
-# TODO Invitation views, deprecated no need to rewrite will be removed soon
-
-@login_required
-def invites(request):
-    user = request.user
-    if not user.is_superuser:
-        return redirect('home')
-    from joltem.models import Invite
-    context = {
-        'nav_tab': "invite",
-        'contacted_invites': Invite.objects.filter(is_contacted=True, is_signed_up=False).order_by('-time_contacted', '-time_sent'),
-        'signed_up_invites': Invite.objects.filter(is_signed_up=True).order_by('-time_signed_up', '-time_sent'),
-        'potential_invites': Invite.objects.filter(is_signed_up=False, is_contacted=False).order_by('-id'),
-    }
-    if request.POST:
-        mark_sent_id = request.POST.get('mark_sent')
-        if mark_sent_id:
-            mark_sent = Invite.objects.get(id=mark_sent_id)
-            mark_sent.is_sent = True
-            mark_sent.time_sent = timezone.now()
-            mark_sent.save()
-            return redirect('invites')
-        mark_contacted_id = request.POST.get('mark_contacted')
-        if mark_contacted_id:
-            mark_contacted = Invite.objects.get(id=mark_contacted_id)
-            mark_contacted.is_contacted = True
-            mark_contacted.time_contacted = timezone.now()
-            mark_contacted.save()
-            return redirect('invites')
-        first_name = request.POST.get('first_name')
-        if first_name:
-            from uuid import uuid4
-            personal_note = request.POST.get('personal_note')
-            last_name = request.POST.get('last_name')
-            email = request.POST.get('email')
-            personal_site = request.POST.get('personal_site')
-            twitter = request.POST.get('twitter')
-            facebook = request.POST.get('facebook')
-            stackoverflow = request.POST.get('stackoverflow')
-            github = request.POST.get('github')
-            uuid = uuid4()
-            invite_code = uuid.hex
-            invite = Invite(
-                invite_code=invite_code,
-                first_name=first_name,
-                last_name=last_name,
-                personal_note=personal_note,
-                email=email,
-                personal_site=personal_site,
-                twitter=twitter,
-                facebook=facebook,
-                stackoverflow=stackoverflow,
-                github=github
-            )
-            invite.save()
-        return redirect('invites')
-    return render(request, 'joltem/invites.html', context)
-
-
-def invite(request, invite_id):
-    user = request.user
-    if not user.is_authenticated():
-        from django.http.response import HttpResponseRedirect
-        invitation_redirect = HttpResponseRedirect(resolve_url(
-            'home'))  # TODO change to redirect to home which is the invitation page
-        invite = Invite.is_valid(invite_id)
-        if invite:
-            invite.is_clicked = True
-            invite.time_clicked = timezone.now()
-            invite.save()
-            invitation_redirect.set_cookie('invite_code', invite_id)
-        return invitation_redirect
-    elif not user.is_superuser:
-        return redirect('home')
-    invite = get_object_or_404(Invite, id=invite_id)
-    context = {
-        'nav_tab': "invite",
-        'invite': invite,
-        'host': request.get_host(),
-    }
-    if request.POST:
-        action = request.POST.get('action')
-        if action == "delete":
-            invite.delete()
-            return redirect('invites')
-        elif action == "mark_sent":
-            invite.is_sent = True
-            invite.time_sent = timezone.now()
-            invite.save()
-            return redirect('invite', invite_id=invite_id)
-        elif action == "mark_contacted":
-            invite.is_contacted = True
-            invite.time_contacted = timezone.now()
-            invite.save()
-            return redirect('invite', invite_id=invite_id)
-        first_name = request.POST.get('first_name')
-        if first_name:
-            personal_note = request.POST.get('personal_note')
-            last_name = request.POST.get('last_name')
-            email = request.POST.get('email')
-            personal_site = request.POST.get('personal_site')
-            twitter = request.POST.get('twitter')
-            facebook = request.POST.get('facebook')
-            stackoverflow = request.POST.get('stackoverflow')
-            github = request.POST.get('github')
-            invite.first_name = first_name
-            invite.last_name = last_name
-            invite.personal_note = personal_note
-            invite.email = email
-            invite.personal_site = personal_site
-            invite.twitter = twitter
-            invite.facebook = facebook
-            invite.stackoverflow = stackoverflow
-            invite.github = github
-            invite.save()
-        return redirect('invite', invite_id=invite_id)
-    return render(request, 'joltem/invite.html', context)
