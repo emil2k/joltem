@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse_lazy
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -106,5 +106,24 @@ class SSHKeyCreateView(ValidUserMixin, CreateView):
         if extra_context is not None:
             context.update(extra_context)
         context['ssh_key_list'] = self.request.user.authentication_set.all()
+
+        return context
+
+
+class SSHKeyDeleteView(ValidUserMixin, DeleteView):
+    """Deletes public SSH key by id from account."""
+
+    template_name = 'account/ssh_key_confirm_delete.html'
+    success_url = reverse_lazy('account_keys')
+
+    def get_queryset(self):
+        return self.request.user.authentication_set
+
+    def get_context_data(self, **kwargs):
+        context = super(SSHKeyDeleteView, self).get_context_data(**kwargs)
+
+        extra_context = self.kwargs.get('extra_context')
+        if extra_context is not None:
+            context.update(extra_context)
 
         return context

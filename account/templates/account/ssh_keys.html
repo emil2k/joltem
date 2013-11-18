@@ -6,10 +6,10 @@
 {% for key in ssh_key_list %}
 <div class="row">
     <div class="pull-right hidden-desktop hidden-tablet">
-        <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+        <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
     </div>
     <div class="span1 hidden-phone">
-        <button class="btn btn-mini" name="remove" value="{{ key.id }}">remove</button>
+        <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
     </div>
     <div class="span9">
         <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
