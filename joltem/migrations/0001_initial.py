@@ -236,14 +236,6 @@ class Migration(SchemaMigration):
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
         },
-        u'project.project': {
-            'Meta': {'object_name': 'Project'},
-            'admin_set': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['joltem.User']", 'symmetrical': 'False'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
-        }
     }
 
     complete_apps = ['joltem']

@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
 
     depends_on = (
-            ('project', '0001_initial'),
+        ('project', '0001_initial'),
     )
 
     def forwards(self, orm):
@@ -17,11 +15,9 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Comment.project'
         db.delete_column(u'joltem_comment', 'project_id')
-
 
     models = {
         u'auth.group': {

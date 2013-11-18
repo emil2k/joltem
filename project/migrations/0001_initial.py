@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,7 +7,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     depends_on = (
-            ('joltem', '0001_initial'),
+        ('joltem', '0001_initial'),
     )
 
     def forwards(self, orm):
@@ -55,7 +54,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Impact'
         db.delete_table(u'project_impact')
-
 
     models = {
         u'auth.group': {
