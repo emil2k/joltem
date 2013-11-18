@@ -527,3 +527,39 @@ vLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH
             'key',
             errors=self.error_messages['unknown_key'],
         )
+
+
+ACCOUNT_SSH_KEY_DELETE_URL = '/account/keys/{}/delete/'
+SSH_KEY_DELETE_FORM_ID = 'account-ssh-key-delete-form'
+
+
+class AccountSSHKeyDeleteTest(WebTest, tests.ViewTestMixin):
+
+    def setUp(self):
+        self.user = factories.UserF()
+        self.ssh_key = factories.AuthenticationF(user=self.user, name='key666')
+
+        self.delete_url = ACCOUNT_SSH_KEY_DELETE_URL.format(self.ssh_key.pk)
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.delete_url)
+
+        self._test_sign_in_redirect_url(response, self.delete_url)
+
+    def test_user_can_delete_only_his_keys(self):
+        stranger = factories.UserF()
+        self.app.get(self.delete_url, user=stranger, status=404)
+
+    def test_user_successfully_deleted_ssh_key(self):
+        response = self.app.get(self.delete_url, user=self.user)
+
+        self.assertContains(response, 'key666')
+
+        form = response.forms[SSH_KEY_DELETE_FORM_ID]
+        response = form.submit()
+
+        self.assertRedirects(response, ACCOUNT_SSH_KEYS_URL)
+
+        self.assertFalse(
+            Authentication.objects.filter(name='key666').exists()
+        )
