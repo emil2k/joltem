@@ -2,12 +2,14 @@ from django import template
 
 register = template.Library()
 
+
 @register.filter
 def as_percentage_of(part, whole):
     try:
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
         return ""
+
 
 @register.filter
 def active(check, active):
@@ -43,19 +45,22 @@ def is_match(string, actual, expected):
     if actual == expected:
         return string
 
+
 @register.filter
 def icon_white(actual, expected):
     return is_match('icon-white', actual, expected)
+
 
 @register.filter
 def btn_success(actual, expected):
     return is_match('btn-success', actual, expected)
 
+
 @register.filter
 def btn_danger(actual, expected):
     return is_match('btn-danger', actual, expected)
 
+
 @register.filter
 def btn_warning(actual, expected):
     return is_match('btn-warning', actual, expected)
-

@@ -13,7 +13,7 @@ from git.utils import get_checkout_oid, get_branch_reference
 from git.models import Repository
 from project.models import Project
 from joltem.libs.mock.models import (get_mock_user, get_mock_solution,
-                                  get_mock_task)
+                                     get_mock_task)
 
 
 def get_mock_repository(name, project, is_hidden=False, description=None):
@@ -162,7 +162,8 @@ class SolutionTestCase(RepositoryTestCase):
         self.emil = get_mock_user("emil", first_name="Emil")
         self.emil_signature = get_mock_signature(self.emil.first_name,
                                                  self.emil.email)
-        self.solution = get_mock_solution(self.project, self.emil)  # a suggested solution
+        # a suggested solution
+        self.solution = get_mock_solution(self.project, self.emil)
 
     # Custom assertions
 
@@ -221,7 +222,8 @@ class ReferenceTestCase(SolutionTestCase):
         self.assertEqual(self.solution.get_parent_reference(),
                          'refs/heads/master')  # still should default to master because branching from a root task
         # Add a parent solution for the parent task
-        parent_solution = get_mock_solution(self.project, get_mock_user('zack'))
+        parent_solution = get_mock_solution(
+            self.project, get_mock_user('zack'))
         task.parent = parent_solution
         task.save()
         self.assertEqual(self.solution.get_parent_reference(),
@@ -232,7 +234,8 @@ class ReferenceTestCase(SolutionTestCase):
         self.assertEqual(self.solution.get_parent_reference(),
                          'refs/heads/master')  # default solution is a suggested solution
         # Add a parent solution
-        parent_solution = get_mock_solution(self.project, get_mock_user('zack'))
+        parent_solution = get_mock_solution(
+            self.project, get_mock_user('zack'))
         self.solution.solution = parent_solution
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(),
@@ -258,7 +261,8 @@ class CommitSetTestCase(SolutionTestCase):
             self.pygit_repository, self.emil_signature,
             self.solution.get_branch_name(), [commit_oid])
 
-        # Create suggested solution for this solution branch and make a few commits to it
+        # Create suggested solution for this solution branch and make a few
+        # commits to it
         child_solution = get_mock_solution(self.project, self.emil,
                                            solution=self.solution)
         child_solution_commits = [c for c in mock_commits(
@@ -302,7 +306,8 @@ class CommitSetTestCase(SolutionTestCase):
             self.solution.get_branch_name(), [commit_oid])
         parent_solution_oid = commit_oid
 
-        # Create suggested solution for this branch and make a few commits to it
+        # Create suggested solution for this branch and make a few commits to
+        # it
         child_solution = get_mock_solution(self.project, self.emil,
                                            solution=self.solution)
         child_solution_commits = [c for c in mock_commits(

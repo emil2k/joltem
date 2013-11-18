@@ -55,7 +55,8 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_packet_line(raw), expected)
 
     def test_get_packet_line_invalid(self):
-        raw = 'x' * (int('ffff', 16) - 4 + 1)  # generate string one byte longer than can be packed
+        # generate string one byte longer than can be packed
+        raw = 'x' * (int('ffff', 16) - 4 + 1)
         with self.assertRaises(IOError):
             get_packet_line(raw)
 
@@ -68,7 +69,8 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_packet_line_size(raw, 6), 63)
 
     def test_get_packet_line_size_from_bytearray(self):
-        raw = bytearray('003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
+        raw = bytearray(
+            '003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
         self.assertEqual(get_packet_line_size(raw), 63)
 
     def test_get_packet_line_size_invalid(self):
@@ -83,17 +85,21 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_unpack_status('ok'), 'unpack ok\n')
 
     def test_get_unpack_status_error(self):
-        self.assertEqual(get_unpack_status('permission denied'), 'unpack permission denied\n')
+        self.assertEqual(get_unpack_status('permission denied'),
+                         'unpack permission denied\n')
 
     def test_get_command_status_default(self):
-        self.assertEqual(get_command_status('refs/heads/master'), 'ok refs/heads/master\n')
+        self.assertEqual(get_command_status('refs/heads/master'),
+                         'ok refs/heads/master\n')
 
     def test_get_command_status_ok(self):
-        self.assertEqual(get_command_status('refs/heads/master', 'ok'), 'ok refs/heads/master\n')
+        self.assertEqual(get_command_status('refs/heads/master', 'ok'),
+                         'ok refs/heads/master\n')
 
     def test_get_command_status_error(self):
-        self.assertEqual(get_command_status('refs/heads/master', 'permission denied'),
-                         'ng refs/heads/master permission denied\n')
+        self.assertEqual(
+            get_command_status('refs/heads/master', 'permission denied'),
+            'ng refs/heads/master permission denied\n')
 
     def test_get_report(self):
         expected = '0077\x01001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
@@ -101,7 +107,8 @@ class TestingGitProtocolUtilities(TestCase):
             ('refs/heads/master', 'permission-denied'),
             ('refs/heads/s/1', 'push-seperately'),
         ]
-        self.assertEqual(get_report(command_statuses, 'permission-denied'), expected)
+        self.assertEqual(
+            get_report(command_statuses, 'permission-denied'), expected)
 
 
 class TestSSH(TestCase):

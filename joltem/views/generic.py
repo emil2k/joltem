@@ -137,7 +137,7 @@ class CommentableView(RequestBaseView):
         on the commentable instance. Returns HTTP response.
 
         """
-        commentable = self.get_commentable() # noqa
+        commentable = self.get_commentable()  # noqa
         # Edit or delete comment
         comment_edit = request.POST.get('comment_edit')
         comment_delete = request.POST.get('comment_delete')

@@ -165,6 +165,7 @@ class TaskEditView(TemplateView, TaskBaseView):
             context['error'] = "Title is required."
             return render(request, 'task/task_edit.html', context)
 
+
 class TaskCreateView(TemplateView, ProjectBaseView):
     template_name = "task/new_task.html"
     parent_solution = None
@@ -206,6 +207,7 @@ class TaskCreateView(TemplateView, ProjectBaseView):
             context = self.get_context_data(**kwargs)
             context['error'] = "Title is required."
             return render(request, 'task/new_task.html', context)
+
 
 class TaskBaseListView(ListView, ProjectBaseView):
 

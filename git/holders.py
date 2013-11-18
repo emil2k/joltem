@@ -68,7 +68,6 @@ class LineHolder():
         self.old_line_number = 0
         self.new_line_number = 0
 
-
     @property
     def is_addition(self):
         """
@@ -82,5 +81,3 @@ class LineHolder():
         Checks if act string, is "-" representing a deletion in pygit line
         """
         return self.act == "-"
-
-

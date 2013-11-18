@@ -18,13 +18,18 @@ logger = logging.getLogger('django')
 # Notification related
 
 class Notification(models.Model):
+
     """
     Notification to a user
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL)  # user to notify
-    type = models.CharField(max_length=200, null=True, blank=True) # notification type, since each model may have multiple different notifications
-    json_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
-    is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
+    # notification type, since each model may have multiple different
+    # notifications
+    type = models.CharField(max_length=200, null=True, blank=True)
+    # pass to the notifying class to determine url and text of notification
+    json_kwargs = models.CharField(max_length=200, null=True, blank=True)
+    # whether the notification has been clicked or marked cleared
+    is_cleared = models.BooleanField(default=False)
     time_notified = models.DateTimeField(default=timezone.now)
     time_cleared = models.DateTimeField(null=True, blank=True)
     # Generic relations
@@ -50,6 +55,7 @@ class Notification(models.Model):
 
 
 class Notifying(models.Model):
+
     """
     Abstract, an object that can produce notifications
     """
@@ -65,7 +71,8 @@ class Notifying(models.Model):
             # Just create a new notification
             self.create_notification(user, type, kwargs)
         else:
-            # Attempt to update the latest notifications instead of creating a new one
+            # Attempt to update the latest notifications instead of creating a
+            # new one
             notifying_type = ContentType.objects.get_for_model(self)
             notifications = Notification.objects.filter(
                 user_id=user.id,
@@ -74,7 +81,8 @@ class Notifying(models.Model):
                 notifying_id=self.id
             )
             if notifications.count() > 0:
-                self.update_notification(notifications[0])  # update latest notification
+                # update latest notification
+                self.update_notification(notifications[0])
             else:
                 self.create_notification(user, type, kwargs)
 
@@ -114,14 +122,16 @@ class Notifying(models.Model):
         """
         Get notification text for a given notification
         """
-        raise ImproperlyConfigured("Extending class must implement get notification text.")
+        raise ImproperlyConfigured(
+            "Extending class must implement get notification text.")
 
     def get_notification_url(self, notification):
         """
         Get notification url for a given notification, implementation should use reverse
         and should not hard code urls
         """
-        raise ImproperlyConfigured("Extending class must implement get notification url.")
+        raise ImproperlyConfigured(
+            "Extending class must implement get notification url.")
 
 
 post_save.connect(update_notification_count, sender=Notification)

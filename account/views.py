@@ -12,6 +12,7 @@ from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
 
 
 class SignUpView(CreateView):
+
     """Creates new user.
 
     In addition to creating new user it:
@@ -57,6 +58,7 @@ class SignUpView(CreateView):
 
 
 class GeneralSettingsView(ValidUserMixin, UpdateView):
+
     """Updates user's general settings."""
 
     form_class = GeneralSettingsForm
@@ -86,6 +88,7 @@ class GeneralSettingsView(ValidUserMixin, UpdateView):
 
 
 class SSHKeyCreateView(ValidUserMixin, CreateView):
+
     """Adds public SSH key to account and shows available ones."""
 
     form_class = SSHKeyForm
@@ -111,6 +114,7 @@ class SSHKeyCreateView(ValidUserMixin, CreateView):
 
 
 class SSHKeyDeleteView(ValidUserMixin, DeleteView):
+
     """Deletes public SSH key by id from account."""
 
     template_name = 'account/ssh_key_confirm_delete.html'

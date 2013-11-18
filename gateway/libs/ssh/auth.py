@@ -83,7 +83,7 @@ class GatewayCredentialChecker(object):
                 key = Authentication.load_key(credentials.blob)
             except BadKeyError:
                 return Failure(UnauthorizedLogin(
-                    "Invalid credentials provided, setup RSA keys for your SSH.")) # noqa
+                    "Invalid credentials provided, setup RSA keys for your SSH."))  # noqa
             else:
                 provided_fp = key.fingerprint()
                 log.msg("Fingerprint of provided RSA key : %s" % provided_fp,
@@ -117,4 +117,4 @@ class DummyEmilChecker(object):
         if credentials.username == "emil":
             return succeed("emil")
         else:
-            return Failure(UnauthorizedLogin("You are %s, not `emil`. Login failed." % credentials.username)) # noqa
+            return Failure(UnauthorizedLogin("You are %s, not `emil`. Login failed." % credentials.username))  # noqa

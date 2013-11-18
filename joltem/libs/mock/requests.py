@@ -40,6 +40,7 @@ class MockUser(object):
         """ Return user's mock profile. """
         pass
 
+
 def mock_authentication_middleware(request, user=None, is_authenticated=False):
     """
     A way to mock the authentication network to set

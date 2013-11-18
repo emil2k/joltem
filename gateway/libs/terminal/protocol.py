@@ -57,7 +57,7 @@ class GatewayTerminalProtocol(HistoricRecvLine):
             if func:
                 try:
                     func(*args)
-                except Exception, e: # noqa
+                except Exception, e:  # noqa
                     self.write_to_terminal("Error: %s" % e)
                     self.terminal.nextLine()
             else:

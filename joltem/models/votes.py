@@ -20,7 +20,9 @@ class Vote(models.Model):
 
     voter_impact = models.BigIntegerField()  # at time of vote
     is_accepted = models.BooleanField(default=False)
-    magnitude = models.SmallIntegerField(null=True, blank=True)  # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one star and so on ...
+    # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one
+    # star and so on ...
+    magnitude = models.SmallIntegerField(null=True, blank=True)
     time_voted = models.DateTimeField(default=timezone.now)
     # Relations
     voter = models.ForeignKey(settings.AUTH_USER_MODEL)
@@ -54,7 +56,8 @@ class Voteable(Notifying, Owned, ProjectContext):
     """ An abstract object, that can be voted on for impact determination. """
 
     impact = models.BigIntegerField(null=True, blank=True)
-    acceptance = models.SmallIntegerField(null=True, blank=True)  # impact-weighted percentage of acceptance
+    # impact-weighted percentage of acceptance
+    acceptance = models.SmallIntegerField(null=True, blank=True)
     # Generic relations
     vote_set = generic.GenericRelation('joltem.Vote',
                                        content_type_field='voteable_type',
