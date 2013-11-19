@@ -61,8 +61,8 @@ class GeneralSettingsForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'notify_by_email')
-        fields = ('email', 'first_name', 'last_name')
+        fields = ('email', 'first_name', 'last_name', 'gravatar_email',
+                  'notify_by_email')
 
 
 class SSHKeyForm(forms.ModelForm):

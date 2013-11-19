@@ -53,6 +53,6 @@ django initial data:
     - cwd: {{ pillar['website_src_dir'] }}
     - name: >
               source {{ pillar['website_venv_activate_path'] }} &&
-              python -m common.factories
+              python -m joltem.libs.factories
     - require:
       - module: django-admin migrate

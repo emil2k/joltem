@@ -39,7 +39,6 @@ INSTALLED_APPS += (
     'task',
     'git',
     'help',
-    'common',
 )
 
 DATABASES = {

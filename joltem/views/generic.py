@@ -1,5 +1,7 @@
 """ Generic base views used across the site. """
 
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.generic.base import View, ContextMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.core import context_processors
@@ -75,8 +77,11 @@ class TextContextMixin(ContextMixin):
         """ Return context for template, load file contents into context. """
         text_loader = TextLoader()
         for i, text_name in enumerate(self.text_names):
-            kwargs[self.text_context_object_prefix + str(i + 1)] = text_loader(
-                text_name)
+            template_var_name = '{prefix}{index}'.format(
+                prefix=self.text_context_object_prefix,
+                index=i + 1,
+            )
+            kwargs[template_var_name], __ = text_loader(text_name)
         return super(TextContextMixin, self).get_context_data(**kwargs)
 
 
@@ -186,3 +191,10 @@ class CommentableView(RequestBaseView):
         """ Override to return url to redirect to after commenting. """
         raise ImproperlyConfigured(
             "Comment redirect needs to be defined in extending class.")
+
+
+class ValidUserMixin(object):
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)
