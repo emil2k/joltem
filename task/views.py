@@ -303,17 +303,18 @@ class AllOpenTasksView(TaskBaseListView):
         :return Queryset:
 
         """
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=False
-        ).order_by('-time_posted')
+        return self.project.task_set \
+                           .filter(is_accepted=True, is_closed=False) \
+                           .order_by('-priority', '-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):
     tasks_tab = "all_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=True).order_by('-time_closed')
+        return self.project.task_set \
+                           .filter(is_accepted=True, is_closed=True) \
+                           .order_by('-priority', '-time_closed')
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
