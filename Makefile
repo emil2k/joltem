@@ -96,5 +96,4 @@ test_gateway: $(ENV) gateway
 
 .PHONY: celery
 celery: $(ENV)
-	$(ENV)/bin/celery -A joltem worker -l info
-
+	$(ENV)/bin/celery -A joltem worker -B -l info

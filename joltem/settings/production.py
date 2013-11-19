@@ -1,4 +1,5 @@
 """ Project's settings. """
+from datetime import timedelta
 
 from .core import *
 
@@ -62,7 +63,15 @@ GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa')
 GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa.pub')
 
 # Celery settings
-BROKER_URL = "redis://localhost:6379/"
+BROKER_URL = "redis://localhost:6379/0"
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
+
+CELERYBEAT_SCHEDULE = {
+    'daily-diggest': {
+        'task': 'joltem.tasks.daily_diggest',
+        'schedule': timedelta(hours=24),
+        'args': (),
+    }
+}
 
 logging.info("Production settings loaded.")

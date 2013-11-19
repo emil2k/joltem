@@ -48,7 +48,7 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 # Celery settings
-CELERYD_CONCURRENCY = 1
+# CELERYD_CONCURRENCY = 1
 
 logging.info('Develop settings are loaded.')
 
