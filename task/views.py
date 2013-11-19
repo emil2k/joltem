@@ -2,15 +2,17 @@
 
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView
-from django.views.generic.list import ListView
+from django.views.generic import TemplateView, CreateView, ListView
+from django.core.urlresolvers import reverse_lazy
 from django.utils import timezone
 
 from joltem.holders import CommentHolder
-from task.models import Task, Vote
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
+
+from .models import Task, Vote
+from .forms import TaskCreateForm
 
 
 class TaskBaseView(ProjectBaseView):
@@ -166,47 +168,59 @@ class TaskEditView(TemplateView, TaskBaseView):
             return render(request, 'task/task_edit.html', context)
 
 
-class TaskCreateView(TemplateView, ProjectBaseView):
-    template_name = "task/new_task.html"
+class TaskCreateView(ProjectBaseView, CreateView):
+
+    form_class = TaskCreateForm
+    template_name = 'task/new_task.html'
+
     parent_solution = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(TaskCreateView, self).initiate_variables(
-            request, *args, **kwargs)
-        parent_solution_id = self.kwargs.get("parent_solution_id", None)
+        super(TaskCreateView, self).initiate_variables(request, *args, **kwargs)
+
+        parent_solution_id = self.kwargs.get('parent_solution_id')
         if parent_solution_id is not None:
             self.parent_solution = get_object_or_404(
-                Solution, id=parent_solution_id)
+                Solution,
+                pk=parent_solution_id,
+            )
             if self.parent_solution.is_completed:
                 return redirect(
                     'project:solution:solution',
                     project_name=self.project.name,
-                    solution_id=self.parent_solution.id)
+                    solution_id=self.parent_solution.id,
+                )
 
     def get_context_data(self, **kwargs):
-        kwargs["parent_solution"] = self.parent_solution
+        kwargs['parent_solution'] = self.parent_solution
         return super(TaskCreateView, self).get_context_data(**kwargs)
 
-    def post(self, request, *args, **kwargs):
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        if title and title.strip():
-            created_task = Task(
-                project=self.project,
-                parent=self.parent_solution,
-                owner=self.user,
-                author=self.user,
-                title=title,
-                description=description
+    def get_form_kwargs(self):
+        """Overrides ``POST`` values to pass model validation.
+
+        Make sure that ``project`` and ``owner`` are listed in
+        ``TaskCreateForm.Meta.fields``.
+
+        """
+        form_kwargs = super(TaskCreateView, self).get_form_kwargs()
+
+        if 'data' in form_kwargs:
+            form_kwargs['data'] = dict(
+                project=self.project.pk,
+                owner=self.user.pk,
+                **form_kwargs['data'].dict()
             )
-            created_task.save()
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=created_task.id)
-        else:
-            context = self.get_context_data(**kwargs)
-            context['error'] = "Title is required."
-            return render(request, 'task/new_task.html', context)
+
+        return form_kwargs
+
+    def form_valid(self, form):
+        task = form.save(commit=False)
+        task.parent = self.parent_solution
+        task.author = self.user
+        task.save()
+
+        return redirect('project:task:task', project_name=self.project.name,
+                        task_id=task.id)
 
 
 class TaskBaseListView(ListView, ProjectBaseView):
