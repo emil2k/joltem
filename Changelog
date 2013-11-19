@@ -1,5 +1,6 @@
 2013-11-19  klen
 
+	* Version 0.3.1
 	* Setup celery
 	* Setup periodical tasks
 	* Setup email motifications (immedeately, daily)
