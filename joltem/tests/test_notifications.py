@@ -4,14 +4,19 @@ import time
 
 from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
+from django.core import mail
 
-from joltem.libs.mock.models import (get_mock_project, get_mock_task,
-                                     get_mock_solution, get_mock_user)
+from ..libs.mix import mixer
 
-from joltem.models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
-                                    NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-from joltem.models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
-                                 NOTIFICATION_TYPE_VOTE_UPDATED)
+from ..libs.mock.models import (get_mock_project, get_mock_task,
+                                get_mock_solution, get_mock_user)
+
+from ..models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
+                               NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
+from ..models import User
+from ..models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
+                            NOTIFICATION_TYPE_VOTE_UPDATED)
+
 from solution.models import (NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                              NOTIFICATION_TYPE_SOLUTION_POSTED)
 from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
@@ -34,14 +39,15 @@ class NotificationTestCase(TestCase):
 
     # Custom assertions
 
-    def assertReceivedNotificationCount(self, user, notifying, type,
-                                        expected_text=None, expected_count=1):
+    def assertReceivedNotificationCount(
+            self, user, notifying, ntype, expected_text=None,
+            expected_count=1):
         """ Assert the notification count.
 
         Keyword arguments :
         user -- receiving the notification.
         notifying -- item that is the target of the notification.
-        type -- the notification type.
+        ntype -- the notification type.
         expected_text -- the expected text of the notification.
         expected_count -- the expected number of notifications expected.
 
@@ -51,7 +57,7 @@ class NotificationTestCase(TestCase):
             user_id=user.id,
             notifying_type_id=notifying_type.id,
             notifying_id=notifying.id,
-            type=type
+            type=ntype
         )
         match_count = 0
         for notification in notifications:
@@ -63,20 +69,20 @@ class NotificationTestCase(TestCase):
                     match_count += 1
         self.assertEqual(expected_count, match_count)
 
-    def assertNotificationReceived(self, user, notifying, type,
-                                   expected_text=None):
+    def assertNotificationReceived(
+            self, user, notifying, ntype, expected_text=None):
         """ Assert notification was received by the user.
 
         Same as assertReceivedNotificationCount() with expected_count = 1.
 
         """
-        self.assertReceivedNotificationCount(user, notifying, type,
+        self.assertReceivedNotificationCount(user, notifying, ntype,
                                              expected_text, expected_count=1)
 
-    def assertNotificationNotReceived(self, user, notifying, type,
-                                      expected_text=None):
+    def assertNotificationNotReceived(
+            self, user, notifying, ntype, expected_text=None):
         """ Assert notification was not received by the user. """
-        self.assertReceivedNotificationCount(user, notifying, type,
+        self.assertReceivedNotificationCount(user, notifying, ntype,
                                              expected_text, expected_count=0)
 
     def assertNotificationTextEqual(self, notifying, notification, expected):
@@ -139,8 +145,8 @@ class TasksNotificationTestCase(NotificationTestCase):
         Notify solution owner, if it is not same person who posted the task.
 
         """
-        self.ted = get_mock_user("ted", first_name="Ted")  # project admin
-        self.project.admin_set.add(self.ted)
+        ted = get_mock_user("ted", first_name="Ted")  # project admin
+        self.project.admin_set.add(ted)
         self.project.save()
 
         parent_solution = get_mock_solution(self.project, self.jill,
@@ -151,7 +157,7 @@ class TasksNotificationTestCase(NotificationTestCase):
         # Don't notify yourself
         self.assertNotificationNotReceived(self.jill, jill_task,
                                            NOTIFICATION_TYPE_TASK_POSTED)
-        self.assertNotificationNotReceived(self.ted, jill_task,
+        self.assertNotificationNotReceived(ted, jill_task,
                                            NOTIFICATION_TYPE_TASK_POSTED)
         self.assertNotificationNotReceived(self.bob, jill_task,
                                            NOTIFICATION_TYPE_TASK_POSTED)
@@ -162,7 +168,7 @@ class TasksNotificationTestCase(NotificationTestCase):
             self.jill, task, NOTIFICATION_TYPE_TASK_POSTED,
             "Bob posted a task on your solution \"%s\"" %
             parent_solution.default_title)
-        self.assertNotificationNotReceived(self.ted, task,
+        self.assertNotificationNotReceived(ted, task,
                                            NOTIFICATION_TYPE_TASK_POSTED)
         self.assertNotificationNotReceived(self.bob, task,
                                            NOTIFICATION_TYPE_TASK_POSTED)
@@ -175,13 +181,13 @@ class TasksNotificationTestCase(NotificationTestCase):
         """
         self.project.admin_set.add(self.jill)
         # test with multiple project admins
-        self.ted = get_mock_user("ted", first_name="Ted")
-        self.project.admin_set.add(self.ted)
+        ted = get_mock_user("ted", first_name="Ted")
+        self.project.admin_set.add(ted)
         self.project.save()
 
         jill_task = get_mock_task(self.project, self.jill,
                                   is_reviewed=True, is_accepted=False)
-        self.assertNotificationReceived(self.ted, jill_task,
+        self.assertNotificationReceived(ted, jill_task,
                                         NOTIFICATION_TYPE_TASK_POSTED,
                                         "Jill posted a task")
         # Don't notify yourself
@@ -192,7 +198,7 @@ class TasksNotificationTestCase(NotificationTestCase):
 
         task = get_mock_task(self.project, self.bob,
                              is_reviewed=True, is_accepted=False)
-        self.assertNotificationReceived(self.ted, task,
+        self.assertNotificationReceived(ted, task,
                                         NOTIFICATION_TYPE_TASK_POSTED,
                                         "Bob posted a task")
         self.assertNotificationReceived(self.jill, task,
@@ -324,8 +330,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         If the solution has a parent task, notify parent task owner.
 
         """
-        self.ted = get_mock_user("ted", first_name="Ted")  # project admin
-        self.project.admin_set.add(self.ted)
+        ted = get_mock_user("ted", first_name="Ted")  # project admin
+        self.project.admin_set.add(ted)
         self.project.save()
 
         task = get_mock_task(self.project, self.jill,
@@ -342,7 +348,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
             self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
         # No notification to the project admin
         self.assertNotificationNotReceived(
-            self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
+            ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
 
     def test_solution_posted_with_parent_solution(self):
         """ Test notifications that a solution has been posted.
@@ -350,8 +356,8 @@ class SolutionNotificationTestCase(NotificationTestCase):
         If the solution has a parent solution, notify parent solution owner.
 
         """
-        self.ted = get_mock_user("ted", first_name="Ted")  # project admin
-        self.project.admin_set.add(self.ted)
+        ted = get_mock_user("ted", first_name="Ted")  # project admin
+        self.project.admin_set.add(ted)
         self.project.save()
 
         parent_solution = get_mock_solution(self.project, self.jill,
@@ -371,7 +377,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
             self.bob, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
         # No notification to the project admin
         self.assertNotificationNotReceived(
-            self.ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
+            ted, solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
 
     def test_solution_posted_no_parent(self):
         """ Test notifications that a solution has been posted.
@@ -381,22 +387,22 @@ class SolutionNotificationTestCase(NotificationTestCase):
         """
         self.project.admin_set.add(self.jill)
         # test with multiple project admins
-        self.ted = get_mock_user("ted", first_name="Ted")
-        self.project.admin_set.add(self.ted)
+        ted = get_mock_user("ted", first_name="Ted")
+        self.project.admin_set.add(ted)
         self.project.save()
 
         jill_solution = get_mock_solution(self.project, self.jill)
         # Don't notify yourself
         self.assertNotificationNotReceived(
             self.jill, jill_solution, NOTIFICATION_TYPE_SOLUTION_POSTED)
-        self.assertNotificationReceived(self.ted, jill_solution,
+        self.assertNotificationReceived(ted, jill_solution,
                                         NOTIFICATION_TYPE_SOLUTION_POSTED,
                                         "Jill posted a solution")
         solution = get_mock_solution(self.project, self.bob)
         self.assertNotificationReceived(self.jill, solution,
                                         NOTIFICATION_TYPE_SOLUTION_POSTED,
                                         "Bob posted a solution")
-        self.assertNotificationReceived(self.ted, solution,
+        self.assertNotificationReceived(ted, solution,
                                         NOTIFICATION_TYPE_SOLUTION_POSTED,
                                         "Bob posted a solution")
         self.assertNotificationNotReceived(self.bob, solution,
@@ -437,7 +443,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
 
     def test_vote_on_solution(self):
         """ Test notifications for votes on solution. """
-        self.ted = get_mock_user("ted", first_name="Ted")
+        ted = get_mock_user("ted", first_name="Ted")
         solution = get_mock_solution(self.project, self.jill,
                                      title="Cleaning up")
         solution.put_vote(self.bob, 2)
@@ -448,12 +454,12 @@ class SolutionNotificationTestCase(NotificationTestCase):
             self.bob, solution, NOTIFICATION_TYPE_VOTE_ADDED,
             "Bob voted on your solution \"%s\"" % solution.default_title)
         self.assertNotificationNotReceived(
-            self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED,
+            ted, solution, NOTIFICATION_TYPE_VOTE_ADDED,
             "Bob voted on your solution \"%s\"" % solution.default_title)
         # so that the voting order is established, which effect notification
         # text
         time.sleep(1)
-        solution.put_vote(self.ted, 0)
+        solution.put_vote(ted, 0)
         # Check that only one notification should just update
         self.assertNotificationReceived(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_ADDED,
@@ -464,7 +470,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
             "Ted and Bob voted on your solution \"%s\"" %
             solution.default_title)
         self.assertNotificationNotReceived(
-            self.ted, solution, NOTIFICATION_TYPE_VOTE_ADDED,
+            ted, solution, NOTIFICATION_TYPE_VOTE_ADDED,
             "Ted and Bob voted on your solution \"%s\"" %
             solution.default_title)
 
@@ -506,16 +512,16 @@ class CommentNotificationTestCase(NotificationTestCase):
         Should only notify when someone marked there comment helpful.
 
         """
-        self.ted = get_mock_user("ted", first_name="Ted")
-        self.katy = get_mock_user("katy", first_name="Katy")
+        ted = get_mock_user("ted", first_name="Ted")
+        katy = get_mock_user("katy", first_name="Katy")
         solution = get_mock_solution(self.project, self.jill,
                                      title="Cleaning up")
         comment = solution.add_comment(self.bob, "You should add some tests.")
         # negative vote on comment should not trigger notification
-        comment.put_vote(self.ted, 0)
+        comment.put_vote(ted, 0)
         self.assertNotificationNotReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-        comment.put_vote(self.katy, 2)
+        comment.put_vote(katy, 2)
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Katy marked your comment helpful")
@@ -550,7 +556,7 @@ class CommentNotificationTestCase(NotificationTestCase):
         Goes from accepted to unaccepted.
 
         """
-        self.ted = get_mock_user("ted", first_name="Ted")
+        ted = get_mock_user("ted", first_name="Ted")
         solution = get_mock_solution(self.project, self.jill,
                                      title="Cleaning up")
         comment = solution.add_comment(self.bob, "You should add some tests.")
@@ -559,7 +565,7 @@ class CommentNotificationTestCase(NotificationTestCase):
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Jill marked your comment helpful")
         time.sleep(1)  # to get correct order when sorting by time voted
-        comment.put_vote(self.ted, 1)
+        comment.put_vote(ted, 1)
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Ted and Jill marked your comment helpful")
@@ -568,7 +574,7 @@ class CommentNotificationTestCase(NotificationTestCase):
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
             "Ted marked your comment helpful")
         # notification should now be gone as there are no positive votes left
-        comment.put_vote(self.ted, 0)
+        comment.put_vote(ted, 0)
         self.assertNotificationNotReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
@@ -589,3 +595,58 @@ class CommentNotificationTestCase(NotificationTestCase):
         comment.put_vote(self.jill, 2)
         self.assertNotificationReceived(
             self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
+
+
+class EmailNotificationTestCase(TestCase):
+
+    def setUp(self):
+        self.mike = mixer.blend(User)
+
+    def test_disabled(self):
+        task = mixer.blend('task.task')
+        task.add_comment(self.mike, "Mike waz here.")
+        self.assertFalse(mail.outbox)
+
+    def test_immedeately(self):
+        task = mixer.blend('task.task',
+                           owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
+        comment = task.add_comment(self.mike, "Mike are here.")
+        self.assertTrue(mail.outbox)
+
+        m = mail.outbox.pop()
+        self.assertEqual(m.recipients(), [task.owner.email])
+        self.assertEqual(m.subject, '[joltem.com] comment_added')
+        self.assertEqual(m.body, '%s commented on task "%s"' % (
+            self.mike.first_name,
+            task.title
+        ))
+
+        task.notify_comment_added(comment)
+        self.assertFalse(mail.outbox)
+
+    def test_diggest(self):
+        task1 = mixer.blend(
+            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.daily)
+
+        task2 = mixer.blend(
+            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.daily)
+
+        task1.add_comment(self.mike, "Comment")
+        task1.add_comment(task2.owner, "Comment")
+        task1.add_comment(task2.author, "Comment")
+        task2.add_comment(self.mike, "Comment")
+        task2.add_comment(task1.owner, "Comment")
+        task2.add_comment(task1.author, "Comment")
+
+        self.assertFalse(mail.outbox)
+
+        from joltem.tasks import daily_diggest
+        daily_diggest.delay()
+
+        self.assertEqual(len(mail.outbox), 2)
+
+        m1 = mail.outbox.pop()
+        m2 = mail.outbox.pop()
+        self.assertNotEqual(m1.to, m2.to)
+        self.assertEqual(m1.subject, "[joltem.com] Daily diggest")
+        self.assertTrue('\n\n' in m1.body)

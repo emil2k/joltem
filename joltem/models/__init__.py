@@ -2,10 +2,12 @@ import hashlib
 import logging
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 from .notifications import Notification, Notifying  # noqa
 from .votes import Vote, Voteable  # noqa
 from .comments import Comment, Commentable  # noqa
+
 from .utils import Choices
 
 
@@ -18,7 +20,7 @@ class User(AbstractUser):
 
     NOTIFY_CHOICES = Choices(
         (0, "disable"),
-        (10, "immediatly"),
+        (10, "immediately"),
         (20, "daily", "daily digest"),
     )
 
@@ -29,6 +31,7 @@ class User(AbstractUser):
     notifications = models.IntegerField(default=0)
     notify_by_email = models.PositiveSmallIntegerField(
         default=NOTIFY_CHOICES.disable, choices=NOTIFY_CHOICES)
+    time_notified = models.DateTimeField(default=timezone.now)
 
     def update(self):
         """ Update user stats.

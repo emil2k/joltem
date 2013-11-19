@@ -17,11 +17,16 @@ class Owned(models.Model):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        super(Owned, self).__init__(*args, **kwargs)
+    def save(self, **kwargs):
+        """ Should have owner.
+
+        :return Owned: A saved instance
+
+        """
         if self.owner_id is None:
             raise ImproperlyConfigured(
                 "Owner foreign key field must be set in implementing class.")
+        return super(Owned, self).save(**kwargs)
 
     def is_owner(self, user):
         """ Whether the passed user is person who posted the task.
@@ -41,8 +46,13 @@ class ProjectContext(models.Model):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        super(ProjectContext, self).__init__(*args, **kwargs)
+    def save(self, **kwargs):
+        """ Should have project.
+
+        :return ProjectContext: A saved instance
+
+        """
         if self.project_id is None:
             raise ImproperlyConfigured(
-                "Project foreign key field must be set in implementing class.")
+                "Owner foreign key field must be set in implementing class.")
+        return super(ProjectContext, self).save(**kwargs)

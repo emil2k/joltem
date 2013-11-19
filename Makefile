@@ -58,8 +58,9 @@ $(ENV): requirements.txt
 
 .PHONY: test
 # target: test - Run project's tests
+TEST ?=
 test: $(ENV)
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test -x
+	$(ENV)/bin/python manage.py test $(TEST) --settings=joltem.settings.test -x
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem

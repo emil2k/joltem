@@ -51,3 +51,19 @@ def update_notification_count(sender, **kwargs):
     user = notification.user
     user.notifications = user.notification_set.filter(is_cleared=False).count()
     user.save()
+
+
+def immediately_senf_email_about_notification(sender, created=False,
+                                              instance=None, **kwargs):
+    """ Send email about new notification to user.
+
+    :return Task:
+
+    """
+
+    user = instance.user
+
+    if not user.notify_by_email == user.NOTIFY_CHOICES.immediately \
+            or not created:
+        return False
+    instance.send_mail()

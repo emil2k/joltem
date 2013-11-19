@@ -10,7 +10,10 @@ from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 
-from joltem.receivers import update_notification_count
+from joltem.receivers import (
+    update_notification_count, immediately_senf_email_about_notification)
+
+from joltem.tasks import send_async_email
 
 import json
 
@@ -42,6 +45,9 @@ class Notification(models.Model):
     class Meta:
         app_label = "joltem"
 
+    def __unicode__(self):
+        return u"%s [%s]" % (self.type, self.user.username)
+
     @property
     def kwargs(self):
         """ TODO: change to JSON field.
@@ -70,6 +76,17 @@ class Notification(models.Model):
         self.time_cleared = timezone.now()
         return self.save()
 
+    def send_mail(self):
+        """ Send email to self.user.
+
+        :return Task:
+
+        """
+        return send_async_email.delay(
+            self.notifying.get_notification_text(self),
+            [self.user.email],
+            subject="[joltem.com] %s" % self.type)
+
 
 class Notifying(models.Model):
 
@@ -89,8 +106,8 @@ class Notifying(models.Model):
             self.create_notification(user, ntype, kwargs)
 
         else:
-            # Attempt to update the latest notifications instead of creating a
-            # new one
+            # Attempt to update the latest notifications instead of creating
+            # a new one
             notifying_type = ContentType.objects.get_for_model(self)
             notifications = Notification.objects.filter(
                 user_id=user.id,
@@ -98,9 +115,11 @@ class Notifying(models.Model):
                 notifying_type_id=notifying_type.id,
                 notifying_id=self.id
             )
+
             if notifications.count() > 0:
                 # update latest notification
                 self.update_notification(notifications[0])
+
             else:
                 self.create_notification(user, ntype, kwargs)
 
@@ -157,4 +176,6 @@ class Notifying(models.Model):
 
 
 post_save.connect(update_notification_count, sender=Notification)
+post_save.connect(
+    immediately_senf_email_about_notification, sender=Notification)
 post_delete.connect(update_notification_count, sender=Notification)
