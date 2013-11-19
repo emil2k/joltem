@@ -1,10 +1,10 @@
 # coding: utf-8
 """ Joltem views. """
 from django.http.response import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic.base import TemplateView, RedirectView, View
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import TemplateView, RedirectView, View, DetailView
 
-from joltem.models import Notification, Comment
+from joltem.models import Notification, Comment, User
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
@@ -32,23 +32,15 @@ class HomeView(View):
         return redirect('sign_in')
 
 
-class UserView(View):
+class UserView(DetailView):
 
     """ View for displaying user profile page. """
 
-    def get(self, request, username):
-        """ Handle GET request.
-
-        :param request:
-        :param username:
-        :return:
-
-        """
-        context = {
-            'user': request.user,  # user viewing the page
-            'profile_user': request.user  # the user whose profile it is
-        }
-        return render(request, 'joltem/user.html', context)
+    model = User
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+    template_name = 'joltem/user.html'
+    context_object_name = 'profile_user'
 
 
 class CommentView(View):
