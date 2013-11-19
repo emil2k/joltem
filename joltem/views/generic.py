@@ -77,8 +77,11 @@ class TextContextMixin(ContextMixin):
         """ Return context for template, load file contents into context. """
         text_loader = TextLoader()
         for i, text_name in enumerate(self.text_names):
-            kwargs[self.text_context_object_prefix + str(i + 1)] = text_loader(
-                text_name)
+            template_var_name = '{prefix}{index}'.format(
+                prefix=self.text_context_object_prefix,
+                index=i + 1,
+            )
+            kwargs[template_var_name], __ = text_loader(text_name)
         return super(TextContextMixin, self).get_context_data(**kwargs)
 
 
