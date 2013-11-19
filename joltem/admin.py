@@ -6,10 +6,9 @@ import project.models
 import task.models
 import solution.models
 
-from .models import User, Invite, Vote, Comment
+from .models import User, Vote, Comment
 
 admin.site.register(Comment)
-admin.site.register(Invite)
 admin.site.register(User)
 admin.site.register(Vote)
 admin.site.register(project.models.Project)
