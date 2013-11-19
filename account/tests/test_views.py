@@ -272,6 +272,17 @@ class GeneralSettingsTest(WebTest, ViewTestMixin):
 
         self.assertRedirects(response, ACCOUNT_URL)
 
+    def test_gravatar_is_changed_after_saving_settings(self):
+        response = self.app.get(ACCOUNT_URL, user=self.user)
+
+        form = response.forms[GENERAL_SETTINGS_FORM_ID]
+        form['gravatar_email'] = 'fizz@example.com'
+        response = form.submit()
+
+        form = response.follow().forms[GENERAL_SETTINGS_FORM_ID]
+
+        self.assertEqual(form['gravatar_email'].value, 'fizz@example.com')
+
 
 class GeneralSettingsRequiredFieldsTest(WebTest):
 
