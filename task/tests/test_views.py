@@ -104,9 +104,9 @@ class TaskCreateViewTest(BaseProjectViewTest):
         """ Test create. """
         response = self._post(views.TaskCreateView.as_view(), {
             'title': 'A title for the task.',
-            'description': 'The stuff you write'
+            'description': 'The stuff you write',
+            'priority': 0,
         })
-        print response
         self.assertEqual(response.status_code, 302)
 
     def test_task_create_view_post_blank_title(self):
