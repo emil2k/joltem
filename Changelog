@@ -1,3 +1,10 @@
+2013-11-19  klen
+
+	* Setup celery
+	* Setup periodical tasks
+	* Setup email motifications (immedeately, daily)
+	* Add to user 'notify_by_email', 'time_notified' fields
+
 2013-11-17  klen
 
 	* Version 0.2.6
