@@ -113,12 +113,10 @@ class Solution(Voteable, Commentable):
         """ Return whether passed user has commented on the solution. """
         return self.comment_set.count() > 0
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(self, **kwargs):
         """ Notify at creation. """
         created = not self.pk
-        super(Solution, self).save(force_insert, force_update, using,
-                                   update_fields)
+        super(Solution, self).save(**kwargs)
         if created:
             self.notify_created()
 

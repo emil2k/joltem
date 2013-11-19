@@ -9,6 +9,7 @@ LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'joltem.User'
+NOTIFY_FROM_EMAIL = 'support@joltem.com'
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
@@ -59,5 +60,9 @@ GATEWAY_DIR = op.join(PROJECT_ROOT, 'gateway')
 GATEWAY_REPOSITORIES_DIR = op.join(GATEWAY_DIR, 'repositories')
 GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa')
 GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa.pub')
+
+# Celery settings
+BROKER_URL = "redis://localhost:6379/"
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 logging.info("Production settings loaded.")

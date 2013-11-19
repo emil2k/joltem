@@ -2,10 +2,13 @@ import hashlib
 import logging
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
-from joltem.models.notifications import Notification, Notifying  # noqa
-from joltem.models.votes import Vote, Voteable  # noqa
-from joltem.models.comments import Comment, Commentable  # noqa
+from .notifications import Notification, Notifying  # noqa
+from .votes import Vote, Voteable  # noqa
+from .comments import Comment, Commentable  # noqa
+
+from .utils import Choices
 
 
 logger = logging.getLogger('django')
@@ -15,11 +18,20 @@ class User(AbstractUser):
 
     """ Implement Joltem User functionality. """
 
+    NOTIFY_CHOICES = Choices(
+        (0, "disable"),
+        (10, "immediately"),
+        (20, "daily", "daily digest"),
+    )
+
     gravatar_email = models.CharField(max_length=200, null=True, blank=True)
     gravatar_hash = models.CharField(max_length=200, null=True, blank=True)
     impact = models.BigIntegerField(default=0)
     completed = models.IntegerField(default=0)
     notifications = models.IntegerField(default=0)
+    notify_by_email = models.PositiveSmallIntegerField(
+        default=NOTIFY_CHOICES.disable, choices=NOTIFY_CHOICES)
+    time_notified = models.DateTimeField(default=timezone.now)
 
     def update(self):
         """ Update user stats.
