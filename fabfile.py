@@ -42,7 +42,8 @@ def deploy(branch='master', remote='origin', initial_data=False):
         info('Fetch remote branches from %s.' % remote)
         run('git remote show %s' % remote)
         run('git fetch -v %s' % remote)
-        # Checkout remote branch, throws away local changes, if already exists reset to this
+        # Checkout remote branch, throws away local changes, if already exists
+        # reset to this
         info('Checkout local remote branch %s/%s.' % (remote, branch))
         run('git checkout -fB {0} {1}/{0}'.format(branch, remote))
         with(prefix('source %s' % DEPLOYMENT_VIRTUALENV_ACTIVATE)):
@@ -51,18 +52,17 @@ def deploy(branch='master', remote='origin', initial_data=False):
             sudo('pip install -r %sjoltem/requirements.txt' % DEPLOYMENT_PATH)
             # Collect static files
             info('Collecting static files.')
-            sudo('python manage.py collectstatic --noinput')  # make sure static folder has write permissions
-            initial_data_option = "--no-initial-data" if not initial_data else ""  # skip importing initial data?
+            # make sure static folder has write permissions
+            sudo('python manage.py collectstatic --noinput')
+            # skip importing initial data?
+            initial_data_option = "--no-initial-data" if not initial_data else ""
             # Sync the database
             info('Synchronizing database.')
-            run('python manage.py syncdb --noinput %s' % initial_data_option)  # create superuser later if it is the first time
+            # create superuser later if it is the first time
+            run('python manage.py syncdb --noinput %s' % initial_data_option)
             # Migrate the database
             info('Migrating database.')
             run('python manage.py migrate %s' % initial_data_option)
         # Restart UWSGI process
         info('Restarting UWSGI process.')
         run(DEPLOYMENT_UWSGI_RELOAD_COMMAND)
-
-
-
-

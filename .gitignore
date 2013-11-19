@@ -32,5 +32,6 @@ git/gitolite/gitolite-admin
 git/gitolite/keydir
 git/repositories
 gitolite-update
+celerybeat-schedule
 
 static

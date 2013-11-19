@@ -1,3 +1,5 @@
+""" Joltem notification support. """
+
 import logging
 
 from django.db import models
@@ -8,7 +10,10 @@ from django.contrib.contenttypes.generic import ContentType
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 
-from joltem.receivers import update_notification_count
+from joltem.receivers import (
+    update_notification_count, immediately_senf_email_about_notification)
+
+from joltem.tasks import send_async_email
 
 import json
 
@@ -18,13 +23,18 @@ logger = logging.getLogger('django')
 # Notification related
 
 class Notification(models.Model):
-    """
-    Notification to a user
-    """
+
+    """ Notification to a user. """
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL)  # user to notify
-    type = models.CharField(max_length=200, null=True, blank=True) # notification type, since each model may have multiple different notifications
-    json_kwargs = models.CharField(max_length=200, null=True, blank=True) # pass to the notifying class to determine url and text of notification
-    is_cleared = models.BooleanField(default=False)  # whether the notification has been clicked or marked cleared
+    # notification type, since each model may have
+    # multiple different notifications
+    type = models.CharField(max_length=200, null=True, blank=True)
+    # pass to the notifying class to determine
+    # url and text of notification
+    json_kwargs = models.CharField(max_length=200, null=True, blank=True)
+    # whether the notification has been clicked or marked cleared
+    is_cleared = models.BooleanField(default=False)
     time_notified = models.DateTimeField(default=timezone.now)
     time_cleared = models.DateTimeField(null=True, blank=True)
     # Generic relations
@@ -35,60 +45,101 @@ class Notification(models.Model):
     class Meta:
         app_label = "joltem"
 
+    def __unicode__(self):
+        return u"%s [%s]" % (self.type, self.user.username)
+
     @property
     def kwargs(self):
+        """ TODO: change to JSON field.
+
+        :return return:
+
+        """
         return json.loads(self.json_kwargs)
 
     @kwargs.setter
     def kwargs(self, kwargs):
+        """ TODO: change to JSON field.
+
+        :return return:
+
+        """
         self.json_kwargs = json.dumps(kwargs)
 
     def mark_cleared(self):
+        """ Mark notification as cleared.
+
+        :return Notification:
+
+        """
         self.is_cleared = True
         self.time_cleared = timezone.now()
-        self.save()
+        return self.save()
+
+    def send_mail(self):
+        """ Send email to self.user.
+
+        :return Task:
+
+        """
+        return send_async_email.delay(
+            self.notifying.get_notification_text(self),
+            [self.user.email],
+            subject="[joltem.com] %s" % self.type)
 
 
 class Notifying(models.Model):
-    """
-    Abstract, an object that can produce notifications
-    """
+
+    """ Abstract, an object that can produce notifications. """
 
     class Meta:
         abstract = True
 
-    def notify(self, user, type, update=False, kwargs={}):
-        """
-        Send notification to user
-        """
+    def notify(self, user, ntype, update=False, kwargs=None):
+        """ Send notification to user. """
+
+        if kwargs is None:
+            kwargs = {}
+
         if not update:
             # Just create a new notification
-            self.create_notification(user, type, kwargs)
+            self.create_notification(user, ntype, kwargs)
+
         else:
-            # Attempt to update the latest notifications instead of creating a new one
+            # Attempt to update the latest notifications instead of creating
+            # a new one
             notifying_type = ContentType.objects.get_for_model(self)
             notifications = Notification.objects.filter(
                 user_id=user.id,
-                type=type,
+                type=ntype,
                 notifying_type_id=notifying_type.id,
                 notifying_id=self.id
             )
-            if notifications.count() > 0:
-                self.update_notification(notifications[0])  # update latest notification
-            else:
-                self.create_notification(user, type, kwargs)
 
-    def update_notification(self, notification):
+            if notifications.count() > 0:
+                # update latest notification
+                self.update_notification(notifications[0])
+
+            else:
+                self.create_notification(user, ntype, kwargs)
+
+    @staticmethod
+    def update_notification(notification):
+        """ Update notification. """
+
         notification.is_cleared = False
         notification.time_cleared = None
         notification.time_notified = timezone.now()
         notification.save()
 
-    def create_notification(self, user, type, kwargs={}):
+    def create_notification(self, user, ntype, kwargs=None):
+        """ Create notification. Why Im exists?.  """
+        if kwargs is None:
+            kwargs = {}
         # todo add kwargs
         notification = Notification(
             user=user,
-            type=type,
+            type=ntype,
             time_notified=timezone.now(),
             is_cleared=False,
             notifying=self,
@@ -96,33 +147,35 @@ class Notifying(models.Model):
         )
         notification.save()
 
-    def delete_notifications(self, user, type):
-        """
-        Delete all notifications of this type from this notifying to this user
-        """
+    def delete_notifications(self, user, ntype):
+        """ Delete all notifications of this type from this notifying to this user. """ # noqa
         notifying_type = ContentType.objects.get_for_model(self)
-        notifications = Notification.objects.filter(
+        Notification.objects.filter(
             user_id=user.id,
-            type=type,
+            type=ntype,
             notifying_type_id=notifying_type.id,
             notifying_id=self.id
-        )
-        for notification in notifications:
-            notification.delete()
+        ).delete()
 
-    def get_notification_text(self, notification):
-        """
-        Get notification text for a given notification
-        """
-        raise ImproperlyConfigured("Extending class must implement get notification text.")
+    @staticmethod
+    def get_notification_text(notification):
+        """ Get notification text for a given notification. """
 
-    def get_notification_url(self, notification):
+        raise ImproperlyConfigured(
+            "Extending class must implement get notification text.")
+
+    @staticmethod
+    def get_notification_url(notification):
+        """ Get notification url for a given notification.
+
+        Implementation should use reverse and should not hard code urls.
+
         """
-        Get notification url for a given notification, implementation should use reverse
-        and should not hard code urls
-        """
-        raise ImproperlyConfigured("Extending class must implement get notification url.")
+        raise ImproperlyConfigured(
+            "Extending class must implement get notification url.")
 
 
 post_save.connect(update_notification_count, sender=Notification)
+post_save.connect(
+    immediately_senf_email_about_notification, sender=Notification)
 post_delete.connect(update_notification_count, sender=Notification)

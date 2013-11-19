@@ -17,6 +17,7 @@ DEBUG_TOOLBAR_CONFIG = {
     "INTERCEPT_REDIRECTS": False,
     "HIDE_DJANGO_SQL": False,
     "ENABLE_STACKTRACES": True,
+    "SHOW_TOOLBAR_CALLBACK": lambda request: True,
 }
 DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.version.VersionDebugPanel',
@@ -45,6 +46,9 @@ CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 # Let cookie to be sent via http
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+# Celery settings
+# CELERYD_CONCURRENCY = 1
 
 logging.info('Develop settings are loaded.')
 

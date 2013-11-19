@@ -13,7 +13,6 @@ class BaseTaskViewTest(BaseProjectViewTest):
         super(BaseTaskViewTest, self).setUp()
         self.task = models.get_mock_task(self.project, self.user)
 
-
     def _get(self, view):
         """ Get GET response on given task view.
 
@@ -24,7 +23,7 @@ class BaseTaskViewTest(BaseProjectViewTest):
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
         return view(request, project_name=self.project.name,
-                        task_id=self.task.id)
+                    task_id=self.task.id)
 
     def _post(self, view, data):
         """ Get POST response on given task view.
@@ -36,7 +35,8 @@ class BaseTaskViewTest(BaseProjectViewTest):
         request = requests.get_mock_post_request(
             user=self.user, is_authenticated=True, data=data)
         return view(request, project_name=self.project.name,
-                        task_id=self.task.id)
+                    task_id=self.task.id)
+
 
 class TaskViewTest(BaseTaskViewTest):
 
@@ -116,6 +116,7 @@ class TaskCreateViewTest(BaseProjectViewTest):
         })
         self.assertEqual(response.status_code, 200)
 
+
 class TaskListViewTests(BaseProjectViewTest):
 
     def _test_get_task_list(self, view):
@@ -150,4 +151,3 @@ class TaskListViewTests(BaseProjectViewTest):
     def test_get_all_closed_tasks(self):
         """ Test simple GET of all closed tasks view. """
         self._test_get_task_list(views.AllClosedTasksView.as_view())
-

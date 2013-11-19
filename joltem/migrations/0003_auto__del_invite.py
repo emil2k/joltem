@@ -1,23 +1,43 @@
 # -*- coding: utf-8 -*-
+import datetime
 from south.db import db
 from south.v2 import SchemaMigration
+from django.db import models
 
 
 class Migration(SchemaMigration):
 
-    depends_on = (
-        ('project', '0001_initial'),
-    )
-
     def forwards(self, orm):
-        # Adding field 'Comment.project'
-        db.add_column(u'joltem_comment', 'project',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['project.Project']),
-                      keep_default=False)
+        # Deleting model 'Invite'
+        db.delete_table(u'joltem_invite')
+
 
     def backwards(self, orm):
-        # Deleting field 'Comment.project'
-        db.delete_column(u'joltem_comment', 'project_id')
+        # Adding model 'Invite'
+        db.create_table(u'joltem_invite', (
+            ('is_clicked', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('github', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('twitter', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('time_clicked', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('time_sent', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('personal_note', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('time_contacted', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('time_signed_up', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
+            ('invite_code', self.gf('django.db.models.fields.CharField')(max_length=200, unique=True)),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('is_sent', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('facebook', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.User'], null=True, blank=True)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('stackoverflow', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('is_signed_up', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_contacted', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('email', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('personal_site', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+        ))
+        db.send_create_signal(u'joltem', ['Invite'])
+
 
     models = {
         u'auth.group': {
@@ -51,29 +71,6 @@ class Migration(SchemaMigration):
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
-        },
-        u'joltem.invite': {
-            'Meta': {'object_name': 'Invite'},
-            'email': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'facebook': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'github': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'invite_code': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
-            'is_clicked': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_contacted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_sent': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_signed_up': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'personal_note': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'personal_site': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'stackoverflow': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'time_clicked': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_contacted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_sent': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_signed_up': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'twitter': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']", 'null': 'True', 'blank': 'True'})
         },
         'joltem.notification': {
             'Meta': {'object_name': 'Notification'},

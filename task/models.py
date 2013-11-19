@@ -110,12 +110,11 @@ class Task(Commentable):
             if parent_solution or parent_task:
                 yield parent_solution, parent_task
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, **kwargs):
         """ Override to notify at creation. """
 
         created = not self.pk
-        super(Task, self).save(
-            force_insert, force_update, using, update_fields)
+        super(Task, self).save(**kwargs)
         if created:
             self.notify_created()
 

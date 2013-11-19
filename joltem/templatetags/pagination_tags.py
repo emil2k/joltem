@@ -33,7 +33,8 @@ def pagination(paginator, page_num):
         if page_num < (paginator.num_pages - ON_EACH_SIDE - ON_ENDS - 1):
             page_range.extend(range(page_num + 1, page_num + ON_EACH_SIDE + 1))
             page_range.append(DOT)
-            page_range.extend(range(paginator.num_pages - ON_ENDS, paginator.num_pages))
+            page_range.extend(
+                range(paginator.num_pages - ON_ENDS, paginator.num_pages))
         else:
             page_range.extend(range(page_num + 1, paginator.num_pages))
 

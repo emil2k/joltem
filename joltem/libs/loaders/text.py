@@ -37,11 +37,13 @@ app_text_dirs = tuple(app_text_dirs)
 
 
 class TextDoesNotExist(Exception):
+
     """Thrown when texts file does not exist"""
     pass
 
 
 class TextLoader():
+
     def __call__(self, text_name, text_dirs=None):
         return self.load_text_source(text_name, text_dirs)
 

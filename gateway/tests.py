@@ -3,8 +3,12 @@ from unittest import TestCase
 from gateway.libs.terminal.utils import *
 from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
-from gateway.libs.git.utils import get_packet_line, get_packet_line_size, get_unpack_status, get_command_status, get_report
-
+from gateway.libs.git.utils import (
+    get_packet_line, get_packet_line_size, get_unpack_status,
+    get_command_status, get_report,
+)
+from git.models import Authentication
+from joltem.models import User
 from mixer.backend.django import mixer
 
 
@@ -55,7 +59,8 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_packet_line(raw), expected)
 
     def test_get_packet_line_invalid(self):
-        raw = 'x' * (int('ffff', 16) - 4 + 1)  # generate string one byte longer than can be packed
+        # generate string one byte longer than can be packed
+        raw = 'x' * (int('ffff', 16) - 4 + 1)
         with self.assertRaises(IOError):
             get_packet_line(raw)
 
@@ -68,7 +73,8 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_packet_line_size(raw, 6), 63)
 
     def test_get_packet_line_size_from_bytearray(self):
-        raw = bytearray('003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
+        raw = bytearray(
+            '003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master')
         self.assertEqual(get_packet_line_size(raw), 63)
 
     def test_get_packet_line_size_invalid(self):
@@ -83,17 +89,21 @@ class TestingGitProtocolUtilities(TestCase):
         self.assertEqual(get_unpack_status('ok'), 'unpack ok\n')
 
     def test_get_unpack_status_error(self):
-        self.assertEqual(get_unpack_status('permission denied'), 'unpack permission denied\n')
+        self.assertEqual(get_unpack_status('permission denied'),
+                         'unpack permission denied\n')
 
     def test_get_command_status_default(self):
-        self.assertEqual(get_command_status('refs/heads/master'), 'ok refs/heads/master\n')
+        self.assertEqual(get_command_status('refs/heads/master'),
+                         'ok refs/heads/master\n')
 
     def test_get_command_status_ok(self):
-        self.assertEqual(get_command_status('refs/heads/master', 'ok'), 'ok refs/heads/master\n')
+        self.assertEqual(get_command_status('refs/heads/master', 'ok'),
+                         'ok refs/heads/master\n')
 
     def test_get_command_status_error(self):
-        self.assertEqual(get_command_status('refs/heads/master', 'permission denied'),
-                         'ng refs/heads/master permission denied\n')
+        self.assertEqual(
+            get_command_status('refs/heads/master', 'permission denied'),
+            'ng refs/heads/master permission denied\n')
 
     def test_get_report(self):
         expected = '0077\x01001dunpack permission-denied\n002bng refs/heads/master permission-denied\n0026ng refs/heads/s/1 push-seperately\n0000'
@@ -101,7 +111,8 @@ class TestingGitProtocolUtilities(TestCase):
             ('refs/heads/master', 'permission-denied'),
             ('refs/heads/s/1', 'push-seperately'),
         ]
-        self.assertEqual(get_report(command_statuses, 'permission-denied'), expected)
+        self.assertEqual(
+            get_report(command_statuses, 'permission-denied'), expected)
 
 
 class TestSSH(TestCase):
@@ -111,7 +122,7 @@ class TestSSH(TestCase):
         from django.db.utils import OperationalError
 
         try:
-            mixer.blend('user')
+            mixer.blend(User)
         except OperationalError:
             call_command('syncdb')
             call_command('migrate')
@@ -121,7 +132,7 @@ class TestSSH(TestCase):
 
         key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD6qRSV4zDxKXp5vqLiGYj0y3CmoBtXSXuh3ZUyBLwwgw62Wmn1JyqbqlM9dOJysz+gwAi8YlPKCRsAPSr2moR3ThZlk/5qflaiTT4NgGwl/n5XNHVW8Ot5n2KrtnwOMbX7PtSomARhXE9ejpGZwL3SKDaScIGRNbz8cWmVKG1JqdiBo+qTe4HeabREunqztN0Oq44FXCuqlYbvkRud4lkjnzZTP2XL36MfeT3AdCDCs30AgzuVq2nerCnVdRD5v/MkUW2uzonLuJaLDvJZ75ha/vn/l2XINgsfl4SzZtYe50r04YHVflK/p2TdQNhV69eK87WBDwp8xsSR4Rr0swcd joltem@joltem.local"
 
-        authentication = mixer.blend('authentication')
+        authentication = mixer.blend(Authentication)
         authentication.blob = key
         authentication.save()
         authentication.user.blob = key
@@ -131,7 +142,7 @@ class TestSSH(TestCase):
         result = checker.requestAvatarId(authentication.user)
         self.assertEqual(result.result, authentication.user.username)
 
-        wrong_user = mixer.blend('user')
+        wrong_user = mixer.blend(User)
         wrong_user.blob = key
 
         result = checker.requestAvatarId(wrong_user)

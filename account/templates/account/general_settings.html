@@ -1,4 +1,4 @@
-{% extends 'joltem/account_base.html' %}
+{% extends 'account/base.html' %}
 
 {% block account_content %}
 <div class="row hidden-desktop hidden-tablet">
@@ -49,6 +49,8 @@
             {% include 'joltem/includes/form_field.html' with field=form.email %}
 
             {% include 'joltem/includes/form_field.html' with field=form.gravatar_email help_html='Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i>' %}
+
+            {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
 
             <div class="control-group">
                 <div class="controls">

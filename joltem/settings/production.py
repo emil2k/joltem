@@ -1,4 +1,5 @@
 """ Project's settings. """
+from datetime import timedelta
 
 from .core import *
 
@@ -9,6 +10,7 @@ LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'joltem.User'
+NOTIFY_FROM_EMAIL = 'support@joltem.com'
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
@@ -29,6 +31,7 @@ INSTALLED_APPS += (
     # Vendors
     'mathfilters',
     'south',
+    'widget_tweaks',
 
     # Project
     'joltem',
@@ -37,7 +40,6 @@ INSTALLED_APPS += (
     'task',
     'git',
     'help',
-    'common',
 )
 
 DATABASES = {
@@ -59,5 +61,17 @@ GATEWAY_DIR = op.join(PROJECT_ROOT, 'gateway')
 GATEWAY_REPOSITORIES_DIR = op.join(GATEWAY_DIR, 'repositories')
 GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa')
 GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa.pub')
+
+# Celery settings
+BROKER_URL = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
+
+CELERYBEAT_SCHEDULE = {
+    'daily-diggest': {
+        'task': 'joltem.tasks.daily_diggest',
+        'schedule': timedelta(hours=24),
+        'args': (),
+    }
+}
 
 logging.info("Production settings loaded.")

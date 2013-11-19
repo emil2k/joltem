@@ -58,8 +58,9 @@ $(ENV): requirements.txt
 
 .PHONY: test
 # target: test - Run project's tests
+TEST ?=
 test: $(ENV)
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test -x
+	$(ENV)/bin/python manage.py test $(TEST) --settings=joltem.settings.test -x
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem
@@ -92,3 +93,7 @@ test_account: $(ENV) account
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
 	DJANGO_SETTINGS_MODULE=joltem.settings.test trial gateway/tests.py
+
+.PHONY: celery
+celery: $(ENV)
+	$(ENV)/bin/celery -A joltem worker -B -l info
