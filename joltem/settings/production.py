@@ -41,6 +41,7 @@ INSTALLED_APPS += (
     'task',
     'git',
     'help',
+    'account',
 )
 
 DATABASES = {
@@ -89,31 +90,31 @@ from authomatic.providers import oauth2, oauth1
 
 AUTHOMATIC = {
 
-    'tw': {
+    'twitter': {
         'class_': oauth1.Twitter,
         'consumer_key': '',
         'consumer_secret': '',
     },
 
-    'fb': {
+    'facebook': {
         'class_': oauth2.Facebook,
         'consumer_key': '111',
         'consumer_secret': '111',
         'scope': ['email'],
     },
 
-    'gt': {
+    'github': {
         'class_': oauth2.GitHub,
         'consumer_key': 'c2225b4da7ac43f56d22',
         'consumer_secret': '641c458a2170d7f922576b0cd6b00713f2726d0f',
-        'access_headers': {'User-Agent', 'Joltem'},
+        'access_headers': {'User-Agent', 'Joltem-dev'},
         'scope': ['user:email'],
     },
 
-    'bt': {
+    'bitbucket': {
         'class_': oauth1.Bitbucket,
-        'consumer_key': '',
-        'consumer_secret': '',
+        'consumer_key': 'Ph9TEyPMRgP6TYb9tt',
+        'consumer_secret': 'dQ9xHmu3AZfzHjYKRg2eKNFgKUNHCdA3',
     }
 
 }

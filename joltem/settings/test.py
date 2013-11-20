@@ -23,5 +23,8 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # Celery
 CELERY_ALWAYS_EAGER = True
 
+# Authomatic
+AUTHOMATIC['gt']['redirect_uri'] = 'http://joltem.local/account/sign-in/gt/'
+
 
 logging.info("Test settings loaded.")
