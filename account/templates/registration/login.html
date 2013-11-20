@@ -1,27 +1,36 @@
 {% extends 'joltem/base.html' %}
 
 {% block content %}
-<form action="" method="post" class="form-horizontal">
-    {% csrf_token %}
 
-    {% if form.non_field_errors %}
-        <div class="alert alert-error">
-            {{ form.non_field_errors|join:' ' }}
+    <form action="" method="post" class="form-horizontal">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            {% include 'joltem/includes/form_field.html' with field=field %}
+        {% endfor %}
+
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-success">Sign In</button>
+                <small>
+                    or <a href="{% url 'password_reset' %}">reset password</a>
+                    if you forgot it.
+                </small>
+                <br/>
+                <br/>
+                <a class="btn btn-success" href="{% url 'oauth' 'github' %}/">Sign In with Github</a>
+                <a class="btn btn-success" href="{% url 'oauth' 'bitbucket' %}/">Sign In with Bitbucket</a>
+            </div>
+
         </div>
-    {% endif %}
 
-    {% for field in form %}
-        {% include 'joltem/includes/form_field.html' with field=field %}
-    {% endfor %}
+    </form>
 
-    <div class="control-group">
-        <div class="controls">
-            <button type="submit" class="btn btn-success">Sign In</button>
-            <small>
-                or <a href="{% url 'password_reset' %}">reset password</a>
-                if you forgot it.
-            </small>
-        </div>
-    </div>
-</form>
 {% endblock %}

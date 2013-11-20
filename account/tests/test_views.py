@@ -1,5 +1,6 @@
 # coding: utf-8
 from django_webtest import WebTest
+from django.test import TestCase
 
 from git.models import Authentication
 from joltem.libs.mix import mixer
@@ -576,3 +577,25 @@ class AccountSSHKeyDeleteTest(WebTest, ViewTestMixin):
         self.assertFalse(
             Authentication.objects.filter(name='key666').exists()
         )
+
+
+class AuthomaticTest(TestCase):
+
+    def test_authomatic_url(self):
+        response = self.client.get('/account/sign-in/fb/')
+        self.assertEqual(response.status_code, '302 Found')
+        self.assertTrue(response['Location'].startswith(
+            'https://www.facebook.com/dialog/oauth'))
+
+        response = self.client.get('/account/sign-in/gt/', data=dict(
+            error='redirect_uri_mismatch',
+            state='66ca2ed63c29abd63057a9fe9e',
+        ), follow=True)
+        m = list(response.context['messages']).pop()
+        self.assertEqual(m.message, 'Unknow error. Please try another time.')
+
+        response = self.client.get('/account/sign-in/gt/', data=dict(
+            code='39b1d9b271b96044a027',
+            state='5466603fb1a07c8c0948cb189a',
+        ))
+        self.assertRedirects(response, '/account/sign-in/')
