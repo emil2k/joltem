@@ -3,7 +3,7 @@
 from django_webtest import WebTest
 
 from joltem.libs.mock import models, requests
-from joltem.libs.mix import mixer
+from joltem.libs import factories
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
 
@@ -76,29 +76,6 @@ class TaskViewTest(BaseTaskViewTest):
         self._test_task_view_action('reopen')
 
 
-class TaskEditViewTest(BaseTaskViewTest):
-
-    def test_task_edit_view_get(self):
-        """ Test simple GET of edit view. """
-        response = self._get(views.TaskEditView.as_view())
-        self.assertEqual(response.status_code, 200)
-
-    def test_task_edit_view_post_edit(self):
-        """ Test edit. """
-        response = self._post(views.TaskEditView.as_view(), {
-            'title': 'A title for the task.',
-            'description': 'The stuff you write'
-        })
-        self.assertEqual(response.status_code, 302)
-
-    def test_task_edit_view_post_blank_title(self):
-        """ Test edit with blank title. Should fail and stay on page. """
-        response = self._post(views.TaskEditView.as_view(), {
-            'title': '  '
-        })
-        self.assertEqual(response.status_code, 200)
-
-
 class TaskListViewTests(BaseProjectViewTest):
 
     def _test_get_task_list(self, view):
@@ -135,8 +112,9 @@ class TaskListViewTests(BaseProjectViewTest):
         self._test_get_task_list(views.AllClosedTasksView.as_view())
 
 
+TASK_URL = '/{project_name}/task/{task_id}/'
+
 TASK_CREATE_URL = '/{project_name}/task/new/'
-TASK_EDIT_URL = '/{project_name}/task/{task_id}/'
 TASK_CREATE_FORM_ID = 'task-create-form'
 
 
@@ -145,8 +123,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
     csrf_checks = False
 
     def setUp(self):
-        self.user = mixer.blend('joltem.user')
-        self.project = mixer.blend('project.project')
+        self.user = factories.UserF()
+        self.project = factories.ProjectF()
 
         self.url = TASK_CREATE_URL.format(project_name=self.project.name)
 
@@ -166,8 +144,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
 
         task = Task.objects.get()
 
-        expected_url = TASK_EDIT_URL.format(project_name=self.project.name,
-                                            task_id=task.pk)
+        expected_url = TASK_URL.format(project_name=self.project.name,
+                                       task_id=task.pk)
         self.assertRedirects(response, expected_url)
 
     def test_title_must_contain_printable_characters(self):
@@ -185,7 +163,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
         )
 
     def test_project_id_substitution_is_ignored(self):
-        project_substitute = mixer.blend('project.project')
+        project_substitute = factories.ProjectF()
 
         post_params = {
             'title': 'dummy',
@@ -199,7 +177,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
         self.assertEqual(task.project_id, self.project.pk)
 
     def test_owner_id_substitution_is_ignored(self):
-        owner_substitute = mixer.blend('joltem.user')
+        owner_substitute = factories.UserF()
 
         post_params = {
             'title': 'dummy',
@@ -218,8 +196,8 @@ class TaskCreateRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = mixer.blend('joltem.user')
-        self.project = mixer.blend('project.project')
+        self.user = factories.UserF()
+        self.project = factories.ProjectF()
 
         self.url = TASK_CREATE_URL.format(project_name=self.project.name)
 
@@ -253,6 +231,124 @@ class TaskCreateRequiredFieldsTest(WebTest):
         response = self.app.get(self.url, user=self.user)
 
         form = response.forms[TASK_CREATE_FORM_ID]
+        form['priority'].options[1] = (u'1', False)
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'priority',
+            errors=self.error_message,
+        )
+
+
+TASK_EDIT_URL = '/{project_name}/task/{task_id}/edit/'
+TASK_EDIT_FORM_ID = 'task-edit-form'
+
+
+class TaskEditTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = factories.UserF()
+        self.project = factories.ProjectF()
+        self.task = factories.TaskF(project=self.project, owner=self.user)
+
+        self.url = TASK_EDIT_URL.format(
+            project_name=self.project.name,
+            task_id=self.task.pk
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_404_when_non_owner_gets_task_edit_page(self):
+        not_owner = factories.UserF()
+
+        self.app.get(self.url, user=not_owner, status=404)
+
+    def test_task_is_successfully_updated(self):
+        response = self.app.get(self.url, user=self.user)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = 'new title'
+        response = form.submit()
+
+        expected_url = TASK_URL.format(project_name=self.project.name,
+                                       task_id=self.task.pk)
+        self.assertRedirects(response, expected_url)
+
+        task = Task.objects.get()
+
+        self.assertEqual(task.title, 'new title')
+
+    def test_title_must_contain_printable_characters(self):
+        response = self.app.get(self.url, user=self.user)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = ' \n\t'
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'title',
+            errors='This field cannot be blank.',
+        )
+
+
+class TaskEditRequiredFieldsTest(WebTest):
+
+    error_message = 'This field is required.'
+
+    def setUp(self):
+        self.user = factories.UserF()
+        self.project = factories.ProjectF()
+        self.task = factories.TaskF(
+            project=self.project,
+            owner=self.user,
+            priority=1,
+        )
+
+        self.url = TASK_EDIT_URL.format(
+            project_name=self.project.name,
+            task_id=self.task.pk
+        )
+
+    def test_title_is_required(self):
+        response = self.app.get(self.url, user=self.user)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = ''
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'title',
+            errors=self.error_message,
+        )
+
+    def test_description_is_not_required(self):
+        response = self.app.get(self.url, user=self.user)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = ''
+        form['description'] = ''
+        response = form.submit()
+
+        self.assertFormError(
+            response,
+            'form',
+            'title',
+            errors=self.error_message,
+        )
+
+    def test_priority_is_required(self):
+        response = self.app.get(self.url, user=self.user)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
         form['priority'].options[1] = (u'1', False)
         response = form.submit()
 

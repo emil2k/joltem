@@ -18,3 +18,18 @@ class TaskCreateForm(forms.ModelForm):
 
     def clean_title(self):
         return self.cleaned_data.get('title', '').strip()
+
+
+class TaskEditForm(forms.ModelForm):
+
+    priority = forms.ChoiceField(
+        widget=forms.RadioSelect(),
+        choices=Task.PRIORITY_CHOICES,
+    )
+
+    class Meta:
+        model = Task
+        fields = ('title', 'description', 'priority',)
+
+    def clean_title(self):
+        return self.cleaned_data.get('title', '').strip()

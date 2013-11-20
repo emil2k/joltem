@@ -1,10 +1,13 @@
 """ Task related views. """
 
+from django.http import Http404
 from django.db.models import Sum
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView, CreateView, ListView
-from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import (
+    TemplateView, CreateView, UpdateView, ListView,
+)
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 from joltem.holders import CommentHolder
 from solution.models import Solution
@@ -12,7 +15,7 @@ from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
 
 from .models import Task, Vote
-from .forms import TaskCreateForm
+from .forms import TaskCreateForm, TaskEditForm
 
 
 class TaskBaseView(ProjectBaseView):
@@ -146,26 +149,25 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             task_id=self.task.id)
 
 
-class TaskEditView(TemplateView, TaskBaseView):
-    template_name = "task/task_edit.html"
+class TaskEditView(TaskBaseView, UpdateView):
 
-    def post(self, request, *args, **kwargs):
-        if not self.is_owner:
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=self.task.id)
-        title = request.POST.get('title')
-        if title and title.strip():
-            self.task.title = title
-            self.task.description = request.POST.get('description')
-            self.task.save()
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=self.task.id)
+    form_class = TaskEditForm
+    template_name = 'task/task_edit.html'
+
+    def get_object(self):
+        if self.is_owner:
+            return self.task
         else:
-            context = self.get_context_data(**kwargs)
-            context['error'] = "Title is required."
-            return render(request, 'task/task_edit.html', context)
+            raise Http404
+
+    def get_success_url(self):
+        return reverse(
+            'project:task:task',
+            kwargs={
+                'project_name': self.project.name,
+                'task_id': self.task.id
+            }
+        )
 
 
 class TaskCreateView(ProjectBaseView, CreateView):
