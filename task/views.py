@@ -205,11 +205,11 @@ class TaskCreateView(ProjectBaseView, CreateView):
         form_kwargs = super(TaskCreateView, self).get_form_kwargs()
 
         if 'data' in form_kwargs:
-            form_kwargs['data'] = dict(
-                project=self.project.pk,
-                owner=self.user.pk,
-                **form_kwargs['data'].dict()
-            )
+            form_data = form_kwargs['data'].dict()
+            form_data['project'] = self.project.pk
+            form_data['owner'] = self.user.pk
+
+            form_kwargs['data'] = form_data
 
         return form_kwargs
 
