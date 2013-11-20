@@ -6,6 +6,7 @@ from .core import *
 
 ENVIRONMENT_NAME = 'production'
 
+URL = 'joltem.com'
 LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
@@ -52,6 +53,15 @@ DATABASES = {
     }
 }
 
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_URL = 'redis://localhost:6379/0'
+
+CACHES['default']['BACKEND'] = 'redis_cache.RedisCache'
+CACHES['default']['LOCATION'] = 'localhost:6379'
+CACHES['default']['OPTIONS'] = {
+    'DB': 1, 'PASSWORD': '', 'PARSER_CLASS': 'redis.connection.HiredisParser'}
+CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
+
 SECRET_KEY = 'imsosecret'
 
 # Gateway settings
@@ -72,6 +82,40 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=24),
         'args': (),
     }
+}
+
+# Authomatic settings
+from authomatic.providers import oauth2, oauth1
+
+AUTHOMATIC = {
+
+    'tw': {
+        'class_': oauth1.Twitter,
+        'consumer_key': '',
+        'consumer_secret': '',
+    },
+
+    'fb': {
+        'class_': oauth2.Facebook,
+        'consumer_key': '111',
+        'consumer_secret': '111',
+        'scope': ['email'],
+    },
+
+    'gt': {
+        'class_': oauth2.GitHub,
+        'consumer_key': 'c2225b4da7ac43f56d22',
+        'consumer_secret': '641c458a2170d7f922576b0cd6b00713f2726d0f',
+        'access_headers': {'User-Agent', 'Joltem'},
+        'scope': ['user:email'],
+    },
+
+    'bt': {
+        'class_': oauth1.Bitbucket,
+        'consumer_key': '',
+        'consumer_secret': '',
+    }
+
 }
 
 logging.info("Production settings loaded.")
