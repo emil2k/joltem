@@ -94,16 +94,16 @@ AUTHOMATIC = {
     'twitter': {
         'id': authomatic.provider_id(),
         'class_': oauth1.Twitter,
-        'consumer_key': '',
-        'consumer_secret': '',
+        'consumer_key': 'pS3vnCVoC91AAyXPD9Oog',
+        'consumer_secret': 'ZYHUSJsxwdmJp4U3EtE8OJprymb8JIiiwXimQ17V04',
         'profile_url': 'http://twitter.com/{username}',
     },
 
     'facebook': {
         'id': authomatic.provider_id(),
         'class_': oauth2.Facebook,
-        'consumer_key': '111',
-        'consumer_secret': '111',
+        'consumer_key': '426893780769525',
+        'consumer_secret': '5124dcc7a27fb858f7172299fcd48abe',
         'scope': ['email'],
         'profile_url': 'http://facebook.com/{username}',
     },
