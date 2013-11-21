@@ -37,7 +37,7 @@
             <div class="controls">
                 Connect: 
                 {% for provider in providers %}
-                    <a class="btn btn-success" href="{% url 'oauth' provider %}/?next={% url 'account' %}"><b class="fa fa-{{ provider }}"></b> {{ provider|capfirst }}</a>
+                    <a class="btn btn-success" href="{% url 'oauth' provider %}/"><b class="fa fa-{{ provider }}"></b> {{ provider|capfirst }}</a>
                 {% endfor %}
             </div>
         </div>

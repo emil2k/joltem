@@ -66,6 +66,7 @@ def authomatic_login(request, provider):
                     service=result.provider.name,
                     service_id=result.user.id,
                     user=request.user,
+                    username=result.user.username or request.user.name,
                 )
                 messages.add_message(
                     request, messages.INFO, 'Provider attached.')
