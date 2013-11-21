@@ -67,10 +67,12 @@ class SolutionViewTest(BaseSolutionViewTest):
 
     def test_solution_view_post_close(self):
         """ Test close solution. """
+        self.solution.mark_open()
         self._test_solution_view_action('close')
 
     def test_solution_view_post_reopen(self):
         """ Test reopen solution. """
+        self.solution.mark_close()
         self._test_solution_view_action('reopen')
 
     def test_solution_empty_post(self):

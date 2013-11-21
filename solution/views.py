@@ -227,7 +227,11 @@ class SolutionCommitsView(TemplateView, SolutionBaseView):
                 0]  # load the default active repository
 
     def get_context_data(self, **kwargs):
-        """ Return context to pass to template. Add repositories and commits. """
+        """ Return context to pass to template.
+
+        Add repositories and commits.
+
+        """
         if self.repository:
             kwargs['repositories'] = self.repository_set
             kwargs['repository'] = self.repository
