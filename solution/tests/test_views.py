@@ -73,6 +73,11 @@ class SolutionViewTest(BaseSolutionViewTest):
         """ Test reopen solution. """
         self._test_solution_view_action('reopen')
 
+    def test_solution_empty_post(self):
+        response = self._post(
+            views.SolutionView.as_view(), {})
+        self.assertEqual(response.status_code, 302)
+
 
 class SolutionEditView(BaseSolutionViewTest):
 
