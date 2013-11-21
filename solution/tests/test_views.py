@@ -56,24 +56,33 @@ class SolutionViewTest(BaseSolutionViewTest):
         response = self._post(
             views.SolutionView.as_view(), {action: 1})
         self.assertEqual(response.status_code, 302)
+        self.solution = self.solution.__class__.objects.get(
+            pk=self.solution.pk)
 
     def test_solution_view_post_complete(self):
         """ Test mark solution complete. """
+        self.solution.mark_open()
+        self.solution.mark_incomplete()
         self._test_solution_view_action('complete')
+        self.assertTrue(self.solution.is_completed)
 
     def test_solution_view_post_incomplete(self):
         """ Test mark solution incomplete. """
+        self.solution.mark_complete()
         self._test_solution_view_action('incomplete')
+        self.assertFalse(self.solution.is_completed)
 
     def test_solution_view_post_close(self):
         """ Test close solution. """
         self.solution.mark_open()
         self._test_solution_view_action('close')
+        self.assertTrue(self.solution.is_closed)
 
     def test_solution_view_post_reopen(self):
         """ Test reopen solution. """
         self.solution.mark_close()
         self._test_solution_view_action('reopen')
+        self.assertFalse(self.solution.is_closed)
 
     def test_solution_empty_post(self):
         response = self._post(

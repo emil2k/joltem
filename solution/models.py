@@ -122,8 +122,8 @@ class Solution(Voteable, Commentable):
 
     def mark_complete(self):
         """ Mark the solution complete. """
-        self.is_closed = True
-        self.time_closed = timezone.now()
+        self.is_completed = True
+        self.time_completed = timezone.now()
         self.save()
         self.notify_complete()
 
