@@ -1,27 +1,47 @@
 {% extends 'joltem/base.html' %}
 
 {% block content %}
-<form action="" method="post" class="form-horizontal">
-    {% csrf_token %}
 
-    {% if form.non_field_errors %}
-        <div class="alert alert-error">
-            {{ form.non_field_errors|join:' ' }}
+    <form action="" method="post" class="form-horizontal">
+
+        {% csrf_token %}
+
+        <div class="row">
+
+            <div class="span5">
+                <div class="row">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        {{ form.non_field_errors|join:' ' }}
+                    </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    {% include 'joltem/includes/form_field.html' with field=field %}
+                    {% endfor %}
+
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="submit" class="btn btn-success">Sign In</button>
+                            <small>
+                                or <a href="{% url 'password_reset' %}">reset password</a>
+                                if you forgot it.
+                            </small>
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
         </div>
-    {% endif %}
-
-    {% for field in form %}
-        {% include 'joltem/includes/form_field.html' with field=field %}
-    {% endfor %}
-
-    <div class="control-group">
-        <div class="controls">
-            <button type="submit" class="btn btn-success">Sign In</button>
-            <small>
-                or <a href="{% url 'password_reset' %}">reset password</a>
-                if you forgot it.
-            </small>
+        <div class="span7">
+            <p> Sign in with </p>
+            <a class="btn btn-success" href="{% url 'oauth' 'github' %}/"><b class="fa fa-github"></b> Github</a>
+            <a class="btn btn-success" href="{% url 'oauth' 'bitbucket' %}/"><b class="fa fa-bitbucket"></b> Bitbucket</a>
+            <a class="btn btn-success" href="{% url 'oauth' 'facebook' %}/"><b class="fa fa-facebook"></b> Facebook</a>
+            <a class="btn btn-success" href="{% url 'oauth' 'twitter' %}/"><b class="fa fa-twitter"></b> Twitter</a>
         </div>
+
     </div>
-</form>
+
 {% endblock %}

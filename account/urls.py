@@ -1,8 +1,10 @@
-# coding: utf-8
+""" Account views. """
+
 from django.conf.urls import patterns, url
 
 from account.views import (
     SignUpView, GeneralSettingsView, SSHKeyCreateView, SSHKeyDeleteView,
+    authomatic_login
 )
 
 
@@ -25,9 +27,10 @@ urlpatterns = patterns(
         {'extra_context': {'nav_tab': 'up'}},
         'sign_up'),
 
+    url(r'^sign-in/(\w+)/?$', authomatic_login, name='oauth'),
+
     url(r'^sign-in/$', 'django.contrib.auth.views.login',
-        {'extra_context': {'nav_tab': 'in'}},
-        'sign_in'),
+        {'extra_context': {'nav_tab': 'in'}}, 'sign_in'),
 
     url(r'^sign-out/$', 'django.contrib.auth.views.logout', name='sign_out'),
 

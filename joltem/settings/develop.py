@@ -4,6 +4,7 @@ from .production import *
 
 
 ENVIRONMENT_NAME = "dev"
+URL = 'joltem.local'
 
 # Debug
 DEBUG = True
@@ -48,7 +49,17 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 # Celery settings
-# CELERYD_CONCURRENCY = 1
+CELERYD_CONCURRENCY = 1
+
+AUTHOMATIC['github']['consumer_key'] = 'd98e664756592ebd11bb'
+AUTHOMATIC['github']['consumer_secret'] = '5565673e92f7cfc03b9c465e2aeff0d61236da2e'
+AUTHOMATIC['github']['access_headers'] = {'User-Agent', 'Joltem-local'},
+AUTHOMATIC['bitbucket']['consumer_key'] = 'uNFNUZGcVjkCsBYZUW'
+AUTHOMATIC['bitbucket']['consumer_secret'] = 'KketfJxxTgEJf653MATprbnaah8NKrEX'
+AUTHOMATIC['facebook']['consumer_key'] = '250120505145639'
+AUTHOMATIC['facebook']['consumer_secret'] = 'db1e7ea965685c7c3ee3326188cbb4b9'
+AUTHOMATIC['twitter']['consumer_key'] = 'PzL35ws37R0NQ2w5ZF43A'
+AUTHOMATIC['twitter']['consumer_secret'] = 'WIwpacf5c1oHpTxvVOuynN5Tf74QUKNWw7Fp5DU'
 
 logging.info('Develop settings are loaded.')
 
