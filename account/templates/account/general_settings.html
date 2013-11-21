@@ -23,11 +23,24 @@
             {{ user.impact }} impact on {{ user.completed }} completed solution{{ user.completed|pluralize }}.
         </h4>
         <small class="muted">Joined {{ user.date_joined|date }}</small>
+        <div>
+            {% for service in services %}
+                <a href="{{ service.get_profile_url }}"><b class="fa fa-{{ service.service }}"></b> {{ service.username|default:service.service }}</a>
+            {% endfor %}
+        </div>
     </div>
     <div class="span2 text-right">
         <p><img class="img-rounded" src="https://secure.gravatar.com/avatar/{{ user.gravatar_hash }}?s=100" /></p>
     </div>
 </div>
+        <div class="control-group">
+            <div class="controls">
+                Connect: 
+                {% for provider in providers %}
+                    <a class="btn btn-success" href="{% url 'oauth' provider %}/?next={% url 'account' %}"><b class="fa fa-{{ provider }}"></b> {{ provider|capfirst }}</a>
+                {% endfor %}
+            </div>
+        </div>
 
 <hr class="hidden-phone"/>
 

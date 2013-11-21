@@ -81,7 +81,7 @@ class TextContextMixin(ContextMixin):
                 prefix=self.text_context_object_prefix,
                 index=i + 1,
             )
-            kwargs[template_var_name], __ = text_loader(text_name)
+            kwargs[template_var_name], _ = text_loader(text_name)
         return super(TextContextMixin, self).get_context_data(**kwargs)
 
 
@@ -173,7 +173,7 @@ class CommentableView(RequestBaseView):
             commentable.add_comment(self.user, comment_text)
             return self.get_comment_redirect()
 
-        return super(CommentableView, self).post(request, *args, **kwargs)
+        return self.get_comment_redirect()
 
     @staticmethod
     def get_commentable():
@@ -195,6 +195,14 @@ class CommentableView(RequestBaseView):
 
 class ValidUserMixin(object):
 
+    """ Exported classes should have a docstring."""
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        """ Exported methods should have a docstring.
+
+        :return HttpRequest:
+
+        """
+
         return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)

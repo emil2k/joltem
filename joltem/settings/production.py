@@ -6,6 +6,7 @@ from .core import *
 
 ENVIRONMENT_NAME = 'production'
 
+URL = 'joltem.com'
 LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
@@ -40,6 +41,7 @@ INSTALLED_APPS += (
     'task',
     'git',
     'help',
+    'account',
 )
 
 DATABASES = {
@@ -51,6 +53,15 @@ DATABASES = {
         'HOST': 'localhost',
     }
 }
+
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_URL = 'redis://localhost:6379/0'
+
+CACHES['default']['BACKEND'] = 'redis_cache.RedisCache'
+CACHES['default']['LOCATION'] = 'localhost:6379'
+CACHES['default']['OPTIONS'] = {
+    'DB': 1, 'PASSWORD': '', 'PARSER_CLASS': 'redis.connection.HiredisParser'}
+CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
 SECRET_KEY = 'imsosecret'
 
@@ -72,6 +83,49 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=24),
         'args': (),
     }
+}
+
+# Authomatic settings
+from authomatic.providers import oauth2, oauth1
+import authomatic
+
+AUTHOMATIC = {
+
+    'twitter': {
+        'id': authomatic.provider_id(),
+        'class_': oauth1.Twitter,
+        'consumer_key': 'pS3vnCVoC91AAyXPD9Oog',
+        'consumer_secret': 'ZYHUSJsxwdmJp4U3EtE8OJprymb8JIiiwXimQ17V04',
+        'profile_url': 'http://twitter.com/{username}',
+    },
+
+    'facebook': {
+        'id': authomatic.provider_id(),
+        'class_': oauth2.Facebook,
+        'consumer_key': '426893780769525',
+        'consumer_secret': '5124dcc7a27fb858f7172299fcd48abe',
+        'scope': ['email'],
+        'profile_url': 'http://facebook.com/{username}',
+    },
+
+    'github': {
+        'id': authomatic.provider_id(),
+        'class_': oauth2.GitHub,
+        'consumer_key': 'c2225b4da7ac43f56d22',
+        'consumer_secret': '641c458a2170d7f922576b0cd6b00713f2726d0f',
+        'access_headers': {'User-Agent', 'Joltem-dev'},
+        'scope': ['user:email'],
+        'profile_url': 'http://github.com/{username}',
+    },
+
+    'bitbucket': {
+        'id': authomatic.provider_id(),
+        'class_': oauth1.Bitbucket,
+        'consumer_key': 'Ph9TEyPMRgP6TYb9tt',
+        'consumer_secret': 'dQ9xHmu3AZfzHjYKRg2eKNFgKUNHCdA3',
+        'profile_url': 'http://bitbucket.com/{username}',
+    }
+
 }
 
 logging.info("Production settings loaded.")

@@ -20,19 +20,11 @@ DATABASES = {
     }
 }
 
-SESSION_ENGINE = 'redis_sessions.session'
-SESSION_REDIS_URL = 'redis://localhost:6379/0'
 
 # Caches
 CACHES = {
     'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'localhost:6379',
-        'OPTIONS': {
-            'DB': 1,
-            'PASSWORD': '',
-            'PARSER_CLASS': 'redis.connection.HiredisParser'
-        },
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'KEY_PREFIX': '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
     }
 }
@@ -104,7 +96,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s' # noqa
         },
         'simple': {
             'format': '%(levelname)s %(message)s'

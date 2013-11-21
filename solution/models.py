@@ -140,7 +140,7 @@ class Solution(Voteable, Commentable):
         self.time_closed = timezone.now()
         self.save()
 
-    def mark_opened(self):
+    def mark_open(self):
         """ Mark the solution opened, for reopening. """
         self.is_closed = False
         self.time_closed = None
