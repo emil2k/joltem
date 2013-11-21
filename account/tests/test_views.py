@@ -3,7 +3,7 @@ from django_webtest import WebTest
 from django.test import TestCase
 
 from git.models import Authentication
-from joltem.libs.mix import mixer
+from joltem.libs import mixer
 from joltem.libs.tests import ViewTestMixin
 from joltem.models import User
 
@@ -582,20 +582,37 @@ class AccountSSHKeyDeleteTest(WebTest, ViewTestMixin):
 class AuthomaticTest(TestCase):
 
     def test_authomatic_url(self):
-        response = self.client.get('/account/sign-in/fb/')
+        response = self.client.get('/account/sign-in/facebook/')
         self.assertEqual(response.status_code, '302 Found')
         self.assertTrue(response['Location'].startswith(
             'https://www.facebook.com/dialog/oauth'))
 
-        response = self.client.get('/account/sign-in/gt/', data=dict(
+        response = self.client.get('/account/sign-in/github/', data=dict(
             error='redirect_uri_mismatch',
             state='66ca2ed63c29abd63057a9fe9e',
         ), follow=True)
         m = list(response.context['messages']).pop()
         self.assertEqual(m.message, 'Unknow error. Please try another time.')
 
-        response = self.client.get('/account/sign-in/gt/', data=dict(
+        response = self.client.get('/account/sign-in/github/', data=dict(
             code='39b1d9b271b96044a027',
             state='5466603fb1a07c8c0948cb189a',
         ))
         self.assertRedirects(response, '/account/sign-in/')
+
+    def test_attach_oauth(self):
+        # ugly and long create of session if session doesn't exist
+        from django.conf import settings
+        from django.utils.importlib import import_module
+        engine = import_module(settings.SESSION_ENGINE)
+        store = engine.SessionStore()
+        store.save()  # we need to make load() work, or the cookie is worthless
+        self.client.cookies[settings.SESSION_COOKIE_NAME] = store.session_key
+
+        user = mixer.blend('joltem.user', password='test')
+        self.assertFalse(user.oauth_set.count())
+        session = self.client.session
+        session['oauth'] = {'github': {'service_id': 1}}
+        session.save()
+        self.client.login(username=user.username, password='test')
+        self.assertTrue(user.oauth_set.count())

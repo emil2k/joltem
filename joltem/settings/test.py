@@ -13,6 +13,8 @@ DATABASES['default']['NAME'] = ':memory:'
 CACHES['default']['BACKEND'] = 'django.core.cache.backends.locmem.LocMemCache'
 CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
 # Disable south migrations on db creation in tests
 SOUTH_TESTS_MIGRATE = False
 
@@ -22,9 +24,6 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Celery
 CELERY_ALWAYS_EAGER = True
-
-# Authomatic
-AUTHOMATIC['gt']['redirect_uri'] = 'http://joltem.local/account/sign-in/gt/'
 
 
 logging.info("Test settings loaded.")

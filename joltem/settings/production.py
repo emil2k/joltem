@@ -87,34 +87,43 @@ CELERYBEAT_SCHEDULE = {
 
 # Authomatic settings
 from authomatic.providers import oauth2, oauth1
+import authomatic
 
 AUTHOMATIC = {
 
     'twitter': {
+        'id': authomatic.provider_id(),
         'class_': oauth1.Twitter,
         'consumer_key': '',
         'consumer_secret': '',
+        'profile_url': 'http://twitter.com/{username}',
     },
 
     'facebook': {
+        'id': authomatic.provider_id(),
         'class_': oauth2.Facebook,
         'consumer_key': '111',
         'consumer_secret': '111',
         'scope': ['email'],
+        'profile_url': 'http://facebook.com/{username}',
     },
 
     'github': {
+        'id': authomatic.provider_id(),
         'class_': oauth2.GitHub,
         'consumer_key': 'c2225b4da7ac43f56d22',
         'consumer_secret': '641c458a2170d7f922576b0cd6b00713f2726d0f',
         'access_headers': {'User-Agent', 'Joltem-dev'},
         'scope': ['user:email'],
+        'profile_url': 'http://github.com/{username}',
     },
 
     'bitbucket': {
+        'id': authomatic.provider_id(),
         'class_': oauth1.Bitbucket,
         'consumer_key': 'Ph9TEyPMRgP6TYb9tt',
         'consumer_secret': 'dQ9xHmu3AZfzHjYKRg2eKNFgKUNHCdA3',
+        'profile_url': 'http://bitbucket.com/{username}',
     }
 
 }

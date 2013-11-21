@@ -2,7 +2,7 @@
 from authomatic import Authomatic, adapters
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, REDIRECT_FIELD_NAME
+from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
@@ -79,7 +79,7 @@ def authomatic_login(request, provider):
             first_name=first_name,
             last_name=last_name,
             email=result.user.email,
-            username=result.user.username,
+            username=result.user.username or request.user.name,
         )
 
     return redirect('sign_up')
@@ -148,16 +148,6 @@ class SignUpView(ExtraContextMixin, CreateView):
         if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
             user.save()
 
-        for service, oauth in self.request.session.get('oauth', {}).items():
-            if oauth.get('service_id'):
-                OAuth.objects.get_or_create(
-                    service=service,
-                    service_id=oauth.get('service_id'),
-                    user=user,
-                )
-
-        self.request.session['oauth'] = {}
-
         return response
 
     def get_form_kwargs(self):
@@ -212,6 +202,21 @@ class GeneralSettingsView(BaseAccountView, UpdateView):
             user.save()
 
         return response
+
+    def get_context_data(self, **kwargs):
+        """ Load information about connected OAuth.
+
+        :return dict: Template's context
+
+        """
+        context = super(GeneralSettingsView, self).get_context_data(**kwargs)
+        services = list(self.object.oauth_set.all())
+        context['providers'] = [
+            provider for provider in settings.AUTHOMATIC
+            if not provider in [s.service for s in services]
+        ]
+        context['services'] = services
+        return context
 
 
 class SSHKeyCreateView(BaseAccountView, CreateView):
