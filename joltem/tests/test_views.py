@@ -1,11 +1,7 @@
 """ View related tests for core app. """
-
 from django.test.testcases import TestCase
-from django.test.client import RequestFactory
 
-from joltem.views import HomeView
-from joltem.libs.mock.models import get_mock_project
-from joltem.libs.mock.requests import mock_authentication_middleware
+from joltem.libs import mixer
 
 
 class HomeTest(TestCase):
@@ -19,13 +15,11 @@ class HomeTest(TestCase):
 
     def setUp(self):
         """ Setup a project and request factory. """
-        self.factory = RequestFactory()
-        self.project = get_mock_project('main')
-        self.view = HomeView.as_view()
+        self.project = mixer.blend('project.project')
 
     def test_get(self):
         """ Test GET homepage request. """
-        request = mock_authentication_middleware(self.factory.get('/'))
-        request.user._is_authenticated = True
-        response = self.view(request)
+        user = mixer.blend('joltem.user', password='test')
+        self.client.login(username=user.username, password='test')
+        response = self.client.get('/')
         self.assertEqual(response.status_code, 302)
