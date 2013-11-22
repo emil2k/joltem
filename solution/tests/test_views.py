@@ -1,8 +1,9 @@
 """ View related tests for solution app. """
-
+from django_webtest import WebTest
 from mixer.backend.django import mixer
 
 from joltem.libs.mock import models, requests
+from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
 from solution import views
 
@@ -128,22 +129,6 @@ class SolutionReviewView(BaseSolutionViewTest):
         self.assertTrue(response.status_code, 200)
 
 
-class SolutionCommitsView(BaseSolutionViewTest):
-
-    """ Test SolutionCommitsView responses. """
-
-    def test_solution_commits_view_get(self):
-        """ Test simple GET of solution commits view. """
-        response = self._get(views.SolutionCommitsView.as_view())
-        response = response.render()
-        self.assertContains(response, 'The project has no repositories.')
-
-        mixer.blend('repository', project=self.project, name='test')
-        response = self._get(views.SolutionCommitsView.as_view())
-        response = response.render()
-        self.assertNotContains(response, 'The project has no repositories.')
-
-
 class SolutionCreateView(BaseSolutionViewTest):
 
     """ Test SolutionCreateView responses. """
@@ -207,3 +192,56 @@ class SolutionListViewTests(BaseProjectViewTest):
     def test_get_all_complete_solutions(self):
         """ Test simple GET of all complete solutions view. """
         self._test_get_solution_list(views.AllCompleteSolutionsView.as_view())
+
+
+SOLUTION_COMMITS_URL = '/{project_name}/solution/{solution_id}/commits/'
+SOLUTION_COMMITS_REPO_URL = '/{project_name}/solution/{solution_id}/commits/{repo_name}/'
+
+
+class SolutionCommitsTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+        self.solution = mixer.blend(
+            'solution.solution',
+        )
+
+        self.url = SOLUTION_COMMITS_URL.format(
+            project_name=self.solution.project.name,
+            solution_id=self.solution.pk,
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_it_is_ok_if_project_has_no_repositories(self):
+        response = self.app.get(self.url, user=self.user)
+
+        self.assertContains(response, 'The project has no repositories')
+
+    def test_404_if_project_does_not_exist(self):
+        url_with_faked_project = SOLUTION_COMMITS_URL.format(
+            project_name='blah',
+            solution_id=self.solution.pk,
+        )
+
+        self.app.get(url_with_faked_project, user=self.user, status=404)
+
+    def test_404_if_solution_does_not_exist(self):
+        url_with_faked_solution = SOLUTION_COMMITS_URL.format(
+            project_name=self.solution.project.name,
+            solution_id=0,
+        )
+
+        self.app.get(url_with_faked_solution, user=self.user, status=404)
+
+    def test_404_if_repository_does_not_exist(self):
+        url_with_faked_repo = SOLUTION_COMMITS_REPO_URL.format(
+            project_name=self.solution.project.name,
+            solution_id=self.solution.pk,
+            repo_name='blah'
+        )
+
+        self.app.get(url_with_faked_repo, user=self.user, status=404)
