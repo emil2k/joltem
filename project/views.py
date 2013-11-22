@@ -1,9 +1,20 @@
+# coding: utf-8
 """ Project's views. """
-
-from django.views.generic.base import TemplateView
+from django.views.generic import TemplateView
+from django.utils.functional import cached_property
+from django.shortcuts import get_object_or_404
 from django.http import Http404
-from joltem.views.generic import RequestBaseView
-from project.models import Project
+
+from joltem.views.generic import RequestBaseView, ValidUserMixin
+from .models import Project
+
+
+class ProjectMixin(ValidUserMixin):
+    """Gets project by name from url."""
+
+    @cached_property
+    def project(self):
+        return get_object_or_404(Project, name=self.kwargs['project_name'])
 
 
 class ProjectBaseView(RequestBaseView):

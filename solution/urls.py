@@ -14,8 +14,12 @@ urlpatterns = patterns(
         views.SolutionEditView.as_view()), name='solution_edit'),
     url(r'^(?P<solution_id>(\d)+)/review/$', login_required(
         views.SolutionReviewView.as_view()), name='review'),
+
     url(r'^(?P<solution_id>(\d)+)/commits/(?:(?P<repository_name>[-\w]+)/)?$',
-        login_required(views.SolutionCommitsView.as_view()), name='commits'),
+        views.SolutionCommitsView.as_view(),
+        {'extra_context': {'solution_tab': 'commits'}},
+        'commits'),
+
     url(r'^review/my/$', login_required(
         views.MyReviewSolutionsView.as_view()), name='my_review'),
     url(r'^reviewed/my/$', login_required(

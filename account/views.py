@@ -10,8 +10,8 @@ from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 
+from joltem.views.generic import ValidUserMixin, ExtraContextMixin
 from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
-from joltem.views.generic import ValidUserMixin
 from .models import User, OAuth
 
 
@@ -84,25 +84,6 @@ def authomatic_login(request, provider):
         )
 
     return redirect('sign_up')
-
-
-class ExtraContextMixin(object):
-
-    """Accepts ``extra_context`` dict in ``django.contrib.auth`` way."""
-
-    def get_context_data(self, **kwargs):
-        """ Make template context.
-
-        :return dict:
-
-        """
-        context = super(ExtraContextMixin, self).get_context_data(**kwargs)
-
-        extra_context = self.kwargs.get('extra_context')
-        if extra_context is not None:
-            context.update(extra_context)
-
-        return context
 
 
 class SignUpView(ExtraContextMixin, CreateView):
