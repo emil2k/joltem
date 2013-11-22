@@ -1,16 +1,21 @@
 """ Task related views. """
 
+from django.http import Http404
 from django.db.models import Sum
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView
-from django.views.generic.list import ListView
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import (
+    TemplateView, CreateView, UpdateView, ListView,
+)
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 from joltem.holders import CommentHolder
-from task.models import Task, Vote
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
+
+from .models import Task, Vote
+from .forms import TaskCreateForm, TaskEditForm
 
 
 class TaskBaseView(ProjectBaseView):
@@ -144,69 +149,80 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             task_id=self.task.id)
 
 
-class TaskEditView(TemplateView, TaskBaseView):
-    template_name = "task/task_edit.html"
+class TaskEditView(TaskBaseView, UpdateView):
 
-    def post(self, request, *args, **kwargs):
-        if not self.is_owner:
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=self.task.id)
-        title = request.POST.get('title')
-        if title and title.strip():
-            self.task.title = title
-            self.task.description = request.POST.get('description')
-            self.task.save()
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=self.task.id)
+    form_class = TaskEditForm
+    template_name = 'task/task_edit.html'
+
+    def get_object(self):
+        if self.is_owner:
+            return self.task
         else:
-            context = self.get_context_data(**kwargs)
-            context['error'] = "Title is required."
-            return render(request, 'task/task_edit.html', context)
+            raise Http404
+
+    def get_success_url(self):
+        return reverse(
+            'project:task:task',
+            kwargs={
+                'project_name': self.project.name,
+                'task_id': self.task.id
+            }
+        )
 
 
-class TaskCreateView(TemplateView, ProjectBaseView):
-    template_name = "task/new_task.html"
+class TaskCreateView(ProjectBaseView, CreateView):
+
+    form_class = TaskCreateForm
+    template_name = 'task/new_task.html'
+
     parent_solution = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(TaskCreateView, self).initiate_variables(
-            request, *args, **kwargs)
-        parent_solution_id = self.kwargs.get("parent_solution_id", None)
+        super(TaskCreateView, self).initiate_variables(request, *args, **kwargs)
+
+        parent_solution_id = self.kwargs.get('parent_solution_id')
         if parent_solution_id is not None:
             self.parent_solution = get_object_or_404(
-                Solution, id=parent_solution_id)
+                Solution,
+                pk=parent_solution_id,
+            )
             if self.parent_solution.is_completed:
                 return redirect(
                     'project:solution:solution',
                     project_name=self.project.name,
-                    solution_id=self.parent_solution.id)
+                    solution_id=self.parent_solution.id,
+                )
 
     def get_context_data(self, **kwargs):
-        kwargs["parent_solution"] = self.parent_solution
+        kwargs['parent_solution'] = self.parent_solution
         return super(TaskCreateView, self).get_context_data(**kwargs)
 
-    def post(self, request, *args, **kwargs):
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        if title and title.strip():
-            created_task = Task(
-                project=self.project,
-                parent=self.parent_solution,
-                owner=self.user,
-                author=self.user,
-                title=title,
-                description=description
-            )
-            created_task.save()
-            return redirect(
-                'project:task:task', project_name=self.project.name,
-                task_id=created_task.id)
-        else:
-            context = self.get_context_data(**kwargs)
-            context['error'] = "Title is required."
-            return render(request, 'task/new_task.html', context)
+    def get_form_kwargs(self):
+        """Overrides ``POST`` values to pass model validation.
+
+        Make sure that ``project`` and ``owner`` are listed in
+        ``TaskCreateForm.Meta.fields``.
+
+        """
+        form_kwargs = super(TaskCreateView, self).get_form_kwargs()
+
+        if 'data' in form_kwargs:
+            form_data = form_kwargs['data'].dict()
+            form_data['project'] = self.project.pk
+            form_data['owner'] = self.user.pk
+
+            form_kwargs['data'] = form_data
+
+        return form_kwargs
+
+    def form_valid(self, form):
+        task = form.save(commit=False)
+        task.parent = self.parent_solution
+        task.author = self.user
+        task.save()
+
+        return redirect('project:task:task', project_name=self.project.name,
+                        task_id=task.id)
 
 
 class TaskBaseListView(ListView, ProjectBaseView):
@@ -289,17 +305,18 @@ class AllOpenTasksView(TaskBaseListView):
         :return Queryset:
 
         """
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=False
-        ).order_by('-time_posted')
+        return self.project.task_set \
+                           .filter(is_accepted=True, is_closed=False) \
+                           .order_by('-priority', '-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):
     tasks_tab = "all_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=True).order_by('-time_closed')
+        return self.project.task_set \
+                           .filter(is_accepted=True, is_closed=True) \
+                           .order_by('-priority', '-time_closed')
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
