@@ -89,6 +89,13 @@ class SolutionViewTest(BaseSolutionViewTest):
             views.SolutionView.as_view(), {})
         self.assertEqual(response.status_code, 302)
 
+    def test_solution_comment(self):
+        self._post(views.SolutionView.as_view(), {'comment': 'comment'})
+        comments = self.solution.comment_set.all()
+        self.assertTrue(comments.count())
+        comment = comments[0]
+        self.assertEqual(comment.owner, self.solution.owner)
+
 
 class SolutionEditView(BaseSolutionViewTest):
 
