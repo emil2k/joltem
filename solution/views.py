@@ -253,7 +253,10 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
             pygit_repository = self.current_repo.load_pygit_object()
             if pygit_repository:
                 solution = self.object
-                commit_list = solution.get_commit_set(pygit_repository)
+                try:
+                    commit_list = solution.get_commit_set(pygit_repository)
+                except KeyError:
+                    pass
 
         context['commit_list'] = commit_list
         context['current_repo'] = self.current_repo
