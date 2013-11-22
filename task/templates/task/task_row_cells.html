@@ -1,5 +1,12 @@
 <div class="{{ offset }} span9">
     <p>
+        {% if task.priority == task.LOW_PRIORITY %}
+            🐌
+        {% elif task.priority == task.NORMAL_PRIORITY %}
+            🐝
+        {% else %}
+            🐎
+        {% endif %}
         <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
         <small class="muted">
             by <a href="{% url 'user' task.owner.username %}" class="muted">{{ task.owner.first_name }}</a> on {{ task.time_posted|date }}
