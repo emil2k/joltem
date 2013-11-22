@@ -1,12 +1,14 @@
 """ Git related modules. """
 import os
 
+from model_utils.managers import PassThroughManager
 from django.db import models
 from django.conf import settings
 
 from twisted.conch.ssh.keys import Key, BadKeyError
 
 from project.models import Project
+from .managers import RepositoryQuerySet
 
 import logging
 logger = logging.getLogger('joltem')
@@ -24,6 +26,8 @@ class Repository(models.Model):
     is_hidden = models.BooleanField(default=False)
     # Relations
     project = models.ForeignKey(Project)
+
+    objects = PassThroughManager.for_queryset_class(RepositoryQuerySet)()
 
     @property
     def absolute_path(self):
