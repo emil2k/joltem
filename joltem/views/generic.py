@@ -206,3 +206,22 @@ class ValidUserMixin(object):
         """
 
         return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)
+
+
+class ExtraContextMixin(object):
+
+    """Accepts ``extra_context`` dict in ``django.contrib.auth`` way."""
+
+    def get_context_data(self, **kwargs):
+        """ Make template context.
+
+        :return dict:
+
+        """
+        context = super(ExtraContextMixin, self).get_context_data(**kwargs)
+
+        extra_context = self.kwargs.get('extra_context')
+        if extra_context is not None:
+            context.update(extra_context)
+
+        return context
