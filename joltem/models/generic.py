@@ -3,7 +3,7 @@
 import logging
 
 from django.db import models
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger('django')
 
@@ -17,16 +17,12 @@ class Owned(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, **kwargs):
-        """ Should have owner.
+    def clean(self):
+        super(Owned, self).clean()
 
-        :return Owned: A saved instance
-
-        """
         if self.owner_id is None:
-            raise ImproperlyConfigured(
+            raise ValidationError(
                 "Owner foreign key field must be set in implementing class.")
-        return super(Owned, self).save(**kwargs)
 
     def is_owner(self, user):
         """ Whether the passed user is person who posted the task.
@@ -46,13 +42,9 @@ class ProjectContext(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, **kwargs):
-        """ Should have project.
+    def clean(self):
+        super(ProjectContext, self).clean()
 
-        :return ProjectContext: A saved instance
-
-        """
         if self.project_id is None:
-            raise ImproperlyConfigured(
-                "Owner foreign key field must be set in implementing class.")
-        return super(ProjectContext, self).save(**kwargs)
+            raise ValidationError(
+                "Project foreign key field must be set in implementing class.")

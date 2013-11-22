@@ -6,10 +6,12 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "joltem.settings.local")
 
 import factory
+import factory.fuzzy
 
 from joltem.models import User
 from project.models import Project
 from git.models import Repository, Authentication
+from task.models import Task
 
 
 class UserF(factory.DjangoModelFactory):
@@ -72,6 +74,16 @@ class AuthenticationF(factory.DjangoModelFactory):
         "5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV comment"
     )
     fingerprint = '3d:13:5f:cb:c9:79:8a:93:06:27:65:bc:3d:0b:8f:af'
+
+
+class TaskF(factory.DjangoModelFactory):
+
+    FACTORY_FOR = Task
+
+    owner = factory.SubFactory(UserF)
+    author = factory.SubFactory(UserF)
+    title = factory.Sequence(u'task{}'.format)
+    priority = factory.fuzzy.FuzzyInteger(Task.LOW_PRIORITY, Task.HIGH_PRIORITY)
 
 
 def init_joltem_project():

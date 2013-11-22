@@ -44,6 +44,19 @@ class Task(Commentable):
 
     """
 
+    HIGH_PRIORITY = 2
+    NORMAL_PRIORITY = 1
+    LOW_PRIORITY = 0
+    PRIORITY_CHOICES = (
+        (HIGH_PRIORITY, 'high'),
+        (NORMAL_PRIORITY, 'normal'),
+        (LOW_PRIORITY, 'low'),
+    )
+
+    priority = models.PositiveSmallIntegerField(
+        choices=PRIORITY_CHOICES,
+        default=NORMAL_PRIORITY,
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_reviewed = models.BooleanField(default=False)

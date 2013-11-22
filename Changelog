@@ -3,6 +3,8 @@
 	* Version 0.4.4
 	* Fix bug when solution owner cannot comment own solutions
 	* Fix error raises when project not found
+	* Task's priority
+
 
 2013-11-21  klen
 

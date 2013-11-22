@@ -102,10 +102,9 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             if request.POST.get('reopen') and self.solution.is_closed:
                 self.solution.mark_open()
 
-            if (not 'comment' in request.POST
+            if not ('comment' in request.POST
                     or 'comment_edit' in request.POST
                     or 'comment_delete' in request.POST):
-
                 return redirect('project:solution:solution',
                                 project_name=self.project.name,
                                 solution_id=self.solution.id)

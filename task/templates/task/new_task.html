@@ -1,30 +1,54 @@
 {% extends 'project/base.html' %}
+
+{% load widget_tweaks %}
+
 {% block title %}New Task - Joltem{% endblock %}
+
 {% block project_content %}
-    {% if error %}
-        <div class="alert alert-error">{{ error }}</div>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <div class="row">
-            <div class="span8">
-                {% if parent_solution %}
-                    <div class="alert alert-info">
-                        This task will be placed under parent solution : <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.default_title }}</a></strong>
-                    </div>
-                {% endif %}
-                <input class="span8" type="text" name="title" placeholder="Task title." />
+<div class="row">
+    <div class="span8">
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors|join:' ' }}
             </div>
-        </div>
-        <div class="row">
-            <div class="span8">
-                <textarea class="span8" rows=10 name="description" placeholder="Task description."></textarea>
+        {% endif %}
+
+        <form action="" method="post" id="task-create-form">
+            {% csrf_token %}
+
+            {% if parent_solution %}
+            <div class="alert alert-info">
+                This task will be placed under parent solution :
+                <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.default_title }}</a></strong>
             </div>
-        </div>
-        <div class="row">
-            <div class="span8">
-                <button class="btn btn-success" name="action" value="create_task">Create task</button>
-            </div>
-        </div>
-    </form>
+            {% endif %}
+
+            {% render_field form.title class="input-block-level" placeholder=form.title.label %}
+
+            {% if form.title.errors %}
+                <div class="alert alert-error">{{ form.title.errors|join:' ' }}</div>
+            {% endif %}
+
+            {% render_field form.description class="input-block-level" rows="10" placeholder=form.description.label %}
+
+            {% if form.description.errors %}
+                <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
+            {% endif %}
+
+            {% for radio in form.priority %}
+                <label>
+                    {{ radio.choice_label }}
+                    <span class="radio">{{ radio.tag }}</span>
+                </label>
+            {% endfor %}
+
+            {% if form.priority.errors %}
+                <div class="alert alert-error">{{ form.priority.errors|join:' ' }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-success">Create task</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
