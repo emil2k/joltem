@@ -1,3 +1,9 @@
+2013-11-22  klen
+
+	* Version 0.4.4
+	* Fix bug when solution owner cannot comment own solutions
+	* Fix error raises when project not found
+
 2013-11-21  klen
 
 	* Version 0.4.3

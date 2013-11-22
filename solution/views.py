@@ -79,7 +79,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
         """
         # Mark solution complete
-        if request.POST and self.solution.is_owner(self.user):
+        if self.solution.is_owner(self.user):
 
             if request.POST.get('complete')\
                     and not self.solution.is_completed \
@@ -102,9 +102,13 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             if request.POST.get('reopen') and self.solution.is_closed:
                 self.solution.mark_open()
 
-            return redirect('project:solution:solution',
-                            project_name=self.project.name,
-                            solution_id=self.solution.id)
+            if (not 'comment' in request.POST
+                    or 'comment_edit' in request.POST
+                    or 'comment_delete' in request.POST):
+
+                return redirect('project:solution:solution',
+                                project_name=self.project.name,
+                                solution_id=self.solution.id)
 
         return super(SolutionView, self).post(request, *args, **kwargs)
 
