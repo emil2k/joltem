@@ -26,9 +26,7 @@
                 @ {{ commit.time_committed|time }}
                 by {{ commit.author }}
             </small>
-            <br/>
-            {{ commit.message }}
-            <br/>
+            <pre>{{ commit.message }}</pre>
             <small class="text-info">{{ commit.hex }}</small>
         </p>
         {% empty %}
