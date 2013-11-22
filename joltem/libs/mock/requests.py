@@ -65,10 +65,10 @@ def get_mock_get_request(path="/fakepath", user=None, is_authenticated=False):
 
 
 def get_mock_post_request(path="/fakepath", user=None,
-                          is_authenticated=False, data={}):
+                          is_authenticated=False, data={}, **headers):
     """
     Return a mock a POST request, to pass to a view
     `path` not important unless the view is using a path argument
     """
     return mock_authentication_middleware(RequestFactory().post(
-        path=path, data=data), user=user, is_authenticated=is_authenticated)
+        path=path, data=data, **headers), user=user, is_authenticated=is_authenticated)

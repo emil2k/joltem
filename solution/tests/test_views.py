@@ -1,7 +1,5 @@
 """ View related tests for solution app. """
-
-from mixer.backend.django import mixer
-
+from joltem.libs import mixer
 from joltem.libs.mock import models, requests
 from project.tests.test_views import BaseProjectViewTest
 from solution import views
@@ -28,7 +26,7 @@ class BaseSolutionViewTest(BaseProjectViewTest):
             request, project_name=self.project.name,
             solution_id=self.solution.id)
 
-    def _post(self, view, data):
+    def _post(self, view, data, **headers):
         """ Get POST response on given solution view.
 
         :param view: view to test.
@@ -36,7 +34,7 @@ class BaseSolutionViewTest(BaseProjectViewTest):
 
         """
         request = requests.get_mock_post_request(
-            user=self.user, is_authenticated=True, data=data)
+            user=self.user, is_authenticated=True, data=data, **headers)
         return view(
             request, project_name=self.project.name,
             solution_id=self.solution.id)
@@ -89,12 +87,30 @@ class SolutionViewTest(BaseSolutionViewTest):
             views.SolutionView.as_view(), {})
         self.assertEqual(response.status_code, 302)
 
-    def test_solution_comment(self):
+    def test_solution_comment_post(self):
         self._post(views.SolutionView.as_view(), {'comment': 'comment'})
         comments = self.solution.comment_set.all()
         self.assertTrue(comments.count())
         comment = comments[0]
         self.assertEqual(comment.owner, self.solution.owner)
+
+    def test_solution_comment_edit_delete(self):
+        comment = mixer.blend('joltem.comment',
+                              comment='comment',
+                              commentable=self.solution,
+                              owner=self.solution.owner)
+
+        self._post(views.SolutionView.as_view(), {
+            'comment_id': comment.pk, 'comment_edit': 'new comment'},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        comment = self.solution.comment_set.get()
+        self.assertEqual(comment.comment, 'new comment')
+
+        self._post(views.SolutionView.as_view(), {
+            'comment_id': comment.pk, 'comment_delete': 1},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertFalse(self.solution.comment_set.count())
 
 
 class SolutionEditView(BaseSolutionViewTest):
