@@ -2,6 +2,7 @@
 import shlex
 from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import ITransport
+from twisted.internet.protocol import ProcessProtocol
 from twisted.python import log
 from twisted.python.failure import Failure
 from zope.interface import implements
@@ -119,7 +120,8 @@ class GitProcessProtocol(SubprocessProtocol):
 
     def outReceived(self, data):
         """ Logging. """
-        log.msg("\n" + data, system="gateway")
+        log.msg("size %d" % len(data), system="gateway")
+        log.msg(data if len(data) < 8192 else "large data.", system="gateway") 
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
@@ -130,12 +132,12 @@ class GitProcessProtocol(SubprocessProtocol):
     def processEnded(self, reason):
         """ Logging. """
         log.msg("Process ended.", system="gateway")
-        SubprocessProtocol.processEnded(self, reason)
+        ProcessProtocol.processEnded(self, reason)
 
     def processExited(self, reason):
         """ Logging. """
         log.msg("Process exited.", system="gateway")
-        SubprocessProtocol.processExited(self, reason)
+        ProcessProtocol.processExited(self, reason)
 
     # ITransport
 

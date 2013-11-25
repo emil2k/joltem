@@ -68,7 +68,7 @@ class GatewaySessionInterface():
     # protocol is instance of SSHSessionProcessProtocol
     def execCommand(self, protocol, command_string):
         """ Execute a command. """
-
+        self.ssh_process_protocol = protocol
         log.msg("Execute command : %s" % command_string)
         command = shlex.split(command_string)
         process = command[0]
@@ -79,7 +79,8 @@ class GatewaySessionInterface():
             except (
                     Repository.DoesNotExist,
                     Repository.MultipleObjectsReturned):
-                protocol.write("Repository not found.")
+                log.msg("Repository not found.")
+                protocol.loseConnection()
             else:
                 if process == "git-receive-pack":
                     self._git_protocol = GitReceivePackProcessProtocol(
@@ -93,7 +94,7 @@ class GatewaySessionInterface():
                     (process, '%d.git' % repository_id),
                     path=REPOSITORIES_DIRECTORY)
         else:
-            protocol.write("Command not allowed.\n")
+            log.msg("Command not allowed.")
             protocol.loseConnection()
 
     def windowChanged(self, newWindowSize):
@@ -110,8 +111,9 @@ class GatewaySessionInterface():
         log.msg("No more data will be sent (EOF).")
         if self._git_protocol:
             self._git_protocol.eof_received()
+        self.ssh_process_protocol.loseConnection()
 
     def closed(self):
         """ Called when the session is closed. """
-
         log.msg("Connection closed")
+

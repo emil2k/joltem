@@ -24,30 +24,6 @@ class SubprocessProtocol(ProcessProtocol):
         """ Just proxy to parent. """
         self.protocol.errReceived(data)
 
-    def childConnectionLost(self, childFD):
-        """ Just proxy to parent. """
-        self.protocol.childConnectionLost(childFD)
-
-    def inConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.inConnectionLost()
-
-    def outConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.outConnectionLost()
-
-    def errConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.errConnectionLost()
-
-    def processExited(self, reason):
-        """ Just proxy to parent. """
-        self.protocol.processExited(reason)
-
-    def processEnded(self, reason):
-        """ Just proxy to parent. """
-        self.protocol.processEnded(reason)
-
 
 class BaseBufferedSplitter(object):
 
