@@ -194,11 +194,12 @@ class CommentableView(RequestBaseView):
 
 
 class ValidUserMixin(object):
+
     """Provides authorization checking."""
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        """Provides authorized page access by ``login_required`` decorator.
+        """Provide authorized page access by ``login_required`` decorator.
 
         :return HttpRequest:
 

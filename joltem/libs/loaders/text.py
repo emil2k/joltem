@@ -1,8 +1,9 @@
-"""
-Wrapper for loading text files from "texts" directories in INSTALLED_APPS
-packages.
+""" Wrapper for loading text files.
+
+From "texts" directories in INSTALLED_APPS packages.
 
 Based on django.template.loaders.app_directories.py with minor alterations.
+
 """
 
 import sys
@@ -38,26 +39,32 @@ app_text_dirs = tuple(app_text_dirs)
 
 class TextDoesNotExist(Exception):
 
-    """Thrown when texts file does not exist"""
+    """Thrown when texts file does not exist. """
+
     pass
 
 
 class TextLoader():
 
+    """ Load text. """
+
     def __call__(self, text_name, text_dirs=None):
         return self.load_text_source(text_name, text_dirs)
 
-    def get_text_sources(self, text_name, text_dirs=None):
-        """
-        Returns the absolute paths to "text_name", when appended to each
-        directory in "text_dirs". Any paths that don't lie inside one of the
-        text dirs are excluded from the result set, for security reasons.
+    @staticmethod
+    def get_text_sources(text_name, text_dirs=None):
+        """ Return the absolute paths to "text_name".
+
+        When appended to each directory in "text_dirs". Any paths that don't
+        lie inside one of the text dirs are excluded from the result set,
+        for security reasons.
+
         """
         if not text_dirs:
             text_dirs = app_text_dirs
-        for text_dir in text_dirs:
+        for td in text_dirs:
             try:
-                yield safe_join(text_dir, text_name)
+                yield safe_join(td, text_name)
             except UnicodeDecodeError:
                 # The text dir name was a bytestring that wasn't valid UTF-8.
                 raise
@@ -66,6 +73,11 @@ class TextLoader():
                 pass
 
     def load_text_source(self, text_name, text_dirs=None):
+        """ Load text by name.
+
+        :return str, str: content, filepath
+
+        """
         for filepath in self.get_text_sources(text_name, text_dirs):
             try:
                 with open(filepath, 'rb') as fp:

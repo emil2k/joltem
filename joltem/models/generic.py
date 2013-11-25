@@ -18,10 +18,15 @@ class Owned(models.Model):
         abstract = True
 
     def save(self, **kwargs):
+        """ Check owner exists.
+
+        :return object:
+
+        """
         if self.owner_id is None:
             raise ImproperlyConfigured(
                 "Owner foreign key field must be set in implementing class.")
-        super(Owned, self).save(**kwargs)
+        return super(Owned, self).save(**kwargs)
 
     def is_owner(self, user):
         """ Whether the passed user is person who posted the task.
@@ -42,6 +47,11 @@ class ProjectContext(models.Model):
         abstract = True
 
     def save(self, **kwargs):
+        """ Check self.project exists.
+
+        :return object:
+
+        """
         if self.project_id is None:
             raise ImproperlyConfigured(
                 "Project foreign key field must be set in implementing class.")

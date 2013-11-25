@@ -1,5 +1,6 @@
 """ View related tests for solution app. """
 from django_webtest import WebTest
+
 from joltem.libs import mixer
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin

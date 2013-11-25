@@ -208,6 +208,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
 
 
 class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
+
     """Shows solution's commits.
 
     Repository can be specified by user or used by default.
@@ -221,7 +222,7 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
 
     @cached_property
     def current_repo(self):
-        """Returns current repository instance.
+        """Return current repository instance.
 
         First it tries to get repo by name if it is specified in URL.
         Otherwise it uses first repo of project.
@@ -241,11 +242,15 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
 
     @cached_property
     def project_repo_list(self):
-        """Returns visible repos of project."""
+        """Return visible repos of project."""
         return self.project.repository_set.visible()
 
     def get_context_data(self, **kwargs):
-        """Adds repositories and commits to context."""
+        """Add repositories and commits to context.
+
+        :return dict: A context
+
+        """
         context = super(SolutionCommitsView, self).get_context_data(**kwargs)
 
         commit_list = []

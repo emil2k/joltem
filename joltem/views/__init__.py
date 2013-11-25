@@ -77,11 +77,17 @@ class NotificationsView(TemplateView, RequestBaseView):
         """
 
         if request.POST.get("clear_all"):
-            for notification in request.user.notification_set.filter(is_cleared=False):
+            for notification in request.user.notification_set.filter(
+                    is_cleared=False):
                 notification.mark_cleared()
         return redirect("notifications")
 
     def get_context_data(self, **kwargs):
+        """ Get context.
+
+        :return dict:
+
+        """
         from joltem.holders import NotificationHolder
         kwargs["nav_tab"] = "notifications"
         kwargs["notifications"] = NotificationHolder.get_notifications(
@@ -91,13 +97,21 @@ class NotificationsView(TemplateView, RequestBaseView):
 
 class NotificationRedirectView(RedirectView):
 
+    """ A notification redirect.
+
+    That marks a notification cleared and redirects to the notifications url.
+
     """
-    A notification redirect, that marks a notification cleared and redirects to the notifications url
-    """
+
     permanent = False
     query_string = False
 
     def get_redirect_url(self, notification_id):
+        """ Get redirect to notification.
+
+        :return str:
+
+        """
         notification = get_object_or_404(Notification, id=notification_id)
         notification.mark_cleared()
         return notification.notifying.get_notification_url(notification)
@@ -105,9 +119,12 @@ class NotificationRedirectView(RedirectView):
 
 class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
 
+    """ A view to display a basic introduction to the site.
+
+    Displayed to new users after sign up.
+
     """
-    A view to display a basic introduction to the site, displayed to new users after sign up.
-    """
+
     template_name = "joltem/introduction.html"
     text_names = ["joltem/introduction.md"]
     text_context_object_prefix = "introduction_"

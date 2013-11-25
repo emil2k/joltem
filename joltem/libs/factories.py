@@ -64,6 +64,8 @@ class RepositoryF(factory.DjangoModelFactory):
 
 class AuthenticationF(factory.DjangoModelFactory):
 
+    """ Generate authentication. """
+
     FACTORY_FOR = Authentication
 
     user = factory.SubFactory(UserF)
@@ -77,6 +79,8 @@ class AuthenticationF(factory.DjangoModelFactory):
 
 
 class TaskF(factory.DjangoModelFactory):
+
+    """ Generate tasks. """
 
     FACTORY_FOR = Task
 

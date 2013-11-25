@@ -20,7 +20,7 @@ help:
 .PHONY: lint
 # target: lint - Code audit
 lint: $(ENV)
-	@rm -rf pep8.pylama
+	@rm -rf pep8.pylama pylint.pylama
 	$(ENV)/bin/pip install pylama
 	$(ENV)/bin/pip install pylama_pylint
 	$(ENV)/bin/pylama . -r pep8.pylama -l pep257,pep8,pyflakes,mccabe || echo
