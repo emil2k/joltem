@@ -195,14 +195,47 @@ class CommentableView(RequestBaseView):
 
 class ValidUserMixin(object):
 
-    """ Exported classes should have a docstring."""
+    """Provides authorization checking."""
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        """ Exported methods should have a docstring.
+        """Provide authorized page access by ``login_required`` decorator.
 
         :return HttpRequest:
 
         """
+        self.request = request
+        self.args = args
+        self.kwargs = kwargs
+
+        response = self.prepare(request, *args, **kwargs)
+        if response:
+            return response
 
         return super(ValidUserMixin, self).dispatch(request, *args, **kwargs)
+
+    def prepare(self, request, *args, **kwargs):
+        """It is executed before built in request dispatcher.
+
+        It can be used as early access checker.
+
+        """
+
+
+class ExtraContextMixin(object):
+
+    """Accepts ``extra_context`` dict in ``django.contrib.auth`` way."""
+
+    def get_context_data(self, **kwargs):
+        """ Make template context.
+
+        :return dict:
+
+        """
+        context = super(ExtraContextMixin, self).get_context_data(**kwargs)
+
+        extra_context = self.kwargs.get('extra_context')
+        if extra_context is not None:
+            context.update(extra_context)
+
+        return context

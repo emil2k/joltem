@@ -1,4 +1,5 @@
-# coding: utf-8
+""" Support pagination in templates. """
+
 from django.template.base import Library
 
 register = Library()
@@ -6,9 +7,11 @@ register = Library()
 
 @register.assignment_tag
 def pagination(paginator, page_num):
-    """This is slightly improved Django admin's ``pagination`` inclusion tag.
+    """There is slightly improved Django admin's ``pagination`` inclusion tag.
 
     https://github.com/django/django/blob/master/django/contrib/admin/templatetags/admin_list.py
+
+    :return list:
 
     """
     DOT = '.'

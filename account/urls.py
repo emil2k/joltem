@@ -1,6 +1,7 @@
 """ Account views. """
 
 from django.conf.urls import patterns, url
+from django.conf import settings
 
 from account.views import (
     SignUpView, GeneralSettingsView, SSHKeyCreateView, SSHKeyDeleteView,
@@ -44,7 +45,7 @@ urlpatterns = patterns(
         'password_change_done',),
 
     url(r'^password-reset/$', 'django.contrib.auth.views.password_reset',
-        name='password_reset'),
+        {'from_email': settings.BASE_FROM_EMAIL}, name='password_reset'),
 
     url(r'^password-reset/done/$',
         'django.contrib.auth.views.password_reset_done',

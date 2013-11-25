@@ -1,65 +1,41 @@
 {% extends 'solution/base.html' %}
+
 {% block solution_content %}
-    {% if not repository %}
-        <div class="alert">The project has no repositories.</div>
-    {% else %}
-        <div class="row">
-            <div class="span2">
-                <ul class="nav nav-list well">
-                    <li class="nav-header">repositories</li>
-                    {% for project_repository in repositories %}
-                        <li{% if project_repository.id == repository.id %} class="active"{% endif %}><a href="{% url 'project:solution:commits' project.name solution.id project_repository.name %}">{{ project_repository.name }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="span10">
-                <h4>{{ repository.name }}</h4>
-                {% for commit in commits %}
-                    <p>
-                        <small class="muted">{{ commit.time_committed|date }} @ {{ commit.time_committed|time }} by {{ commit.author }}</small><br/>
-                        {{ commit.message }}<br/>
-                        <small class="text-info">{{ commit.hex }}</small>
-                    </p>
-                {% empty %}
-                    <p class="muted">No commits on this repo for this particular solution.</p>
-                {% endfor %}
-                <h5>Difference</h5>
-                {% for patch in diff %}
-                    <p>
-                        <i class="icon-file"></i> {{ patch.new_file_path }}
-                        {% if patch.old_file_path != patch.new_file_path %}
-                            <span class="muted">( renamed from : {{ patch.old_file_path }})</span>
-                        {% endif %}
-                    </p>
-                    {% for hunk in patch %}
-                        <table class="patch-display">
-                            {% for line in hunk %}
-                                <tr class="line {% if line.is_addition %}addition{% elif line.is_deletion %}deletion{% endif %}">
-                                    <td class="line_number">
-                                        {% if line.old_line_number %}
-                                            {{ line.old_line_number }}
-                                        {% endif %}
-                                    </td>
-                                    <td class="line_number">
-                                        {% if line.new_line_number %}
-                                            {{ line.new_line_number }}
-                                        {% endif %}
-                                    </td>
-                                    <td class="code">{{ line.line }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="2" class="muted">No lines for this hunk.</td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    {% empty %}
-                        <p class="muted">No hunks for this patch.</p>
-                    {% endfor %}
-                {% empty %}
-                    <p class="muted">No patches on this repo for this particular solution.</p>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
+
+{% if not project_repo_list %}
+<div class="alert">The project has no repositories.</div>
+{% else %}
+<div class="row">
+    <div class="span2">
+        <ul class="nav nav-list well">
+            <li class="nav-header">repositories</li>
+            {% for repo in project_repo_list %}
+            <li{% if current_repo.id == repo.id %} class="active"{% endif %}>
+                <a href="{% url 'project:solution:commits' project.name solution.id repo.name %}">{{ repo.name }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="span10">
+        <h4>{{ current_repo.name }}</h4>
+
+        {% for commit in commit_list %}
+        <p>
+            <small class="muted">
+                {{ commit.time_committed|date }}
+                @ {{ commit.time_committed|time }}
+                by {{ commit.author }}
+            </small>
+            <pre>{{ commit.message }}</pre>
+            <small class="text-info">{{ commit.hex }}</small>
+        </p>
+        {% empty %}
+        <p class="muted">
+            No commits on this repo for this particular solution.
+        </p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

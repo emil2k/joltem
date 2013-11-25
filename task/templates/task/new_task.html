@@ -37,9 +37,9 @@
             {% endif %}
 
             {% for radio in form.priority %}
-                <label>
+                <label class="radio">
+                    {{ radio.tag }}
                     {{ radio.choice_label }}
-                    <span class="radio">{{ radio.tag }}</span>
                 </label>
             {% endfor %}
 

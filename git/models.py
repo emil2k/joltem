@@ -1,12 +1,15 @@
 """ Git related modules. """
 import os
 
+from pygit2 import Repository as PyGitRepository
+from model_utils.managers import PassThroughManager
 from django.db import models
 from django.conf import settings
 
 from twisted.conch.ssh.keys import Key, BadKeyError
 
 from project.models import Project
+from .managers import RepositoryQuerySet
 
 import logging
 logger = logging.getLogger('joltem')
@@ -25,6 +28,8 @@ class Repository(models.Model):
     # Relations
     project = models.ForeignKey(Project)
 
+    objects = PassThroughManager.for_queryset_class(RepositoryQuerySet)()
+
     @property
     def absolute_path(self):
         """ Absolute path to repository.
@@ -41,8 +46,10 @@ class Repository(models.Model):
         :return PyGitRepository:
 
         """
-        from pygit2 import Repository as PyGitRepository
-        return PyGitRepository(self.absolute_path)
+        try:
+            return PyGitRepository(self.absolute_path)
+        except KeyError:
+            pass
 
     def __unicode__(self):
         return self.name

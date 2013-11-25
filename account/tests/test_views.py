@@ -1,6 +1,9 @@
 # coding: utf-8
 from django_webtest import WebTest
 from django.test import TestCase
+from django.core.urlresolvers import reverse
+from django.core import mail
+from django.conf import settings
 
 from git.models import Authentication
 from joltem.libs import mixer
@@ -602,7 +605,6 @@ class AuthomaticTest(TestCase):
 
     def test_attach_oauth(self):
         # ugly and long create of session if session doesn't exist
-        from django.conf import settings
         from django.utils.importlib import import_module
         engine = import_module(settings.SESSION_ENGINE)
         store = engine.SessionStore()
@@ -616,3 +618,27 @@ class AuthomaticTest(TestCase):
         session.save()
         self.client.login(username=user.username, password='test')
         self.assertTrue(user.oauth_set.count())
+
+
+class AccountPasswordResetTest(TestCase):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+
+    def test_send_email(self):
+        uri = reverse('password_reset')
+        self.client.post(uri, data=dict(email='wrong@email.com'))
+        self.assertFalse(mail.outbox)
+        response = self.client.post(uri, data=dict(email=self.user.email))
+        self.assertTrue(mail.outbox)
+        m = mail.outbox.pop()
+        self.assertEqual(m.to, [self.user.email])
+        self.assertTrue(m.subject.startswith('Password reset'))
+        self.assertEqual(m.from_email, settings.BASE_FROM_EMAIL)
+
+        uri = reverse('password_reset_confirm', kwargs=dict(
+            token=response.context['token'],
+            uidb64=response.context['uid'],
+        ))
+        response = self.client.get(uri)
+        self.assertContains(response, 'password')

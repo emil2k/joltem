@@ -1,3 +1,5 @@
+""" Generate request objects for Django tests. """
+
 from django.utils import timezone
 from django.test import RequestFactory
 
@@ -5,6 +7,7 @@ from django.test import RequestFactory
 class MockUser(object):
 
     """ A mock user for testing requests. """
+
     # todo maybe this is unnecessary
 
     username = 'johndoe'
@@ -28,12 +31,20 @@ class MockUser(object):
         return self._is_authenticated
 
     def get_full_name(self):
-        """ Returns the first_name plus the last_name, with a space in between. """
+        """ Return the first_name plus the last_name, with a space in between.
+
+        :return str:
+
+        """
         full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
-        """ Returns the short name for the user. """
+        """ Return the short name for the user.
+
+        :return str:
+
+        """
         return self.first_name
 
     def get_profile(self):
@@ -42,9 +53,11 @@ class MockUser(object):
 
 
 def mock_authentication_middleware(request, user=None, is_authenticated=False):
-    """
-    A way to mock the authentication network to set
-    the request.user setting that many of the views user
+    """ A way to mock the authentication network.
+
+    To set the request.user setting that many of the views user
+
+    :return HttpRequest:
 
     """
     if user:
@@ -56,19 +69,29 @@ def mock_authentication_middleware(request, user=None, is_authenticated=False):
 
 
 def get_mock_get_request(path="/fakepath", user=None, is_authenticated=False):
-    """
-    Return a mock a GET request, to pass to a view
+    """ Return a mock a GET request, to pass to a view.
+
     `path` not important unless the view is using a path argument
+
+    :return HttpRequest:
+
     """
     return mock_authentication_middleware(RequestFactory().get(
         path=path), user=user, is_authenticated=is_authenticated)
 
 
 def get_mock_post_request(path="/fakepath", user=None,
-                          is_authenticated=False, data={}, **headers):
-    """
-    Return a mock a POST request, to pass to a view
+                          is_authenticated=False, data=None, **headers):
+    """ Return a mock a POST request, to pass to a view.
+
     `path` not important unless the view is using a path argument
+
+    :return HttpRequest:
+
     """
+    if data is None:
+        data = {}
+
     return mock_authentication_middleware(RequestFactory().post(
-        path=path, data=data, **headers), user=user, is_authenticated=is_authenticated)
+        path=path, data=data, **headers), user=user,
+        is_authenticated=is_authenticated)

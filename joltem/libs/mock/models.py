@@ -32,12 +32,22 @@ def load_project_impact(project, user):
 
 
 def get_mock_user(username, **extra_fields):
+    """ Generate User.
+
+    :return User:
+
+    """
     return User.objects.create_user(
         username, '%s@gmail.com' % username,
         '%s_password' % username, **extra_fields)
 
 
 def get_mock_project(name, title=None):
+    """ Generate project.
+
+    :return Project:
+
+    """
     title = "Project : %s" % name if not title else title
     p = Project(
         name=name,
@@ -50,6 +60,11 @@ def get_mock_project(name, title=None):
 def get_mock_task(project, owner,
                   is_reviewed=False, is_accepted=False, is_closed=False,
                   solution=None, author=None):
+    """ Generate task.
+
+    :return Task:
+
+    """
     author = owner if author is None else author
     t = Task(
         title="A task by %s" % owner.username,
@@ -71,6 +86,11 @@ def get_mock_solution(project, owner,
                       is_completed=False, is_closed=False,
                       task=None, solution=None,
                       title=None, description=None):
+    """ Generate solution.
+
+    :return Solution:
+
+    """
     s = Solution(
         title=title,
         description=description,
@@ -88,6 +108,11 @@ def get_mock_solution(project, owner,
 
 
 def get_mock_comment(project, owner, commentable):
+    """ Generate comment.
+
+    :return Comment:
+
+    """
     c = Comment(
         project=project,
         owner=owner,
@@ -98,6 +123,11 @@ def get_mock_comment(project, owner, commentable):
 
 
 def get_mock_vote(voter, voteable, voter_impact, magnitude):
+    """ Generate Vote.
+
+    :return Vote:
+
+    """
     v = Vote(
         voter_impact=voter_impact,  # mock the voter's impact
         is_accepted=magnitude > 0,
@@ -111,9 +141,9 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
 # Setups
 
 
-def get_mock_setup_solution(project_name, username, is_completed=True, is_closed=False):
-    """
-    A shortcut to get a solution to a task.
+def get_mock_setup_solution(
+        project_name, username, is_completed=True, is_closed=False):
+    """ A shortcut to get a solution to a task.
 
     The task is reviewed, accepted, and open
 
@@ -122,6 +152,8 @@ def get_mock_setup_solution(project_name, username, is_completed=True, is_closed
     username -- a username for the task & solution owner.
     is_completed -- whether or not the mock solution is_completed.
     is_closed -- whether or not the mock solution is closed.
+
+    :return (Project, User, Task, Solution):
 
     """
     p = get_mock_project(project_name)
@@ -133,8 +165,10 @@ def get_mock_setup_solution(project_name, username, is_completed=True, is_closed
 
 
 def get_mock_setup_comment(project_name, username):
-    """
-    A shortcut to get a comment
+    """ A shortcut to get a comment.
+
+    :return (Project, User, Task, Solution, Comment):
+
     """
     p, u, t, s = get_mock_setup_solution(project_name, username)
     c = get_mock_comment(p, u, s)

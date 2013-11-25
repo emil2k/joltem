@@ -1,14 +1,16 @@
 """ Solution related views. """
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic.base import TemplateView
-from django.views.generic.list import ListView
+from django.views.generic import TemplateView, DetailView, ListView
+from django.utils.functional import cached_property
 
 from git.models import Repository
 from joltem.holders import CommentHolder
 from joltem.models import Vote
-from joltem.views.generic import VoteableView, CommentableView
-from project.views import ProjectBaseView
+from joltem.views.generic import (
+    VoteableView, CommentableView, ExtraContextMixin,
+)
+from project.views import ProjectBaseView, ProjectMixin
 from solution.models import Solution
 from task.models import Task
 
@@ -205,48 +207,68 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
                         solution_id=self.solution.id)
 
 
-class SolutionCommitsView(TemplateView, SolutionBaseView):
+class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
 
-    """ View for viewing commits on solution. """
+    """Shows solution's commits.
 
-    template_name = "solution/commits.html"
-    solution_tab = "commits"
+    Repository can be specified by user or used by default.
 
-    def initiate_variables(self, request, *args, **kwargs):
-        """ Initiate variables for view, add repository set. """
-        super(SolutionCommitsView, self).initiate_variables(
-            request, *args, **kwargs)
-        self.repository_set = self.project.repository_set.filter(
-            is_hidden=False).order_by('name')
-        repository_name = kwargs.get("repository_name")
-        if self.repository_set.count() == 0:
-            self.repository = None
-        elif repository_name is not None:
-            self.repository = get_object_or_404(Repository,
-                                                project_id=self.project.id,
-                                                name=repository_name)
-        else:
-            self.repository = self.repository_set[
-                0]  # load the default active repository
+    """
 
-    def get_context_data(self, **kwargs):
-        """ Return context to pass to template.
+    template_name = 'solution/commits.html'
+    model = Solution
+    pk_url_kwarg = 'solution_id'
+    context_object_name = 'solution'
 
-        Add repositories and commits.
+    @cached_property
+    def current_repo(self):
+        """Return current repository instance.
+
+        First it tries to get repo by name if it is specified in URL.
+        Otherwise it uses first repo of project.
 
         """
-        if self.repository:
-            kwargs['repositories'] = self.repository_set
-            kwargs['repository'] = self.repository
-            try:
-                pygit_repository = self.repository.load_pygit_object()
-                kwargs['commits'] = self.solution.get_commit_set(
-                    pygit_repository)
-                kwargs['diff'] = self.solution.get_pygit_diff(pygit_repository)
-            except KeyError:
-                kwargs['commits'] = []
-                kwargs['diff'] = []
-        return super(SolutionCommitsView, self).get_context_data(**kwargs)
+        repository_name = self.kwargs.get('repository_name')
+
+        if repository_name:
+            return get_object_or_404(
+                Repository,
+                project_id=self.project.id,
+                name=repository_name
+            )
+
+        if self.project_repo_list:
+            return self.project_repo_list[0]
+
+    @cached_property
+    def project_repo_list(self):
+        """Return visible repos of project."""
+        return self.project.repository_set.visible()
+
+    def get_context_data(self, **kwargs):
+        """Add repositories and commits to context.
+
+        :return dict: A context
+
+        """
+        context = super(SolutionCommitsView, self).get_context_data(**kwargs)
+
+        commit_list = []
+        if self.current_repo:
+            pygit_repository = self.current_repo.load_pygit_object()
+            if pygit_repository:
+                solution = self.object
+                try:
+                    commit_list = solution.get_commit_set(pygit_repository)
+                except KeyError:
+                    pass
+
+        context['commit_list'] = commit_list
+        context['current_repo'] = self.current_repo
+        context['project_repo_list'] = self.project_repo_list
+        context['project'] = self.project
+
+        return context
 
 
 class SolutionCreateView(TemplateView, ProjectBaseView):

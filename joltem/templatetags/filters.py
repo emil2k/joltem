@@ -1,3 +1,5 @@
+""" Joltem filters. """
+
 from django import template
 
 register = template.Library()
@@ -5,6 +7,11 @@ register = template.Library()
 
 @register.filter
 def as_percentage_of(part, whole):
+    """ Render as percent.
+
+    :return str:
+
+    """
     try:
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
@@ -12,18 +19,24 @@ def as_percentage_of(part, whole):
 
 
 @register.filter
-def active(check, active):
+def active(check, actv):
+    """ If check matches active prints "active".
+
+    Which can be applied as a CSS class to a tab or anything else.
+
+    :return str:
+
     """
-    If check matches active prints "active" which can be applied as a CSS class to a tab or anything else
-    """
-    if check == active:
+    if check == actv:
         return "active"
 
 
 @register.filter
 def is_true(boolean, string):
-    """
-    Outputs a string if true
+    """ Output a string if true.
+
+    :return str:
+
     """
     if boolean:
         return string
@@ -31,16 +44,23 @@ def is_true(boolean, string):
 
 @register.filter
 def is_false(boolean, string):
-    """
-    Outputs a string if false
+    """ Output a string if false.
+
+    :return str:
+
     """
     if not boolean:
         return string
 
 
 def is_match(string, actual, expected):
-    """
-    If value is a bool checks if true and if checks if matches expectations prints given string
+    """ Print given string.
+
+    If value is a bool checks if true and if checks if matches expectations
+    prints given string.
+
+    :return str:
+
     """
     if actual == expected:
         return string
@@ -48,19 +68,39 @@ def is_match(string, actual, expected):
 
 @register.filter
 def icon_white(actual, expected):
+    """ Render icon when metches.
+
+    :return str:
+
+    """
     return is_match('icon-white', actual, expected)
 
 
 @register.filter
 def btn_success(actual, expected):
+    """ Render button when metches.
+
+    :return str:
+
+    """
     return is_match('btn-success', actual, expected)
 
 
 @register.filter
 def btn_danger(actual, expected):
+    """ Render button when metches.
+
+    :return str:
+
+    """
     return is_match('btn-danger', actual, expected)
 
 
 @register.filter
 def btn_warning(actual, expected):
+    """ Render button when metches.
+
+    :return str:
+
+    """
     return is_match('btn-warning', actual, expected)
