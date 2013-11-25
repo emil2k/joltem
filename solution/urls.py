@@ -56,8 +56,21 @@ urlpatterns = patterns(
         },
         'my_complete'),
 
-    url(r'^incomplete/$', login_required(
-        views.AllIncompleteSolutionsView.as_view()), name='all_incomplete'),
-    url(r'^complete/$', login_required(
-        views.AllCompleteSolutionsView.as_view()), name='all_complete'),
+    url(r'^incomplete/$',
+        views.AllIncompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'all_incomplete',
+            }
+        },
+        'all_incomplete'),
+
+    url(r'^complete/$',
+        views.AllCompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'all_complete',
+            }
+        },
+        'all_complete'),
 )

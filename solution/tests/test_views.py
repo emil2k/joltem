@@ -167,27 +167,6 @@ class SolutionCreateView(BaseSolutionViewTest):
         self.assertTrue(response.status_code, 302)
 
 
-class SolutionListViewTests(BaseProjectViewTest):
-
-    def _test_get_solution_list(self, view):
-        """ Test generator for GET on a solution list
-
-        :param view: list view to test.
-
-        """
-        response = self._get(view)
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_all_incomplete_solutions(self):
-        """ Test simple GET of all incomplete solutions view. """
-        self._test_get_solution_list(
-            views.AllIncompleteSolutionsView.as_view())
-
-    def test_get_all_complete_solutions(self):
-        """ Test simple GET of all complete solutions view. """
-        self._test_get_solution_list(views.AllCompleteSolutionsView.as_view())
-
-
 SOLUTION_COMMITS_URL = '/{project_name}/solution/{solution_id}/commits/'
 SOLUTION_COMMITS_REPO_URL = '/{project_name}/solution/{solution_id}/commits/repository/{repo_id}/'
 
@@ -376,3 +355,65 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
         response = self.app.get(self.url, user=self.user, status=200)
 
         self.assertContains(response, 'my completed solution')
+
+
+ALL_INCOMPLETE_SOLUTIONS_URL = '/{project_name}/solution/incomplete/'
+
+
+class IncompleteSolutionsTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+        self.project = factories.ProjectF()
+
+        self.url = ALL_INCOMPLETE_SOLUTIONS_URL.format(
+            project_name=self.project.name,
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_user_has_one_incompleted_solution(self):
+        factories.SolutionF(
+            is_completed=False,
+            is_closed=False,
+            project=self.project,
+            title='incomplete solution',
+        )
+
+        response = self.app.get(self.url, user=self.user, status=200)
+
+        self.assertContains(response, 'incomplete solution')
+
+
+ALL_COMPLETE_SOLUTIONS_URL = '/{project_name}/solution/complete/'
+
+
+class CompleteSolutionsTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+        self.project = factories.ProjectF(name='joltem')
+
+        self.url = ALL_COMPLETE_SOLUTIONS_URL.format(
+            project_name=self.project.name,
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_user_has_one_completed_solution(self):
+        factories.SolutionF(
+            is_completed=True,
+            is_closed=False,
+            project=self.project,
+            title='completed solution',
+        )
+
+        response = self.app.get(self.url, user=self.user, status=200)
+
+        self.assertContains(response, 'completed solution')
