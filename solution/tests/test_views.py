@@ -213,7 +213,7 @@ class SolutionListViewTests(BaseProjectViewTest):
 
 
 SOLUTION_COMMITS_URL = '/{project_name}/solution/{solution_id}/commits/'
-SOLUTION_COMMITS_REPO_URL = '/{project_name}/solution/{solution_id}/commits/{repo_name}/'
+SOLUTION_COMMITS_REPO_URL = '/{project_name}/solution/{solution_id}/commits/repository/{repo_id}/'
 
 
 class SolutionCommitsTest(WebTest, ViewTestMixin):
@@ -259,7 +259,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
         url_with_faked_repo = SOLUTION_COMMITS_REPO_URL.format(
             project_name=self.solution.project.name,
             solution_id=self.solution.pk,
-            repo_name='blah'
+            repo_id='0'
         )
 
         self.app.get(url_with_faked_repo, user=self.user, status=404)

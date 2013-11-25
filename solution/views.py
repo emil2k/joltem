@@ -228,13 +228,13 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
         Otherwise it uses first repo of project.
 
         """
-        repository_name = self.kwargs.get('repository_name')
+        repository_id = self.kwargs.get('repository_id')
 
-        if repository_name:
+        if repository_id:
             return get_object_or_404(
                 Repository,
                 project_id=self.project.id,
-                name=repository_name
+                id=repository_id,
             )
 
         if self.project_repo_list:
