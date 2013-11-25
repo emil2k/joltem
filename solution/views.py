@@ -1,5 +1,4 @@
 """ Solution related views. """
-from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView, DetailView, ListView
 from django.utils.functional import cached_property
@@ -349,117 +348,72 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                             solution_id=solution.id)
 
 
-class SolutionBaseListView(ListView, ProjectBaseView):
-
-    """ Base view for displaying lists of solutions. """
+class SolutionListMixin(ProjectMixin, ExtraContextMixin, ListView):
 
     template_name = 'solution/solutions_list.html'
     context_object_name = 'solutions'
     paginate_by = 10
-    project_tab = "solutions"
-    solutions_tab = None
 
     def get_context_data(self, **kwargs):
-        """ Return context for template, add solutions tab. """
-        kwargs["solutions_tab"] = self.solutions_tab
-        return super(SolutionBaseListView, self).get_context_data(**kwargs)
+        kwargs['project'] = self.project
+        return super(SolutionListMixin, self).get_context_data(**kwargs)
 
 
-class MyReviewedSolutionsView(SolutionBaseListView):
+class MyReviewedSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of reviewed solutions. """
 
-    solutions_tab = "my_reviewed"
-
-    def reviewed_filter(self):
-        """ Yield reviewed solutions. """
-        # todo test for this
-        solution_type = ContentType.objects.get_for_model(Solution)
-        for vote in self.user.vote_set.filter(
-                voteable_type_id=solution_type.id).order_by('-time_voted'):
-            yield vote.voteable
-
     def get_queryset(self):
-        """ Return generator of reviewed solutions. """
-        # TODO: It should return QS.
-        return [solution for solution in self.reviewed_filter()]
+        return Solution.objects.reviewed_by_user(user=self.request.user) \
+                               .order_by('-vote_set__time_voted') \
+                               .select_related('owner')
 
 
-class MyReviewSolutionsView(SolutionBaseListView):
+class MyReviewSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of solutions to review. """
 
-    solutions_tab = "my_review"
-
-    def review_filter(self):
-        """ Yield solutions to review. """
-        # todo test for this
-        solution_type = ContentType.objects.get_for_model(Solution)
-        reviewed = [vote.voteable
-                    for vote in self.user.vote_set.filter(
-                        voteable_type_id=solution_type.id
-                    ).order_by('-time_voted')]
-        for solution in Solution.objects\
-                .filter(is_completed=True, is_closed=False)\
-                .exclude(owner_id=self.user.id).order_by('-time_completed'):
-            if solution not in reviewed:
-                yield solution
-
     def get_queryset(self):
-        """ Return generator of solutions to review. """
-        # TODO: It should return QS.
-        return [solution for solution in self.review_filter()]
+        return Solution.objects.need_review_from_user(user=self.request.user) \
+                               .order_by('-time_completed') \
+                               .select_related('owner')
 
 
-class MyIncompleteSolutionsView(SolutionBaseListView):
+class MyIncompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of your incomplete solutions. """
 
-    solutions_tab = "my_incomplete"
-
     def get_queryset(self):
-        """ Return queryset of the user's incomplete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=False, is_closed=False, owner_id=self.user.id)\
-            .order_by('-time_posted')
+        return Solution.objects.incomplete_by_user(user=self.request.user) \
+                               .order_by('-time_posted') \
+                               .select_related('owner')
 
 
-class MyCompleteSolutionsView(SolutionBaseListView):
+class MyCompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of your complete solutions. """
 
-    solutions_tab = "my_complete"
-
     def get_queryset(self):
-        """ Return queryset of the user's complete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=True, is_closed=False, owner_id=self.user.id)\
-            .order_by('-time_completed')
+        return Solution.objects.completed_by_user(user=self.request.user) \
+                               .order_by('-time_completed') \
+                               .select_related('owner')
 
 
-class AllIncompleteSolutionsView(SolutionBaseListView):
+class AllIncompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of all incomplete solutions. """
 
-    solutions_tab = "all_incomplete"
-
     def get_queryset(self):
-        """ Return queryset of all incomplete solutions. """
-        return self.project.solution_set\
-            .select_related('task', 'owner')\
-            .filter(is_completed=False, is_closed=False)\
-            .order_by('-time_posted')
+        return Solution.objects.incomplete() \
+                               .order_by('-time_posted') \
+                               .select_related('task', 'owner')
 
 
-class AllCompleteSolutionsView(SolutionBaseListView):
+class AllCompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of complete solutions. """
 
-    solutions_tab = "all_complete"
-
     def get_queryset(self):
-        """ Return queryset of complete solutions. """
-        return self.project.solution_set\
-            .select_related('task', 'owner')\
-            .filter(is_completed=True,  is_closed=False)\
-            .order_by('-time_completed')
+        return Solution.objects.completed() \
+                               .order_by('-time_completed') \
+                               .select_related('task', 'owner')
