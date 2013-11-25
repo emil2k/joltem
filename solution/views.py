@@ -396,30 +396,23 @@ class MyReviewSolutionsView(SolutionListMixin):
                                .select_related('owner')
 
 
-class MyIncompleteSolutionsView(SolutionBaseListView):
+class MyIncompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of your incomplete solutions. """
 
-    solutions_tab = "my_incomplete"
-
     def get_queryset(self):
-        """ Return queryset of the user's incomplete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=False, is_closed=False, owner_id=self.user.id)\
-            .order_by('-time_posted')
+        return Solution.objects.incomplete_by_user(user=self.request.user) \
+                               .order_by('-time_posted') \
+                               .select_related('owner')
 
 
-class MyCompleteSolutionsView(SolutionBaseListView):
+class MyCompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of your complete solutions. """
 
-    solutions_tab = "my_complete"
-
     def get_queryset(self):
-        """ Return queryset of the user's complete solutions. """
-        return self.project.solution_set.filter(
-            is_completed=True, is_closed=False, owner_id=self.user.id)\
-            .order_by('-time_completed')
+        return Solution.objects.completed_by_user(user=self.request.user) \
+                               .order_by('-time_completed')
 
 
 class AllIncompleteSolutionsView(SolutionBaseListView):

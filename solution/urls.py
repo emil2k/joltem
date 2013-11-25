@@ -38,10 +38,24 @@ urlpatterns = patterns(
         },
         'my_reviewed'),
 
-    url(r'^incomplete/my/$', login_required(
-        views.MyIncompleteSolutionsView.as_view()), name='my_incomplete'),
-    url(r'^complete/my/$', login_required(
-        views.MyCompleteSolutionsView.as_view()), name='my_complete'),
+    url(r'^incomplete/my/$',
+        views.MyIncompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_incomplete',
+            }
+        },
+        'my_incomplete'),
+
+    url(r'^complete/my/$',
+        views.MyCompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_complete',
+            }
+        },
+        'my_complete'),
+
     url(r'^incomplete/$', login_required(
         views.AllIncompleteSolutionsView.as_view()), name='all_incomplete'),
     url(r'^complete/$', login_required(
