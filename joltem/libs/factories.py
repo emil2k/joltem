@@ -12,6 +12,7 @@ from joltem.models import User
 from project.models import Project
 from git.models import Repository, Authentication
 from task.models import Task
+from solution.models import Solution
 
 
 class UserF(factory.DjangoModelFactory):
@@ -88,6 +89,14 @@ class TaskF(factory.DjangoModelFactory):
     author = factory.SubFactory(UserF)
     title = factory.Sequence(u'task{}'.format)
     priority = factory.fuzzy.FuzzyInteger(Task.LOW_PRIORITY, Task.HIGH_PRIORITY)
+
+
+class SolutionF(factory.DjangoModelFactory):
+
+    FACTORY_FOR = Solution
+
+    owner = factory.SubFactory(UserF)
+    project = factory.SubFactory(ProjectF)
 
 
 def init_joltem_project():

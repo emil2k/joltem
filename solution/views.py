@@ -365,24 +365,25 @@ class SolutionBaseListView(ListView, ProjectBaseView):
         return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
 
-class MyReviewedSolutionsView(SolutionBaseListView):
+class SolutionListMixin(ProjectMixin, ExtraContextMixin, ListView):
+
+    template_name = 'solution/solutions_list.html'
+    context_object_name = 'solutions'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        kwargs['project'] = self.project
+        return super(SolutionListMixin, self).get_context_data(**kwargs)
+
+
+class MyReviewedSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of reviewed solutions. """
 
-    solutions_tab = "my_reviewed"
-
-    def reviewed_filter(self):
-        """ Yield reviewed solutions. """
-        # todo test for this
-        solution_type = ContentType.objects.get_for_model(Solution)
-        for vote in self.user.vote_set.filter(
-                voteable_type_id=solution_type.id).order_by('-time_voted'):
-            yield vote.voteable
-
     def get_queryset(self):
-        """ Return generator of reviewed solutions. """
-        # TODO: It should return QS.
-        return [solution for solution in self.reviewed_filter()]
+        return Solution.objects.reviewed_by_user(user=self.request.user) \
+                               .order_by('-vote_set__time_voted') \
+                               .select_related('owner')
 
 
 class MyReviewSolutionsView(SolutionBaseListView):

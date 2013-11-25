@@ -2,6 +2,7 @@
 from django_webtest import WebTest
 
 from joltem.libs import mixer
+from joltem.libs import factories
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
@@ -193,15 +194,6 @@ class SolutionListViewTests(BaseProjectViewTest):
                 is_completed=True)
         self._test_get_solution_list(views.MyReviewSolutionsView.as_view())
 
-    def test_get_my_reviewed_solutions(self):
-        """ Test simple GET of my reviewed solutions view. """
-        for i in range(0, 3):  # to test generators
-            s = models.get_mock_solution(
-                self.project, models.get_mock_user('dan' + str(i)),
-                is_completed=True)
-            s.put_vote(self.user, 3)
-        self._test_get_solution_list(views.MyReviewedSolutionsView.as_view())
-
     def test_get_all_incomplete_solutions(self):
         """ Test simple GET of all incomplete solutions view. """
         self._test_get_solution_list(
@@ -263,3 +255,37 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
         )
 
         self.app.get(url_with_faked_repo, user=self.user, status=404)
+
+
+MY_REVIEWED_SOLUTIONS_URL = '/{project_name}/solution/reviewed/my/'
+
+
+class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+        self.project = factories.ProjectF()
+
+        self.url = MY_REVIEWED_SOLUTIONS_URL.format(
+            project_name=self.project.name,
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_user_has_two_reviewed_solutions(self):
+        factories.SolutionF(project=self.project)
+
+        for solution_index in xrange(2):
+            solution = factories.SolutionF(
+                project=self.project,
+                title='solution{}'.format(solution_index)
+            )
+            solution.add_vote(voter=self.user, vote_magnitude=1)
+
+        response = self.app.get(self.url, user=self.user, status=200)
+
+        for solution_index in xrange(2):
+            self.assertContains(response, 'solution{}'.format(solution_index))
