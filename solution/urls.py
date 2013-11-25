@@ -20,8 +20,14 @@ urlpatterns = patterns(
         {'extra_context': {'solution_tab': 'commits'}},
         'commits'),
 
-    url(r'^review/my/$', login_required(
-        views.MyReviewSolutionsView.as_view()), name='my_review'),
+    url(r'^review/my/$',
+        views.MyReviewSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_review',
+            }
+        },
+        'my_review'),
 
     url(r'^reviewed/my/$',
         views.MyReviewedSolutionsView.as_view(), {

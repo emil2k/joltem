@@ -186,14 +186,6 @@ class SolutionListViewTests(BaseProjectViewTest):
         """ Test simple GET of my complete solutions view. """
         self._test_get_solution_list(views.MyCompleteSolutionsView.as_view())
 
-    def test_get_my_review_solutions(self):
-        """ Test simple GET of my solutions to review view. """
-        for i in range(0, 3):  # to test generators
-            models.get_mock_solution(
-                self.project, models.get_mock_user('dan' + str(i)),
-                is_completed=True)
-        self._test_get_solution_list(views.MyReviewSolutionsView.as_view())
-
     def test_get_all_incomplete_solutions(self):
         """ Test simple GET of all incomplete solutions view. """
         self._test_get_solution_list(
@@ -284,6 +276,45 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
                 title='solution{}'.format(solution_index)
             )
             solution.add_vote(voter=self.user, vote_magnitude=1)
+
+        response = self.app.get(self.url, user=self.user, status=200)
+
+        for solution_index in xrange(2):
+            self.assertContains(response, 'solution{}'.format(solution_index))
+
+
+MY_REVIEW_SOLUTIONS_URL = '/{project_name}/solution/review/my/'
+
+
+class MyReviewSolutionsTest(WebTest, ViewTestMixin):
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+        self.project = factories.ProjectF()
+
+        self.url = MY_REVIEW_SOLUTIONS_URL.format(
+            project_name=self.project.name,
+        )
+
+    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
+        response = self.app.get(self.url)
+
+        self._test_sign_in_redirect_url(response, self.url)
+
+    def test_user_has_two_solutions_to_review(self):
+        factories.SolutionF(
+            project=self.project,
+            is_completed=True,
+            is_closed=True,
+        )
+
+        for solution_index in xrange(2):
+            factories.SolutionF(
+                project=self.project,
+                is_completed=True,
+                is_closed=False,
+                title='solution{}'.format(solution_index)
+            )
 
         response = self.app.get(self.url, user=self.user, status=200)
 

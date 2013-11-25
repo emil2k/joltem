@@ -386,30 +386,14 @@ class MyReviewedSolutionsView(SolutionListMixin):
                                .select_related('owner')
 
 
-class MyReviewSolutionsView(SolutionBaseListView):
+class MyReviewSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of solutions to review. """
 
-    solutions_tab = "my_review"
-
-    def review_filter(self):
-        """ Yield solutions to review. """
-        # todo test for this
-        solution_type = ContentType.objects.get_for_model(Solution)
-        reviewed = [vote.voteable
-                    for vote in self.user.vote_set.filter(
-                        voteable_type_id=solution_type.id
-                    ).order_by('-time_voted')]
-        for solution in Solution.objects\
-                .filter(is_completed=True, is_closed=False)\
-                .exclude(owner_id=self.user.id).order_by('-time_completed'):
-            if solution not in reviewed:
-                yield solution
-
     def get_queryset(self):
-        """ Return generator of solutions to review. """
-        # TODO: It should return QS.
-        return [solution for solution in self.review_filter()]
+        return Solution.objects.need_review_from_user(user=self.request.user) \
+                               .order_by('-time_completed') \
+                               .select_related('owner')
 
 
 class MyIncompleteSolutionsView(SolutionBaseListView):
