@@ -60,12 +60,15 @@ class Task(Commentable, Updatable):
     )
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+
     is_reviewed = models.BooleanField(default=False)
     is_accepted = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
+
     time_posted = models.DateTimeField(default=timezone.now)
     time_reviewed = models.DateTimeField(null=True, blank=True)
     time_closed = models.DateTimeField(null=True, blank=True)
+
     # Relations
     owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     project = models.ForeignKey('project.Project')
