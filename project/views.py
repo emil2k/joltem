@@ -1,19 +1,22 @@
 # coding: utf-8
 """ Project's views. """
-from django.views.generic import TemplateView
-from django.utils.functional import cached_property
-from django.shortcuts import get_object_or_404
+from django.core.cache import cache
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.utils.functional import cached_property
+from django.views.generic import TemplateView
 
-from joltem.views.generic import RequestBaseView, ValidUserMixin
 from .models import Project
+from joltem.views.generic import RequestBaseView, ValidUserMixin
 
 
 class ProjectMixin(ValidUserMixin):
+
     """Gets project by name from url."""
 
     @cached_property
     def project(self):
+        """ Return self.project. """
         return get_object_or_404(Project, name=self.kwargs['project_name'])
 
 
@@ -51,3 +54,18 @@ class ProjectView(TemplateView, ProjectBaseView):
     """ View to display a project's information. """
 
     template_name = "project/project.html"
+
+    def get_context_data(self, **kwargs):
+        """ Get context for templates.
+
+        :return dict: A context
+
+        """
+        key = 'project:overview:%s' % self.project.id
+        overview = cache.get(key)
+        if not overview:
+            overview = self.project.get_overview()
+            cache.set(key, overview)
+
+        kwargs.update(overview)
+        return super(ProjectView, self).get_context_data(**kwargs)
