@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """ Factories for tests. """
 
 import os
@@ -92,6 +90,8 @@ class TaskF(factory.DjangoModelFactory):
 
 
 class SolutionF(factory.DjangoModelFactory):
+
+    """ Generate mock solution. """
 
     FACTORY_FOR = Solution
 

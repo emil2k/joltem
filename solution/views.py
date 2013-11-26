@@ -1,7 +1,7 @@
 """ Solution related views. """
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import TemplateView, DetailView, ListView
 from django.utils.functional import cached_property
+from django.views.generic import TemplateView, DetailView, ListView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
@@ -350,11 +350,18 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
 
 class SolutionListMixin(ProjectMixin, ExtraContextMixin, ListView):
 
+    """ View mixin for solution's list. """
+
     template_name = 'solution/solutions_list.html'
     context_object_name = 'solutions'
     paginate_by = 10
 
     def get_context_data(self, **kwargs):
+        """ Get context data for templates.
+
+        :return dict:
+
+        """
         kwargs['project'] = self.project
         return super(SolutionListMixin, self).get_context_data(**kwargs)
 
@@ -364,6 +371,11 @@ class MyReviewedSolutionsView(SolutionListMixin):
     """ View for viewing a list of reviewed solutions. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.reviewed_by_user(user=self.request.user) \
                                .order_by('-vote_set__time_voted') \
                                .select_related('owner')
@@ -374,6 +386,11 @@ class MyReviewSolutionsView(SolutionListMixin):
     """ View for viewing a list of solutions to review. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.need_review_from_user(user=self.request.user) \
                                .order_by('-time_completed') \
                                .select_related('owner')
@@ -384,6 +401,11 @@ class MyIncompleteSolutionsView(SolutionListMixin):
     """ View for viewing a list of your incomplete solutions. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.incomplete_by_user(user=self.request.user) \
                                .order_by('-time_posted') \
                                .select_related('owner')
@@ -394,6 +416,11 @@ class MyCompleteSolutionsView(SolutionListMixin):
     """ View for viewing a list of your complete solutions. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.completed_by_user(user=self.request.user) \
                                .order_by('-time_completed') \
                                .select_related('owner')
@@ -404,6 +431,11 @@ class AllIncompleteSolutionsView(SolutionListMixin):
     """ View for viewing a list of all incomplete solutions. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.incomplete() \
                                .order_by('-time_posted') \
                                .select_related('task', 'owner')
@@ -414,6 +446,11 @@ class AllCompleteSolutionsView(SolutionListMixin):
     """ View for viewing a list of complete solutions. """
 
     def get_queryset(self):
+        """ Filter solutions.
+
+        :return Queryset:
+
+        """
         return Solution.objects.completed() \
                                .order_by('-time_completed') \
                                .select_related('task', 'owner')
