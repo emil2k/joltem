@@ -11,21 +11,46 @@ logger = logging.getLogger('joltem')
 
 
 class Project(models.Model):
-    name = models.CharField(
-        max_length=200)  # this is used in the domains, must be lowercase, and only contain a-z and 0-9
+
+    """ Represent Project in Joltem. """
+
+    # this is used in the domains, must be lowercase,
+    # and only contain a-z and 0-9
+    name = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+
     # Relations
     admin_set = models.ManyToManyField(settings.AUTH_USER_MODEL)
 
     def is_admin(self, user_id):
-        """
-        Check if user is an admin of the project
+        """ Check if user is an admin of the project.
+
+        :return bool:
+
         """
         return self.admin_set.filter(id=user_id).exists()
 
     def __unicode__(self):
         return self.name
+
+    def get_overview(self, limit=10):
+        """ Overview self.
+
+        :return dict(solutions tasks comments):
+
+        """
+        solutions = self.solution_set.select_related('owner')\
+            .order_by('-time_updated')[:limit]
+
+        tasks = self.task_set.select_related('author')\
+            .order_by('-time_updated')[:limit]
+
+        comments = self.comment_set.select_related('owner', 'commentable')\
+            .order_by('-time_updated')[:limit]
+
+        return dict(solutions=solutions, tasks=tasks, comments=comments)
+
 
 post_save.connect(receivers.update_project_impact_from_project, sender=Project)
 post_delete.connect(
@@ -34,15 +59,14 @@ post_delete.connect(
 
 class Impact(models.Model):
 
-    """
-    Stores project specific impact
-    """
+    """ Stores project specific impact. """
+
     impact = models.BigIntegerField(null=True, blank=True)
 
     # Relations
     project = models.ForeignKey('project.Project')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             related_name="impact_set")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="impact_set")
 
     # Must be above this threshold to count towards impact, an int between 0
     # and 100
@@ -53,27 +77,37 @@ class Impact(models.Model):
         unique_together = ['project', 'user']
 
     def get_impact(self):
+        """ Calculate impact.
+
+        :return int:
+
+        """
         impact = 0
         # The admins of the project start with an impact of 1, for weighted
         # voting to start
         if self.project.is_admin(self.user.id):
             impact += 1
+
         # Impact from solutions
-        for solution in self.user.solution_set.filter(project_id=self.project.id, is_completed=True):
-            # Solution acceptance must be higher than this threshold to count
-            # towards impact
-            if solution.acceptance < Impact.SOLUTION_ACCEPTANCE_THRESHOLD:
-                continue
-            if solution.impact:
-                impact += solution.impact
+        solution_impact = self.user.solution_set.filter(
+            project_id=self.project_id, is_completed=True,
+            acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
+        ).exclude(impact=None).aggregate(
+            models.Sum('impact')).get('impact__sum')
+
+        if solution_impact:
+            impact += solution_impact
+
         # Impact from review comments
-        for comment in self.user.comment_set.filter(project_id=self.project.id):
-            # Comment acceptance must be higher than this threshold to count
-            # towards impact
-            if comment.acceptance < Impact.COMMENT_ACCEPTANCE_THRESHOLD:
-                continue
-            if comment.impact:
-                impact += comment.impact
+        comment_impact = self.user.comment_set.filter(
+            project_id=self.project_id,
+            acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
+        ).exclude(impact=None).aggregate(
+            models.Sum('impact')).get('impact__sum')
+
+        if comment_impact:
+            impact += comment_impact
+
         return impact
 
 post_save.connect(
