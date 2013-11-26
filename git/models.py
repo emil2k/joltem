@@ -1,17 +1,17 @@
 """ Git related modules. """
 import os
 
-from pygit2 import Repository as PyGitRepository
-from model_utils.managers import PassThroughManager
-from django.db import models
+import logging
 from django.conf import settings
-
+from django.db import models
+from model_utils.managers import PassThroughManager
+from pygit2 import Repository as PyGitRepository
 from twisted.conch.ssh.keys import Key, BadKeyError
 
 from project.models import Project
 from .managers import RepositoryQuerySet
 
-import logging
+
 logger = logging.getLogger('joltem')
 
 REPOSITORIES_DIRECTORY = os.path.join(settings.PROJECT_ROOT,
@@ -25,6 +25,9 @@ class Repository(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_hidden = models.BooleanField(default=False)
+
+    time_updated = models.DateTimeField(auto_now=True)
+
     # Relations
     project = models.ForeignKey(Project)
 

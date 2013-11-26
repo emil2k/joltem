@@ -5,13 +5,14 @@ from django.utils import timezone
 from django.conf import settings
 
 from joltem.models import Commentable
+from joltem.models.generic import Updatable
 
 NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
 NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
 NOTIFICATION_TYPE_TASK_REJECTED = "task_rejected"
 
 
-class Task(Commentable):
+class Task(Commentable, Updatable):
 
     """ A task is a description of work.
 
@@ -70,8 +71,9 @@ class Task(Commentable):
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
+    # user who created the task
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name="tasks_authored_set")  # user who created the task
+        settings.AUTH_USER_MODEL, related_name="tasks_authored_set")
 
     def __unicode__(self):
         return self.title
@@ -132,7 +134,7 @@ class Task(Commentable):
             self.notify_created()
 
     def put_vote(self, voter, is_accepted):
-        """ Casts or overwrites a vote cast while reviewing a task.
+        """ Cast or overwrites a vote cast while reviewing a task.
 
         Keyword arguments :
         voter -- a model instance of the user casting the vote.
@@ -153,9 +155,10 @@ class Task(Commentable):
         self.determine_acceptance(vote)
 
     def determine_acceptance(self, vote):
-        """
-        Called after each vote is cast on a task to determine if the task's review is complete, and if so
-        whether it was accepted or not.
+        """ Determine if the task's review is complete.
+
+        Called after each vote is cast on a task to determine if the task's
+        review is complete, and if so whether it was accepted or not.
 
         Criteria for acceptance :
         - An acceptance vote from a project admin.
@@ -171,17 +174,19 @@ class Task(Commentable):
             self.mark_reviewed(vote.voter, vote.is_accepted)
 
     def mark_reviewed(self, acceptor, is_accepted):
-        """
-        Indicate that the task has been reviewed, change the `is_reviewed` state and set `is_accepted`.
+        """ Indicate that the task has been reviewed.
+
+        Change the `is_reviewed` state and set `is_accepted`.
 
         Keyword arguments :
         acceptor -- person who accepted the task, might become owner of task
         is_accepted -- whether the task was accepted or rejected
 
         """
+        # a suggested task
         if is_accepted and \
-                (not self.parent or self.parent.owner_id != self.author_id):  # a suggested task
-                self.owner = acceptor
+                (not self.parent or self.parent.owner_id != self.author_id):
+            self.owner = acceptor
         self.is_reviewed = True
         self.is_accepted = is_accepted
         self.time_reviewed = timezone.now()
@@ -191,66 +196,88 @@ class Task(Commentable):
         self.notify_reviewed(acceptor, is_accepted)
 
     def notify_reviewed(self, acceptor, is_accepted):
-        """
-        Notify task author, if not the acceptor, that the task was either accepted or rejected.
+        """ Notify task author.
+
+        If not the acceptor, that the task was either accepted or rejected.
 
         """
-        type = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted else NOTIFICATION_TYPE_TASK_REJECTED
+        ntype = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted\
+            else NOTIFICATION_TYPE_TASK_REJECTED
         if self.owner_id != self.author_id:  # suggested task accepted
-            self.notify(self.author, type, True)
+            self.notify(self.author, ntype, True)
         elif acceptor.id != self.author_id:
-            self.notify(self.author, type, True)
+            self.notify(self.author, ntype, True)
 
     def notify_created(self):
-        """Send out appropriate notifications about the task being posted"""
+        """ Send out appropriate notifications about the task being posted. """
         if self.parent:
             if self.parent.owner_id != self.author_id:
-                self.notify(self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
-                            "role": "parent_solution"})
+                self.notify(
+                    self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True,
+                    kwargs={"role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
                 if admin.id != self.author_id:
-                    self.notify(admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
-                                "role": "project_admin"})
+                    self.notify(
+                        admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
+                            "role": "project_admin"})
 
     def get_notification_text(self, notification):
+        """ Prepare text for notification.
+
+        :return str:
+
+        """
         from joltem.utils import list_string_join
         from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
+
         if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             first_names = self.get_commentator_first_names(
                 queryset=self.comment_set.all().order_by("-time_commented"),
                 exclude=[notification.user]
             )
-            return "%s commented on task \"%s\"" % (list_string_join(first_names), self.title)
+            return "%s commented on task \"%s\"" % (
+                list_string_join(first_names), self.title)
+
         elif NOTIFICATION_TYPE_TASK_POSTED == notification.type:
             if notification.kwargs["role"] == "parent_solution":
-                return "%s posted a task on your solution \"%s\"" % (self.author.first_name, self.parent.default_title)
+                return "%s posted a task on your solution \"%s\"" % (
+                    self.author.first_name, self.parent.default_title)
             elif notification.kwargs["role"] == "project_admin":
                 return "%s posted a task" % self.author.first_name
+
         elif NOTIFICATION_TYPE_TASK_ACCEPTED == notification.type:
             return "Your task \"%s\" was accepted" % self.title
+
         elif NOTIFICATION_TYPE_TASK_REJECTED == notification.type:
             return "Your task \"%s\" was not accepted" % self.title
+
         return "Task updated : %s" % self.title
 
     def get_notification_url(self, url):
+        """ Get notification URL.
+
+        :return str:
+
+        """
         from django.core.urlresolvers import reverse
         return reverse("project:task:task", args=[self.project.name, self.id])
 
 
 class Vote(models.Model):
 
-    """
-    A simply yay or nay vote on a task that is being reviewed.
+    """ A simply yay or nay vote on a task that is being reviewed.
 
     Attributes :
     voter_impact -- the impact at the time of the vote
-    is_accepted -- whether the vote indicated and acceptance ( or rejection ) of the task. default false.
+    is_accepted -- whether the vote indicated and acceptance
+        ( or rejection ) of the task. default false.
     time_voted -- the time voted
     voter -- the user who voted
     task -- the task voted on
 
     """
+
     voter_impact = models.BigIntegerField()
     is_accepted = models.BooleanField(default=False)
     time_voted = models.DateTimeField(default=timezone.now)

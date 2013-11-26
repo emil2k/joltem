@@ -11,7 +11,7 @@ from django.utils import timezone
 from joltem import receivers
 from joltem.models.votes import Voteable
 from joltem.models.notifications import Notifying
-from joltem.models.generic import Owned, ProjectContext
+from joltem.models.generic import Owned, ProjectContext, Updatable
 
 logger = logging.getLogger('django')
 
@@ -21,7 +21,7 @@ logger = logging.getLogger('django')
 NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
 
 
-class Comment(Voteable):
+class Comment(Voteable, Updatable):
 
     """ Comments in a solution review. """
 

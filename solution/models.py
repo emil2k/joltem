@@ -10,6 +10,7 @@ from django.conf import settings
 
 from joltem import receivers as joltem_receivers
 from joltem.models import Voteable, Commentable
+from joltem.models.generic import Updatable
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 from joltem.models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                                  NOTIFICATION_TYPE_VOTE_UPDATED)
@@ -23,7 +24,7 @@ NOTIFICATION_TYPE_SOLUTION_POSTED = "solution_posted"
 NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
 
 
-class Solution(Voteable, Commentable):
+class Solution(Voteable, Commentable, Updatable):
 
     """
     A solution is an execution of work.
