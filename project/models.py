@@ -43,13 +43,37 @@ class Project(models.Model):
         solutions = self.solution_set.select_related('owner')\
             .order_by('-time_updated')[:limit]
 
+        open_solutions_count = self.solution_set.filter(
+            is_closed=False, is_completed=False
+        ).count()
+
+        completed_solutions_count = self.solution_set.filter(
+            is_completed=True
+        ).count()
+
         tasks = self.task_set.select_related('author')\
             .order_by('-time_updated')[:limit]
+
+        open_tasks_count = self.task_set.filter(
+            is_closed=False, is_reviewed=False
+        ).count()
+
+        reviewed_tasks_count = self.task_set.filter(
+            is_reviewed=True
+        ).count()
 
         comments = self.comment_set.select_related('owner', 'commentable')\
             .order_by('-time_updated')[:limit]
 
-        return dict(solutions=solutions, tasks=tasks, comments=comments)
+        return dict(
+            comments=comments,
+            completed_solutions_count=completed_solutions_count,
+            open_solutions_count=open_solutions_count,
+            open_tasks_count=open_tasks_count,
+            reviewed_tasks_count=reviewed_tasks_count,
+            solutions=solutions,
+            tasks=tasks,
+        )
 
 
 post_save.connect(receivers.update_project_impact_from_project, sender=Project)

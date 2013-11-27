@@ -42,7 +42,7 @@ class SolutionsReviewedByUserTest(TestCase):
 
         # "step" parameter of slice syntax is used to evaluate QuerySet.
         with self.assertNumQueries(1):
-            Solution.objects.reviewed_by_user(user)[::1]
+            assert Solution.objects.reviewed_by_user(user)[::1]
 
 
 class SolutionsNeedReviewFromUserTest(TestCase):

@@ -16,10 +16,10 @@ class TaskTestCase(TestCase):
     def test_subtask_count(self):
         self.task.mark_reviewed(self.jill, is_accepted=True)
         s = get_mock_solution(self.project, self.jill, task=self.task)
-        t1 = get_mock_task(self.project, self.jack, solution=s,
-                           is_reviewed=True, is_accepted=True)
+        get_mock_task(self.project, self.jack, solution=s,
+                      is_reviewed=True, is_accepted=True)
         # this one should not count
-        t2 = get_mock_task(self.project, self.jack, solution=s)
+        get_mock_task(self.project, self.jack, solution=s)
         self.assertEqual(self.task.get_subtask_count(
             solution_is_closed=False,
             solution_is_completed=False,
@@ -82,7 +82,6 @@ class TaskTestCase(TestCase):
 class PermissionsTestCase(TestCase):
 
     def setUp(self):
-        u = dict()
         self.jill = get_mock_user('jill')  # the project admin
         self.abby = get_mock_user('abby')
         self.bob = get_mock_user('bob')
