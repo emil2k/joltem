@@ -1,6 +1,10 @@
+""" Git urls. """
+
 from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required
-from git import views
+
+from . import views
+
 
 urlpatterns = patterns(
     '',

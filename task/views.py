@@ -151,16 +151,30 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
 class TaskEditView(TaskBaseView, UpdateView):
 
+    """ Implement task's edit. """
+
     form_class = TaskEditForm
     template_name = 'task/task_edit.html'
 
     def get_object(self):
+        """ Check user is owner for the task.
+
+        :return Task:
+
+        """
+
         if self.is_owner:
             return self.task
-        else:
-            raise Http404
+
+        raise Http404
 
     def get_success_url(self):
+        """ Get url on task's view.
+
+        :return str:
+
+        """
+
         return reverse(
             'project:task:task',
             kwargs={
@@ -172,13 +186,22 @@ class TaskEditView(TaskBaseView, UpdateView):
 
 class TaskCreateView(ProjectBaseView, CreateView):
 
+    """ Implement task's creation. """
+
     form_class = TaskCreateForm
     template_name = 'task/new_task.html'
 
     parent_solution = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        super(TaskCreateView, self).initiate_variables(request, *args, **kwargs)
+        """ Check parent solution.
+
+        :return HttpResponse: Make redirect if parent solution is completed
+
+        """
+
+        super(TaskCreateView, self).initiate_variables(
+            request, *args, **kwargs)
 
         parent_solution_id = self.kwargs.get('parent_solution_id')
         if parent_solution_id is not None:
@@ -194,14 +217,21 @@ class TaskCreateView(ProjectBaseView, CreateView):
                 )
 
     def get_context_data(self, **kwargs):
+        """ Get context for templates.
+
+        :return dict:
+
+        """
         kwargs['parent_solution'] = self.parent_solution
         return super(TaskCreateView, self).get_context_data(**kwargs)
 
     def get_form_kwargs(self):
-        """Overrides ``POST`` values to pass model validation.
+        """Override ``POST`` values to pass model validation.
 
         Make sure that ``project`` and ``owner`` are listed in
         ``TaskCreateForm.Meta.fields``.
+
+        :return dict:
 
         """
         form_kwargs = super(TaskCreateView, self).get_form_kwargs()
@@ -216,6 +246,11 @@ class TaskCreateView(ProjectBaseView, CreateView):
         return form_kwargs
 
     def form_valid(self, form):
+        """ Update created task.
+
+        :return HttpResponse:
+
+        """
         task = form.save(commit=False)
         task.parent = self.parent_solution
         task.author = self.user
@@ -236,66 +271,93 @@ class TaskBaseListView(ListView, ProjectBaseView):
     tasks_tab = None
 
     def get_context_data(self, **kwargs):
+        """ Get template's context.
+
+        :return dict:
+
+        """
         kwargs["tasks_tab"] = self.tasks_tab
         return super(TaskBaseListView, self).get_context_data(**kwargs)
 
+    def get_queryset(self):
+        """ Filter tasks by current project.
+
+        :return QuerySet:
+
+        """
+        return self.project.task_set.all()
+
 
 class MyOpenTasksView(TaskBaseListView):
+
+    """ List opened tasks. """
+
     tasks_tab = "my_open"
 
     def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=False,
-            owner_id=self.user.id).order_by('-time_posted')
+        """ Filter tasks by status and user.
+
+        :return QuerySet:
+
+        """
+        return super(MyOpenTasksView, self).get_queryset().filter(
+            is_accepted=True, is_closed=False, owner=self.user
+        ).order_by('-time_posted')
 
 
 class MyClosedTasksView(TaskBaseListView):
+
+    """ List closed tasks. """
+
     tasks_tab = "my_closed"
 
     def get_queryset(self):
-        return self.project.task_set.filter(
-            is_accepted=True, is_closed=True,
-            owner_id=self.user.id).order_by('-time_closed')
+        """ Filter tasks by status and user.
+
+        :return QuerySet:
+
+        """
+        return super(MyClosedTasksView, self).get_queryset().filter(
+            is_accepted=True, is_closed=True, owner=self.user
+        ).order_by('-time_closed')
 
 
 class MyReviewTasksView(TaskBaseListView):
 
-    """
-    List of tasks the user should review.
+    """ List of tasks the user should review. """
 
-    """
     tasks_tab = "my_review"
 
-    def iterate_tasks_to_review(self):
-        for task in Task.objects.filter(
-                is_reviewed=False, is_closed=False).order_by('-time_posted'):
-            if not self.user.task_vote_set.filter(task_id=task.id).exists():
-                yield task
-
     def get_queryset(self):
-        # TODO: It should return QS.
-        return [task for task in self.iterate_tasks_to_review()]
+        """ Filter tasks by status and user.
+
+        :return QuerySet:
+
+        """
+        return super(MyReviewTasksView, self).get_queryset().filter(
+            is_reviewed=False, is_closed=False).exclude(vote__voter=self.user)\
+            .order_by('-time_posted')
 
 
 class MyReviewedTasksView(TaskBaseListView):
 
-    """
-    List of tasks the user has reviewed.
+    """ List of tasks the user has reviewed. """
 
-    """
     tasks_tab = "my_reviewed"
 
     def get_queryset(self):
-        # TODO: It should return QS.
-        return [
-            task_vote.task for task_vote in self.user.task_vote_set.order_by(
-                '-time_voted')
-        ]
+        """ Filter tasks by status and user.
+
+        :return QuerySet:
+
+        """
+        return super(MyReviewedTasksView, self).get_queryset().filter(
+            vote__voter=self.user).order_by('-vote__time_voted')
 
 
 class AllOpenTasksView(TaskBaseListView):
 
-    """ Render all open tasks. """
+    """ List all opened tasks. """
 
     tasks_tab = "all_open"
 
@@ -305,18 +367,26 @@ class AllOpenTasksView(TaskBaseListView):
         :return Queryset:
 
         """
-        return self.project.task_set \
-                           .filter(is_accepted=True, is_closed=False) \
-                           .order_by('-priority', '-time_posted')
+        return super(AllOpenTasksView, self).get_queryset().filter(
+            is_accepted=True, is_closed=False
+        ).order_by('-priority', '-time_posted')
 
 
 class AllClosedTasksView(TaskBaseListView):
+
+    """ List all closed tasks. """
+
     tasks_tab = "all_closed"
 
     def get_queryset(self):
-        return self.project.task_set \
-                           .filter(is_accepted=True, is_closed=True) \
-                           .order_by('-priority', '-time_closed')
+        """ Load data to list.
+
+        :return Queryset:
+
+        """
+        return super(AllClosedTasksView, self).get_queryset().filter(
+            is_accepted=True, is_closed=True
+        ).order_by('-priority', '-time_closed')
 
 
 class SubtaskBaseView(ListView, ProjectBaseView):
@@ -331,37 +401,65 @@ class SubtaskBaseView(ListView, ProjectBaseView):
     context_object_name = "subtask_groups"
     project_tab = "tasks"
 
+    def __init__(self, *args, **kwargs):
+        super(SubtaskBaseView, self).__init__(*args, **kwargs)
+        self.parent_task = None
+
     def initiate_variables(self, request, *args, **kwargs):
+        """ Prepare view. """
         super(SubtaskBaseView, self).initiate_variables(
             request, *args, **kwargs)
         self.parent_task = get_object_or_404(
             Task, id=kwargs.get('parent_task_id', None))
 
     def get_context_data(self, **kwargs):
+        """ Get context for templates.
+
+        :return dict:
+
+        """
         kwargs["parent_task"] = self.parent_task
         return super(SubtaskBaseView, self).get_context_data(**kwargs)
 
-    class SubtaskGroupHolder:
+    class SubtaskGroupHolder(object):
 
         def __init__(self, solution, tasks):
             self.solution = solution
             self.subtask_set = tasks
 
     def get_solution_queryset(self):
-        """Queryset of solutions for which to get subtasks for, default is all"""
+        """Queryset of solutions for which to get subtasks for, default is all.
+
+        :return QuerySet:
+
+        """
         return self.parent_task.solution_set.all().order_by('-time_posted')
 
-    def get_subtask_queryset(self, solution):
-        """Query set for subtasks of each solution, default is all"""
-        return solution.subtask_set.filter(is_accepted=True).order_by('-time_posted')
+    @staticmethod
+    def get_subtask_queryset(solution):
+        """Query set for subtasks of each solution, default is all.
+
+        :return QuerySet:
+
+        """
+        return solution.subtask_set.filter(is_accepted=True).order_by(
+            '-time_posted')
 
     def get_queryset(self):
-        """Generate subtask groups"""
+        """Generate subtask groups.
+
+        :return list:
+
+        """
         # TODO: It should return QS.
         return [g for g in self.generate_subtasks()]
 
     def generate_subtasks(self):
-        """Generator for subtask groups"""
+        """Generator for subtask groups.
+
+        :return generator:
+
+        """
         for solution in self.get_solution_queryset():
             subtasks = self.get_subtask_queryset(solution)
             if subtasks.count() > 0:
@@ -372,7 +470,13 @@ class SubtaskBaseView(ListView, ProjectBaseView):
 
 class SubtaskView(SubtaskBaseView):
 
-    """Filters out closed subtasks of closed solutions, currently the only view."""
+    """Filters out closed subtasks of closed solutions. """
 
     def get_solution_queryset(self):
-        return self.parent_task.solution_set.filter(is_closed=False).order_by('-time_posted')
+        """Queryset of solutions for which to get subtasks for, default is all.
+
+        :return QuerySet:
+
+        """
+        return self.parent_task.solution_set.filter(is_closed=False).order_by(
+            '-time_posted')
