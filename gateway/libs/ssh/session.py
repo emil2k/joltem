@@ -23,7 +23,6 @@ class GatewaySession(SSHSession):
 
     def channelOpen(self, specificData):
         """ Bind GatewaySessionInterface. """
-
         self.session = GatewaySessionInterface(self.avatar)
 
     def loseConnection(self):
@@ -45,7 +44,6 @@ class GatewaySessionInterface():
 
     def __init__(self, avatar):
         self.avatar = avatar
-        self._git_protocol = None
 
     def getPty(self, term, windowSize, modes):
         """ Get a psuedo-terminal for use by a shell or command. """
@@ -68,7 +66,7 @@ class GatewaySessionInterface():
     # protocol is instance of SSHSessionProcessProtocol
     def execCommand(self, protocol, command_string):
         """ Execute a command. """
-        self.ssh_process_protocol = protocol
+        self._ssh_process_protocol = protocol
         log.msg("Execute command : %s" % command_string)
         command = shlex.split(command_string)
         process = command[0]
@@ -80,22 +78,32 @@ class GatewaySessionInterface():
                     Repository.DoesNotExist,
                     Repository.MultipleObjectsReturned):
                 log.msg("Repository not found.")
-                protocol.loseConnection()
+                self._ssh_process_protocol.loseConnection()
             else:
+                # Initiate the git protocol to run on top of the ssh process
+                # protocol, all output from the git process should funnel
+                # through it and through the ssh channel.
                 if process == "git-receive-pack":
-                    self._git_protocol = GitReceivePackProcessProtocol(
-                        protocol, self.avatar, repository)
+                    self._git_process_protocol = GitReceivePackProcessProtocol(
+                        self._ssh_process_protocol, self.avatar, repository)
                 else:
-                    self._git_protocol = GitProcessProtocol(
-                        protocol, self.avatar, repository)
-                protocol.makeConnection(self._git_protocol)
-                reactor.spawnProcess(
-                    self._git_protocol, '/usr/bin/%s' % process,
+                    self._git_process_protocol = GitProcessProtocol(
+                        self._ssh_process_protocol, self.avatar, repository)
+                # Start up the git process, returns a Process instance
+                self._git_process_transport = reactor.spawnProcess(
+                    self._git_process_protocol, '/usr/bin/%s' % process,
                     (process, '%d.git' % repository_id),
                     path=REPOSITORIES_DIRECTORY)
+                self._git_process_transport.debug = True
+                self._git_process_transport.debug_child = True
+                # Connect the ssh process to the git process, to receive data
+                # from the ssh channel.
+                self._ssh_process_protocol.makeConnection(
+                    self._git_process_transport)
+                log.msg("Process transport : %s" % self._git_process_transport)
         else:
             log.msg("Command not allowed.")
-            protocol.loseConnection()
+            self._ssh_process_protocol.loseConnection()
 
     def windowChanged(self, newWindowSize):
         """ Called when the size of the remote screen has changed. """
@@ -107,11 +115,9 @@ class GatewaySessionInterface():
 
     def eofReceived(self):
         """ Called when the other side has indicated no more data. """
-
         log.msg("No more data will be sent (EOF).")
-        if self._git_protocol:
-            self._git_protocol.eof_received()
-        self.ssh_process_protocol.loseConnection()
+        if self._git_process_protocol:
+            self._git_process_protocol.eof_received()
 
     def closed(self):
         """ Called when the session is closed. """

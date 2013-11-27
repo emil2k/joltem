@@ -104,7 +104,7 @@ class GitProcessProtocol(SubprocessProtocol):
 
     """ Implement Git Protocol. """
 
-    implements(ITransport)
+    implements(ITransport)  # todo should this be a processtransport
 
     def __init__(self, protocol, avatar, repository):
         SubprocessProtocol.__init__(self, protocol)
@@ -112,34 +112,57 @@ class GitProcessProtocol(SubprocessProtocol):
         self.repository = repository  # repository model instance
 
     @staticmethod
-    def eof_received():
-        """For receiving end of file requests, from the SSH connection."""
-        log.msg("End of file received", system="client")
+    def log(data, system):
+        """ Logging.
+
+        :param data:
+        :param system:
+        :return:
+
+        """
+        output = data if len(data) < 8192 else \
+            "large data : %d bytes" % len(data)
+        log.msg(output, system=system)
+
+    @staticmethod
+    def eof_received():  # todo i don't think this is necessary
+        """ For receiving end of file requests, from the SSH connection. """
+        GitProcessProtocol.log("End of file received.", "client")
 
     # ProcessProtocol
 
+    def childDataReceived(self, childFD, data):
+        """ Logging.
+
+        :param childFD: file descriptor.
+        :param data: received data.
+
+        """
+        self.log(data, "gateway - fd %d" % childFD)
+        SubprocessProtocol.childDataReceived(self, childFD, data)
+
+
     def outReceived(self, data):
         """ Logging. """
-        log.msg("size %d" % len(data), system="gateway")
-        log.msg(data if len(data) < 8192 else "large data.", system="gateway") 
+        self.log(data, "gateway - out")
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
         """ Logging. """
-        log.msg("\n" + data, system="gateway error")
+        self.log(data, "gateway - error")
         SubprocessProtocol.errReceived(self, data)
 
     def processEnded(self, reason):
         """ Logging. """
-        log.msg("Process ended.", system="gateway")
+        self.log("process ended", "gateway - git process")
         ProcessProtocol.processEnded(self, reason)
 
     def processExited(self, reason):
         """ Logging. """
-        log.msg("Process exited.", system="gateway")
+        self.log("process exited", "gateway - git process")
         ProcessProtocol.processExited(self, reason)
 
-    # ITransport
+    # ITransport  # todo are these necessary
 
     def getHost(self):
         """ Proxy to self.transport.
@@ -301,7 +324,6 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
     def eof_received(self):
         """ Should have docstring. """
-
         GitProcessProtocol.eof_received()  # just logging
         if self._rejected:
             # Respond back with a status report
