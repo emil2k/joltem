@@ -136,13 +136,21 @@ class Voteable(Notifying, Owned, ProjectContext):
                 voter_ids.append(vote.voter.id)
                 yield vote.voter
 
-    def get_voters(self, queryset=None, exclude=[]):
-        """ Return a distinct list of voters. """
+    def get_voters(self, queryset=None, exclude=None):
+        """ Return a distinct list of voters.
+
+        :return list:
+
+        """
         return [voter for voter in
                 self.iterate_voters(queryset=queryset, exclude=exclude)]
 
-    def get_voter_first_names(self, queryset=None, exclude=[]):
-        """ Return a distinct list of the voter first names. """
+    def get_voter_first_names(self, queryset=None, exclude=None):
+        """ Return a distinct list of the voter first names.
+
+        :return list:
+
+        """
         return [voter.first_name for voter in
                 self.get_voters(queryset=queryset, exclude=exclude)]
 
@@ -225,7 +233,8 @@ class Voteable(Notifying, Owned, ProjectContext):
             ii[x] -= vote.voter_impact
         return ii
 
-    def is_vote_valid(self, vote):
+    @staticmethod
+    def is_vote_valid(vote):
         """ Return boolean of whether vote should be counted or not.
 
         Override in extended class, to modify behaviour.

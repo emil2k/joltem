@@ -2,11 +2,10 @@
 """ View related tests for task app. """
 from django_webtest import WebTest
 
+from joltem.libs import mixer
 from joltem.libs.mock import models, requests
-from joltem.libs import factories
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
-
 from task import views
 from task.models import Task
 
@@ -123,8 +122,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
     csrf_checks = False
 
     def setUp(self):
-        self.user = factories.UserF()
-        self.project = factories.ProjectF()
+        self.user = mixer.blend('joltem.user')
+        self.project = mixer.blend('project.project')
 
         self.url = TASK_CREATE_URL.format(project_name=self.project.name)
 
@@ -163,7 +162,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
         )
 
     def test_project_id_substitution_is_ignored(self):
-        project_substitute = factories.ProjectF()
+        project_substitute = mixer.blend('project.project')
 
         post_params = {
             'title': 'dummy',
@@ -177,7 +176,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
         self.assertEqual(task.project_id, self.project.pk)
 
     def test_owner_id_substitution_is_ignored(self):
-        owner_substitute = factories.UserF()
+        owner_substitute = mixer.blend('joltem.user')
 
         post_params = {
             'title': 'dummy',
@@ -196,8 +195,8 @@ class TaskCreateRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = factories.UserF()
-        self.project = factories.ProjectF()
+        self.user = mixer.blend('joltem.user')
+        self.project = mixer.blend('project.project')
 
         self.url = TASK_CREATE_URL.format(project_name=self.project.name)
 
@@ -249,9 +248,9 @@ TASK_EDIT_FORM_ID = 'task-edit-form'
 class TaskEditTest(WebTest, ViewTestMixin):
 
     def setUp(self):
-        self.user = factories.UserF()
-        self.project = factories.ProjectF()
-        self.task = factories.TaskF(project=self.project, owner=self.user)
+        self.user = mixer.blend('joltem.user')
+        self.project = mixer.blend('project.project')
+        self.task = mixer.blend('task.task', project=self.project, owner=self.user)
 
         self.url = TASK_EDIT_URL.format(
             project_name=self.project.name,
@@ -264,7 +263,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_404_when_non_owner_gets_task_edit_page(self):
-        not_owner = factories.UserF()
+        not_owner = mixer.blend('joltem.user')
 
         self.app.get(self.url, user=not_owner, status=404)
 
@@ -303,9 +302,10 @@ class TaskEditRequiredFieldsTest(WebTest):
     error_message = 'This field is required.'
 
     def setUp(self):
-        self.user = factories.UserF()
-        self.project = factories.ProjectF()
-        self.task = factories.TaskF(
+        self.user = mixer.blend('joltem.user')
+        self.project = mixer.blend('project.project')
+        self.task = mixer.blend(
+            'task.task',
             project=self.project,
             owner=self.user,
             priority=1,

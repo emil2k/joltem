@@ -2,7 +2,6 @@
 from django_webtest import WebTest
 
 from joltem.libs import mixer
-from joltem.libs import factories
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
@@ -227,7 +226,7 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF()
+        self.project = mixer.blend('project.project')
 
         self.url = MY_REVIEWED_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -239,19 +238,17 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_two_reviewed_solutions(self):
-        factories.SolutionF(project=self.project)
+        mixer.blend('solution.solution')
 
-        for solution_index in xrange(2):
-            solution = factories.SolutionF(
-                project=self.project,
-                title='solution{}'.format(solution_index)
-            )
+        solutions = mixer.cycle(2).blend(
+            'solution.solution', project=self.project)
+        for solution in solutions:
             solution.add_vote(voter=self.user, vote_magnitude=1)
 
         response = self.app.get(self.url, user=self.user, status=200)
 
-        for solution_index in xrange(2):
-            self.assertContains(response, 'solution{}'.format(solution_index))
+        for solution in solutions:
+            self.assertContains(response, solution.title)
 
 
 MY_REVIEW_SOLUTIONS_URL = '/{project_name}/solution/review/my/'
@@ -261,7 +258,7 @@ class MyReviewSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF()
+        self.project = mixer.blend('project.project')
 
         self.url = MY_REVIEW_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -273,24 +270,24 @@ class MyReviewSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_two_solutions_to_review(self):
-        factories.SolutionF(
+        mixer.blend(
+            'solution.solution',
             project=self.project,
             is_completed=True,
             is_closed=True,
         )
 
-        for solution_index in xrange(2):
-            factories.SolutionF(
-                project=self.project,
-                is_completed=True,
-                is_closed=False,
-                title='solution{}'.format(solution_index)
-            )
+        solutions = mixer.cycle(2).blend(
+            'solution.solution',
+            project=self.project,
+            is_completed=True,
+            is_closed=False,
+        )
 
         response = self.app.get(self.url, user=self.user, status=200)
 
-        for solution_index in xrange(2):
-            self.assertContains(response, 'solution{}'.format(solution_index))
+        for solution in solutions:
+            self.assertContains(response, solution.title)
 
 
 MY_INCOMPLETE_SOLUTIONS_URL = '/{project_name}/solution/incomplete/my/'
@@ -300,7 +297,7 @@ class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF()
+        self.project = mixer.blend('project.project')
 
         self.url = MY_INCOMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -312,7 +309,8 @@ class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_incompleted_solution(self):
-        factories.SolutionF(
+        mixer.blend(
+            'solution.solution',
             is_completed=False,
             is_closed=False,
             owner=self.user,
@@ -332,7 +330,7 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF(name='joltem')
+        self.project = mixer.blend('project.project')
 
         self.url = MY_COMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -344,7 +342,8 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_completed_solution(self):
-        factories.SolutionF(
+        mixer.blend(
+            'solution.solution',
             is_completed=True,
             is_closed=False,
             owner=self.user,
@@ -364,7 +363,7 @@ class IncompleteSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF()
+        self.project = mixer.blend('project.project')
 
         self.url = ALL_INCOMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -376,7 +375,8 @@ class IncompleteSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_incompleted_solution(self):
-        factories.SolutionF(
+        mixer.blend(
+            'solution.solution',
             is_completed=False,
             is_closed=False,
             project=self.project,
@@ -395,7 +395,7 @@ class CompleteSolutionsTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.project = factories.ProjectF(name='joltem')
+        self.project = mixer.blend('project.project')
 
         self.url = ALL_COMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
@@ -407,7 +407,8 @@ class CompleteSolutionsTest(WebTest, ViewTestMixin):
         self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_completed_solution(self):
-        factories.SolutionF(
+        mixer.blend(
+            'solution.solution',
             is_completed=True,
             is_closed=False,
             project=self.project,
