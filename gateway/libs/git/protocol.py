@@ -182,7 +182,9 @@ class GitProcessProtocol(SubprocessProtocol):
         """
         self.log("process ended", "gateway - git process")
         ProcessProtocol.processEnded(self, reason)
-        self.protocol.loseConnection()
+        # Signal to the other end that the process has ended through
+        # the underlying SSHSessionProcessProtocol
+        self.protocol.processEnded(reason)
 
     def processExited(self, reason):
         """ Logging, git process exit.
