@@ -96,11 +96,14 @@ class GatewaySessionInterface():
                     path=REPOSITORIES_DIRECTORY)
                 self._git_process_transport.debug = True
                 self._git_process_transport.debug_child = True
-                # Connect the ssh process to the git process, to receive data
-                # from the ssh channel.
-                self._ssh_process_protocol.makeConnection(
+                # Wrap the git process transport with the git process protocol,
+                # so it can intercept process input.
+                self._git_process_protocol.wrap_process_transport(
                     self._git_process_transport)
-                log.msg("Process transport : %s" % self._git_process_transport)
+                # Connect the git process protocol to ssh process protocol
+                # to receive data from the ssh channel.
+                self._ssh_process_protocol.makeConnection(
+                    self._git_process_protocol)
         else:
             log.msg("Command not allowed.")
             self._ssh_process_protocol.loseConnection()

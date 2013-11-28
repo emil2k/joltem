@@ -1,7 +1,7 @@
 """ Git protocol. """
 import shlex
 from twisted.internet.error import ProcessDone
-from twisted.internet.interfaces import ITransport
+from twisted.internet.interfaces import IProcessTransport
 from twisted.internet.protocol import ProcessProtocol
 from twisted.python import log
 from twisted.python.failure import Failure
@@ -102,25 +102,46 @@ class PacketLineSplitter(BaseBufferedSplitter):
 
 class GitProcessProtocol(SubprocessProtocol):
 
-    """ Implement Git Protocol. """
+    """ Implement Git Protocol.
 
-    implements(ITransport)  # todo should this be a processtransport
+    This is a ProcessProtocol for the git process ( git-receive-pack or
+    git-upload-pack ) and a wrapper for a Process which implements
+    IProcessTransport.
+
+    Essentially creates a middleware that intercepts all communication
+    between a git client and server.
+
+    """
+
+    implements(IProcessTransport)
 
     def __init__(self, protocol, avatar, repository):
         SubprocessProtocol.__init__(self, protocol)
         self.avatar = avatar
         self.repository = repository  # repository model instance
 
+    def wrap_process_transport(self, transport):
+        """ Wrap the process transport to the git process.
+
+        For intercepting writes to file descriptors.
+
+        :param transport: process transport ot git process.
+
+        """
+        self.process_transport = transport
+
     @staticmethod
-    def log(data, system):
+    def log(data, system, newline=False):  # todo maybe i can move this out of here and into utils
         """ Logging.
 
         :param data:
         :param system:
+        :param newline: start with newline.
         :return:
 
         """
-        output = data if len(data) < 8192 else \
+        output = "\n" if newline else ""
+        output += data if len(data) < 8192 else \
             "large data : %d bytes" % len(data)
         log.msg(output, system=system)
 
@@ -138,61 +159,130 @@ class GitProcessProtocol(SubprocessProtocol):
         :param data: received data.
 
         """
-        self.log(data, "gateway - fd %d" % childFD)
+        self.log(data, "gateway - fd %d" % childFD, True)
         SubprocessProtocol.childDataReceived(self, childFD, data)
 
 
     def outReceived(self, data):
         """ Logging. """
-        self.log(data, "gateway - out")
+        self.log(data, "gateway - out", True)
         SubprocessProtocol.outReceived(self, data)
 
     def errReceived(self, data):
         """ Logging. """
-        self.log(data, "gateway - error")
+        self.log(data, "gateway - error", True)
         SubprocessProtocol.errReceived(self, data)
 
     def processEnded(self, reason):
-        """ Logging. """
+        """ Logging, git process end.
+
+        Called when the child process exits and all file descriptors associated
+        with it have been closed.
+
+        """
         self.log("process ended", "gateway - git process")
         ProcessProtocol.processEnded(self, reason)
+        self.protocol.loseConnection()
 
     def processExited(self, reason):
-        """ Logging. """
+        """ Logging, git process exit.
+
+        Called when the child process exits.
+
+        """
         self.log("process exited", "gateway - git process")
         ProcessProtocol.processExited(self, reason)
 
-    # ITransport  # todo are these necessary
+    # todo edit docstrings for these
 
-    def getHost(self):
-        """ Proxy to self.transport.
-
-        :return str:
-
-        """
-        return self.transport.getHost()
-
-    def getPeer(self):
-        """ Proxy to self.transport.
-
-        :return :
-
-        """
-        return self.transport.getPeer()
+    # Process
 
     def write(self, data):
-        """ Proxy to self.transport. """
-        log.msg("\n" + data, system="client")
-        self.transport.write(data)
+        """
+        Call this to write to standard input on this process.
 
-    def writeSequence(self, seq):
-        """ WTF?. """
-        raise NotImplementedError("Write sequence is not implemented.")
+        NOTE: This will silently lose data if there is no standard input.
+        """
+        self.log("write to stdin", "gateway")
+        self.writeToChild(0, data)
+
+    # IProcessTransport
+
+    def closeStdin(self):
+        """
+        Close stdin after all data has been written out.
+        """
+        self.log("close stdin", "gateway")
+        self.process_transport.closeStdin()
+
+    def closeStdout(self):
+        """
+        Close stdout.
+        """
+        self.log("close stdout", "gateway")
+        self.process_transport.closeStdin()
+
+    def closeStderr(self):
+        """
+        Close stderr.
+        """
+        self.log("close stderr", "gateway")
+        self.process_transport.closeStderr()
+
+    def closeChildFD(self, descriptor):
+        """
+        Close a file descriptor which is connected to the child process, identified
+        by its FD in the child process.
+        """
+        self.log("close child fd %d" % descriptor, "gateway")
+        self.process_transport.closeChildFD(descriptor)
+
+    def writeToChild(self, childFD, data):
+        """
+        Similar to L{ITransport.write} but also allows the file descriptor in
+        the child process which will receive the bytes to be specified.
+
+        @type childFD: C{int}
+        @param childFD: The file descriptor to which to write.
+
+        @type data: C{str}
+        @param data: The bytes to write.
+
+        @return: C{None}
+
+        @raise KeyError: If C{childFD} is not a file descriptor that was mapped
+            in the child when L{IReactorProcess.spawnProcess} was used to create
+            it.
+        """
+        self.log(data, "client - fd %d" % childFD, True)
+        self.process_transport.writeToChild(childFD, data)
 
     def loseConnection(self):
-        """ Proxy to self.transport. """
-        log.msg("Lose connection.", system="gateway")
-        self.transport.loseConnection()
+        """
+        Close stdin, stderr and stdout.
+        """
+        self.log("lose connection", "gateway")
+        self.process_transport.loseConnection()
+
+    def signalProcess(self, signalID):
+        """
+        Send a signal to the process.
+
+        @param signalID: can be
+          - one of C{"KILL"}, C{"TERM"}, or C{"INT"}.
+              These will be implemented in a
+              cross-platform manner, and so should be used
+              if possible.
+          - an integer, where it represents a POSIX
+              signal ID.
+
+        @raise twisted.internet.error.ProcessExitedAlready: If the process has
+            already exited.
+        @raise OSError: If the C{os.kill} call fails with an errno different
+            from C{ESRCH}.
+        """
+        self.log("signal process %d" % signalID, "gateway")
+        self.process_transport.signalProcess(signalID)
 
 
 class GitReceivePackProcessProtocol(GitProcessProtocol):
@@ -223,8 +313,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
     def flush(self):
         """ Flush input buffers into process. """
-
-        self.transport.write(str(self._buffer))
+        self.log(self._buffer, "client - flush", True)
+        self.process_transport.write(str(self._buffer))
         self._buffer = bytearray()
 
     def stop_buffering(self):
@@ -233,22 +323,21 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = False
 
     def write(self, data):
-        """ Write data to self.transport. """
+        # todo write docstring
         if self._buffering:
-            log.msg("\n" + data, system="client - buffered")
+            self.log(data, "client - buffered", True)
             self._buffer.extend(data)
             self._splitter.data_received(data)
         elif self._rejected:
-            log.msg("\n" + data, system="client - ignored")
+            self.log(data, "client - ignored", True)
         else:
-            log.msg("\n" + data, system="client - written")
-            self.transport.write(data)
+            self.log(data, "client - written", True)
+            self.process_transport.write(data)
 
     # Receivers
 
     def received_packet_line(self, line):
         """ Should have dosctrings. """
-
         log.msg(line, system="packet-line")
         if self._abilities is None:
             parts = line.split('\x00')
@@ -260,9 +349,6 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 raise IOError('Multiple null bytes in abilities lines.')
         # Parse line
         self.handle_push_line(line)
-        if not self._rejected:
-            # Flush buffer to process input, to pass through data
-            self.flush()
 
     def received_empty_packet_line(self):
         """ Should have dosctrings. """
@@ -325,17 +411,10 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     def eof_received(self):
         """ Should have docstring. """
         GitProcessProtocol.eof_received()  # just logging
+        # todo
         if self._rejected:
             # Respond back with a status report
             self.outReceived(get_report(self._command_statuses))
             self.outReceived(FLUSH_PACKET_LINE)
             # Manually end the process
             self.processEnded(Failure(ProcessDone(None)))
-
-    def writeSequence(self, seq):
-        """ Redefine abstract method.
-
-        Do nothing for now.
-
-        """
-        pass
