@@ -128,4 +128,8 @@ AUTHOMATIC = {
 
 }
 
+
+TEMPLATE_CONTEXT_PROCESSORS += 'settings_context_processor.context_processors.settings', # noqa
+TEMPLATE_VISIBLE_SETTINGS = 'DEBUG',
+
 logging.info("Production settings loaded.")
