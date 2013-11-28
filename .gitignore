@@ -34,4 +34,4 @@ git/repositories
 gitolite-update
 celerybeat-schedule
 
-static
+/static
