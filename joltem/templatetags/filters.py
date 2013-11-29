@@ -52,6 +52,7 @@ def is_false(boolean, string):
     """
     if not boolean:
         return string
+    return ""
 
 
 def is_match(string, actual, expected):
