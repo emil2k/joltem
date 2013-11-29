@@ -1,0 +1,10 @@
+Dear {{ user.first_name }},
+
+
+{% block content %}{% endblock %}
+
+
+Joltem Support
+______________________________________________________________________
+support@joltem.com | http://joltem.com
+

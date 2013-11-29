@@ -1,0 +1,10 @@
+{% extends "joltem/emails/base.html" %}
+
+{% block title %}Dear {{ user.first_name }},{% endblock %}
+{% block subtitle %}Joltem Daily Diggest{% endblock %}
+
+{% block content %}
+    {% for notification in notifies %}
+        <p><a href="{{ notification.get_url }}">{{ notification.get_text }}</a></p>
+    {% endfor %}
+{% endblock %}

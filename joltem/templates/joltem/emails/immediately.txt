@@ -1,0 +1,4 @@
+{% extends "joltem/emails/base.txt" %}
+{% block content %}
+{{ notification.get_text|safe }} (http://joltem.com/{{ notification.get_ur|safe }})
+{% endblock %}
