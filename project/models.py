@@ -58,19 +58,20 @@ class Project(models.Model):
             is_accepted=True, is_closed=False
         ).count()
 
-        reviewed_tasks_count = self.task_set.filter(
-            is_reviewed=True
+        completed_tasks_count = self.task_set.filter(
+            is_closed=True, is_accepted=True
         ).count()
 
-        comments = self.comment_set.select_related('owner', 'commentable')\
-            .order_by('-time_updated')[:limit]
+        comments = self.comment_set.select_related('owner').prefetch_related(
+            'commentable', 'commentable_type').order_by(
+            '-time_updated')[:limit]
 
         return dict(
             comments=comments,
             completed_solutions_count=completed_solutions_count,
             open_solutions_count=open_solutions_count,
             open_tasks_count=open_tasks_count,
-            reviewed_tasks_count=reviewed_tasks_count,
+            completed_tasks_count=completed_tasks_count,
             solutions=solutions,
             tasks=tasks,
         )

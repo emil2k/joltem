@@ -59,12 +59,12 @@ class TestProjectViews(TestCase):
         self.assertFalse(response.context['comments'])
         self.assertFalse(response.context['tasks'])
 
-        tasks = mixer.cycle(10).blend('task.task', project=self.project)
-        solutions = mixer.cycle(10).blend(
+        tasks = mixer.cycle(5).blend('task.task', project=self.project)
+        solutions = mixer.cycle(5).blend(
             'solution.solution', task=(t for t in tasks),
             project=mixer.mix.task.project)
         mixer.cycle(5).blend(
-            'joltem.comment', commentable=(s for s in solutions),
+            'joltem.comment', commentable=mixer.random(*solutions),
             owner=mixer.select('joltem.user'), project=self.project)
 
         response = self.client.get(uri)
@@ -74,7 +74,9 @@ class TestProjectViews(TestCase):
 
         cache.set('project:overview:%s' % self.project.id, None)
 
-        response = self.client.get(uri)
+        with self.assertNumQueries(12):
+            response = self.client.get(uri)
+
         self.assertTrue(response.context['solutions'])
         self.assertTrue(response.context['comments'])
         self.assertTrue(response.context['tasks'])

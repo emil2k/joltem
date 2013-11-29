@@ -31,8 +31,8 @@ class ProjectModelTest(TestCase):
             project.solution_set.filter(is_completed=True).count(),
         )
         self.assertEqual(
-            overview['reviewed_tasks_count'],
-            project.task_set.filter(is_reviewed=True).count(),
+            overview['completed_tasks_count'],
+            project.task_set.filter(is_closed=True, is_accepted=True).count(),
         )
 
         tasks = list(overview.get('tasks'))

@@ -1,13 +1,13 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <h2>{{ project.name|capfirst }} <small>Statistics Overview</small></h2>
+    <h2>{{ project.name|capfirst }} <small>Statistics Overview</small> <button class="btn pull-right" title="Subscribe to project updates">Subscribe</button></h2>
     <div class="row">
         <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
         </div>
         <div class="span3">
-            {% include "project/includes/dashboard-panel.html" with count=reviewed_tasks_count desc="Reviewed Tasks" status="warning" urlname="project:task:my_reviewed" %}
+            {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Completed Tasks" status="success" urlname="project:task:all_closed" %}
         </div>
         <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="pencil-square-o" urlname="project:solution:all_incomplete" %}
@@ -29,6 +29,7 @@
                     <div class="list-group">
                         {% for task in tasks %}
                             <div class="list-group-item">
+                                <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
                                 <a href="{% url 'project:task:task' project.name task.id %}">
                                     {% if task.is_closed %}
                                         <i class="fa fa-check" title="closed"></i>
@@ -38,10 +39,9 @@
                                         <i class="fa fa-file-o" title="accepted"></i>
                                     {% endif %}
                                     {{ task.title|default:"No title" }}</a>
-                                <span class="badge pull-right">{{ task.time_updated|timesince }} ago.</span>
                             </div>
                         {% empty %}
-                            <p class="text-muted">There are no tasks.</p>
+                            <p class="muted">There are no tasks.</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -59,6 +59,7 @@
                     <div class="list-group">
                         {% for solution in solutions %}
                             <div class="list-group-item">
+                                <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
                                 <a href="{% url 'project:solution:solution' project.name solution.id %}">
                                     {% if solution.is_completed %}
                                         <i class="fa fa-check" title="completed"></i>
@@ -66,10 +67,34 @@
                                         <i class="fa fa-pencil-square-o" title="open"></i>
                                     {% endif %}
                                     {{ solution.default_title }}</a>
-                                <span class="badge pull-right">{{ solution.time_updated|timesince }} ago.</span>
                             </div>
                         {% empty %}
-                            <p class="text-muted">There are no tasks.</p>
+                            <p class="muted">There are no solutions.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-clock-o"></i>
+                        Recent Comments
+                    </h3>
+                </div>
+                <div class="panel-body">
+                    <div class="list-group">
+                        {% for comment in comments %}
+                            <div class="list-group-item">
+                                <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
+                                <a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a>
+                                <a href="{{ comment.get_comment_url }}">commented {{ comment.commentable_type }} "{{ comment.commentable.title }}".</a>
+                            </div>
+                        {% empty %}
+                            <p class="muted">There are no comments.</p>
                         {% endfor %}
                     </div>
                 </div>
