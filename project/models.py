@@ -40,7 +40,7 @@ class Project(models.Model):
         :return dict(solutions tasks comments):
 
         """
-        solutions = self.solution_set.select_related('owner')\
+        solutions = self.solution_set.select_related('owner', 'task')\
             .order_by('-time_updated')[:limit]
 
         open_solutions_count = self.solution_set.filter(
@@ -55,7 +55,7 @@ class Project(models.Model):
             .order_by('-time_updated')[:limit]
 
         open_tasks_count = self.task_set.filter(
-            is_closed=False, is_reviewed=False
+            is_accepted=True, is_closed=False
         ).count()
 
         reviewed_tasks_count = self.task_set.filter(
