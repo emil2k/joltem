@@ -3,5 +3,13 @@
 {% block title %}Dear {{ user.first_name }},{% endblock %}
 {% block subtitle %}Joltem {{ notification.type }}{% endblock %}
 {% block content %}
-    <p><a href="{{ notification.get_url }}">{{ notification.get_text }}</a></p>
+    <table class="twelve columns callout">
+        <tbody><tr>
+                <td class="panel">
+                    <p>{{ notification.get_text }}. <a href="http://joltem.com/{{ notification.get_text }}">Click it! »</a></p>
+                </td>
+                <td class="expander"></td>
+            </tr>
+        </tbody>
+    </table>
 {% endblock %}
