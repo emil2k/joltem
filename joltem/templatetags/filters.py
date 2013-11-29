@@ -40,6 +40,7 @@ def is_true(boolean, string):
     """
     if boolean:
         return string
+    return ""
 
 
 @register.filter
