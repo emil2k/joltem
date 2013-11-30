@@ -11,7 +11,7 @@ from django.utils import timezone
 from joltem import receivers
 from joltem.models.votes import Voteable
 from joltem.models.notifications import Notifying
-from joltem.models.generic import Owned, ProjectContext
+from joltem.models.generic import Owned, ProjectContext, Updatable
 
 logger = logging.getLogger('django')
 
@@ -21,7 +21,7 @@ logger = logging.getLogger('django')
 NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
 
 
-class Comment(Voteable):
+class Comment(Voteable, Updatable):
 
     """ Comments in a solution review. """
 
@@ -69,14 +69,15 @@ class Comment(Voteable):
                 self.delete_notifications(
                     self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
-    def get_notification_text(self, notification):
+    def get_notification_text(self, notification=None):
         """ Get text notification.
 
         :return str:
 
         """
         from joltem.utils import list_string_join
-        if NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL == notification.type:
+
+        if notification and NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL == notification.type: # noqa
             # Get first names of all people who marked the comment helpful
             first_names = self.get_voter_first_names(
                 queryset=self.vote_set.filter(
@@ -85,6 +86,7 @@ class Comment(Voteable):
             )
             return "%s marked your comment helpful" % list_string_join(
                 first_names)
+
         return "Comment updated"  # should not resort to this
 
     def get_notification_url(self, notification):

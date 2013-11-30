@@ -616,10 +616,11 @@ class EmailNotificationTestCase(TestCase):
         m = mail.outbox.pop()
         self.assertEqual(m.recipients(), [task.owner.email])
         self.assertEqual(m.subject, '[joltem.com] comment_added')
-        self.assertEqual(m.body, '%s commented on task "%s"' % (
+
+        self.assertTrue('%s commented on task "%s"' % (
             self.mike.first_name,
             task.title
-        ))
+        ) in m.body)
 
         task.notify_comment_added(comment)
         self.assertFalse(mail.outbox)
@@ -648,5 +649,6 @@ class EmailNotificationTestCase(TestCase):
         m1 = mail.outbox.pop()
         m2 = mail.outbox.pop()
         self.assertNotEqual(m1.to, m2.to)
+        self.assertTrue("Joltem" in m1.body)
         self.assertEqual(m1.subject, "[joltem.com] Daily diggest")
         self.assertTrue('\n\n' in m1.body)

@@ -13,7 +13,7 @@ from django.db.models.signals import post_save, post_delete
 from joltem.receivers import (
     update_notification_count, immediately_senf_email_about_notification)
 
-from joltem.tasks import send_async_email
+from joltem.tasks import send_immediately_to_user
 
 import json
 
@@ -82,10 +82,23 @@ class Notification(models.Model):
         :return Task:
 
         """
-        return send_async_email.delay(
-            self.notifying.get_notification_text(self),
-            [self.user.email],
-            subject="[joltem.com] %s" % self.type)
+        return send_immediately_to_user.delay(self.pk)
+
+    def get_text(self):
+        """ Get notification text.
+
+        :return str:
+
+        """
+        return self.notifying.get_notification_text(self)
+
+    def get_url(self):
+        """ Get notification URL.
+
+        :return str:
+
+        """
+        return self.notifying.get_notification_url(self)
 
 
 class Notifying(models.Model):

@@ -13,7 +13,8 @@ class HomeView(View):
 
     """ View to serve up homepage. """
 
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         """ Handle GET request.
 
         If user is authenticated redirect to project dashboard.
@@ -51,7 +52,8 @@ class CommentView(View):
 
     """
 
-    def get(self, request, comment_id):
+    @staticmethod
+    def get(request, comment_id):
         """ Return comment markdown.
 
         :param request:
@@ -69,7 +71,8 @@ class NotificationsView(TemplateView, RequestBaseView):
 
     template_name = "joltem/notifications.html"
 
-    def post(self, request, *args, **kwargs):
+    @staticmethod
+    def post(request, *args, **kwargs):
         """ Clear all notification.
 
         :return redirect:

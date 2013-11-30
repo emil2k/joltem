@@ -2,6 +2,7 @@
 
 import logging
 
+from model_utils.managers import PassThroughManager
 from django.db import models
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
@@ -9,10 +10,13 @@ from django.conf import settings
 
 from joltem import receivers as joltem_receivers
 from joltem.models import Voteable, Commentable
+from joltem.models.generic import Updatable
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 from joltem.models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                                  NOTIFICATION_TYPE_VOTE_UPDATED)
 from joltem.utils import list_string_join
+
+from .managers import SolutionQuerySet
 
 logger = logging.getLogger('joltem')
 
@@ -20,7 +24,7 @@ NOTIFICATION_TYPE_SOLUTION_POSTED = "solution_posted"
 NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
 
 
-class Solution(Voteable, Commentable):
+class Solution(Voteable, Commentable, Updatable):
 
     """
     A solution is an execution of work.
@@ -54,6 +58,8 @@ class Solution(Voteable, Commentable):
     task = models.ForeignKey('task.Task', null=True, blank=True)
     solution = models.ForeignKey('solution.Solution', null=True,
                                  blank=True, related_name="solution_set")
+
+    objects = PassThroughManager.for_queryset_class(SolutionQuerySet)()
 
     def __unicode__(self):
         return str(self.id)

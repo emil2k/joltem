@@ -40,6 +40,7 @@ def is_true(boolean, string):
     """
     if boolean:
         return string
+    return ""
 
 
 @register.filter
@@ -51,6 +52,7 @@ def is_false(boolean, string):
     """
     if not boolean:
         return string
+    return ""
 
 
 def is_match(string, actual, expected):

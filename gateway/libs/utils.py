@@ -5,48 +5,41 @@ from twisted.internet.protocol import ProcessProtocol
 
 class SubprocessProtocol(ProcessProtocol):
 
-    """ A process protocol that runs atop of another process protocol.
-
-    By default all methods pass through to parent protocol.
-
-    """
+    """ A process protocol that runs atop of another process protocol. """
 
     def __init__(self, protocol):
+        """ Initialize subprocess,
+
+        :param protocol: parent process protocol
+        :return:
+
+        """
         self.protocol = protocol  # parent process protocol
-        if protocol.transport:
-            self.makeConnection(protocol.transport)  # connect to remote end
+
+    def childDataReceived(self, childFD, data):
+        """ Pass all data through to parent process protocol.
+
+        :param childFD: file descriptor receiving the data.
+        :param data: received data
+
+        """
+        self.protocol.childDataReceived(childFD, data)
 
     def outReceived(self, data):
-        """ Just proxy to parent. """
+        """ Pass output to parent process protocol.
+
+        :param data: output data received.
+
+        """
         self.protocol.outReceived(data)
 
     def errReceived(self, data):
-        """ Just proxy to parent. """
+        """ Pass error output to parent process protocol.
+
+        :param data: output data received.
+
+        """
         self.protocol.errReceived(data)
-
-    def childConnectionLost(self, childFD):
-        """ Just proxy to parent. """
-        self.protocol.childConnectionLost(childFD)
-
-    def inConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.inConnectionLost()
-
-    def outConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.outConnectionLost()
-
-    def errConnectionLost(self):
-        """ Just proxy to parent. """
-        self.protocol.errConnectionLost()
-
-    def processExited(self, reason):
-        """ Just proxy to parent. """
-        self.protocol.processExited(reason)
-
-    def processEnded(self, reason):
-        """ Just proxy to parent. """
-        self.protocol.processEnded(reason)
 
 
 class BaseBufferedSplitter(object):

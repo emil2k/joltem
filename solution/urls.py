@@ -15,21 +15,62 @@ urlpatterns = patterns(
     url(r'^(?P<solution_id>(\d)+)/review/$', login_required(
         views.SolutionReviewView.as_view()), name='review'),
 
-    url(r'^(?P<solution_id>(\d)+)/commits/(?:(?P<repository_name>[-\w]+)/)?$',
+    url(r'^(?P<solution_id>(\d)+)/commits/(?:repository/(?P<repository_id>[0-9]+)/)?$',
         views.SolutionCommitsView.as_view(),
         {'extra_context': {'solution_tab': 'commits'}},
         'commits'),
 
-    url(r'^review/my/$', login_required(
-        views.MyReviewSolutionsView.as_view()), name='my_review'),
-    url(r'^reviewed/my/$', login_required(
-        views.MyReviewedSolutionsView.as_view()), name='my_reviewed'),
-    url(r'^incomplete/my/$', login_required(
-        views.MyIncompleteSolutionsView.as_view()), name='my_incomplete'),
-    url(r'^complete/my/$', login_required(
-        views.MyCompleteSolutionsView.as_view()), name='my_complete'),
-    url(r'^incomplete/$', login_required(
-        views.AllIncompleteSolutionsView.as_view()), name='all_incomplete'),
-    url(r'^complete/$', login_required(
-        views.AllCompleteSolutionsView.as_view()), name='all_complete'),
+    url(r'^review/my/$',
+        views.MyReviewSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_review',
+            }
+        },
+        'my_review'),
+
+    url(r'^reviewed/my/$',
+        views.MyReviewedSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_reviewed',
+            }
+        },
+        'my_reviewed'),
+
+    url(r'^incomplete/my/$',
+        views.MyIncompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_incomplete',
+            }
+        },
+        'my_incomplete'),
+
+    url(r'^complete/my/$',
+        views.MyCompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'my_complete',
+            }
+        },
+        'my_complete'),
+
+    url(r'^incomplete/$',
+        views.AllIncompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'all_incomplete',
+            }
+        },
+        'all_incomplete'),
+
+    url(r'^complete/$',
+        views.AllCompleteSolutionsView.as_view(), {
+            'extra_context': {
+                'project_tab': 'solutions',
+                'solutions_tab': 'all_complete',
+            }
+        },
+        'all_complete'),
 )

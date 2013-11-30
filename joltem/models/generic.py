@@ -56,3 +56,13 @@ class ProjectContext(models.Model):
             raise ImproperlyConfigured(
                 "Project foreign key field must be set in implementing class.")
         super(ProjectContext, self).save(**kwargs)
+
+
+class Updatable(models.Model):
+
+    """ Store updated time. """
+
+    time_updated = models.DateTimeField(auto_now=True)
+
+    class Meta():
+        abstract = True

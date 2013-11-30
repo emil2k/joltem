@@ -46,8 +46,14 @@ def authomatic_login(request, provider):
 
     if result.user:
 
-        if not (result.user.name and result.user.id):
-            result.user.update()
+        result.user.update()
+
+        if not result.user.id:
+            messages.add_message(
+                request, messages.ERROR,
+                'Unknow error. Please try another time.')
+
+            return redirect('sign_in')
 
         try:
             user = User.objects.get(

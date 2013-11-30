@@ -1,5 +1,9 @@
+""" Git helpers. """
+
 
 class CommitHolder():
+
+    """ Hold commit information. """
 
     def __init__(self, pygit_commit):
         self.author = pygit_commit.author.name
@@ -12,6 +16,8 @@ class CommitHolder():
 
 class DiffHolder():
 
+    """ Hold diff-information. """
+
     def __init__(self, pygit_diff):
         self.patches = [PatchHolder(p) for p in pygit_diff]
 
@@ -20,6 +26,8 @@ class DiffHolder():
 
 
 class PatchHolder():
+
+    """ Hold path information. """
 
     def __init__(self, pygit_patch):
         self.old_file_path = pygit_patch.old_file_path
@@ -31,6 +39,8 @@ class PatchHolder():
 
 
 class HunkHolder():
+
+    """ Hold hunk information. """
 
     def __init__(self, pygit_hunk):
         self.old_start = pygit_hunk.old_start
@@ -62,6 +72,8 @@ class HunkHolder():
 
 class LineHolder():
 
+    """ Hold information about changed lines. """
+
     def __init__(self, line, act):
         self.line = line
         self.act = act
@@ -70,14 +82,22 @@ class LineHolder():
 
     @property
     def is_addition(self):
-        """
-        Checks if act string, is "+" representing an addition in pygit line
+        """ Check if act string.
+
+        Is "+" representing an addition in pygit line.
+
+        :return bool:
+
         """
         return self.act == "+"
 
     @property
     def is_deletion(self):
-        """
-        Checks if act string, is "-" representing a deletion in pygit line
+        """ Check if act string.
+
+        Is "-" representing a deletion in pygit line.
+
+        :return bool:
+
         """
         return self.act == "-"

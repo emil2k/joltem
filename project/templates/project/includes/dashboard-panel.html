@@ -1,0 +1,26 @@
+<div class="panel panel-{{ status|default:"info" }}">
+    <div class="panel-heading">
+        <div class="row-fluid">
+            <div class="span4">
+                <i class="fa fa-{{ icon|default:"comments" }} fa-5x"></i>
+            </div>
+            <div class="span8 text-right">
+                <h2>{{ count }}</h2>
+                <p>{{ desc }}</p>
+            </div>
+        </div>
+    </div>
+    <a href="{% url urlname project.name %}">
+        <div class="panel-footer">
+            <div class="row-fluid">
+                    <div class="span10">
+                      View {{ desc }}
+                    </div>
+                    <div class="span2 text-right">
+                      <i class="fa fa-arrow-circle-right"></i>
+                    </div>
+                  </div>
+        </div>
+    </a>
+</div>
+

@@ -1,0 +1,19 @@
+{% extends "joltem/emails/base.html" %}
+
+{% block title %}Dear {{ user.first_name }},{% endblock %}
+{% block subtitle %}Joltem Daily Digest{% endblock %}
+
+{% block content %}
+    {% for notification in notifies %}
+        <table class="twelve columns callout">
+            <tbody>
+                <tr>
+                    <td class="panel">
+                        <p>{{ notification.get_text }}. <a href="http://joltem.com/{{ notification.get_text }}">Click it! »</a></p>
+                    </td>
+                    <td class="expander"></td>
+                </tr>
+            </tbody>
+        </table>
+    {% endfor %}
+{% endblock %}

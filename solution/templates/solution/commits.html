@@ -11,7 +11,7 @@
             <li class="nav-header">repositories</li>
             {% for repo in project_repo_list %}
             <li{% if current_repo.id == repo.id %} class="active"{% endif %}>
-                <a href="{% url 'project:solution:commits' project.name solution.id repo.name %}">{{ repo.name }}</a>
+                <a href="{% url 'project:solution:commits' project.name solution.id repo.id %}">{{ repo.name }}</a>
             </li>
             {% endfor %}
         </ul>
