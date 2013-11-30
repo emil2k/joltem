@@ -1,19 +1,24 @@
+2013-11-30  emil
+	* Version 0.6.0
+	* Project dashboard added.
+	* Email notification tempaltes added.
+	* Fixed gateway's cloning bug.
+
 2013-11-25  klen
 
 	* Version 0.5.0
 	* Fixed password reset
 
-2013-11-25  marselester
+2013-11-22  klen
 
-	* Added priority icons
-	* Fixed tasks templates
+	* Version 0.4.5
+	* Task's priority
 
 2013-11-22  klen
 
 	* Version 0.4.4
 	* Fix bug when solution owner cannot comment own solutions
 	* Fix error raises when project not found
-	* Task's priority
 
 
 2013-11-21  klen
