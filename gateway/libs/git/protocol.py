@@ -389,17 +389,28 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
         To push to the specified reference, returns a boolean.
 
-        Keyword arguments :
-        reference -- pushing to this reference
-        old_oid -- the old object id the reference pointed to
-        new_oid -- the new object id the reference will point to
-                   if the push is accepted
+        Only the solution owners have writes to push to their solution
+        branch. Project admins and managers can push to all other branches.
+        Developers can only push to `refs/heads/develop`.
+
+        :param reference: pushing to this reference.
+        :param old_oid: the old object id the reference pointed to.
+        :param new_oid: the new object id the reference will point to
+            if the push is accepted.
+        :return bool: whether user has push permissions.
 
         """
         parts = reference.split('/')
+        project = self.repository.project
+        user_id = self.avatar.user.id
+        is_admin = project.is_admin(user_id)
+        is_manager = project.is_manager(user_id)
+        is_developer = project.is_developer(user_id)
         if parts[0] == 'refs' and parts[1] == 'heads':
             if parts[2] == 'master':
-                return self.repository.project.is_admin(self.avatar.user.id)
+                return is_admin or is_manager
+            elif parts[2] == 'develop':
+                return is_admin or is_manager or is_developer
             elif parts[2] == 's':  # solution branches
                 try:
                     solution_id = int(parts[3])
@@ -410,8 +421,10 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                         Solution.MultipleObjectsReturned):
                     return False
                 else:
+                    # Only solution owner can push to solution branch.
                     return solution.is_owner(self.avatar.user)
-        return False
+        # For all other branches and tags creation must be admin or manager.
+        return is_admin or is_manager
 
     def eof_received(self):
         """ Should have docstring. """
