@@ -339,7 +339,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     # Receivers
 
     def received_packet_line(self, line):
-        """ Should have dosctrings. """
+        """ Callback for when a packet line has been received. """
         log.msg(line, system="packet-line")
         if self._abilities is None:
             parts = line.split('\x00')
@@ -353,8 +353,11 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self.handle_push_line(line)
 
     def received_empty_packet_line(self):
-        """ Should have dosctrings. """
+        """ Callback for when an empty packet line has been received.
 
+        An empty packet line is 0000 and acts a flush statement.
+
+        """
         log.msg("empty packet line received.", system="packet-line")
         self.stop_buffering()  # client should now send PACK data
 
