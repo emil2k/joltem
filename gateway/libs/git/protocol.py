@@ -131,7 +131,7 @@ class GitProcessProtocol(SubprocessProtocol):
         self.process_transport = transport
 
     @staticmethod
-    def log(data, system, newline=False):  # todo maybe i can move this out of here and into utils
+    def log(data, system, newline=False):
         """ Logging.
 
         :param data:
@@ -140,13 +140,14 @@ class GitProcessProtocol(SubprocessProtocol):
         :return:
 
         """
+        # todo move this out of here and into utils
         output = "\n" if newline else ""
         output += data if len(data) < 8192 else \
             "large data : %d bytes" % len(data)
         log.msg(output, system=system)
 
     @staticmethod
-    def eof_received():  # todo i don't think this is necessary
+    def eof_received():
         """ For receiving end of file requests, from the SSH connection. """
         GitProcessProtocol.log("End of file received.", "client")
 
@@ -325,7 +326,21 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = False
 
     def write(self, data):
-        # todo write docstring
+        """ Write data to the git process.
+
+        Usually the data is received from the git client.
+
+        While packet lines are being transferred to negotiate what
+        to send in the PACK file, the client input is buffered.
+
+        After negotiations end the gateway either accepts or rejects the push
+        based on the user's permissions. If the push is rejected the input
+        is ignored (not passed to the git process), but if accepted the PACK
+        file is directly passed to the git-receive-pack process.
+
+        :param data: data to write.
+
+        """
         if self._buffering:
             self.log(data, "client - buffered", True)
             self._buffer.extend(data)
@@ -427,9 +442,15 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         return is_admin or is_manager
 
     def eof_received(self):
-        """ Should have docstring. """
+        """ End of file received on git receive pack.
+
+        The client has signaled that the PACK file transfer is over.
+        If the push was rejected the must generate an unpack report, send
+        it back, and end the process manually. Otherwise do nothing because
+        git-receive-pack process will generate a report itself.
+
+        """
         GitProcessProtocol.eof_received()  # just logging
-        # todo
         if self._rejected:
             # Respond back with a status report
             self.outReceived(get_report(self._command_statuses))
