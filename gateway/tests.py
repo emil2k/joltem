@@ -289,3 +289,50 @@ class TestManagerPushPermissions(TestPushPermissions):
         """
         s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
         self._test_push(self.manager, s.get_reference(), False)
+
+
+class TestDeveloperPushPermissions(TestPushPermissions):
+
+    """ Test an developer's push permissions.
+
+    A developer should be able to push to `develop` branch, but can't
+    create new branches or tags.
+
+    """
+
+    def setUp(self):
+        super(TestDeveloperPushPermissions, self).setUp()
+        self.developer = mixer.blend('joltem.user')
+        self.project.developer_set.add(self.developer)
+        self.project.save()
+
+    def test_push_master(self):
+        """ Test developer's inability to push to master. """
+        self._test_push(self.developer, 'refs/heads/master', False)
+
+    def test_push_develop(self):
+        """ Test developer's ability to push to develop. """
+        self._test_push(self.developer, 'refs/heads/develop')
+
+    def test_create_branch(self):
+        """ Test developer's inability to create branches. """
+        self._test_push(self.developer, 'refs/heads/release/0.0.1', False)
+
+    def test_create_tag(self):
+        """ Test developer's inability to create tags. """
+        self._test_push(self.developer, 'refs/tags/0.0.1', False)
+        self._test_push(self.developer, 'refs/tags/0.0.1^{}', False) # peeled version
+
+    def test_push_nonexistent_solution(self):
+        """ Test push to nonexistent solution's branch. """
+        self._test_push(self.developer, 'refs/heads/s/183895997', False)
+
+    def test_push_another_solution(self):
+        """ Test push to an other user's solution.
+
+        A developer should not be able to push to another user's
+        solution branch.
+
+        """
+        s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
+        self._test_push(self.developer, s.get_reference(), False)
