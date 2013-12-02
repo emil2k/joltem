@@ -21,15 +21,39 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
 
     # Relations
-    admin_set = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    admin_set = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="admin_project_set")
+    manager_set = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="manager_project_set")
+    developer_set = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="developer_project_set")
 
     def is_admin(self, user_id):
-        """ Check if user is an admin of the project.
+        """ Check if the user is an admin of the project.
 
+        :param user_id:
         :return bool:
 
         """
         return self.admin_set.filter(id=user_id).exists()
+
+    def is_manager(self, user_id):
+        """ Check if the user is a manager of the project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return self.manager_set.filter(id=user_id).exists()
+
+    def is_developer(self, user_id):
+        """ Check if the user is a developer of the project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return self.developer_set.filter(id=user_id).exists()
 
     def __unicode__(self):
         return self.name

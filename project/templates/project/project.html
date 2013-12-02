@@ -1,7 +1,15 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <h2>{{ project.name|capfirst }} <small>Statistics Overview</small> <button class="btn pull-right" title="Subscribe to project updates">Subscribe</button></h2>
+    <div class="clearfix">
+        <h3 class="pull-left">{{ project.title }}</h3>
+        <div class="btn-group pull-right">
+            <button class="btn" title="Watch project." onclick="alert('todo : add watch project functionality')"><i class="fa fa-eye"></i><span class="hidden-phone"> watch</span></button>
+            {% if is_admin %}
+                <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i><span class="hidden-phone"> settings</span></a>
+            {% endif %}
+        </div>
+    </div>
     <div class="row">
         <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}

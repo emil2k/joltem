@@ -5,7 +5,7 @@
     <div class="row">
         <div class="span2">
             <ul class="nav nav-list well">
-                {% if is_admin %}
+                {% if is_admin or is_manager %}
                     <li><a href="{% url 'project:git:new_repository' project.name %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">Repositories</li>

@@ -1,12 +1,14 @@
 # coding: utf-8
 """ Project's views. """
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, UpdateView
 
 from .models import Project
+from .forms import ProjectSettingsForm
 from joltem.views.generic import RequestBaseView, ValidUserMixin
 
 
@@ -66,6 +68,36 @@ class ProjectView(TemplateView, ProjectBaseView):
         if not overview:
             overview = self.project.get_overview()
             cache.set(key, overview)
-
         kwargs.update(overview)
         return super(ProjectView, self).get_context_data(**kwargs)
+
+
+class ProjectSettingsView(UpdateView, ProjectBaseView):
+
+    """ View to display and modify a project's settings. """
+
+    object = None
+    form_class = ProjectSettingsForm
+    template_name = "project/settings.html"
+
+    def get_object(self):
+        """ Check if user is an admin.
+
+        Only admins are allowed to modify project settings.
+
+        :return Project:
+
+        """
+        if self.is_admin:
+            return self.project
+        raise Http404
+
+    def get_success_url(self):
+        """ Get url to redirect to after successful form submission.
+
+        :return str: url of project settings.
+
+        """
+        return reverse('project:settings', kwargs={
+                'project_name': self.project.name
+            })

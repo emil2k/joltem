@@ -37,3 +37,30 @@ class ProjectModelTest(TestCase):
 
         tasks = list(overview.get('tasks'))
         self.assertTrue(tasks[0].time_updated > tasks[-1].time_updated)
+
+
+class ProjectGroupsTest(TestCase):
+
+    """ Test project user groups. """
+
+    def setUp(self):
+        self.project = mixer.blend('project.project')
+        self.user = mixer.blend('joltem.user')
+
+    def test_is_admin(self):
+        """ Test is_admin function. """
+        self.project.admin_set.add(self.user)
+        self.project.save()
+        self.assertTrue(self.project.is_admin(self.user.id))
+
+    def test_is_manager(self):
+        """ Test is_manager function. """
+        self.project.manager_set.add(self.user)
+        self.project.save()
+        self.assertTrue(self.project.is_manager(self.user.id))
+
+    def test_is_developer(self):
+        """ Test is_developer function. """
+        self.project.developer_set.add(self.user)
+        self.project.save()
+        self.assertTrue(self.project.is_developer(self.user.id))

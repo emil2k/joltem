@@ -1,0 +1,59 @@
+{% extends 'project/base.html' %}
+{% load widget_tweaks %}
+{% load filters %}
+{% block project_content %}
+    <div class="row">
+        <div class="span3">
+        <ul class="nav nav-list well">
+            <li class="nav-header">Project Settings</li>
+            <li class="active"><a href="{% url 'project:settings' project.name %}">Main</a></li>
+        </ul>
+        </div>
+        <div class="span6">
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors|join:' ' }}
+                </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <p>
+                    <strong>Title & Description</strong>
+                </p>
+
+                <p>
+                    {% if form.title.errors %}
+                        <div class="alert alert-error">{{ form.title.errors|join:' ' }}</div>
+                    {% endif %}
+                    {% render_field form.title class="input-block-level" placeholder=form.title.label %}
+                    {% render_field form.description class="input-block-level" placeholder=form.description.label %}
+                </p>
+
+                <hr/>
+
+                <p>
+                    <strong>Administrators</strong><br/>
+                    <small class="help-block"><i class="fa fa-info-circle"></i> can edit members of groups and project settings.</small>
+                    {% render_field form.admin_set class="input-block-level" placeholder=form.admin_set.label %}
+                </p>
+
+                <p>
+                    <strong>Managers</strong><br/>
+                    <small class="help-block"><i class="fa fa-info-circle"></i> can push to all branches and create repositories.</small>
+                    {% render_field form.manager_set class="input-block-level" placeholder=form.manager_set.label %}
+                </p>
+
+                <p>
+                    <strong>Developers</strong><br/>
+                    <small class="help-block"><i class="fa fa-info-circle"></i> can push to <em>develop</em> branch.</small>
+                    {% render_field form.developer_set class="input-block-level" placeholder=form.developer_set.label %}
+                </p>
+
+                <p>
+                    <button class="btn btn-success">Save</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

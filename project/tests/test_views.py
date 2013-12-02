@@ -80,3 +80,53 @@ class TestProjectViews(TestCase):
         self.assertTrue(response.context['solutions'])
         self.assertTrue(response.context['comments'])
         self.assertTrue(response.context['tasks'])
+
+
+class TestProjectSettingsView(TestCase):
+
+    """ Test project settings view. """
+
+    def setUp(self):
+        self.project = mixer.blend('project.project')
+        self.user = mixer.blend('joltem.user', password='test')
+        self.uri = reverse('project:settings',
+                           kwargs=dict(project_name=self.project.name))
+
+    def _test_get(self, expected_code):
+        """ Test generator for GETing project settings page.
+
+        :param expected_code: expected response code.
+
+        """
+        response = self.client.get(self.uri)
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_get_admin(self):
+        """ Test GET with admin. """
+        self.project.admin_set.add(self.user)
+        self.project.save()
+        self.client.login(username=self.user.username, password='test')
+        self._test_get(200)
+
+    def test_get_manager(self):
+        """ Test GET with manager. """
+        self.project.manager_set.add(self.user)
+        self.project.save()
+        self.client.login(username=self.user.username, password='test')
+        self._test_get(404)
+
+    def test_get_developer(self):
+        """ Test GET with developer. """
+        self.project.developer_set.add(self.user)
+        self.project.save()
+        self.client.login(username=self.user.username, password='test')
+        self._test_get(404)
+
+    def test_get_regular(self):
+        """ Test GET with regular user. """
+        self.client.login(username=self.user.username, password='test')
+        self._test_get(404)
+
+    def test_get_anonymous(self):
+        """ Test GET with anonymous user. """
+        self._test_get(302)
