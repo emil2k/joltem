@@ -164,16 +164,16 @@ class Task(Commentable, Updatable):
         review is complete, and if so whether it was accepted or not.
 
         Criteria for acceptance :
-        - An acceptance vote from a project admin.
+        - An acceptance vote from a project admin or manager.
 
         Criteria for rejection :
-        - A rejection vote from a project admin.
+        - A rejection vote from a project admin or manager.
 
-        Keyword argument :
-        vote -- the vote to process.
+        :param vote: the vote to process.
 
         """
-        if self.project.is_admin(vote.voter_id):
+        if self.project.is_admin(vote.voter_id) or \
+                self.procect.is_manager(vote.voter_id):
             self.mark_reviewed(vote.voter, vote.is_accepted)
 
     def mark_reviewed(self, acceptor, is_accepted):
