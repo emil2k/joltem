@@ -66,6 +66,12 @@ class ProjectView(TemplateView, ProjectBaseView):
         if not overview:
             overview = self.project.get_overview()
             cache.set(key, overview)
-
         kwargs.update(overview)
         return super(ProjectView, self).get_context_data(**kwargs)
+
+
+class ProjectSettingsView(TemplateView, ProjectBaseView):
+
+    """ View to display and modify a project's settings. """
+
+    template_name = "project/settings.html"
