@@ -173,7 +173,7 @@ class Task(Commentable, Updatable):
 
         """
         if self.project.is_admin(vote.voter_id) or \
-                self.procect.is_manager(vote.voter_id):
+                self.project.is_manager(vote.voter_id):
             self.mark_reviewed(vote.voter, vote.is_accepted)
 
     def mark_reviewed(self, acceptor, is_accepted):
