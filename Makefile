@@ -28,7 +28,7 @@ lint: $(ENV)
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,common,account
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.test --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,account
 
 .PHONY: run
 # target: run - Run Django development server
