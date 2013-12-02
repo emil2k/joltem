@@ -1,5 +1,5 @@
 <div class="row">
-    {% if is_admin %}
+    {% if is_admin or is_manager %}
         <div class="span1 text-center hidden-phone">
             <button class="btn btn-mini" type="submit" name="{{ action }}_repo" value="{{ repo.id }}">{{ action }}</button>
         </div>
