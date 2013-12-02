@@ -2,7 +2,8 @@ from unittest import TestCase
 
 from gateway.libs.terminal.utils import *
 from gateway.libs.git.utils import *
-from gateway.libs.git.protocol import BaseBufferedSplitter, PacketLineSplitter
+from gateway.libs.git.protocol import (
+    BaseBufferedSplitter, PacketLineSplitter, GitReceivePackProcessProtocol)
 from gateway.libs.git.utils import (
     get_packet_line, get_packet_line_size, get_unpack_status,
     get_command_status, get_report,
@@ -147,3 +148,96 @@ class TestSSH(TestCase):
 
         result = checker.requestAvatarId(wrong_user)
         self.assertTrue(isinstance(result.value, Exception))
+
+
+class MockAvatar(object):
+
+    """ A mock avatar for testing push permissions. """
+
+    def __init__(self, user):
+        self.user = user
+
+
+class MockGitReceivePackProcessProtocol(GitReceivePackProcessProtocol):
+
+    """ Mock git receive pack process protocol for testing push permission. """
+
+    def __init__(self, user, repository):
+        self.avatar = MockAvatar(user)
+        self.repository = repository
+
+
+class TestPushPermissions(TestCase):
+
+    """ Base class for testing push permissions.
+
+    Using a mock git receive pack process protocol.
+
+    """
+
+    def setUp(self):
+        self.repository = mixer.blend('git.repository')
+        self.project = self.repository.project
+
+    def test_mix(self):
+        self.assertTrue(self.repository.project)
+
+    def _test_push(self, user, reference, expected=True):
+        """ Push test generator.
+
+        :param pp: instance of git receive pack process protocol.
+        :param reference: reference string passed in packet line.
+        :param expected: whether has permissions
+
+        """
+        pp = MockGitReceivePackProcessProtocol(user, self.repository)
+        self.assertEqual(pp.has_push_permission(reference, 'na', 'na'),
+                         expected)
+
+
+class TestAdminPushPermissions(TestPushPermissions):
+
+    """ Test an administrator's push permissions.
+
+    Administrator should be able to push to all branches and create tags
+    ( test peeled push also ) except for solution branches that belong
+    to someone else.
+
+    """
+
+    def setUp(self):
+        super(TestAdminPushPermissions, self).setUp()
+        self.admin = mixer.blend('joltem.user')
+        self.project.admin_set.add(self.admin)
+        self.project.save()
+
+    def test_push_master(self):
+        """ Test admin's ability to push to master. """
+        self._test_push(self.admin, 'refs/heads/master')
+
+    def test_push_develop(self):
+        """ Test admin's ability to push to develop. """
+        self._test_push(self.admin, 'refs/heads/develop')
+
+    def test_create_branch(self):
+        """ Test admin's ability to create branches. """
+        self._test_push(self.admin, 'refs/heads/release/0.0.1')
+
+    def test_create_tag(self):
+        """ Test admin's ability to create tags. """
+        self._test_push(self.admin, 'refs/tags/0.0.1')
+        self._test_push(self.admin, 'refs/tags/0.0.1^{}') # peeled version
+
+    def test_push_nonexistent_solution(self):
+        """ Test push to nonexistent solution's branch. """
+        self._test_push(self.admin, 'refs/heads/s/183895997', False)
+
+    def test_push_another_solution(self):
+        """ Test push to an other user's solution.
+
+        Even an administrator should not be able to push to another user's
+        solution branch.
+
+        """
+        s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
+        self._test_push(self.admin, s.get_reference(), False)
