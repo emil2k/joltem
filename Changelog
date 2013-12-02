@@ -1,3 +1,10 @@
+--- on develop
+
+2013-12-02  emil
+    * Added user groups admins, managers, and developers.
+
+--- on master
+
 2013-11-30  emil
 	* Version 0.6.0
 	* Project dashboard added.
