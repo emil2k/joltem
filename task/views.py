@@ -302,7 +302,7 @@ class MyOpenTasksView(TaskBaseListView):
         """
         return super(MyOpenTasksView, self).get_queryset().filter(
             is_accepted=True, is_closed=False, owner=self.user
-        ).order_by('-time_posted')
+        ).order_by('-priority', '-time_posted')
 
 
 class MyClosedTasksView(TaskBaseListView):
@@ -319,7 +319,7 @@ class MyClosedTasksView(TaskBaseListView):
         """
         return super(MyClosedTasksView, self).get_queryset().filter(
             is_accepted=True, is_closed=True, owner=self.user
-        ).order_by('-time_closed')
+        ).order_by('-priority', '-time_closed')
 
 
 class MyReviewTasksView(TaskBaseListView):
@@ -336,7 +336,7 @@ class MyReviewTasksView(TaskBaseListView):
         """
         return super(MyReviewTasksView, self).get_queryset().filter(
             is_reviewed=False, is_closed=False).exclude(vote__voter=self.user)\
-            .order_by('-time_posted')
+            .order_by('-priority', '-time_posted')
 
 
 class MyReviewedTasksView(TaskBaseListView):
@@ -352,7 +352,7 @@ class MyReviewedTasksView(TaskBaseListView):
 
         """
         return super(MyReviewedTasksView, self).get_queryset().filter(
-            vote__voter=self.user).order_by('-vote__time_voted')
+            vote__voter=self.user).order_by('-priority', '-vote__time_voted')
 
 
 class AllOpenTasksView(TaskBaseListView):
