@@ -13,9 +13,6 @@
             {% if task.is_closed %}
                 <span class="hidden-phone">/ <span class="text-info">Closed on {{ task.time_closed|date }}</span></span>
             {% endif %}
-            {% if task.get_subtask_count > 0 %}
-                / <a href="{% url 'project:task:subtasks' project.name task.id %}">{{ task.get_subtask_count }} subtask{{ task.get_subtask_count|pluralize }}</a>
-            {% endif %}
         </small>
     </p>
 </div>
