@@ -15,8 +15,6 @@ urlpatterns = patterns(
         solution_views.SolutionCreateView.as_view()), name='solve'),
 
     # Lists of tasks
-    url(r'^(?:(?P<parent_task_id>(\d)+)/)?list/$', login_required(
-        views.SubtaskView.as_view()), name='subtasks'),
     url(r'^open/$', login_required(
         views.AllOpenTasksView.as_view()), name='all_open'),
     url(r'^closed/$', login_required(

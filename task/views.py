@@ -285,7 +285,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
         :return QuerySet:
 
         """
-        return self.project.task_set.all()
+        return self.project.task_set.select_related('owner').prefetch_related('solution_set').all()
 
 
 class MyOpenTasksView(TaskBaseListView):
@@ -387,96 +387,3 @@ class AllClosedTasksView(TaskBaseListView):
         return super(AllClosedTasksView, self).get_queryset().filter(
             is_accepted=True, is_closed=True
         ).order_by('-priority', '-time_closed')
-
-
-class SubtaskBaseView(ListView, ProjectBaseView):
-
-    """ Base view for displaying subtasks for a given task.
-
-    Grouped by the solutions they represent.
-
-    """
-
-    template_name = "task/tasks_list_parent.html"
-    context_object_name = "subtask_groups"
-    project_tab = "tasks"
-
-    def __init__(self, *args, **kwargs):
-        super(SubtaskBaseView, self).__init__(*args, **kwargs)
-        self.parent_task = None
-
-    def initiate_variables(self, request, *args, **kwargs):
-        """ Prepare view. """
-        super(SubtaskBaseView, self).initiate_variables(
-            request, *args, **kwargs)
-        self.parent_task = get_object_or_404(
-            Task, id=kwargs.get('parent_task_id', None))
-
-    def get_context_data(self, **kwargs):
-        """ Get context for templates.
-
-        :return dict:
-
-        """
-        kwargs["parent_task"] = self.parent_task
-        return super(SubtaskBaseView, self).get_context_data(**kwargs)
-
-    class SubtaskGroupHolder(object):
-
-        def __init__(self, solution, tasks):
-            self.solution = solution
-            self.subtask_set = tasks
-
-    def get_solution_queryset(self):
-        """Queryset of solutions for which to get subtasks for, default is all.
-
-        :return QuerySet:
-
-        """
-        return self.parent_task.solution_set.all().order_by('-time_posted')
-
-    @staticmethod
-    def get_subtask_queryset(solution):
-        """Query set for subtasks of each solution, default is all.
-
-        :return QuerySet:
-
-        """
-        return solution.subtask_set.filter(is_accepted=True).order_by(
-            '-time_posted')
-
-    def get_queryset(self):
-        """Generate subtask groups.
-
-        :return list:
-
-        """
-        # TODO: It should return QS.
-        return [g for g in self.generate_subtasks()]
-
-    def generate_subtasks(self):
-        """Generator for subtask groups.
-
-        :return generator:
-
-        """
-        for solution in self.get_solution_queryset():
-            subtasks = self.get_subtask_queryset(solution)
-            if subtasks.count() > 0:
-                subtask_group = SubtaskBaseView.SubtaskGroupHolder(
-                    solution, subtasks)
-                yield subtask_group
-
-
-class SubtaskView(SubtaskBaseView):
-
-    """Filters out closed subtasks of closed solutions. """
-
-    def get_solution_queryset(self):
-        """Queryset of solutions for which to get subtasks for, default is all.
-
-        :return QuerySet:
-
-        """
-        return self.parent_task.solution_set.filter(is_closed=False).order_by(
-            '-time_posted')
