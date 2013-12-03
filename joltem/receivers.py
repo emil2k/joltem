@@ -32,6 +32,30 @@ def update_voteable_metrics_from_vote(sender, **kwargs):
         voteable.save()
 
 
+def update_project_metrics_from_vote(sender, **kwargs):
+    """ Update project specific vote ratio due to vote.
+
+    :param sender: class of the sender
+    :param kwargs:
+
+    """
+    # todo write tests for this
+    from solution.models import Solution  # avoid circular import
+    from project.models import Ratio
+    solution_type = ContentType.objects.get_for_model(Solution)
+    vote = kwargs.get('instance')
+    if vote and vote.voteable and vote.voteable_type_id == solution_type.id:
+        solution = vote.voteable
+        (project_vote_ratio, _) = Ratio.objects.get_or_create(
+            project_id=solution.project_id,
+            user_id=solution.owner_id
+        )
+        project_vote_ratio.votes_in = project_vote_ratio.get_votes_in()
+        project_vote_ratio.votes_out = project_vote_ratio.get_votes_out()
+        project_vote_ratio.votes_ratio = project_vote_ratio.get_votes_ratio()
+        project_vote_ratio.save()
+
+
 def update_project_impact_from_voteables(sender, **kwargs):
     """ Update project specific impact due to vote on voteable. """
     from project.models import Impact  # avoid circular import
