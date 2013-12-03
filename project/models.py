@@ -163,3 +163,47 @@ post_save.connect(
     receivers.update_user_metrics_from_project_impact, sender=Impact)
 post_delete.connect(
     receivers.update_user_metrics_from_project_impact, sender=Impact)
+
+
+class Ratio(models.Model):
+
+    """ Stores project specific vote ratio. """
+
+    votes_in = models.IntegerField()
+    votes_out = models.IntegerField()
+    votes_ratio = models.FloatField()
+
+    # Relations
+    project = models.ForeignKey('project.Project')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
+
+    class Meta:
+        unique_together = ['project', 'user']
+
+    def get_votes_in(self):
+        """ Calculate the votes in metric.
+
+        :return int: the votes in metric.
+
+        """
+        # todo write this and tests for this
+
+    def get_votes_out(self):
+        """ Calculate the votes out metric.
+
+        :return int: the votes out metric.
+
+        """
+        # todo write this and tests for this
+
+    def get_votes_ratio(self):
+        """ Calculate votes ratio.
+
+        :return float: the votes ratio metric.
+
+        """
+        # todo write this and tests for this
+
+
+
