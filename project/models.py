@@ -172,9 +172,9 @@ class Ratio(models.Model):
 
     """ Stores project specific vote ratio. """
 
-    votes_in = models.IntegerField()
-    votes_out = models.IntegerField()
-    votes_ratio = models.FloatField()
+    votes_in = models.IntegerField(default=0)
+    votes_out = models.IntegerField(default=0)
+    votes_ratio = models.FloatField(null=True)
 
     # Relations
     project = models.ForeignKey('project.Project')
@@ -186,6 +186,26 @@ class Ratio(models.Model):
 
     class Meta:
         unique_together = ['project', 'user']
+
+    @classmethod
+    def update(cls, project_id, user_id):
+        """ Update voter ratio metrics.
+
+        :param cls:
+        :param project_id:
+        :param user_id:
+        :return Ratio: returns the Ratio instance that was updated
+
+        """
+        (ratio, _) = cls.objects.get_or_create(
+            project_id=project_id,
+            user_id=user_id
+        )
+        ratio.votes_in = ratio.get_votes_in()
+        ratio.votes_out = ratio.get_votes_out()
+        ratio.votes_ratio = ratio.get_votes_ratio()
+        ratio.save()
+        return ratio
 
     def get_votes_in(self):
         """ Calculate the votes in metric.

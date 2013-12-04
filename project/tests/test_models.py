@@ -66,7 +66,7 @@ class ProjectGroupsTest(TestCase):
         self.assertTrue(self.project.is_developer(self.user.id))
 
 
-class VoteRatioModelTest(TestCase):
+class RatioModelTest(TestCase):
 
     """ Test project vote ratio model. """
 
@@ -188,3 +188,23 @@ class VoteRatioModelTest(TestCase):
         mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
                              voter_impact=1) # out
         self.assertEqual(self.ratio.get_votes_ratio(), 0.75)
+
+    # Signals and receivers
+
+    def _load_ratio(self, user):
+        """ Load ratio instance for the user on the test project.
+
+        :return Ratio:
+
+        """
+        return Ratio.objects.get(project_id=self.project.id, user_id=user.id)
+
+    def test_signal_receiver(self):
+        """ Testing signals, voter ratio metrics should update. """
+        s = mixer.blend('solution', owner=self.user, project=self.project)
+        v = mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self.assertEqual(self._load_ratio(self.user).get_votes_in(), 1)
+        self.assertEqual(self._load_ratio(v.voter).get_votes_out(), 1)
+        v.delete()
+        self.assertEqual(self._load_ratio(self.user).get_votes_ratio(), None)
+        self.assertEqual(self._load_ratio(v.voter).get_votes_ratio(), None)

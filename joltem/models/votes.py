@@ -47,6 +47,9 @@ class Vote(models.Model):
 post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
+post_save.connect(receivers.update_project_metrics_from_vote, sender=Vote)
+post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
+
 NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
 NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
