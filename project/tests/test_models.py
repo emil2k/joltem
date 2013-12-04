@@ -1,7 +1,7 @@
 from django.test.testcases import TestCase
 from joltem.libs import mixer
 
-from ..models import Project
+from ..models import Project, Ratio
 
 
 class ProjectModelTest(TestCase):
@@ -76,10 +76,9 @@ class VoteRatioModelTest(TestCase):
         self.project = self.ratio.project
 
     def test_no_votes(self):
-        """ Test vote ratio functions with no votes. """
+        """ Test vote in and out functions with no votes. """
         self.assertEqual(self.ratio.get_votes_in(), 0)
         self.assertEqual(self.ratio.get_votes_out(), 0)
-        self.assertEqual(self.ratio.get_votes_ratio(), None)
 
     # Votes in metric
 
@@ -152,5 +151,40 @@ class VoteRatioModelTest(TestCase):
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=0)
         self.assertEqual(self.ratio.get_votes_out(), 0)
 
+    # Votes ratio metric
 
-    # todo test vote ratio metric
+    def test_votes_ratio_no_votes(self):
+        """ Test votes ratio metric with no votes.
+
+        If there is no votes it should return None.
+
+        """
+        self.assertEqual(self.ratio.get_votes_ratio(), None)
+
+    def test_votes_ratio_min(self):
+        """ Test votes ratio at minimum value. """
+        s = mixer.blend('solution.solution', owner=self.user)
+        mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self.assertEqual(self.ratio.get_votes_ratio(), 0.0)
+
+
+    def test_votes_ratio_max(self):
+        """ Test votes ratio at maximum value.
+
+        When there is votes out and no votes in the vote ratio, should
+        technically be infinity. Infinity is represented by -1.0 or the
+        constant INFINITY in the Ratio model.
+
+        """
+        s = mixer.blend('solution.solution')
+        mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        self.assertEqual(self.ratio.get_votes_ratio(), Ratio.INFINITY)
+
+    def test_votes_ratio_float(self):
+        """ Test votes ratio returns a float. """
+        s = mixer.blend('solution.solution', owner=self.user)
+        mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1) # in
+        o = lambda : mixer.blend('solution.solution')
+        mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
+                             voter_impact=1) # out
+        self.assertEqual(self.ratio.get_votes_ratio(), 0.75)

@@ -182,6 +182,7 @@ class Ratio(models.Model):
         settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
 
     VOTES_THRESHOLD = 5
+    INFINITY = -1.0
 
     class Meta:
         unique_together = ['project', 'user']
@@ -243,6 +244,9 @@ class Ratio(models.Model):
         """
         votes_out = self.get_votes_out()
         votes_in = self.get_votes_in()
-        if not votes_out and not votes_in:
+        if votes_in:
+            return float(votes_out) / votes_in
+        elif votes_out:
+            return Ratio.INFINITY
+        else:
             return None
-        return votes_out / votes_in
