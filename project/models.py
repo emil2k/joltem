@@ -3,10 +3,13 @@
 from django.db import models
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
 from project import receivers
+from solution.models import Solution
 
 import logging
+
 logger = logging.getLogger('joltem')
 
 
@@ -178,6 +181,8 @@ class Ratio(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
 
+    VOTES_THRESHOLD = 5
+
     class Meta:
         unique_together = ['project', 'user']
 
@@ -187,7 +192,20 @@ class Ratio(models.Model):
         :return int: the votes in metric.
 
         """
-        # todo write this and tests for this
+        votes_in = 0
+        for solution in self.user.solution_set.all():
+            solution_votes_in = 0
+            for vote in solution.vote_set.order_by('time_voted'):
+                # Ignore votes from people with no impact
+                if vote.voter_impact == 0:
+                    continue
+                # Ignore votes beyond the votes threshold
+                if solution_votes_in < Ratio.VOTES_THRESHOLD:
+                    solution_votes_in += 1
+                    votes_in += 1
+                else:
+                    break
+        return votes_in
 
     def get_votes_out(self):
         """ Calculate the votes out metric.
@@ -195,7 +213,27 @@ class Ratio(models.Model):
         :return int: the votes out metric.
 
         """
-        # todo write this and tests for this
+        votes_out = 0
+        solution_type = ContentType.objects.get_for_model(Solution)
+        for my_vote in self.user.vote_set.select_related('voteable').filter(
+                voteable_type_id=solution_type.id):
+            # Ignore my votes with no impact
+            if my_vote.voter_impact == 0:
+                continue
+            solution = my_vote.voteable
+            solution_votes_in = 0
+            for vote in solution.vote_set.order_by('time_voted'):
+                # Ignore votes from people with no impact
+                if vote.voter_impact == 0:
+                    continue
+                # Ignore votes beyond the votes threshold
+                if solution_votes_in < Ratio.VOTES_THRESHOLD:
+                    solution_votes_in += 1
+                    if my_vote.id == vote.id:
+                        votes_out +=1
+                else:
+                    break
+        return votes_out
 
     def get_votes_ratio(self):
         """ Calculate votes ratio.
@@ -203,7 +241,8 @@ class Ratio(models.Model):
         :return float: the votes ratio metric.
 
         """
-        # todo write this and tests for this
-
-
-
+        votes_out = self.get_votes_out()
+        votes_in = self.get_votes_in()
+        if not votes_out and not votes_in:
+            return None
+        return votes_out / votes_in
