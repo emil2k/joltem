@@ -229,7 +229,15 @@ class Ratio(models.Model):
         ratio.votes_out = ratio.get_votes_out()
         ratio.votes_ratio = ratio.get_votes_ratio()
         ratio.save()
+        ratio.update_frozen_state()
         return ratio
+
+    def update_frozen_state(self):
+        """ Update frozen state based on current votes ratio. """
+        if self.votes_ratio < Ratio.RATIO_THRESHOLD:
+            self.mark_frozen()
+        else:
+            self.mark_unfrozen()
 
     def mark_frozen(self):
         """ Mark the user impact frozen due to low votes ratio.
@@ -237,10 +245,13 @@ class Ratio(models.Model):
         Called when the user's vote ratio for the project goes lower
         than the RATIO_THRESHOLD.
 
+        Only update time_frozen and save() if not frozen.
+
         """
-        self.is_frozen = True
-        self.time_frozen = timezone.now()
-        self.save()
+        if not self.is_frozen:
+            self.is_frozen = True
+            self.time_frozen = timezone.now()
+            self.save()
 
     def mark_unfrozen(self):
         """ Mark the user impact unfrozen due to low votes ratio.
@@ -249,9 +260,10 @@ class Ratio(models.Model):
         than or equal to the RATIO_THRESHOLD.
 
         """
-        self.is_frozen = False
-        self.time_frozen = None
-        self.save()
+        if self.is_frozen:
+            self.is_frozen = False
+            self.time_frozen = None
+            self.save()
 
     def get_votes_in(self):
         """ Calculate the votes in metric.

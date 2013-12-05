@@ -75,10 +75,28 @@ class RatioModelTest(TestCase):
         self.user = self.ratio.user
         self.project = self.ratio.project
 
-    def test_no_votes(self):
-        """ Test vote in and out functions with no votes. """
-        self.assertEqual(self.ratio.get_votes_in(), 0)
-        self.assertEqual(self.ratio.get_votes_out(), 0)
+    # Freezing
+
+    def test_update_frozen_state_equal(self):
+        """ Test update frozen state with votes ratio equal to threshold. """
+        self.ratio.is_frozen = True
+        self.ratio.votes_ratio = Ratio.RATIO_THRESHOLD
+        self.ratio.update_frozen_state()
+        self.assertFalse(self.ratio.is_frozen)
+
+    def test_update_frozen_state_above(self):
+        """ Test update frozen state with votes ratio below threshold. """
+        self.ratio.is_frozen = True
+        self.ratio.votes_ratio = Ratio.RATIO_THRESHOLD * 2
+        self.ratio.update_frozen_state()
+        self.assertFalse(self.ratio.is_frozen)
+
+    def test_update_frozen_state_below(self):
+        """ Test update frozen state with votes ratio below threshold. """
+        self.ratio.is_frozen = False
+        self.ratio.votes_ratio = Ratio.RATIO_THRESHOLD / 2
+        self.ratio.update_frozen_state()
+        self.assertTrue(self.ratio.is_frozen)
 
     def test_mark_frozen(self):
         """ Test mark_frozen function. """
@@ -87,12 +105,34 @@ class RatioModelTest(TestCase):
         self.assertTrue(reloaded.is_frozen)
         self.assertIsNotNone(reloaded.time_frozen)
 
+    def test_mark_frozen_time_creep(self):
+        """ Test that time_frozen isn't updated if frozen.
+
+        Otherwise this might introduce a time_frozen creep that would
+        make the field useless as each time mark_frozen the frozen time
+        range would shrink.
+
+        """
+        self.ratio.mark_frozen()
+        self.ratio.time_frozen = None
+        self.ratio.save()
+        self.ratio.mark_frozen()
+        reloaded = self._load_ratio(self.user)
+        self.assertIsNone(reloaded.time_frozen)
+
     def test_mark_unfrozen(self):
         """ Test mark_unfrozen function. """
         self.ratio.mark_unfrozen()
         reloaded = self._load_ratio(self.user)
         self.assertFalse(reloaded.is_frozen)
         self.assertIsNone(reloaded.time_frozen)
+
+    # No votes
+
+    def test_no_votes(self):
+        """ Test vote in and out functions with no votes. """
+        self.assertEqual(self.ratio.get_votes_in(), 0)
+        self.assertEqual(self.ratio.get_votes_out(), 0)
 
     # Votes in metric
 
