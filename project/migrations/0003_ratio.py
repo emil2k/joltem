@@ -14,6 +14,8 @@ class Migration(SchemaMigration):
             ('votes_in', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('votes_out', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('votes_ratio', self.gf('django.db.models.fields.FloatField')(null=True)),
+            ('is_frozen', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('time_frozen', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['project.Project'])),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='vote_ratio_set', to=orm['joltem.User'])),
         ))
@@ -95,7 +97,9 @@ class Migration(SchemaMigration):
         u'project.ratio': {
             'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Ratio'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_frozen': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_frozen': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vote_ratio_set'", 'to': u"orm['joltem.User']"}),
             'votes_in': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'votes_out': ('django.db.models.fields.IntegerField', [], {'default': '0'}),

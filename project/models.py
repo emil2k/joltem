@@ -1,6 +1,7 @@
 """ Project's related models. """
 
 from django.db import models
+from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -195,11 +196,13 @@ class Ratio(models.Model):
     votes_out = models.IntegerField(default=0)
     votes_ratio = models.FloatField(null=True)
 
+    is_frozen = models.BooleanField(default=False)
+    time_frozen = models.DateTimeField(null=True, blank=True)
+
     # Relations
     project = models.ForeignKey('project.Project')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
-
 
     RATIO_THRESHOLD = 1.0
     VOTES_THRESHOLD = 5
@@ -227,6 +230,28 @@ class Ratio(models.Model):
         ratio.votes_ratio = ratio.get_votes_ratio()
         ratio.save()
         return ratio
+
+    def mark_frozen(self):
+        """ Mark the user impact frozen due to low votes ratio.
+
+        Called when the user's vote ratio for the project goes lower
+        than the RATIO_THRESHOLD.
+
+        """
+        self.is_frozen = True
+        self.time_frozen = timezone.now()
+        self.save()
+
+    def mark_unfrozen(self):
+        """ Mark the user impact unfrozen due to low votes ratio.
+
+        Called when the user's vote ratio for the project becomes more
+        than or equal to the RATIO_THRESHOLD.
+
+        """
+        self.is_frozen = False
+        self.time_frozen = None
+        self.save()
 
     def get_votes_in(self):
         """ Calculate the votes in metric.

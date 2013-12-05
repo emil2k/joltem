@@ -80,6 +80,20 @@ class RatioModelTest(TestCase):
         self.assertEqual(self.ratio.get_votes_in(), 0)
         self.assertEqual(self.ratio.get_votes_out(), 0)
 
+    def test_mark_frozen(self):
+        """ Test mark_frozen function. """
+        self.ratio.mark_frozen()
+        reloaded = self._load_ratio(self.user)
+        self.assertTrue(reloaded.is_frozen)
+        self.assertIsNotNone(reloaded.time_frozen)
+
+    def test_mark_unfrozen(self):
+        """ Test mark_unfrozen function. """
+        self.ratio.mark_unfrozen()
+        reloaded = self._load_ratio(self.user)
+        self.assertFalse(reloaded.is_frozen)
+        self.assertIsNone(reloaded.time_frozen)
+
     # Votes in metric
 
     def test_votes_in(self):
