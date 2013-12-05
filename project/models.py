@@ -170,7 +170,26 @@ post_delete.connect(
 
 class Ratio(models.Model):
 
-    """ Stores project specific vote ratio. """
+    """ Stores project specific vote ratio.
+
+    The votes_in metric is roughly a count of votes received by the user
+    on his completed solutions in the project. Likewise the votes_out
+    metric is roughly the count of votes made by the user on other people's
+    completed. The votes_ratio metric is simply the votes_out divided
+    by the votes_in and is used to couple the incentive to earn impact
+    with reviewing other people's work.
+
+    For both, votes while having no impact don't count and only
+    VOTES_THRESHOLD number of votes can count per solution.
+
+    If a user's votes_ratio dips below the RATIO_THRESHOLD, their project
+    specific impact is frozen at that time. Freezing of impact, means the
+    user will be unable to earn any impact from voteables ( comments and
+    solutions ) posted on the project after the time of freezing until
+    their project votes_ratio is raised above or equal to the RATIO_THRESHOLD,
+    unfreezing the user's impact.
+
+    """
 
     votes_in = models.IntegerField(default=0)
     votes_out = models.IntegerField(default=0)
@@ -181,6 +200,8 @@ class Ratio(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
 
+
+    RATIO_THRESHOLD = 1.0
     VOTES_THRESHOLD = 5
     INFINITY = -1.0
 
