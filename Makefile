@@ -7,10 +7,10 @@ all: $(ENV)
 .PHONY: clean
 # target: clean - Clean temporary files
 clean:
-	@rm -f *.py[co]
-	@rm -f *.orig
-	@rm -f */*.py[co]
-	@rm -f */*/*.orig
+	@find $(CURDIR) -name "*.py[co]" -delete
+	@find $(CURDIR) -name "*.orig" -delete
+	@find $(CURDIR) -name "*.deb" -delete
+	@rm -rf build
 
 .PHONY: help
 # target: help - Display callable targets
@@ -49,6 +49,7 @@ shell: $(ENV)
 .PHONY: static
 # target: static - Compile project static
 static: $(ENV)
+	@mkdir -p $(CURDIR)/static
 	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
 .PHONY: test
@@ -98,6 +99,32 @@ celery: $(ENV)
 # target: update - Restart 'joltem_web' process
 update:
 	sudo supervisorctl restart joltem_web
+
+.PHONY: deb
+# target: deb - Compile deb package
+PREFIX=/usr/lib/joltem
+PACKAGE_VERSION?=$(shell git describe --tags `git rev-list master --tags --max-count=1`)
+PACKAGE_NAME?="joltem-web"
+PACKAGE_MAINTAINER="Emil Davtyan <emil2k@gmail.com>"
+PACKAGE_URL="http://joltem.com"
+deb: build
+	@fpm -s dir -t deb -a all \
+	    --name $(PACKAGE_NAME) \
+	    --version $(PACKAGE_VERSION) \
+	    --maintainer $(PACKAGE_MAINTAINER) \
+	    --url $(PACKAGE_URL) \
+	    --deb-user root \
+	    --deb-group root \
+	    -C $(CURDIR)/build \
+	    -d "python2.7" \
+	    usr etc
+
+.PHONY: build
+# target: build - Prepare structure for deb package
+build: clean static
+	@mkdir -p $(CURDIR)/build$(PREFIX)
+	@mkdir -p $(CURDIR)/build/etc/supervisor.d
+	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
