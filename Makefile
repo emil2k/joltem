@@ -117,14 +117,23 @@ deb: build
 	    --deb-group root \
 	    -C $(CURDIR)/build \
 	    -d "python2.7" \
+	    --config-files /etc/supervisor.d/joltem.conf \
+	    --config-files /etc/nginx/sites-enabled/joltem.conf \
+	    --before-install $(CURDIR)/deploy/debian/preinst \
+	    --after-install $(CURDIR)/deploy/debian/postinst \
 	    usr etc
 
 .PHONY: build
 # target: build - Prepare structure for deb package
 build: clean static
-	@mkdir -p $(CURDIR)/build$(PREFIX)
+	@mkdir -p $(CURDIR)/build$(PREFIX)/log
+	@touch $(CURDIR)/build$(PREFIX)/log/.placeholder
+	@mkdir -p $(CURDIR)/build$(PREFIX)/joltem
+	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/joltem/.
 	@mkdir -p $(CURDIR)/build/etc/supervisor.d
-	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)
+	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor.d/joltem.conf
+	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
+	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
