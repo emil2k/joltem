@@ -63,7 +63,8 @@ class TestProjectViews(TestCase):
         solutions = mixer.cycle(5).blend(
             'solution.solution', task=(t for t in tasks),
             project=mixer.mix.task.project)
-        mixer.cycle(5).blend(
+
+        comments = mixer.cycle(5).blend(
             'joltem.comment', commentable=mixer.random(*solutions),
             owner=mixer.select('joltem.user'), project=self.project)
 
@@ -74,12 +75,15 @@ class TestProjectViews(TestCase):
 
         cache.set('project:overview:%s' % self.project.id, None)
 
-        with self.assertNumQueries(13):
+        with self.assertNumQueries(14):
             response = self.client.get(uri)
 
         self.assertTrue(response.context['solutions'])
         self.assertTrue(response.context['comments'])
         self.assertTrue(response.context['tasks'])
+
+        solution = comments[0].commentable
+        self.assertContains(response, 'commented solution "%s"' % solution.default_title)
 
 
 class TestProjectSettingsView(TestCase):
