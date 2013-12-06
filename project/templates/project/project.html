@@ -3,12 +3,16 @@
 {% block project_content %}
     <div class="clearfix">
         <h3 class="pull-left">{{ project.title }}</h3>
-        <div class="btn-group pull-right">
-            <button class="btn" title="Watch project." onclick="alert('todo : add watch project functionality')"><i class="fa fa-eye"></i><span class="hidden-phone"> watch</span></button>
-            {% if is_admin %}
-                <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i><span class="hidden-phone"> settings</span></a>
-            {% endif %}
-        </div>
+            <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                <div class="btn-group pull-right">
+                    <button class="btn {{ subscribe|is_true:"btn-danger" }}" title="Watch project." type="Submit"><i class="fa fa-eye"></i><span class="hidden-phone"> {{ subscribe|is_true:"unwatch" }}{{ subscribe|is_false:"watch" }}</span></button>
+                    {% if is_admin %}
+                        <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i><span class="hidden-phone"> settings</span></a>
+                    {% endif %}
+                </div>
+            </form>
     </div>
     <div class="row">
         <div class="span3">

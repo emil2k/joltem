@@ -21,12 +21,15 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
 
     # Relations
+
     admin_set = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="admin_project_set")
     manager_set = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="manager_project_set")
     developer_set = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="developer_project_set")
+    subscriber_set = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name='subscriber_project_set')
 
     def is_admin(self, user_id):
         """ Check if the user is an admin of the project.

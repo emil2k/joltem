@@ -162,7 +162,7 @@ class MockGitReceivePackProcessProtocol(GitReceivePackProcessProtocol):
 
     """ Mock git receive pack process protocol for testing push permission. """
 
-    def __init__(self, user, repository):
+    def __init__(self, user, repository): # noqa
         self.avatar = MockAvatar(user)
         self.repository = repository
 
@@ -226,7 +226,7 @@ class TestAdminPushPermissions(TestPushPermissions):
     def test_create_tag(self):
         """ Test admin's ability to create tags. """
         self._test_push(self.admin, 'refs/tags/0.0.1')
-        self._test_push(self.admin, 'refs/tags/0.0.1^{}') # peeled version
+        self._test_push(self.admin, 'refs/tags/0.0.1^{}')  # peeled version
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """
@@ -274,7 +274,7 @@ class TestManagerPushPermissions(TestPushPermissions):
     def test_create_tag(self):
         """ Test manager's ability to create tags. """
         self._test_push(self.manager, 'refs/tags/0.0.1')
-        self._test_push(self.manager, 'refs/tags/0.0.1^{}') # peeled version
+        self._test_push(self.manager, 'refs/tags/0.0.1^{}')  # peeled version
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """
@@ -321,7 +321,7 @@ class TestDeveloperPushPermissions(TestPushPermissions):
     def test_create_tag(self):
         """ Test developer's inability to create tags. """
         self._test_push(self.developer, 'refs/tags/0.0.1', False)
-        self._test_push(self.developer, 'refs/tags/0.0.1^{}', False) # peeled version
+        self._test_push(self.developer, 'refs/tags/0.0.1^{}', False)  # peeled version
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """

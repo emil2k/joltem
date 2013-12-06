@@ -20,6 +20,7 @@ def repository(request, project_name, repository_id):
     }
     return render(request, 'git/repository.html', context)
 
+
 def repositories(request, project_name):
     """ Render list of repositories.
 

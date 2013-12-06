@@ -41,7 +41,7 @@ class BaseProjectViewTest(TestCase):
 class TestProjectViews(TestCase):
 
     def setUp(self):
-        self.project = mixer.blend('project.project')
+        self.project = mixer.blend('project.project', subscriber_set=[])
         self.user = mixer.blend('joltem.user', password='test')
         self.client.login(username=self.user.username, password='test')
 
@@ -74,7 +74,7 @@ class TestProjectViews(TestCase):
 
         cache.set('project:overview:%s' % self.project.id, None)
 
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(13):
             response = self.client.get(uri)
 
         self.assertTrue(response.context['solutions'])
@@ -130,3 +130,20 @@ class TestProjectSettingsView(TestCase):
     def test_get_anonymous(self):
         """ Test GET with anonymous user. """
         self._test_get(302)
+
+    def test_subscribe(self):
+        self.assertFalse(self.user in self.project.subscriber_set.all())
+
+        uri = reverse('project:project', kwargs=dict(
+            project_name=self.project.name))
+
+        self.client.login(username=self.user.username, password='test')
+
+        self.client.post(uri, data=dict(subscribe=''))
+        self.assertFalse(self.user in self.project.subscriber_set.all())
+
+        self.client.post(uri, data=dict(subscribe='true'))
+        self.assertTrue(self.user in self.project.subscriber_set.all())
+
+        self.client.post(uri, data=dict(subscribe=''))
+        self.assertFalse(self.user in self.project.subscriber_set.all())

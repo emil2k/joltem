@@ -44,6 +44,9 @@ class GatewaySessionInterface():
 
     def __init__(self, avatar):
         self.avatar = avatar
+        self._ssh_process_protocol = None
+        self._git_process_protocol = None
+        self._git_process_transport = None
 
     def getPty(self, term, windowSize, modes):
         """ Get a psuedo-terminal for use by a shell or command. """
@@ -125,4 +128,3 @@ class GatewaySessionInterface():
     def closed(self):
         """ Called when the session is closed. """
         log.msg("Connection closed")
-

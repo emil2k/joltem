@@ -119,6 +119,7 @@ class GitProcessProtocol(SubprocessProtocol):
         SubprocessProtocol.__init__(self, protocol)
         self.avatar = avatar
         self.repository = repository  # repository model instance
+        self.process_transport = None
 
     def wrap_process_transport(self, transport):
         """ Wrap the process transport to the git process.
@@ -163,7 +164,6 @@ class GitProcessProtocol(SubprocessProtocol):
         self.log(data, "gateway - fd %d" % childFD, True)
         SubprocessProtocol.childDataReceived(self, childFD, data)
 
-
     def outReceived(self, data):
         """ Logging. """
         self.log(data, "gateway - out", True)
@@ -201,10 +201,10 @@ class GitProcessProtocol(SubprocessProtocol):
     # Process
 
     def write(self, data):
-        """
-        Call this to write to standard input on this process.
+        """ Call this to write to standard input on this process.
 
         NOTE: This will silently lose data if there is no standard input.
+
         """
         self.log("write to stdin", "gateway")
         self.writeToChild(0, data)
@@ -212,38 +212,33 @@ class GitProcessProtocol(SubprocessProtocol):
     # IProcessTransport
 
     def closeStdin(self):
-        """
-        Close stdin after all data has been written out.
-        """
+        """ Close stdin after all data has been written out. """
         self.log("close stdin", "gateway")
         self.process_transport.closeStdin()
 
     def closeStdout(self):
-        """
-        Close stdout.
-        """
+        """ Close stdout. """
         self.log("close stdout", "gateway")
         self.process_transport.closeStdin()
 
     def closeStderr(self):
-        """
-        Close stderr.
-        """
+        """ Close stderr. """
         self.log("close stderr", "gateway")
         self.process_transport.closeStderr()
 
     def closeChildFD(self, descriptor):
-        """
-        Close a file descriptor which is connected to the child process, identified
-        by its FD in the child process.
+        """ Close a file descriptor which is connected to the child process.
+
+        Identified by its FD in the child process.
+
         """
         self.log("close child fd %d" % descriptor, "gateway")
         self.process_transport.closeChildFD(descriptor)
 
     def writeToChild(self, childFD, data):
-        """
-        Similar to L{ITransport.write} but also allows the file descriptor in
-        the child process which will receive the bytes to be specified.
+        """ Similar to L{ITransport.write} but also allows the file descriptor.
+
+        In the child process which will receive the bytes to be specified.
 
         @type childFD: C{int}
         @param childFD: The file descriptor to which to write.
@@ -256,20 +251,18 @@ class GitProcessProtocol(SubprocessProtocol):
         @raise KeyError: If C{childFD} is not a file descriptor that was mapped
             in the child when L{IReactorProcess.spawnProcess} was used to create
             it.
+
         """
         self.log(data, "client - fd %d" % childFD, True)
         self.process_transport.writeToChild(childFD, data)
 
     def loseConnection(self):
-        """
-        Close stdin, stderr and stdout.
-        """
+        """ Close stdin, stderr and stdout. """
         self.log("lose connection", "gateway")
         self.process_transport.loseConnection()
 
     def signalProcess(self, signalID):
-        """
-        Send a signal to the process.
+        """ Send a signal to the process.
 
         @param signalID: can be
           - one of C{"KILL"}, C{"TERM"}, or C{"INT"}.
@@ -283,6 +276,7 @@ class GitProcessProtocol(SubprocessProtocol):
             already exited.
         @raise OSError: If the C{os.kill} call fails with an errno different
             from C{ESRCH}.
+
         """
         self.log("signal process %d" % signalID, "gateway")
         self.process_transport.signalProcess(signalID)
