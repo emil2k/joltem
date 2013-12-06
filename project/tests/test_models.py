@@ -98,6 +98,24 @@ class RatioModelTest(TestCase):
         self.ratio.update_frozen_state()
         self.assertTrue(self.ratio.is_frozen)
 
+    def test_update_frozen_state_infinite(self):
+        """ Test update frozen state with infinite votes ratio. """
+        self.ratio.is_frozen = False
+        self.ratio.votes_ratio = Ratio.INFINITY
+        self.ratio.update_frozen_state()
+        self.assertFalse(self.ratio.is_frozen)
+
+    def test_update_frozen_state_none(self):
+        """ Test update frozen state with None votes ratio.
+
+        Happens when there is no votes in or out.
+
+        """
+        self.ratio.is_frozen = False
+        self.ratio.votes_ratio = None
+        self.ratio.update_frozen_state()
+        self.assertFalse(self.ratio.is_frozen)
+
     def test_mark_frozen(self):
         """ Test mark_frozen function. """
         self.ratio.mark_frozen()

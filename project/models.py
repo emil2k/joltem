@@ -206,7 +206,7 @@ class Ratio(models.Model):
 
     RATIO_THRESHOLD = 1.0
     VOTES_THRESHOLD = 5
-    INFINITY = -1.0
+    INFINITY = 1000.0 * 1000.0
 
     class Meta:
         unique_together = ['project', 'user']
@@ -234,7 +234,8 @@ class Ratio(models.Model):
 
     def update_frozen_state(self):
         """ Update frozen state based on current votes ratio. """
-        if self.votes_ratio < Ratio.RATIO_THRESHOLD:
+        if self.votes_ratio is not None \
+                and self.votes_ratio < Ratio.RATIO_THRESHOLD:
             self.mark_frozen()
         else:
             self.mark_unfrozen()
