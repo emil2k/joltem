@@ -306,48 +306,71 @@ class VoteRatioFreezeTest(TestCase):
             'joltem.vote', voteable=s,
             voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
 
-    def test_freeze_impact_solutions(self):
-        """ Test freezing of impact on solutions. """
-        old = mixer.blend(
+    def _mock_vote_in(self, voteable, magnitude=1, voter_impact=100):
+        """ Mock vote in on voteable.
+
+        :param voteable:
+        :param magnitude:
+        :param voter_impact:
+        :return:
+
+        """
+        mixer.blend('joltem.vote', voteable=voteable, voter_impact=voter_impact,
+                    is_accepted=magnitude > 0, magnitude=magnitude)
+
+class VoteRatioSolutionFreezeTest(VoteRatioFreezeTest):
+
+    """ Tests freeze and unfreeze for solutions. """
+
+    def setUp(self):
+        super(VoteRatioSolutionFreezeTest, self).setUp()
+        self.old = mixer.blend(
             'solution.solution', owner=self.user, project=self.project,
             is_completed=True, time_completed=timezone.now()-timedelta(days=7),
             time_posted=timezone.now()-timedelta(days=10)
         )
-        new = mixer.blend(
+        self.new = mixer.blend(
             'solution.solution', owner=self.user, project=self.project,
             is_completed=True, time_completed=timezone.now()+timedelta(days=7),
             time_posted=timezone.now()+timedelta(days=10)
         )
+
+    def test_freeze_impact_solutions(self):
+        """ Test freezing of impact on solutions. """
         self._mock_votes_out()
-        mixer.blend('joltem.vote', voteable=old, voter_impact=100,
-                    is_accepted=True, magnitude=1)
-        mixer.blend('joltem.vote', voteable=new, voter_impact=100,
-                    is_accepted=True, magnitude=1)
+        self._mock_vote_in(self.old)
+        self._mock_vote_in(self.new)
         u = self._load_user()
         self.assertEqual(u.impact, 20)
         self.ratio.mark_frozen()
         u = self._load_user()
         self.assertEqual(u.impact, 10)
 
-    def test_freeze_impact_comments(self):
-        """ Test freezing of impact on comments. """
+
+class VoteRatioCommentFreezeTest(VoteRatioFreezeTest):
+
+    """ Tests freeze and unfreeze for comment. """
+
+    def setUp(self):
+        super(VoteRatioCommentFreezeTest, self).setUp()
         commentable = lambda : mixer.blend('solution.solution',
                                            project=self.project)
-        old = mixer.blend(
+        self.old = mixer.blend(
             'joltem.comment', owner=self.user, commentable=commentable,
             time_commented=timezone.now()-timedelta(days=10),
             project=self.project
         )
-        new = mixer.blend(
+        self.new = mixer.blend(
             'joltem.comment', owner=self.user, commentable=commentable,
             time_commented=timezone.now()+timedelta(days=10),
             project=self.project
         )
+
+    def test_freeze_impact_comments(self):
+        """ Test freezing of impact on comments. """
         self._mock_votes_out()
-        mixer.blend('joltem.vote', voteable=old, voter_impact=100,
-                    is_accepted=True, magnitude=1)
-        mixer.blend('joltem.vote', voteable=new, voter_impact=100,
-                    is_accepted=True, magnitude=1)
+        self._mock_vote_in(self.old)
+        self._mock_vote_in(self.new)
         u = self._load_user()
         self.assertEqual(u.impact, 20)
         self.ratio.mark_frozen()
