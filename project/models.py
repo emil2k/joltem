@@ -140,27 +140,34 @@ class Impact(models.Model):
         # voting to start
         if self.project.is_admin(self.user.id):
             impact += 1
-
-        # Impact from solutions
-        solution_impact = self.user.solution_set.filter(
+        try:
+            ratio = Ratio.objects.get(
+                user_id=self.user.id, project_id=self.project.id)
+        except Ratio.DoesNotExist, Ratio.MultipleObjectsReturned:
+            ratio = None
+        # Load eligible voteables
+        solution_qs = self.user.solution_set.filter(
             project_id=self.project_id, is_completed=True,
             acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
-        ).exclude(impact=None).aggregate(
-            models.Sum('impact')).get('impact__sum')
-
-        if solution_impact:
-            impact += solution_impact
-
-        # Impact from review comments
-        comment_impact = self.user.comment_set.filter(
+        ).exclude(impact=None)
+        comment_qs = self.user.comment_set.filter(
             project_id=self.project_id,
             acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
-        ).exclude(impact=None).aggregate(
+        ).exclude(impact=None)
+        # Ignore frozen time frame
+        if ratio and ratio.is_frozen and ratio.time_frozen:
+            solution_qs = solution_qs.filter(time_posted__lt=ratio.time_frozen)
+            comment_qs = comment_qs.filter(time_commented__lt=ratio.time_frozen)
+        # Impact from solutions
+        solution_impact = solution_qs.aggregate(
             models.Sum('impact')).get('impact__sum')
-
+        # Impact from review comments
+        comment_impact = comment_qs.aggregate(
+            models.Sum('impact')).get('impact__sum')
+        if solution_impact:
+            impact += solution_impact
         if comment_impact:
             impact += comment_impact
-
         return impact
 
 post_save.connect(
@@ -329,3 +336,8 @@ class Ratio(models.Model):
             return Ratio.INFINITY
         else:
             return None
+
+post_save.connect(
+    receivers.update_project_impact_from_project_ratio, sender=Ratio)
+post_delete.connect(
+    receivers.update_project_impact_from_project_ratio, sender=Ratio)
