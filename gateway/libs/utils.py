@@ -8,7 +8,7 @@ class SubprocessProtocol(ProcessProtocol):
     """ A process protocol that runs atop of another process protocol. """
 
     def __init__(self, protocol):
-        """ Initialize subprocess,
+        """ Initialize subprocess.
 
         :param protocol: parent process protocol
         :return:

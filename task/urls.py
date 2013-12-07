@@ -1,7 +1,10 @@
+""" Tasks urls. """
 from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required
-from task import views
+
 from solution import views as solution_views
+from task import views
+
 
 urlpatterns = patterns(
     '',

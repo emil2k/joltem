@@ -1,6 +1,6 @@
 {% extends "joltem/emails/base.txt" %}
 {% block content %}
 {% for notify in notifies %}
-    - {{ notify.get_text|safe }} (http://joltem.com/{{ notify.get_url|safe }})
+    - {{ notify.get_text|safe }} (http://joltem.com/{{ notify.get_url }})
 {% endfor %}
 {% endblock %}

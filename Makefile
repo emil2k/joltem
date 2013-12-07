@@ -51,11 +51,6 @@ shell: $(ENV)
 static: $(ENV)
 	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
-$(ENV): requirements.txt
-	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
-	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
-	touch $(ENV)
-
 .PHONY: test
 # target: test - Run project's tests
 TEST ?=
@@ -64,36 +59,47 @@ test: $(ENV)
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem
-	$(ENV)/bin/python manage.py test joltem --settings=joltem.settings.test --failfast
+	make test TEST=joltem
 
 .PHONY: test_project
 test_project: $(ENV) project
-	$(ENV)/bin/python manage.py test project --settings=joltem.settings.test --failfast
+	make test TEST=project
 
 .PHONY: test_solution
 test_solution: $(ENV) solution
-	$(ENV)/bin/python manage.py test solution --settings=joltem.settings.test --failfast
+	make test TEST=solution
 
 .PHONY: test_task
 test_task: $(ENV) task
-	$(ENV)/bin/python manage.py test task --settings=joltem.settings.test --failfast
+	make test TEST=task
 
 .PHONY: test_git
 test_git: $(ENV) git
-	$(ENV)/bin/python manage.py test git --settings=joltem.settings.test --failfast
+	make test TEST=git
 
 .PHONY: test_help
 test_help: $(ENV) help
-	$(ENV)/bin/python manage.py test help --settings=joltem.settings.test --failfast
+	make test TEST=help
 
 .PHONY: test_account
 test_account: $(ENV) account
-	$(ENV)/bin/python manage.py test account --settings=joltem.settings.test --failfast
+	make test TEST=account
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
 	DJANGO_SETTINGS_MODULE=joltem.settings.test trial gateway/tests.py
 
 .PHONY: celery
+# target: celery - Run dev celery worker/beat
 celery: $(ENV)
 	$(ENV)/bin/celery -A joltem worker -B -l info
+
+.PHONY: update
+# target: update - Restart 'joltem_web' process
+update:
+	sudo supervisorctl restart joltem_web
+
+$(ENV): requirements.txt
+	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
+	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
+	touch $(ENV)

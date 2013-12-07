@@ -13,7 +13,7 @@ from ..libs.mock.models import (get_mock_project, get_mock_task,
 
 from ..models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
                                NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-from ..models import User
+from ..models import User, Notification
 from ..models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                             NOTIFICATION_TYPE_VOTE_UPDATED)
 
@@ -616,11 +616,13 @@ class EmailNotificationTestCase(TestCase):
         m = mail.outbox.pop()
         self.assertEqual(m.recipients(), [task.owner.email])
         self.assertEqual(m.subject, '[joltem.com] comment_added')
+        notification = Notification.objects.last()
 
         self.assertTrue('%s commented on task "%s"' % (
             self.mike.first_name,
             task.title
         ) in m.body)
+        self.assertTrue(notification.get_url() in m.body)
 
         task.notify_comment_added(comment)
         self.assertFalse(mail.outbox)

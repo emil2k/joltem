@@ -285,7 +285,8 @@ class TaskBaseListView(ListView, ProjectBaseView):
         :return QuerySet:
 
         """
-        return self.project.task_set.select_related('owner').prefetch_related('solution_set').all()
+        return self.project.task_set.select_related('owner').prefetch_related(
+            'solution_set').all()
 
 
 class MyOpenTasksView(TaskBaseListView):

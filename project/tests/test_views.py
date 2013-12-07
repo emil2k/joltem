@@ -41,7 +41,7 @@ class BaseProjectViewTest(TestCase):
 class TestProjectViews(TestCase):
 
     def setUp(self):
-        self.project = mixer.blend('project.project')
+        self.project = mixer.blend('project.project', subscriber_set=[])
         self.user = mixer.blend('joltem.user', password='test')
         self.client.login(username=self.user.username, password='test')
 
@@ -63,7 +63,8 @@ class TestProjectViews(TestCase):
         solutions = mixer.cycle(5).blend(
             'solution.solution', task=(t for t in tasks),
             project=mixer.mix.task.project)
-        mixer.cycle(5).blend(
+
+        comments = mixer.cycle(5).blend(
             'joltem.comment', commentable=mixer.random(*solutions),
             owner=mixer.select('joltem.user'), project=self.project)
 
@@ -74,12 +75,15 @@ class TestProjectViews(TestCase):
 
         cache.set('project:overview:%s' % self.project.id, None)
 
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(14):
             response = self.client.get(uri)
 
         self.assertTrue(response.context['solutions'])
         self.assertTrue(response.context['comments'])
         self.assertTrue(response.context['tasks'])
+
+        solution = comments[0].commentable
+        self.assertContains(response, 'commented solution "%s"' % solution.default_title)
 
 
 class TestProjectSettingsView(TestCase):
@@ -130,3 +134,20 @@ class TestProjectSettingsView(TestCase):
     def test_get_anonymous(self):
         """ Test GET with anonymous user. """
         self._test_get(302)
+
+    def test_subscribe(self):
+        self.assertFalse(self.user in self.project.subscriber_set.all())
+
+        uri = reverse('project:project', kwargs=dict(
+            project_name=self.project.name))
+
+        self.client.login(username=self.user.username, password='test')
+
+        self.client.post(uri, data=dict(subscribe=''))
+        self.assertFalse(self.user in self.project.subscriber_set.all())
+
+        self.client.post(uri, data=dict(subscribe='true'))
+        self.assertTrue(self.user in self.project.subscriber_set.all())
+
+        self.client.post(uri, data=dict(subscribe=''))
+        self.assertFalse(self.user in self.project.subscriber_set.all())

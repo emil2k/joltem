@@ -3,12 +3,13 @@
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, UpdateView
+from django.views.generic.edit import BaseFormView
 
+from .forms import ProjectSettingsForm, ProjectSubscribeForm
 from .models import Project
-from .forms import ProjectSettingsForm
 from joltem.views.generic import RequestBaseView, ValidUserMixin
 
 
@@ -51,11 +52,12 @@ class ProjectBaseView(RequestBaseView):
         return super(ProjectBaseView, self).get_context_data(**kwargs)
 
 
-class ProjectView(TemplateView, ProjectBaseView):
+class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
 
     """ View to display a project's information. """
 
     template_name = "project/project.html"
+    form_class = ProjectSubscribeForm
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
@@ -69,7 +71,32 @@ class ProjectView(TemplateView, ProjectBaseView):
             overview = self.project.get_overview()
             cache.set(key, overview)
         kwargs.update(overview)
+        kwargs['subscribe'] = int(self.project.subscriber_set.filter(
+            pk=self.request.user.pk).exists())
         return super(ProjectView, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        """ Subscribe current user to project.
+
+        :return HttpResponseRedirect:
+
+        """
+        if form.cleaned_data.get('subscribe'):
+            self.project.subscriber_set.add(self.request.user)
+        else:
+            self.project.subscriber_set.remove(self.request.user)
+
+        return redirect(reverse(
+            'project:project', kwargs={'project_name': self.project.name}))
+
+    def form_invalid(self, form):
+        """ Redirect user to project page.
+
+        :return HttpResponseRedirect:
+
+        """
+        return redirect(reverse(
+            'project:project', kwargs={'project_name': self.project.name}))
 
 
 class ProjectSettingsView(UpdateView, ProjectBaseView):
@@ -99,5 +126,5 @@ class ProjectSettingsView(UpdateView, ProjectBaseView):
 
         """
         return reverse('project:settings', kwargs={
-                'project_name': self.project.name
-            })
+            'project_name': self.project.name
+        })
