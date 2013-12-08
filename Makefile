@@ -128,8 +128,10 @@ deb: build
 build: clean static
 	@mkdir -p $(CURDIR)/build$(PREFIX)/log
 	@touch $(CURDIR)/build$(PREFIX)/log/.placeholder
-	@mkdir -p $(CURDIR)/build$(PREFIX)/joltem
-	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/joltem/.
+	@mkdir -p $(CURDIR)/build$(PREFIX)/run
+	@touch $(CURDIR)/build$(PREFIX)/run/.placeholder
+	@mkdir -p $(CURDIR)/build$(PREFIX)/build
+	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/build/.
 	@mkdir -p $(CURDIR)/build/etc/supervisor.d
 	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor.d/joltem.conf
 	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled

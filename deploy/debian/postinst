@@ -1,1 +1,73 @@
-# /usr/lib/joltem/log/nginx.log
+#!/bin/sh
+
+PROJECT_DIR=/usr/lib/joltem/
+BUILD_DIR=/usr/lib/joltem/build/
+DEPLOY_DIR=/usr/lib/joltem/joltem
+USER=joltem
+LOCK_FILE=${PROJECT_DIR}/install.lock
+RELEASE_DIR=$PROJECT_DIR/$(date +%Y%m%d%H%M%S)
+
+[ -e $LOCK_FILE ] && {
+    echo "Another deployment is outgoing."
+    echo "The file $LOCK_FILE is found."
+    exit 3
+}
+
+
+# Get previous release
+[ -h $DEPLOY_DIR ] && [ -d $DEPLOY_DIR ] && PREVIOUS_RELEASE=$(cd $DEPLOY_DIR >/dev/null && pwd -LP)
+
+
+# Bootstrap script
+(
+    echo "-----> Creating a release"
+    touch $LOCK_FILE && cd $BUILD_DIR &&
+    (
+        # Configure settings
+        ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/settings
+        
+        # Create virtualenv
+        virtualenv --no-site-packages $BUILD_DIR/.env
+
+        # Install requirements
+        $BUILD_DIR/.env/bin/pip install -r requirements.txt -i http://pypi.joltem.com/simple
+
+        # Setup database
+        make db
+
+        mv $BUILD_DIR $RELEASE_DIR
+        chown -R $USER $RELEASE_DIR
+    )
+) &&
+
+# Start new release
+(
+    echo "-----> Linking the release"
+    ln -nfs $RELEASE_DIR $DEPLOY_DIR
+    chown -R $USER $DEPLOY_DIR
+
+    echo "-----> Launching services"
+    supervisorctl update
+    supervisorctl restart joltem-web
+    supervisorctl restart joltem-worker
+    supervisorctl restart joltem-beat
+    service nginx restart 
+) &&
+
+# === Complete & unlock
+(
+    rm -f $LOCK_FILE
+    # Send email alerts if there is not empty mail list
+    # TODO
+) ||
+
+# === Failed deployment
+(
+    echo "! ERROR: Deploy failed."
+    echo "-----> Cleaning up build"
+    rm -rf "$BUILD_DIR"
+    # Unlock
+    rm -f $LOCK_FILE
+    echo "OK"
+    exit 19
+)
