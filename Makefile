@@ -107,8 +107,9 @@ PACKAGE_VERSION?=$(shell git describe --tags `git rev-list master --tags --max-c
 PACKAGE_NAME?="joltem-web"
 PACKAGE_MAINTAINER="Emil Davtyan <emil2k@gmail.com>"
 PACKAGE_URL="http://joltem.com"
+FPM=fpm
 deb: build
-	@fpm -s dir -t deb -a all \
+	@$(FPM) -s dir -t deb -a all \
 	    --name $(PACKAGE_NAME) \
 	    --version $(PACKAGE_VERSION) \
 	    --maintainer $(PACKAGE_MAINTAINER) \
