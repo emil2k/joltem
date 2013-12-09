@@ -114,7 +114,8 @@ class Impact(models.Model):
 
     """ Stores project specific impact. """
 
-    impact = models.BigIntegerField(null=True, blank=True)
+    impact = models.BigIntegerField(default=0)
+    frozen_impact = models.BigIntegerField(default=0)
 
     # Relations
     project = models.ForeignKey('project.Project')
@@ -128,6 +129,28 @@ class Impact(models.Model):
 
     class Meta:
         unique_together = ['project', 'user']
+
+    def get_solutions_qs(self):
+        """ Get the solutions eligible for calculating impact.
+
+        :return: queryset of eligible solutions.
+
+        """
+        return self.user.solution_set.filter(
+            project_id=self.project_id, is_completed=True,
+            acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
+        ).exclude(impact=None)
+
+    def get_comments_qs(self):
+        """ Get the comments eligible for calculating impact.
+
+        :return: queryset of eligible comments.
+
+        """
+        return self.user.comment_set.filter(
+            project_id=self.project_id,
+            acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
+        ).exclude(impact=None)
 
     def get_impact(self):
         """ Calculate impact.
@@ -146,14 +169,8 @@ class Impact(models.Model):
         except Ratio.DoesNotExist, Ratio.MultipleObjectsReturned:
             ratio = None
         # Load eligible voteables
-        solution_qs = self.user.solution_set.filter(
-            project_id=self.project_id, is_completed=True,
-            acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
-        ).exclude(impact=None)
-        comment_qs = self.user.comment_set.filter(
-            project_id=self.project_id,
-            acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
-        ).exclude(impact=None)
+        solution_qs = self.get_solutions_qs()
+        comment_qs = self.get_comments_qs()
         # Ignore frozen time frame
         if ratio and ratio.is_frozen and ratio.time_frozen:
             solution_qs = solution_qs.filter(time_posted__lt=ratio.time_frozen)
@@ -169,6 +186,46 @@ class Impact(models.Model):
         if comment_impact:
             impact += comment_impact
         return impact
+
+    def get_frozen_impact(self):
+        """ Calculate frozen impact.
+
+        This the amount impact that has been earned, but is frozen until
+        certain criteria are met, like raising the vote ratio above an
+        acceptable threshold.
+
+        :return int:
+
+        """
+        try:
+            ratio = Ratio.objects.get(
+                user_id=self.user.id, project_id=self.project.id)
+        except Ratio.DoesNotExist, Ratio.MultipleObjectsReturned:
+            return 0
+        else:
+            frozen_impact = 0
+            # Load eligible voteables
+            solution_qs = self.get_solutions_qs()
+            comment_qs = self.get_comments_qs()
+            # Should be in frozen time frame
+            if ratio and ratio.is_frozen and ratio.time_frozen:
+                solution_qs = solution_qs.filter(
+                    time_posted__gte=ratio.time_frozen)
+                comment_qs = comment_qs.filter(
+                    time_commented__gte=ratio.time_frozen)
+            else:
+                return 0
+            # Frozen impact from solutions
+            solution_impact = solution_qs.aggregate(
+                models.Sum('impact')).get('impact__sum')
+            # Frozen impact from comments
+            comment_impact = comment_qs.aggregate(
+                models.Sum('impact')).get('impact__sum')
+            if solution_impact:
+                frozen_impact += solution_impact
+            if comment_impact:
+                frozen_impact += comment_impact
+            return frozen_impact
 
 post_save.connect(
     receivers.update_user_metrics_from_project_impact, sender=Impact)

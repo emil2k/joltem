@@ -4,7 +4,7 @@ from datetime import timedelta
 from joltem.libs import mixer
 from joltem.models import User
 
-from ..models import Project, Ratio
+from ..models import Project, Ratio, Impact
 
 
 class ProjectModelTest(TestCase):
@@ -118,6 +118,18 @@ class BaseRatioModelTest(TestCase):
             project = self.project
         return Ratio.objects.get(project_id=project.id, user_id=user.id)
 
+    def _load_impact(self, user=None, project=None):
+        """ Reload impact for the user on the project.
+
+        :param user: if user is not passed, default to test case user.
+        :param project: if project is not passed, default to test case project.
+
+        """
+        if not user:
+            user = self.user
+        if not project:
+            project = self.project
+        return Impact.objects.get(project_id=project.id, user_id=user.id)
 
     def _mock_votes_out(self, n=5):
         """ Mocking votes out, to prevent impact freezing.
@@ -272,8 +284,7 @@ class RatioModelTest(BaseRatioModelTest):
         mixer.blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 0)
         # load ratio from other project
-        r = self._load_ratio(project=s.project)
-        self.assertEqual(r.get_votes_in(), 1)
+        self.assertEqual(self._load_ratio(project=s.project).get_votes_in(), 1)
 
     # Votes out metric
 
@@ -319,8 +330,7 @@ class RatioModelTest(BaseRatioModelTest):
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_out(), 0)
         # load ratio from other project
-        r = self._load_ratio(project=s.project)
-        self.assertEqual(r.get_votes_out(), 1)
+        self.assertEqual(self._load_ratio(project=s.project).get_votes_out(), 1)
 
     # Votes ratio metric
 
@@ -395,25 +405,23 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
         self._mock_votes_out(3)
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
-        u = self._load_user()
-        self.assertEqual(u.impact, 20)
+        self.assertEqual(self._load_user().impact, 20)
+        self.assertEqual(self._load_impact().frozen_impact, 0)
         self.ratio.mark_frozen()
-        u = self._load_user()
-        self.assertEqual(u.impact, 10)
+        self.assertEqual(self._load_user().impact, 10)
+        self.assertEqual(self._load_impact().frozen_impact, 10)
 
     def test_unfreeze_impact_solutions(self):
         """ Test unfreezing of impact on solutions. """
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
-        r = self._load_ratio()
-        self.assertTrue(r.is_frozen)
-        u = self._load_user()
-        self.assertEqual(u.impact, 10)
+        self.assertTrue(self._load_ratio().is_frozen)
+        self.assertEqual(self._load_user().impact, 10)
+        self.assertEqual(self._load_impact().frozen_impact, 10)
         self._mock_votes_out(2)
-        r = self._load_ratio()
-        self.assertFalse(r.is_frozen)
-        u = self._load_user()
-        self.assertEqual(u.impact, 20)
+        self.assertFalse(self._load_ratio().is_frozen)
+        self.assertEqual(self._load_user().impact, 20)
+        self.assertEqual(self._load_impact().frozen_impact, 0)
 
 
 class VoteRatioCommentFreezeTest(BaseRatioModelTest):
@@ -434,11 +442,11 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
         self._mock_votes_out(3)
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
-        u = self._load_user()
-        self.assertEqual(u.impact, 20)
+        self.assertEqual(self._load_user().impact, 20)
+        self.assertEqual(self._load_impact().frozen_impact, 0)
         self.ratio.mark_frozen()
-        u = self._load_user()
-        self.assertEqual(u.impact, 10)
+        self.assertEqual(self._load_user().impact, 10)
+        self.assertEqual(self._load_impact().frozen_impact, 10)
 
     def test_unfreeze_impact_comments(self):
         """ Test unfreezing of impact earned on comments.
@@ -462,12 +470,10 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
             time_posted=timezone.now()-timedelta(days=10)
         )
         self._mock_vote_in(old_solution)
-        r = self._load_ratio()
-        self.assertTrue(r.is_frozen)
-        u = self._load_user()
-        self.assertEqual(u.impact, 20)
+        self.assertTrue(self._load_ratio().is_frozen)
+        self.assertEqual(self._load_user().impact, 20)
+        self.assertEqual(self._load_impact().frozen_impact, 10)
         self._mock_votes_out(1)
-        r = self._load_ratio()
-        self.assertFalse(r.is_frozen)
-        u = self._load_user()
-        self.assertEqual(u.impact, 30)
+        self.assertFalse(self._load_ratio().is_frozen)
+        self.assertEqual(self._load_user().impact, 30)
+        self.assertEqual(self._load_impact().frozen_impact, 0)

@@ -22,6 +22,7 @@ def update_project_impact_from_project_ratio(sender, **kwargs):
             user_id=project_ratio.user_id
         )
         project_impact.impact = project_impact.get_impact()
+        project_impact.frozen_impact = project_impact.get_frozen_impact()
         project_impact.save()
 
 
