@@ -157,9 +157,29 @@ class RatioModelTest(TestCase):
 
     # Votes in metric
 
+    def _mock_solution(self):
+        """ Mock a solution on the project owned by the user. """
+        return mixer.blend('solution.solution', owner=self.user,
+                           project=self.project)
+
+    def _mock_others_solution(self):
+        """ Mock a solution on the project owned by someone else. """
+        return mixer.blend('solution.solution', project=self.project)
+
+    def _mock_comment(self):
+        """ Mock a comment on the project owned by the user. """
+        return mixer.blend('joltem.comment', owner=self.user,
+                           project=self.project,
+                           commentable=self._mock_solution())
+
+    def _mock_others_comment(self):
+        """ Mock a comment on the project owned by someone else. """
+        return mixer.blend('joltem.comment', project=self.project,
+                           commentable=self._mock_others_solution())
+
     def test_votes_in(self):
         """ Test calculation of votes in metric. """
-        s = mixer.blend('solution.solution', owner=self.user)
+        s = self._mock_solution()
         mixer.cycle(5).blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 5)
 
@@ -169,34 +189,49 @@ class RatioModelTest(TestCase):
         Beyond fifth vote doesn't count.
 
         """
-        s = mixer.blend('solution.solution', owner=self.user)
+        s = self._mock_solution()
         mixer.cycle(10).blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 5)
 
     def test_votes_in_others(self):
         """ Test that votes on other's solutions don't count. """
-        s = lambda : mixer.blend('solution.solution', project=self.project)
+        s = self._mock_others_solution()
         mixer.blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 0)
 
     def test_votes_in_comments(self):
         """ Test that votes on comments don't count. """
-        c = lambda : mixer.blend('joltem.comment', project=self.project,
-                                 commentable=mixer.blend('solution.solution'))
+        c = self._mock_comment()
         mixer.blend('joltem.vote', voteable=c, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 0)
 
     def test_votes_in_no_impact(self):
         """ Test that voters with no impact don't count. """
-        s = lambda : mixer.blend('solution.solution', project=self.project)
+        s = self._mock_solution()
         mixer.blend('joltem.vote', voteable=s, voter_impact=0)
         self.assertEqual(self.ratio.get_votes_in(), 0)
+
+    def test_votes_in_other_projects(self):
+        """ Test that votes in on other projects, don't count on votes in.
+
+        Setup a solution on another project owned by the user, then get
+        a vote on it.
+
+        """
+        s = mixer.blend('solution.solution', owner=self.user)
+        self.assertEqual(s.owner_id, self.user.id)
+        mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self.assertEqual(self.ratio.get_votes_in(), 0)
+        # load ratio from other project
+        r = Ratio.objects.get(project_id=s.project_id,
+                              user_id=self.user.id)
+        self.assertEqual(r.get_votes_in(), 1)
 
     # Votes out metric
 
     def test_votes_out(self):
         """ Test calculation of votes out metric. """
-        s = mixer.blend('solution.solution')
+        s = self._mock_others_solution()
         mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1)
         mixer.blend('joltem.vote', voteable=s, voter=self.user,
                     voter_impact=1)
@@ -208,23 +243,37 @@ class RatioModelTest(TestCase):
         Beyond fifth doesn't count.
 
         """
-        s = mixer.blend('solution.solution')
+        s = self._mock_others_solution()
         mixer.cycle(5).blend('joltem.vote', voteable=s, voter_impact=1)
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_out(), 0)
 
     def test_votes_out_comments(self):
         """ Test that votes on comments don't count towards votes out. """
-        c = mixer.blend('joltem.comment',
-                        commentable=mixer.blend('solution.solution'))
+        c = self._mock_others_comment()
         mixer.blend('joltem.vote', voteable=c, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_out(), 0)
 
     def test_votes_out_no_impact(self):
         """ Test that votes with no impact, don't count towards votes out. """
-        s = mixer.blend('solution.solution')
+        s = self._mock_others_solution()
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=0)
         self.assertEqual(self.ratio.get_votes_out(), 0)
+
+    def test_votes_out_other_projects(self):
+        """ Test that votes on other projects, don't count on votes_out.
+
+        Setup a solution that is on another project and owned by someone
+        else then cast a vote on it.
+
+        """
+        s = mixer.blend('solution.solution')
+        mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        self.assertEqual(self.ratio.get_votes_out(), 0)
+        # load ratio from other project
+        r = Ratio.objects.get(project_id=s.project_id,
+                              user_id=self.user.id)
+        self.assertEqual(r.get_votes_out(), 1)
 
     # Votes ratio metric
 
@@ -238,7 +287,7 @@ class RatioModelTest(TestCase):
 
     def test_votes_ratio_min(self):
         """ Test votes ratio at minimum value. """
-        s = mixer.blend('solution.solution', owner=self.user)
+        s = self._mock_solution()
         mixer.blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_ratio(), 0.0)
 
@@ -251,15 +300,15 @@ class RatioModelTest(TestCase):
         constant INFINITY in the Ratio model.
 
         """
-        s = mixer.blend('solution.solution')
+        s = self._mock_others_solution()
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_ratio(), Ratio.INFINITY)
 
     def test_votes_ratio_float(self):
         """ Test votes ratio returns a float. """
-        s = mixer.blend('solution.solution', owner=self.user)
+        s = self._mock_solution()
         mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1) # in
-        o = lambda : mixer.blend('solution.solution')
+        o = lambda : self._mock_others_solution()
         mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
                              voter_impact=1) # out
         self.assertEqual(self.ratio.get_votes_ratio(), 0.75)
@@ -276,7 +325,7 @@ class RatioModelTest(TestCase):
 
     def test_signal_receiver(self):
         """ Testing signals, voter ratio metrics should update. """
-        s = mixer.blend('solution', owner=self.user, project=self.project)
+        s = self._mock_solution()
         v = mixer.blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self._load_ratio(self.user).get_votes_in(), 1)
         self.assertEqual(self._load_ratio(v.voter).get_votes_out(), 1)
