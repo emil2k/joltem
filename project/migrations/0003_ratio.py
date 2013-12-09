@@ -24,6 +24,14 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'Ratio', fields ['project', 'user']
         db.create_unique(u'project_ratio', ['project_id', 'user_id'])
 
+        # Adding field 'Impact.frozen_impact'
+        db.add_column(u'project_impact', 'frozen_impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(default=0),
+                      keep_default=False)
+
+
+        # Changing field 'Impact.impact'
+        db.alter_column(u'project_impact', 'impact', self.gf('django.db.models.fields.BigIntegerField')())
 
     def backwards(self, orm):
         # Removing unique constraint on 'Ratio', fields ['project', 'user']
@@ -32,6 +40,12 @@ class Migration(SchemaMigration):
         # Deleting model 'Ratio'
         db.delete_table(u'project_ratio')
 
+        # Deleting field 'Impact.frozen_impact'
+        db.delete_column(u'project_impact', 'frozen_impact')
+
+
+        # Changing field 'Impact.impact'
+        db.alter_column(u'project_impact', 'impact', self.gf('django.db.models.fields.BigIntegerField')(null=True))
 
     models = {
         u'auth.group': {
@@ -79,8 +93,9 @@ class Migration(SchemaMigration):
         },
         u'project.impact': {
             'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Impact'},
+            'frozen_impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'impact_set'", 'to': u"orm['joltem.User']"})
         },
