@@ -69,14 +69,83 @@ class ProjectGroupsTest(TestCase):
         self.assertTrue(self.project.is_developer(self.user.id))
 
 
-class RatioModelTest(TestCase):
+class BaseRatioModelTest(TestCase):
 
-    """ Test project vote ratio model. """
+    """ A base for test cases dealing with the Ratio model. """
 
     def setUp(self):
-        self.ratio = mixer.blend('project.ratio')
+        self.ratio = mixer.blend('project.ratio', is_frozen=False,
+                                 time_frozen=None, user__username="emil")
         self.user = self.ratio.user
         self.project = self.ratio.project
+
+    def _mock_solution(self):
+        """ Mock a solution on the project owned by the user. """
+        return mixer.blend('solution.solution', owner=self.user,
+                           project=self.project)
+
+    def _mock_others_solution(self):
+        """ Mock a solution on the project owned by someone else. """
+        return mixer.blend('solution.solution', project=self.project)
+
+    def _mock_comment(self):
+        """ Mock a comment on the project owned by the user. """
+        return mixer.blend('joltem.comment', owner=self.user,
+                           project=self.project,
+                           commentable=self._mock_solution())
+
+    def _mock_others_comment(self):
+        """ Mock a comment on the project owned by someone else. """
+        return mixer.blend('joltem.comment', project=self.project,
+                           commentable=self._mock_others_solution())
+
+    #  For reloading
+
+    def _load_user(self):
+        """ Reload the test case user. """
+        return User.objects.get(id=self.user.id)
+
+    def _load_ratio(self, user=None, project=None):
+        """ Reload ratio for the user on the project.
+
+        :param user: if user is not passed, default to test case user.
+        :param project: if project is not passed, default to test case project.
+
+        """
+        if not user:
+            user = self.user
+        if not project:
+            project = self.project
+        return Ratio.objects.get(project_id=project.id, user_id=user.id)
+
+
+    def _mock_votes_out(self, n=5):
+        """ Mocking votes out, to prevent impact freezing.
+
+        :param n: number of votes to mock.
+
+        """
+        s = lambda : self._mock_others_solution()
+        mixer.cycle(n).blend(
+            'joltem.vote', voteable=s,
+            voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
+
+    def _mock_vote_in(self, voteable, magnitude=1, voter_impact=100):
+        """ Mock vote in on voteable.
+
+        :param voteable:
+        :param magnitude:
+        :param voter_impact:
+        :return:
+
+        """
+        mixer.blend('joltem.vote', voteable=voteable, voter_impact=voter_impact,
+                    is_accepted=magnitude > 0, magnitude=magnitude)
+
+
+class RatioModelTest(BaseRatioModelTest):
+
+    """ Test project vote ratio model. """
 
     # Freezing
 
@@ -157,26 +226,6 @@ class RatioModelTest(TestCase):
 
     # Votes in metric
 
-    def _mock_solution(self):
-        """ Mock a solution on the project owned by the user. """
-        return mixer.blend('solution.solution', owner=self.user,
-                           project=self.project)
-
-    def _mock_others_solution(self):
-        """ Mock a solution on the project owned by someone else. """
-        return mixer.blend('solution.solution', project=self.project)
-
-    def _mock_comment(self):
-        """ Mock a comment on the project owned by the user. """
-        return mixer.blend('joltem.comment', owner=self.user,
-                           project=self.project,
-                           commentable=self._mock_solution())
-
-    def _mock_others_comment(self):
-        """ Mock a comment on the project owned by someone else. """
-        return mixer.blend('joltem.comment', project=self.project,
-                           commentable=self._mock_others_solution())
-
     def test_votes_in(self):
         """ Test calculation of votes in metric. """
         s = self._mock_solution()
@@ -223,8 +272,7 @@ class RatioModelTest(TestCase):
         mixer.blend('joltem.vote', voteable=s, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 0)
         # load ratio from other project
-        r = Ratio.objects.get(project_id=s.project_id,
-                              user_id=self.user.id)
+        r = self._load_ratio(project=s.project)
         self.assertEqual(r.get_votes_in(), 1)
 
     # Votes out metric
@@ -271,8 +319,7 @@ class RatioModelTest(TestCase):
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_out(), 0)
         # load ratio from other project
-        r = Ratio.objects.get(project_id=s.project_id,
-                              user_id=self.user.id)
+        r = self._load_ratio(project=s.project)
         self.assertEqual(r.get_votes_out(), 1)
 
     # Votes ratio metric
@@ -315,14 +362,6 @@ class RatioModelTest(TestCase):
 
     # Signals and receivers
 
-    def _load_ratio(self, user):
-        """ Load ratio instance for the user on the test project.
-
-        :return Ratio:
-
-        """
-        return Ratio.objects.get(project_id=self.project.id, user_id=user.id)
-
     def test_signal_receiver(self):
         """ Testing signals, voter ratio metrics should update. """
         s = self._mock_solution()
@@ -334,64 +373,22 @@ class RatioModelTest(TestCase):
         self.assertEqual(self._load_ratio(v.voter).get_votes_ratio(), None)
 
 
-class VoteRatioFreezeTest(TestCase):
-
-    """ Tests for when impact is frozen and unfrozen due to vote ratio. """
-
-    def setUp(self):
-        self.ratio = mixer.blend('project.ratio', is_frozen=False,
-                                 time_frozen=None, user__username="emil")
-        self.user = self.ratio.user
-        self.project = self.ratio.project
-
-    def _load_user(self):
-        """ Reload user. """
-        return User.objects.get(id=self.user.id)
-
-    def _load_ratio(self):
-        """ Reload ratio. """
-        return Ratio.objects.get(project_id=self.project.id,
-                                 user_id=self.user.id)
-
-    def _mock_votes_out(self, n=5):
-        """ Mocking votes out, to prevent impact freezing.
-
-        :param n: number of votes to mock.
-
-        """
-        s = lambda : mixer.blend('solution.solution', project=self.project)
-        mixer.cycle(n).blend(
-            'joltem.vote', voteable=s,
-            voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
-
-    def _mock_vote_in(self, voteable, magnitude=1, voter_impact=100):
-        """ Mock vote in on voteable.
-
-        :param voteable:
-        :param magnitude:
-        :param voter_impact:
-        :return:
-
-        """
-        mixer.blend('joltem.vote', voteable=voteable, voter_impact=voter_impact,
-                    is_accepted=magnitude > 0, magnitude=magnitude)
-
-class VoteRatioSolutionFreezeTest(VoteRatioFreezeTest):
+class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
 
     """ Tests freeze and unfreeze for solutions. """
 
     def setUp(self):
         super(VoteRatioSolutionFreezeTest, self).setUp()
-        self.old = mixer.blend(
-            'solution.solution', owner=self.user, project=self.project,
-            is_completed=True, time_completed=timezone.now()-timedelta(days=7),
-            time_posted=timezone.now()-timedelta(days=10)
-        )
-        self.new = mixer.blend(
-            'solution.solution', owner=self.user, project=self.project,
-            is_completed=True, time_completed=timezone.now()+timedelta(days=7),
-            time_posted=timezone.now()+timedelta(days=10)
-        )
+        self.old = self._mock_solution()
+        self.old.is_completed = True
+        self.old.time_completed=timezone.now()-timedelta(days=7)
+        self.old.time_posted=timezone.now()-timedelta(days=10)
+        self.old.save()
+        self.new = self._mock_solution()
+        self.new.is_completed = True
+        self.new.time_completed=timezone.now()+timedelta(days=7)
+        self.new.time_posted=timezone.now()+timedelta(days=10)
+        self.new.save()
 
     def test_freeze_impact_solutions(self):
         """ Test freezing of impact on solutions. """
@@ -419,24 +416,18 @@ class VoteRatioSolutionFreezeTest(VoteRatioFreezeTest):
         self.assertEqual(u.impact, 20)
 
 
-class VoteRatioCommentFreezeTest(VoteRatioFreezeTest):
+class VoteRatioCommentFreezeTest(BaseRatioModelTest):
 
     """ Tests freeze and unfreeze for comment. """
 
     def setUp(self):
         super(VoteRatioCommentFreezeTest, self).setUp()
-        commentable = lambda : mixer.blend('solution.solution',
-                                           project=self.project)
-        self.old = mixer.blend(
-            'joltem.comment', owner=self.user, commentable=commentable,
-            time_commented=timezone.now()-timedelta(days=10),
-            project=self.project
-        )
-        self.new = mixer.blend(
-            'joltem.comment', owner=self.user, commentable=commentable,
-            time_commented=timezone.now()+timedelta(days=10),
-            project=self.project
-        )
+        self.old = self._mock_comment()
+        self.old.time_commented = timezone.now()-timedelta(days=10)
+        self.old.save()
+        self.new = self._mock_comment()
+        self.new.time_commented = timezone.now()+timedelta(days=10)
+        self.new.save()
 
     def test_freeze_impact_comments(self):
         """ Test freezing of impact on comments. """
