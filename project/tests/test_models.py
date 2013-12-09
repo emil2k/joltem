@@ -296,13 +296,22 @@ class VoteRatioFreezeTest(TestCase):
         self.project = self.ratio.project
 
     def _load_user(self):
-        """ For reloading user. """
+        """ Reload user. """
         return User.objects.get(id=self.user.id)
 
-    def _mock_votes_out(self):
-        """ Mocking votes out, to prevent impact freezing. """
-        s = lambda : mixer.blend('solution.solution')
-        mixer.cycle(5).blend(
+    def _load_ratio(self):
+        """ Reload ratio. """
+        return Ratio.objects.get(project_id=self.project.id,
+                                 user_id=self.user.id)
+
+    def _mock_votes_out(self, n=5):
+        """ Mocking votes out, to prevent impact freezing.
+
+        :param n: number of votes to mock.
+
+        """
+        s = lambda : mixer.blend('solution.solution', project=self.project)
+        mixer.cycle(n).blend(
             'joltem.vote', voteable=s,
             voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
 
@@ -337,7 +346,7 @@ class VoteRatioSolutionFreezeTest(VoteRatioFreezeTest):
 
     def test_freeze_impact_solutions(self):
         """ Test freezing of impact on solutions. """
-        self._mock_votes_out()
+        self._mock_votes_out(3)
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
         u = self._load_user()
@@ -345,6 +354,20 @@ class VoteRatioSolutionFreezeTest(VoteRatioFreezeTest):
         self.ratio.mark_frozen()
         u = self._load_user()
         self.assertEqual(u.impact, 10)
+
+    def test_unfreeze_impact_solutions(self):
+        """ Test unfreezing of impact on solutions. """
+        self._mock_vote_in(self.old)
+        self._mock_vote_in(self.new)
+        r = self._load_ratio()
+        self.assertTrue(r.is_frozen)
+        u = self._load_user()
+        self.assertEqual(u.impact, 10)
+        self._mock_votes_out(2)
+        r = self._load_ratio()
+        self.assertFalse(r.is_frozen)
+        u = self._load_user()
+        self.assertEqual(u.impact, 20)
 
 
 class VoteRatioCommentFreezeTest(VoteRatioFreezeTest):
@@ -368,7 +391,7 @@ class VoteRatioCommentFreezeTest(VoteRatioFreezeTest):
 
     def test_freeze_impact_comments(self):
         """ Test freezing of impact on comments. """
-        self._mock_votes_out()
+        self._mock_votes_out(3)
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
         u = self._load_user()
@@ -376,3 +399,35 @@ class VoteRatioCommentFreezeTest(VoteRatioFreezeTest):
         self.ratio.mark_frozen()
         u = self._load_user()
         self.assertEqual(u.impact, 10)
+
+    def test_unfreeze_impact_comments(self):
+        """ Test unfreezing of impact earned on comments.
+
+        Since votes on comments don't count towards votes_in, an old
+        solution is setup to take a vote and freeze the users impact.
+
+        Then the user casts one vote to get the ratio back to 1, to
+        unfreeze the impact earned on the new comment.
+
+        "New" and "old" here refers to either after or before time of
+        freezing.
+
+        """
+        self._mock_vote_in(self.old)
+        self._mock_vote_in(self.new)
+        # add vote on solution to freeze impact
+        old_solution = mixer.blend(
+            'solution.solution', owner=self.user, project=self.project,
+            is_completed=True, time_completed=timezone.now()-timedelta(days=7),
+            time_posted=timezone.now()-timedelta(days=10)
+        )
+        self._mock_vote_in(old_solution)
+        r = self._load_ratio()
+        self.assertTrue(r.is_frozen)
+        u = self._load_user()
+        self.assertEqual(u.impact, 20)
+        self._mock_votes_out(1)
+        r = self._load_ratio()
+        self.assertFalse(r.is_frozen)
+        u = self._load_user()
+        self.assertEqual(u.impact, 30)
