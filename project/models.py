@@ -90,7 +90,7 @@ class Project(models.Model):
         ).count()
 
         comments = self.comment_set.select_related('owner').prefetch_related(
-            'commentable', 'commentable_type', 'commentable__task').order_by(
+            'commentable', 'commentable_type').order_by(
             '-time_updated')[:limit]
 
         return dict(
