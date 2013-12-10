@@ -5,6 +5,7 @@ import logging
 from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
@@ -108,7 +109,8 @@ class Comment(Voteable, Updatable):
         # Depends on the commentable type
         anchor = lambda path: path + \
             "#comment-%s" % self.id  # add a comment anchor
-        if isinstance(self.commentable, Solution):
+        if self.commentable_type_id == \
+                ContentType.objects.get_for_model(Solution).id:
             return anchor(reverse(
                 "project:solution:solution", args=[self.project.name,
                                                    self.commentable_id]))

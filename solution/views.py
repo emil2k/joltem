@@ -1,11 +1,13 @@
 """ Solution related views. """
+from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, DetailView, ListView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
-from joltem.models import Vote
+from joltem.models import Vote, Comment
 from joltem.views.generic import (
     VoteableView, CommentableView, ExtraContextMixin,
 )
@@ -35,9 +37,14 @@ class SolutionBaseView(ProjectBaseView):
 
         """
         super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
-        self.solution = get_object_or_404(Solution,
-                                          id=self.kwargs.get("solution_id"))
-        self.is_owner = self.solution.is_owner(self.user)
+        try:
+            self.solution = Solution.objects\
+                .select_related('owner')\
+                .get(id=self.kwargs.get("solution_id"))
+        except Solution.DoesNotExist:
+            return HttpResponseNotFound("Solution not found.")
+        else:
+            self.is_owner = self.solution.is_owner(self.user)
 
     def get_context_data(self, **kwargs):
         """ Return context for template. """
@@ -48,9 +55,15 @@ class SolutionBaseView(ProjectBaseView):
             kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
         except Vote.DoesNotExist:
             kwargs["vote"] = None
-
+        comment_qs = Comment.objects\
+            .filter(commentable_id=self.solution.id,
+                    commentable_type_id=\
+                        ContentType.objects.get_for_model(Solution))\
+            .select_related('project', 'owner')\
+            .prefetch_related('vote_set')\
+            .order_by('time_commented')
         kwargs["comments"] = CommentHolder.get_comments(
-            self.solution.comment_set.all().order_by('time_commented'),
+            comment_qs,
             self.user)
         kwargs["subtasks"] = self.solution.subtask_set.filter(
             is_accepted=True).order_by('-time_posted')
