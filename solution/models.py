@@ -116,8 +116,12 @@ class Solution(Voteable, Commentable, Updatable):
         return count
 
     def has_commented(self, user_id):
-        """ Return whether passed user has commented on the solution. """
-        return self.comment_set.count() > 0
+        """ Return whether passed user has commented on the solution.
+
+        :param user_id: user id of commentator
+
+        """
+        return self.comment_set.filter(owner_id=user_id).count() > 0
 
     def save(self, **kwargs):
         """ Notify at creation. """
