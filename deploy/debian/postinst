@@ -25,6 +25,10 @@ RELEASE_DIR=$PROJECT_DIR/$(date +%Y%m%d%H%M%S)
     (
         # Configure settings
         ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/settings
+
+        # Configure keys
+        ln -fs /usr/lib/joltem/configuration/id_rsa $BUILD_DIR/gateway
+        ln -fs /usr/lib/joltem/configuration/id_rsa.pub $BUILD_DIR/gateway
         
         # Create virtualenv
         virtualenv --no-site-packages $BUILD_DIR/.env
