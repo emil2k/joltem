@@ -39,6 +39,7 @@ class SolutionBaseView(ProjectBaseView):
         super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
         try:
             self.solution = Solution.objects\
+                .prefetch_related('vote_set__voter')\
                 .select_related('owner')\
                 .get(id=self.kwargs.get("solution_id"))
         except Solution.DoesNotExist:
@@ -51,10 +52,11 @@ class SolutionBaseView(ProjectBaseView):
         kwargs["solution"] = self.solution
         kwargs["solution_tab"] = self.solution_tab
         # Get the users vote on this solution
-        try:
-            kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
-        except Vote.DoesNotExist:
-            kwargs["vote"] = None
+        kwargs["vote"] = None
+        for vote in self.solution.vote_set.all():
+            if vote.voter_id == self.user.id:
+                kwargs["vote"] = vote
+                break
         comment_qs = Comment.objects\
             .filter(commentable_id=self.solution.id,
                     commentable_type_id=\
@@ -194,12 +196,22 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
 
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add vote results. """
-        kwargs["vote_count"] = self.solution.vote_set.count()
-        kwargs["accept_votes"] = \
-            self.solution.vote_set.filter(is_accepted=True)
-        kwargs["reject_votes"] = \
-            self.solution.vote_set.filter(is_accepted=False)
-        kwargs["has_commented"] = self.solution.has_commented(self.user.id)
+        vote_count = 0
+        accept_votes = []
+        reject_votes = []
+        has_commented = False
+        for v in self.solution.vote_set.all():
+            vote_count += 1
+            if v.voter_id == self.user.id:
+                has_commented = True
+            if v.is_accepted:
+                accept_votes.append(v)
+            else:
+                reject_votes.append(v)
+        kwargs["vote_count"] = vote_count
+        kwargs["accept_votes"] = accept_votes
+        kwargs["reject_votes"] = reject_votes
+        kwargs["has_commented"] = has_commented
         return super(SolutionReviewView, self).get_context_data(**kwargs)
 
     def get_vote_redirect(self):
