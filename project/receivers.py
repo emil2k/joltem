@@ -17,13 +17,17 @@ def update_project_impact_from_project_ratio(sender, **kwargs):
     from project.models import Impact  # avoid circular import
     project_ratio = kwargs.get('instance')
     if project_ratio:
-        (project_impact, _) = Impact.objects.get_or_create(
-            project_id=project_ratio.project_id,
-            user_id=project_ratio.user_id
-        )
-        project_impact.impact = project_impact.get_impact()
-        project_impact.frozen_impact = project_impact.get_frozen_impact()
-        project_impact.save()
+        try:
+            project_impact = Impact.objects.get(
+                project_id=project_ratio.project_id,
+                user_id=project_ratio.user_id
+            )
+        except Impact.DoesNotExist, Impact.MultipleObjectsReturned:
+            pass
+        else:
+            project_impact.impact = project_impact.get_impact()
+            project_impact.frozen_impact = project_impact.get_frozen_impact()
+            project_impact.save()
 
 
 def update_project_impact_from_project(sender, **kwargs):
