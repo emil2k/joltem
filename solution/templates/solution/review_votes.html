@@ -1,7 +1,7 @@
 <div class="span6 text-center">
     {% for vote in accept_votes %}
         <p>
-            <i class="icon-ok"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+            <i class="icon-ok"></i> <b>{% if vote.magnitude > 1 %}<sup>{{ vote.magnitude }}</sup>{% endif %} from {{ vote.voter.first_name }}</b><br/>
             <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
         </p>
     {% endfor %}
