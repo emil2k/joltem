@@ -50,6 +50,14 @@
                 {% endwith %}
             </div>
         </div>
+        {% if comment_holder.vote_count > 0 %}
+            <hr/>
+            <div class="row">
+                {% with accept_votes=comment_holder.accept_votes reject_votes=comment_holder.reject_votes %}
+                    {% include 'solution/review_comment_votes.html' %}
+                {% endwith %}
+            </div>
+        {% endif %}
     {% endwith %}
     <hr/>
 {% endfor %}
