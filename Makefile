@@ -118,6 +118,10 @@ deb: build
 	    --deb-group root \
 	    -C $(CURDIR)/build \
 	    -d "python2.7" \
+	    -d "python-virtualenv" \
+	    -d "nginx-full" \
+	    -d "supervisor" \
+	    -d "uwsgi-plugin-python" \
 	    --config-files /etc/supervisor.d/joltem.conf \
 	    --config-files /etc/nginx/sites-enabled/joltem.conf \
 	    --before-install $(CURDIR)/deploy/debian/preinst \
