@@ -26,7 +26,7 @@ mkdir -p $PROJECT_DIR/releases
     touch $LOCK_FILE && cd $BUILD_DIR &&
     (
         # Configure settings
-        ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/local.py
+        ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/settings/local.py
 
         # Configure keys
         ln -fs /usr/lib/joltem/configuration/id_rsa $PROJECT_DIR/repositories/id_rsa
@@ -37,6 +37,12 @@ mkdir -p $PROJECT_DIR/releases
 
         # Install requirements
         $BUILD_DIR/.env/bin/pip install -r requirements.txt -i http://pypi.joltem.com/simple
+
+        # Install raven
+        $BUILD_DIR/.env/bin/pip install raven
+
+        # Install uwsgi
+        $BUILD_DIR/.env/bin/pip install uwsgi
 
         # Setup database
         make db
