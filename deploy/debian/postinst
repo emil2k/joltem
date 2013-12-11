@@ -5,7 +5,7 @@ BUILD_DIR=/usr/lib/joltem/build/
 DEPLOY_DIR=/usr/lib/joltem/joltem
 USER=joltem
 LOCK_FILE=${PROJECT_DIR}/install.lock
-RELEASE_DIR=$PROJECT_DIR/$(date +%Y%m%d%H%M%S)
+RELEASE_DIR=$PROJECT_DIR/releases/$(date +%Y%m%d%H%M%S)
 
 [ -e $LOCK_FILE ] && {
     echo "Another deployment is outgoing."
@@ -13,6 +13,8 @@ RELEASE_DIR=$PROJECT_DIR/$(date +%Y%m%d%H%M%S)
     exit 3
 }
 
+# make release dir
+mkdir -p $PROJECT_DIR/releases
 
 # Get previous release
 [ -h $DEPLOY_DIR ] && [ -d $DEPLOY_DIR ] && PREVIOUS_RELEASE=$(cd $DEPLOY_DIR >/dev/null && pwd -LP)
@@ -24,11 +26,11 @@ RELEASE_DIR=$PROJECT_DIR/$(date +%Y%m%d%H%M%S)
     touch $LOCK_FILE && cd $BUILD_DIR &&
     (
         # Configure settings
-        ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/settings
+        ln -fs /usr/lib/joltem/configuration/settings.py $BUILD_DIR/joltem/local.py
 
         # Configure keys
-        ln -fs /usr/lib/joltem/configuration/id_rsa $BUILD_DIR/gateway
-        ln -fs /usr/lib/joltem/configuration/id_rsa.pub $BUILD_DIR/gateway
+        ln -fs /usr/lib/joltem/configuration/id_rsa $PROJECT_DIR/repositories/id_rsa
+        ln -fs /usr/lib/joltem/configuration/id_rsa.pub $PROJECT_DIR/repositories/id_rsa.pub
         
         # Create virtualenv
         virtualenv --no-site-packages $BUILD_DIR/.env
