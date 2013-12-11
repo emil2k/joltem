@@ -69,9 +69,10 @@ SECRET_KEY = 'imsosecret'
 # Gateway settings
 GATEWAY_PORT = 22
 GATEWAY_HOST = 'joltem.com'
-GATEWAY_REPOSITORIES_DIR = op.join(op.dirname(PROJECT_ROOT), 'repositories')
-GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_REPOSITORIES_DIR, 'id_rsa')
-GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_REPOSITORIES_DIR, 'id_rsa.pub')
+GATEWAY_DIR = op.join(PROJECT_ROOT, 'gateway')
+GATEWAY_REPOSITORIES_DIR = op.join(GATEWAY_DIR, 'repositories')
+GATEWAY_PRIVATE_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa')
+GATEWAY_PUBLIC_KEY_FILE_PATH = op.join(GATEWAY_DIR, 'id_rsa.pub')
 
 # Celery settings
 BROKER_URL = "redis://localhost:6379/0"
