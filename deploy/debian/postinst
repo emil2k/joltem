@@ -2,6 +2,7 @@
 
 PROJECT_DIR=/usr/lib/joltem
 BUILD_DIR=/usr/lib/joltem/build
+VENV_DIR=/usr/lib/joltem/venv
 DEPLOY_DIR=/usr/lib/joltem/joltem
 USER=joltem
 LOCK_FILE=${PROJECT_DIR}/install.lock
@@ -33,16 +34,16 @@ mkdir -p $PROJECT_DIR/releases
         ln -fs /usr/lib/joltem/configuration/id_rsa.pub $PROJECT_DIR/repositories/id_rsa.pub
         
         # Create virtualenv
-        virtualenv --no-site-packages $BUILD_DIR/.env
+        virtualenv --no-site-packages $VENV_DIR
 
         # Install requirements
-        $BUILD_DIR/.env/bin/pip install -r requirements.txt -i http://pypi.joltem.com/simple
+        $VENV_DIR/bin/pip install -r requirements.txt -i http://pypi.joltem.com/simple
 
         # Install raven
-        $BUILD_DIR/.env/bin/pip install raven
+        $VENV_DIR/bin/pip install raven
 
         # Install uwsgi
-        $BUILD_DIR/.env/bin/pip install uwsgi
+        $VENV_DIR/bin/pip install uwsgi
 
         # Setup database
         make db

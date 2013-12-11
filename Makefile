@@ -141,6 +141,7 @@ build: clean static
 	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor/conf.d/joltem.conf
 	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
 	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
+	@cp $(CURDIR)/deploy/debian/uwsgi.ini $(CURDIR)/build$(PREFIX)/uwsgi.ini
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
