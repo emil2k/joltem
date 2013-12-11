@@ -10,7 +10,8 @@ from twisted.conch.interfaces import ISession
 from twisted.conch.insults.insults import ServerProtocol
 from twisted.internet import reactor
 
-from git.models import Repository, REPOSITORIES_DIRECTORY
+from django.conf import settings
+from git.models import Repository
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import (
     GitProcessProtocol, GitReceivePackProcessProtocol)
@@ -96,7 +97,7 @@ class GatewaySessionInterface():
                 self._git_process_transport = reactor.spawnProcess(
                     self._git_process_protocol, '/usr/bin/%s' % process,
                     (process, '%d.git' % repository_id),
-                    path=REPOSITORIES_DIRECTORY)
+                    path=settings.GATEWAY_REPOSITORIES_DIR)
                 self._git_process_transport.debug = True
                 self._git_process_transport.debug_child = True
                 # Wrap the git process transport with the git process protocol,
