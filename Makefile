@@ -122,7 +122,7 @@ deb: build
 	    -d "python-virtualenv" \
 	    -d "nginx-full" \
 	    -d "supervisor" \
-	    --config-files /etc/supervisor.d/joltem.conf \
+	    --config-files /etc/supervisor/conf.d/joltem.conf \
 	    --config-files /etc/nginx/sites-enabled/joltem.conf \
 	    --before-install $(CURDIR)/deploy/debian/preinst \
 	    --after-install $(CURDIR)/deploy/debian/postinst \
@@ -137,8 +137,8 @@ build: clean static
 	@touch $(CURDIR)/build$(PREFIX)/run/.placeholder
 	@mkdir -p $(CURDIR)/build$(PREFIX)/build
 	@cp -r account gateway git help joltem project solution task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/build/.
-	@mkdir -p $(CURDIR)/build/etc/supervisor.d
-	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor.d/joltem.conf
+	@mkdir -p $(CURDIR)/build/etc/supervisor/conf.d
+	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor/conf.d/joltem.conf
 	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
 	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
 
