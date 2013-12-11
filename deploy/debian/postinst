@@ -34,7 +34,7 @@ mkdir -p $PROJECT_DIR/releases
         ln -fs /usr/lib/joltem/configuration/id_rsa.pub $PROJECT_DIR/repositories/id_rsa.pub
         
         # Create virtualenv
-        [-d $VENV_DIR ] || virtualenv --no-site-packages $VENV_DIR
+        [ -d $VENV_DIR ] || virtualenv --no-site-packages $VENV_DIR
 
         # Install requirements
         $VENV_DIR/bin/pip install -r requirements.txt -i http://pypi.joltem.com/simple
