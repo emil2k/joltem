@@ -46,7 +46,7 @@ mkdir -p $PROJECT_DIR/releases
         $VENV_DIR/bin/pip install uwsgi
 
         # Setup database
-        make db
+        make db ENV=$VENV_DIR
 
         mv $BUILD_DIR $RELEASE_DIR
         chown -R $USER $RELEASE_DIR
