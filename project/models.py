@@ -394,6 +394,9 @@ class Ratio(models.Model):
                 project_id=self.project_id):
             solution_votes_in = 0
             for vote in solution.vote_set.order_by('time_voted'):
+                # Ignore invalid votes
+                if not solution.is_vote_valid(vote):
+                    continue
                 # Ignore votes from people with no impact
                 if vote.voter_impact == 0:
                     continue
@@ -415,13 +418,16 @@ class Ratio(models.Model):
         solution_type = ContentType.objects.get_for_model(Solution)
         for my_vote in self.user.vote_set.select_related('voteable').filter(
                 voteable_type_id=solution_type.id):
+            solution = my_vote.voteable
             # Check that voteable is in the same project.
-            if my_vote.voteable.project_id != self.project.id:
+            if solution.project_id != self.project.id:
+                continue
+            # Ignore invalid votes
+            if not solution.is_vote_valid(my_vote):
                 continue
             # Ignore my votes with no impact
             if my_vote.voter_impact == 0:
                 continue
-            solution = my_vote.voteable
             solution_votes_in = 0
             for vote in solution.vote_set.order_by('time_voted'):
                 # Ignore votes from people with no impact

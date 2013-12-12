@@ -247,9 +247,22 @@ class BaseRatioModelTest(TestCase):
 
         """
         v = self._mock_vote_in(solution, magnitude, voter_impact)
-        mixer.blend('joltem.comment', project=solution.project, owner=v.voter,
-                    commentable=solution)
+        self._mock_add_comment_for_vote(v)
         return v
+
+    def _mock_add_comment_for_vote(self, *votes):
+        """ Mock add comment on solution for a given vote.
+
+        Used to make votes valid on solutions.
+
+        :param votes:
+        :return:
+
+        """
+        for vote in votes:
+            mixer.blend('joltem.comment', project=vote.voteable.project,
+                        owner=vote.voter, commentable=vote.voteable)
+
 
 
 class RatioModelTest(BaseRatioModelTest):
@@ -338,7 +351,8 @@ class RatioModelTest(BaseRatioModelTest):
     def test_votes_in(self):
         """ Test calculation of votes in metric. """
         s = self._mock_solution()
-        mixer.cycle(5).blend('joltem.vote', voteable=s, voter_impact=1)
+        votes = mixer.cycle(5).blend('joltem.vote', voteable=s, voter_impact=1)
+        self._mock_add_comment_for_vote(*votes)
         self.assertEqual(self.ratio.get_votes_in(), 5)
 
     def test_votes_in_cap(self):
@@ -348,7 +362,8 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = self._mock_solution()
-        mixer.cycle(10).blend('joltem.vote', voteable=s, voter_impact=1)
+        votes = mixer.cycle(10).blend('joltem.vote', voteable=s, voter_impact=1)
+        self._mock_add_comment_for_vote(*votes)
         self.assertEqual(self.ratio.get_votes_in(), 5)
 
     def test_votes_in_others(self):
@@ -378,7 +393,8 @@ class RatioModelTest(BaseRatioModelTest):
         """
         s = mixer.blend('solution.solution', owner=self.user)
         self.assertEqual(s.owner_id, self.user.id)
-        mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_in(), 0)
         # load ratio from other project
         self.assertEqual(self._load_ratio(project=s.project).get_votes_in(), 1)
@@ -388,9 +404,10 @@ class RatioModelTest(BaseRatioModelTest):
     def test_votes_out(self):
         """ Test calculation of votes out metric. """
         s = self._mock_others_solution()
-        mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1)
-        mixer.blend('joltem.vote', voteable=s, voter=self.user,
+        votes = mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s, voter=self.user,
                     voter_impact=1)
+        self._mock_add_comment_for_vote(v, *votes)
         self.assertEqual(self.ratio.get_votes_out(), 1)
 
     def test_votes_out_cap(self):
@@ -424,7 +441,8 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = mixer.blend('solution.solution')
-        mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_out(), 0)
         # load ratio from other project
         self.assertEqual(self._load_ratio(project=s.project).get_votes_out(), 1)
@@ -442,7 +460,8 @@ class RatioModelTest(BaseRatioModelTest):
     def test_votes_ratio_min(self):
         """ Test votes ratio at minimum value. """
         s = self._mock_solution()
-        mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_ratio(), 0.0)
 
 
@@ -455,16 +474,18 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = self._mock_others_solution()
-        mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_ratio(), Ratio.INFINITY)
 
     def test_votes_ratio_float(self):
         """ Test votes ratio returns a float. """
         s = self._mock_solution()
-        mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1) # in
+        votes = mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1) # in
         o = lambda : self._mock_others_solution()
-        mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
+        votes += mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
                              voter_impact=1) # out
+        self._mock_add_comment_for_vote(*votes)
         self.assertEqual(self.ratio.get_votes_ratio(), 0.75)
 
     # Signals and receivers
@@ -473,6 +494,7 @@ class RatioModelTest(BaseRatioModelTest):
         """ Testing signals, voter ratio metrics should update. """
         s = self._mock_solution()
         v = mixer.blend('joltem.vote', voteable=s, voter_impact=1)
+        self._mock_add_comment_for_vote(v)
         self.assertEqual(self._load_ratio(self.user).get_votes_in(), 1)
         self.assertEqual(self._load_ratio(v.voter).get_votes_out(), 1)
         v.delete()

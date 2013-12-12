@@ -126,6 +126,11 @@ post_delete.connect(
     receivers.update_solution_metrics_from_comment, sender=Comment)
 
 post_save.connect(
+    receivers.update_project_metrics_from_comment, sender=Comment)
+post_delete.connect(
+    receivers.update_project_metrics_from_comment, sender=Comment)
+
+post_save.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
 post_delete.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
