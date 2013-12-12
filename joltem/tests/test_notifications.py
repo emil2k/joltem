@@ -27,16 +27,6 @@ class NotificationTestCase(TestCase):
 
     """ Test the delivery of notifications, their text and urls. """
 
-    def setUp(self):
-        """ Setup notifications test case.
-
-        Create a project and two mock users, jill and bob.
-
-        """
-        self.project = get_mock_project("bread", "Sliced Bread")
-        self.jill = get_mock_user("jill", first_name="Jill")
-        self.bob = get_mock_user("bob", first_name="Bob")
-
     # Custom assertions
 
     def assertReceivedNotificationCount(
@@ -100,7 +90,22 @@ class NotificationTestCase(TestCase):
             "Notification text equal to value that it shouldn't be.")
 
 
-class TasksNotificationTestCase(NotificationTestCase):
+class BaseNotificationTestCase(NotificationTestCase):
+
+    """ Contains basic setup for the rest of notification tests. """
+
+    def setUp(self):
+        """ Setup notifications test case.
+
+        Create a project and two mock users, jill and bob.
+
+        """
+        self.project = get_mock_project("bread", "Sliced Bread")
+        self.jill = get_mock_user("jill", first_name="Jill")
+        self.bob = get_mock_user("bob", first_name="Bob")
+
+
+class TasksNotificationTestCase(BaseNotificationTestCase):
 
     """ Test task related notifications. """
 
@@ -254,7 +259,7 @@ class TasksNotificationTestCase(NotificationTestCase):
                                            NOTIFICATION_TYPE_TASK_ACCEPTED)
 
 
-class SolutionNotificationTestCase(NotificationTestCase):
+class SolutionNotificationTestCase(BaseNotificationTestCase):
 
     """ Test notifications related to solutions. """
 
@@ -502,7 +507,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
             solution.default_title, expected_count=2)
 
 
-class CommentNotificationTestCase(NotificationTestCase):
+class CommentNotificationTestCase(BaseNotificationTestCase):
 
     """ Test notifications related to comments. """
 

@@ -3,19 +3,25 @@ from django.utils import timezone
 from datetime import timedelta
 from joltem.libs import mixer
 from joltem.models import User
+from joltem.tests.test_notifications import NotificationTestCase
 
-from ..models import Project, Ratio, Impact
+from ..models import (
+    Project, Ratio, Impact, NOTIFICATION_TYPE_FROZEN_RATIO,
+    NOTIFICATION_TYPE_UNFROZEN_RATIO)
 
 
 class ProjectModelTest(TestCase):
 
-    def test_get_review(self):
+    """ Tests for the Project model. """
 
-        # Prepare project data
-        project = mixer.blend(Project)
+    def setUp(self):
+        self.project = mixer.blend(Project)
+
+    def test_get_overview(self):
+        """ Test get_overview. """
 
         tasks = mixer.cycle(4).blend(
-            'task.task', project=project, is_reviewed=mixer.random)
+            'task.task', project=self.project, is_reviewed=mixer.random)
 
         solutions = mixer.cycle(4).blend(
             'solution.solution', task=(t for t in tasks),
@@ -23,23 +29,92 @@ class ProjectModelTest(TestCase):
 
         comments = mixer.cycle(4).blend(
             'joltem.comment', commentable=(s for s in solutions),
-            owner=mixer.select('joltem.user'), project=project)
+            owner=mixer.select('joltem.user'), project=self.project)
 
-        overview = project.get_overview()
+        overview = self.project.get_overview()
         self.assertEqual(set(tasks), set(overview.get('tasks')))
         self.assertEqual(set(solutions), set(overview.get('solutions')))
         self.assertEqual(set(comments), set(overview.get('comments')))
         self.assertEqual(
             overview['completed_solutions_count'],
-            project.solution_set.filter(is_completed=True).count(),
+            self.project.solution_set.filter(is_completed=True).count(),
         )
         self.assertEqual(
             overview['completed_tasks_count'],
-            project.task_set.filter(is_closed=True, is_accepted=True).count(),
+            self.project.task_set.filter(is_closed=True, is_accepted=True).count(),
         )
 
         tasks = list(overview.get('tasks'))
         self.assertTrue(tasks[0].time_updated > tasks[-1].time_updated)
+
+
+class ProjectNotificationTest(NotificationTestCase):
+
+    """ Test project specific notifications. """
+
+    FROZEN_TEXT = "Your votes ratio is low, earning of impact has been " \
+                  "frozen on Apple"
+    UNFROZEN_TEXT = "Votes ratio raised, earning of impact has been " \
+                    "unfrozen on Apple"
+
+    def setUp(self):
+        self.project = mixer.blend(Project, name="apple", title="Apple")
+
+    def test_get_notification_url(self):
+        """ Test project notification url. """
+        n = mixer.blend('joltem.notification',
+                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        notifying=self.project)
+        self.assertEqual(self.project.get_notification_url(n),
+                         '/apple/')
+
+    def test_get_notification_text_frozen_ratio(self):
+        """ Test notification text for frozen by ratio."""
+        n = mixer.blend('joltem.notification',
+                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        notifying=self.project)
+        self.assertEqual(self.project.get_notification_text(n),
+                         self.FROZEN_TEXT)
+
+    def test_get_notification_text_unfrozen_ratio(self):
+        """ Test notification text for unfrozen by ratio."""
+        n = mixer.blend('joltem.notification',
+                        type=NOTIFICATION_TYPE_UNFROZEN_RATIO,
+                        notifying=self.project)
+        self.assertEqual(self.project.get_notification_text(n),
+                         self.UNFROZEN_TEXT)
+
+    def test_notify_frozen_ratio(self):
+        """ Test notify frozen ratio working properly.
+
+        Should update notification instead of create a new notification.
+
+        """
+        u = mixer.blend('joltem.user')
+        self.project.notify_frozen_ratio(u)
+        self.assertNotificationReceived(
+            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            self.FROZEN_TEXT)
+        self.project.notify_frozen_ratio(u)  # test that it updates
+        self.assertNotificationReceived(
+            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            self.FROZEN_TEXT)  # implies only one received
+
+    def test_notify_unfrozen_ratio(self):
+        """ Test notify unfrozen ratio working properly.
+
+        Should update notification instead of create a new notification.
+
+        """
+        u = mixer.blend('joltem.user')
+        self.project.notify_unfrozen_ratio(u)
+        self.assertNotificationReceived(
+            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            self.UNFROZEN_TEXT)
+        self.project.notify_unfrozen_ratio(u)  # test that it updates
+        self.assertNotificationReceived(
+            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            self.UNFROZEN_TEXT)  # implies only one received
 
 
 class ProjectGroupsTest(TestCase):
