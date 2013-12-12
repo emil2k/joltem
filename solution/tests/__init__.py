@@ -1,11 +1,12 @@
 """ Solution related tests. """
 from django.test import TestCase
 
+from joltem.libs import mixer
 from joltem.libs.mock.models import (
     get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
     get_mock_vote, get_mock_comment, get_mock_setup_solution,
     load_project_impact, load_model)
-from joltem.models import Vote, Voteable
+from joltem.models import Vote, Voteable, User
 from project.models import Impact
 
 
@@ -59,6 +60,39 @@ class ImpactTestCase(TestCase):
         self.assertEqual(Impact.objects.filter(
             user_id=user.id, project_id=project.id).exists(), expected)
 
+    # Helpers
+
+    def _mock_complete_solution(self):
+        """ Mock a completed solution.
+
+        :return Solution:
+
+        """
+        s = mixer.blend('solution.solution')
+        s.mark_complete()
+        return s
+
+    def _mock_valid_solution_vote(self, solution, magnitude=1, voter_impact=1):
+        """ Mock a valid vote on a solution.
+
+        A valid vote on a solution means the user should also have commented
+        on the solution.
+
+        :param solution:
+        :param magnitude:
+        :param voter_impact:
+        :return Vote:
+
+        """
+        v = mixer.blend('joltem.vote', voteable=solution,
+                        voter_impact=voter_impact, magnitude=magnitude,
+                        is_accepted=magnitude > 0)
+        # needs a comment to count
+        mixer.blend('joltem.comment', project=solution.project, owner=v.voter,
+                    commentable=solution)
+        return v
+
+
     # Tests
 
     # Test chain of signals
@@ -68,12 +102,8 @@ class ImpactTestCase(TestCase):
 
     def test_solution_impact(self):
         """ Test impact from a solution. """
-        p = get_mock_project("apple")
-        jill = get_mock_user("jill")
-        ted = get_mock_user("ted")
-        t = get_mock_task(p, jill, is_reviewed=True, is_accepted=True)
-        s = get_mock_solution(p, ted, t)
-        get_mock_vote(jill, s, 100, 1)
+        s = self._mock_complete_solution()
+        self._mock_valid_solution_vote(s)
         s = load_model(s)
         self.assertTrue(s.impact > 0)
 
@@ -132,36 +162,24 @@ class ImpactTestCase(TestCase):
 
     def test_impact_one_accept(self):
         """ Test impact with a single acceptance vote. """
-        _, _, _, s = get_mock_setup_solution("lipton", "bill")
+        s = self._mock_complete_solution()
         self.assertEqual(s.get_impact(), None)
         self.assertEqual(s.get_acceptance(), None)
-        get_mock_vote(get_mock_user("jill"), s, 300, 3)
+        self._mock_valid_solution_vote(s)
         self.assertEqual(s.get_impact(), 10)
         self.assertEqual(s.get_acceptance(), 100)
 
     def test_impact_mark_incomplete(self):
         """ Test the effect of marking solution incomplete on impact. """
-        p = get_mock_project("levy")
-        jay = get_mock_user("jay")
-        t = get_mock_task(p, jay, is_reviewed=True, is_accepted=True)
-        self.assertImpactEqual(jay, 0)
-        self.assertCompletedEqual(jay, 0)
-        s = get_mock_solution(p, jay, t)  # a completed solution added
-        self.assertTrue(s.is_completed)
-        get_mock_vote(get_mock_user(
-            "jill"), s, 300, 3)  # a vote is placed on the solution
-        self.assertTrue(s.is_completed)
-        jay = load_model(jay)
-        self.assertImpactEqual(jay, 10)
-        self.assertCompletedEqual(jay, 1)
-        # Mark solution incomplete
-        s.is_completed = False
-        s.time_completed = None
-        s.save()
-        self.assertFalse(s.is_completed, 0)
-        jay = load_model(jay)
-        self.assertImpactEqual(jay, 0)
-        self.assertCompletedEqual(jay, 0)
+        s = self._mock_complete_solution()
+        v = self._mock_valid_solution_vote(s, 3, 300)
+        u = load_model(s.owner)
+        self.assertImpactEqual(u, 10)
+        self.assertCompletedEqual(u, 1)
+        s.mark_incomplete()
+        u = load_model(s.owner)
+        self.assertImpactEqual(u, 0)
+        self.assertCompletedEqual(u, 0)
 
     def test_impact_calculation(self):
         """ Test of impact calculations. """
@@ -176,13 +194,13 @@ class ImpactTestCase(TestCase):
         self.assertEqual(Impact.COMMENT_ACCEPTANCE_THRESHOLD, 75,
                          "Comment acceptance threshold changed.")
 
-        p, _, _, s = get_mock_setup_solution("sonics", "gary")
+        s = self._mock_complete_solution()
 
         # Initial
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 0, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [0, 0, 0, 0, 0, 0])
 
-        v = get_mock_vote(get_mock_user("kate"), s, 100, 2)
+        v = self._mock_valid_solution_vote(s, 2, 100)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 100, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [
                              100, 100, 100, 0, 0, 0])
@@ -191,7 +209,7 @@ class ImpactTestCase(TestCase):
         self.assertEqual(s.get_vote_value(v), 10)
         self.assertEqual(s.get_impact(), 10)
 
-        v = get_mock_vote(get_mock_user("janet"), s, 100, 2)
+        v = self._mock_valid_solution_vote(s, 2, 100)
         self.assertListEqual(s.get_impact_distribution(), [0, 0, 200, 0, 0, 0])
         self.assertListEqual(s.get_impact_integrals(), [
                              200, 200, 200, 0, 0, 0])
@@ -200,7 +218,7 @@ class ImpactTestCase(TestCase):
         self.assertEqual(s.get_vote_value(v), 100)
         self.assertEqual(s.get_impact(), 100)
 
-        v = get_mock_vote(get_mock_user("bill"), s, 500, 3)
+        v = self._mock_valid_solution_vote(s, 3, 500)
         self.assertListEqual(s.get_impact_distribution(),
                              [0, 0, 200, 500, 0, 0])
         self.assertListEqual(s.get_impact_integrals(),
@@ -210,7 +228,7 @@ class ImpactTestCase(TestCase):
         self.assertEqual(s.get_vote_value(v), 100)
         self.assertEqual(s.get_impact(), 100)
 
-        v = get_mock_vote(get_mock_user("susan"), s, 100, 4)
+        v = self._mock_valid_solution_vote(s, 4, 100)
         self.assertListEqual(s.get_impact_distribution(),
                              [0, 0, 200, 500, 100, 0])
         self.assertListEqual(s.get_impact_integrals(),
@@ -221,8 +239,7 @@ class ImpactTestCase(TestCase):
         w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
         self.assertEqual(s.get_impact(), int(w_sum / float(800)))
 
-        jill = get_mock_user("jill")
-        v = get_mock_vote(jill, s, 100, 0)  # rejection vote
+        v = self._mock_valid_solution_vote(s, 0, 100)
         self.assertListEqual(s.get_impact_distribution(),
                              [100, 0, 200, 500, 100, 0])
         self.assertListEqual(s.get_impact_integrals(),
@@ -230,10 +247,6 @@ class ImpactTestCase(TestCase):
         self.assertListEqual(s.get_impact_integrals_excluding_vote(v),
                              [800, 800, 800, 600, 100, 0])
         w_sum = 200 * pow(10, 2) + (500 + 100) * pow(10, 3)
-        self.assertEqual(s.get_impact(), int(round(w_sum / float(800))))
-        # rejected vote should not count until comment is added
-        get_mock_comment(p, jill, s)
-        # now should count
         self.assertEqual(s.get_impact(), int(round(w_sum / float(900))))
 
     def test_rejection_vote_solution(self):
@@ -242,25 +255,17 @@ class ImpactTestCase(TestCase):
         Rejection vote requires comment to count.
 
         """
-        p, _, _, s = get_mock_setup_solution("lipton", "ted")
+        s = self._mock_complete_solution()
         self.assertEqual(s.impact, None)
         self.assertEqual(s.acceptance, None)
-        get_mock_vote(get_mock_user("jill"), s, 300, 1)
+        self._mock_valid_solution_vote(s, 1, 300)
         s = load_model(s)
         self.assertEqual(s.impact, 10)
         self.assertEqual(s.acceptance, 100)
-        # Now the rejection vote
-        kate = get_mock_user("kate")
-        get_mock_vote(kate, s, 100, 0)
-        # Vote should not count until commented
+        self._mock_valid_solution_vote(s, 0, 100)
         s = load_model(s)
-        self.assertEqual(s.impact, 10)
-        self.assertEqual(s.acceptance, 100)
-        # Add comment and it should count now
-        get_mock_comment(p, kate, s)
-        s = load_model(s)
-        self.assertEqual(
-            s.impact, 8)  # using impact instead of get_impact() because want to check DB state
+        # using impact instead of get_impact() because want to check DB state
+        self.assertEqual(s.impact, 8)
         self.assertEqual(s.acceptance, 75)
 
     def test_comment_acceptance_threshold(self):

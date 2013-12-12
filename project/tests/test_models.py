@@ -206,28 +206,50 @@ class BaseRatioModelTest(TestCase):
             project = self.project
         return Impact.objects.get(project_id=project.id, user_id=user.id)
 
-    def _mock_votes_out(self, n=5):
+    def _mock_votes_out(self, n=5, add_comments=False):
         """ Mocking votes out, to prevent impact freezing.
 
         :param n: number of votes to mock.
+        :param add_comments: whether to add comments on each solution to make
+            votes valid.
 
         """
         s = lambda : self._mock_others_solution()
-        mixer.cycle(n).blend(
+        votes = mixer.cycle(n).blend(
             'joltem.vote', voteable=s,
             voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
+        if add_comments:
+            mixer.cycle(n).blend('joltem.comment', project=self.project,
+                                 owner=(v.voter for v in votes),
+                                 commentable=(v.voteable for v in votes))
 
     def _mock_vote_in(self, voteable, magnitude=1, voter_impact=100):
-        """ Mock vote in on voteable.
+        """ Mock valid vote in on voteable.
 
         :param voteable:
         :param magnitude:
         :param voter_impact:
-        :return:
+        :return Vote:
 
         """
-        mixer.blend('joltem.vote', voteable=voteable, voter_impact=voter_impact,
-                    is_accepted=magnitude > 0, magnitude=magnitude)
+        return mixer.blend('joltem.vote', voteable=voteable,
+                        voter_impact=voter_impact, is_accepted=magnitude > 0,
+                        magnitude=magnitude)
+
+    def _mock_valid_solution_vote_in(self, solution, magnitude=1,
+                                     voter_impact=100):
+        """ Mock valid vote on a solution, by adding a comment.
+
+        :param solution:
+        :param magnitude:
+        :param voter_impact:
+        :return Vote:
+
+        """
+        v = self._mock_vote_in(solution, magnitude, voter_impact)
+        mixer.blend('joltem.comment', project=solution.project, owner=v.voter,
+                    commentable=solution)
+        return v
 
 
 class RatioModelTest(BaseRatioModelTest):
@@ -477,9 +499,9 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
 
     def test_freeze_impact_solutions(self):
         """ Test freezing of impact on solutions. """
-        self._mock_votes_out(3)
-        self._mock_vote_in(self.old)
-        self._mock_vote_in(self.new)
+        self._mock_votes_out(3, True)
+        self._mock_valid_solution_vote_in(self.old)
+        self._mock_valid_solution_vote_in(self.new)
         self.assertEqual(self._load_user().impact, 20)
         self.assertEqual(self._load_impact().frozen_impact, 0)
         self.ratio.mark_frozen()
@@ -488,12 +510,12 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
 
     def test_unfreeze_impact_solutions(self):
         """ Test unfreezing of impact on solutions. """
-        self._mock_vote_in(self.old)
-        self._mock_vote_in(self.new)
+        self._mock_valid_solution_vote_in(self.old)
+        self._mock_valid_solution_vote_in(self.new)
         self.assertTrue(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 10)
         self.assertEqual(self._load_impact().frozen_impact, 10)
-        self._mock_votes_out(2)
+        self._mock_votes_out(2, True)
         self.assertFalse(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 20)
         self.assertEqual(self._load_impact().frozen_impact, 0)
@@ -544,11 +566,11 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
             is_completed=True, time_completed=timezone.now()-timedelta(days=7),
             time_posted=timezone.now()-timedelta(days=10)
         )
-        self._mock_vote_in(old_solution)
+        self._mock_valid_solution_vote_in(old_solution)
         self.assertTrue(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 20)
         self.assertEqual(self._load_impact().frozen_impact, 10)
-        self._mock_votes_out(1)
+        self._mock_votes_out(1, True)
         self.assertFalse(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 30)
         self.assertEqual(self._load_impact().frozen_impact, 0)
