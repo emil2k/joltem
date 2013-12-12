@@ -74,7 +74,7 @@ class TestProjectViews(TestCase):
 
         cache.set('project:overview:%s' % self.project.id, None)
 
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(14):
             response = self.client.get(uri)
 
         self.assertTrue(response.context['solutions'])
