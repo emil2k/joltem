@@ -56,6 +56,7 @@ class SolutionBaseView(ProjectBaseView):
         for vote in self.solution.vote_set.all():
             if vote.voter_id == self.user.id:
                 kwargs["vote"] = vote
+                kwargs["vote_valid"] = self.solution.is_vote_valid(vote)
                 break
         comment_qs = Comment.objects\
             .filter(commentable_id=self.solution.id,
@@ -199,11 +200,8 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
         vote_count = 0
         accept_votes = []
         reject_votes = []
-        has_commented = False
         for v in self.solution.vote_set.all():
             vote_count += 1
-            if v.voter_id == self.user.id:
-                has_commented = True
             if v.is_accepted:
                 accept_votes.append(v)
             else:
@@ -211,7 +209,6 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
         kwargs["vote_count"] = vote_count
         kwargs["accept_votes"] = accept_votes
         kwargs["reject_votes"] = reject_votes
-        kwargs["has_commented"] = has_commented
         return super(SolutionReviewView, self).get_context_data(**kwargs)
 
     def get_vote_redirect(self):

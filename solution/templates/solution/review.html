@@ -5,9 +5,9 @@
             <strong>Review in progress,</strong> no votes have been submitted yet for this solution.
         </div>
     {% else %}
-        {% if vote and not vote.is_accepted and not has_commented %}
+        {% if vote and not vote_valid %}
             <div class="alert alert-danger">
-                <strong>Unsatisfactory votes require an explanation to count,</strong> leave a comment.
+                <strong><i class="fa fa-warning"></i> Votes require an explanation to count,</strong> leave a comment.
             </div>
         {% endif %}
         <div class="row">

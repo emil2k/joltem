@@ -1,4 +1,6 @@
 """ View related tests for solution app. """
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 from django_webtest import WebTest
 
 from joltem.libs import mixer
@@ -137,14 +139,52 @@ class SolutionEditView(BaseSolutionViewTest):
         self.assertEqual(reloaded.description, 'new description')
 
 
-class SolutionReviewView(BaseSolutionViewTest):
+class SolutionReviewViewTest(TestCase):
 
     """ Test SolutionReviewView responses. """
 
+    def setUp(self):
+        self.user = mixer.blend('joltem.user', password='test')
+        self.client.login(username=self.user.username, password='test')
+        self.solution = mixer.blend('solution.solution', title="Make bread",
+                                    description="Mix dough and bake.",
+                                    owner__first_name="Jill")
+        self.solution.mark_complete()
+        self.path = reverse('project:solution:review', args=[
+            self.solution.project.name,
+            self.solution.id
+        ])
+
     def test_solution_review_view_get(self):
         """ Test simple GET of solution review view. """
-        response = self._get(views.SolutionReviewView.as_view())
-        self.assertTrue(response.status_code, 200)
+        response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 200)
+
+    def test_solution_vote_no_comment(self):
+        """ Test a review vote with no comment.
+
+        A message should be visible to the voter that a comment is required
+        for the vote to count.
+
+        """
+        mixer.blend('joltem.vote', voter=self.user, voteable=self.solution,
+                    voter_impact=1, magnitude=1, is_accepted=True)
+        response = self.client.get(self.path)
+        self.assertContains(response, "Votes require an explanation")
+
+    def test_solution_vote_with_comment(self):
+        """ Test a review vote with a comment posted.
+
+        The message that a comment is required should not be visible now.
+
+        """
+        mixer.blend('joltem.vote', voter=self.user, voteable=self.solution,
+                    voter_impact=1, magnitude=1, is_accepted=True)
+        mixer.blend('joltem.comment', project=self.solution.project,
+                    owner=self.user, commentable=self.solution)
+        response = self.client.get(self.path)
+        print response.content
+        self.assertNotContains(response, "Votes require an explanation")
 
 
 class SolutionCreateView(BaseSolutionViewTest):
