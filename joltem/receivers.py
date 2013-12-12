@@ -65,8 +65,11 @@ def update_project_impact_from_voteables(sender, **kwargs):
 
 def update_notification_count(sender, **kwargs):
     """ Update notification count (excluding cleared) for the user. """
+    from joltem.models import User
     notification = kwargs.get('instance')
-    user = notification.user
+    # Reload user otherwise, the instance send by the signal
+    # may be outdated already
+    user = User.objects.get(id=notification.user_id)
     user.notifications = user.notification_set.filter(is_cleared=False).count()
     user.save()
 
