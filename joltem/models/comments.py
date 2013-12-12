@@ -145,6 +145,15 @@ class Commentable(Notifying, Owned, ProjectContext):
     class Meta:
         abstract = True
 
+    def has_commented(self, user_id):
+        """ Return whether passed user has commented on this commentable.
+
+        :param user_id: user id of commentator
+
+        """
+        return self.comment_set.filter(owner_id=user_id).exists()
+
+
     def add_comment(self, commentator, comment_text):
         """ Add comment to commentable, returns comment.
 
