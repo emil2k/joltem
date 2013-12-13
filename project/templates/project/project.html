@@ -103,7 +103,7 @@
                             <div class="list-group-item">
                                 <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
                                 <a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a>
-                                <a href="{{ comment.get_comment_url }}">commented {{ comment.commentable_type }} "{{ comment.commentable.title|default:comment.commentable.default_title }}".</a>
+                                <a href="{{ comment.get_comment_url }}">commented {{ comment.commentable_type }} "{{ comment.commentable.default_title }}".</a>
                             </div>
                         {% empty %}
                             <p class="muted">There are no comments.</p>

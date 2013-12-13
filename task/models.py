@@ -225,6 +225,14 @@ class Task(Commentable, Updatable):
                         admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
                             "role": "project_admin"})
 
+    def default_title(self):
+        """ Just prevent conflict with solutions.
+
+        :return str:
+
+        """
+        return self.title
+
     def get_notification_text(self, notification):
         """ Prepare text for notification.
 

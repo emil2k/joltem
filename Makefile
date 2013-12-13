@@ -7,10 +7,10 @@ all: $(ENV)
 .PHONY: clean
 # target: clean - Clean temporary files
 clean:
-	@rm -f *.py[co]
-	@rm -f *.orig
-	@rm -f */*.py[co]
-	@rm -f */*/*.orig
+	@find $(CURDIR) -name "*.py[co]" -delete
+	@find $(CURDIR) -name "*.orig" -delete
+	@find $(CURDIR) -name "*.deb" -delete
+	@rm -rf build
 
 .PHONY: help
 # target: help - Display callable targets
@@ -49,6 +49,7 @@ shell: $(ENV)
 .PHONY: static
 # target: static - Compile project static
 static: $(ENV)
+	@mkdir -p $(CURDIR)/static
 	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
 .PHONY: test
@@ -98,6 +99,49 @@ celery: $(ENV)
 # target: update - Restart 'joltem_web' process
 update:
 	sudo supervisorctl restart joltem_web
+
+.PHONY: deb
+# target: deb - Compile deb package
+PREFIX=/usr/lib/joltem
+PACKAGE_VERSION?=$(shell git describe --abbrev=0 --tags `git rev-list master --tags --max-count=1`)
+PACKAGE_POSTFIX?=
+PACKAGE_NAME?="joltem-web"
+PACKAGE_MAINTAINER="Emil Davtyan <emil2k@gmail.com>"
+PACKAGE_URL="http://joltem.com"
+FPM=fpm
+deb: build
+	@$(FPM) -s dir -t deb -a all \
+	    --name $(PACKAGE_NAME) \
+	    --version $(PACKAGE_VERSION)$(PACKAGE_POSTFIX) \
+	    --maintainer $(PACKAGE_MAINTAINER) \
+	    --url $(PACKAGE_URL) \
+	    --deb-user root \
+	    --deb-group root \
+	    -C $(CURDIR)/build \
+	    -d "python2.7" \
+	    -d "python-virtualenv" \
+	    -d "nginx-full" \
+	    -d "supervisor" \
+	    --config-files /etc/supervisor/conf.d/joltem.conf \
+	    --config-files /etc/nginx/sites-enabled/joltem.conf \
+	    --before-install $(CURDIR)/deploy/debian/preinst \
+	    --after-install $(CURDIR)/deploy/debian/postinst \
+	    usr etc
+
+.PHONY: build
+# target: build - Prepare structure for deb package
+build: clean static
+	@mkdir -p $(CURDIR)/build$(PREFIX)/log
+	@touch $(CURDIR)/build$(PREFIX)/log/.placeholder
+	@mkdir -p $(CURDIR)/build$(PREFIX)/run
+	@touch $(CURDIR)/build$(PREFIX)/run/.placeholder
+	@mkdir -p $(CURDIR)/build$(PREFIX)/build
+	@cp -r account gateway git help joltem project solution task static Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/build/.
+	@mkdir -p $(CURDIR)/build/etc/supervisor/conf.d
+	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor/conf.d/joltem.conf
+	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
+	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
+	@cp $(CURDIR)/deploy/debian/uwsgi.ini $(CURDIR)/build$(PREFIX)/uwsgi.ini
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
