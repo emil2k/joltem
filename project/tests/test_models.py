@@ -159,9 +159,16 @@ class BaseRatioModelTest(TestCase):
         return mixer.blend('solution.solution', owner=self.user,
                            project=self.project)
 
-    def _mock_others_solution(self):
-        """ Mock a solution on the project owned by someone else. """
-        return mixer.blend('solution.solution', project=self.project)
+    def _mock_others_solution(self, n=1):
+        """ Mock a solution on the project owned by someone else.
+
+        :param n: number of solutions to mock.
+
+        """
+        m = mixer
+        if n > 1:
+            m = mixer.cycle(n)
+        return m.blend('solution.solution', project=self.project)
 
     def _mock_comment(self):
         """ Mock a comment on the project owned by the user. """
@@ -532,6 +539,9 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
 
     def test_unfreeze_impact_solutions(self):
         """ Test unfreezing of impact on solutions. """
+        # add some complete solutions so that threshold is possible
+        for s in self._mock_others_solution(2):
+            s.mark_complete()
         self._mock_valid_solution_vote_in(self.old)
         self._mock_valid_solution_vote_in(self.new)
         self.assertTrue(self._load_ratio().is_frozen)
@@ -580,6 +590,9 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
         freezing.
 
         """
+        # need completed solutions to make it threshold possible
+        s = self._mock_others_solution()
+        s.mark_complete()
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
         # add vote on solution to freeze impact

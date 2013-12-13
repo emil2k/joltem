@@ -372,7 +372,7 @@ class Ratio(models.Model):
         """
         max_out = self.maximum_possible_votes_out()
         max_ratio = self.get_votes_ratio(votes_out=max_out)
-        return max_ratio >= Ratio.RATIO_THRESHOLD
+        return max_ratio is None or max_ratio >= Ratio.RATIO_THRESHOLD
 
     # todo test when solution gains vote and becomes not available anymore for votes out
     def maximum_possible_votes_out(self):
