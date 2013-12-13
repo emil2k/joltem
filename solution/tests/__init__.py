@@ -287,8 +287,8 @@ class ImpactTestCase(TestCase):
         c = load_model(c)
         self.assertEqual(c.acceptance, 100)
         bill = load_model(bill)
-        self.assertImpactEqual(bill, 10)
-        self.assertProjectImpactEqual(p, bill, 10)
+        self.assertImpactEqual(bill, 1)
+        self.assertProjectImpactEqual(p, bill, 1)
 
         # Now rejection votes to lower acceptance
         get_mock_vote(get_mock_user("jade"), c, 100, 0)
@@ -296,16 +296,16 @@ class ImpactTestCase(TestCase):
         self.assertEqual(c.acceptance, int(
             round(100 * float(750) / 850)))  # > 75%
         bill = load_model(bill)
-        self.assertImpactEqual(bill, 9)
-        self.assertProjectImpactEqual(p, bill, 9)
+        self.assertImpactEqual(bill, 1)
+        self.assertProjectImpactEqual(p, bill, 1)
 
         get_mock_vote(get_mock_user("jill"), c, 150, 0)
         c = load_model(c)
         self.assertEqual(c.acceptance, int(
             round(100 * float(750) / 1000)))  # = 75%
         bill = load_model(bill)
-        self.assertImpactEqual(bill, 8)
-        self.assertProjectImpactEqual(p, bill, 8)
+        self.assertImpactEqual(bill, 1)
+        self.assertProjectImpactEqual(p, bill, 1)
         get_mock_vote(get_mock_user("gary"), c, 500, 0)
         c = load_model(c)
         self.assertEqual(c.acceptance, int(

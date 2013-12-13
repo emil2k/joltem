@@ -43,6 +43,17 @@ class Comment(Voteable, Updatable):
     def __unicode__(self):
         return str(self.comment)
 
+    @staticmethod
+    def magnitude_to_vote_value(magnitude):
+        """ Map the determined vote magnitude to corresponding vote value.
+
+        For a comment the default value at where magnitude=1 is 1, unlike a
+        solution where it is 10, and it goes up by an order of 10 from there.
+
+        """
+        magnitude -= 1
+        return pow(10, magnitude)
+
     def notify_vote_added(self, vote):
         """ Override to only notify of "Helpful" or positive votes. """
 

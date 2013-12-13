@@ -1,5 +1,7 @@
 from django.test import TestCase
 from joltem.libs import mixer
+from solution.models import Solution
+
 
 class SolutionModelTest(TestCase):
 
@@ -29,3 +31,11 @@ class SolutionModelTest(TestCase):
         self.assertFalse(self.solution.has_commented(commentator.id))
         self._mock_comment(commentator)
         self.assertTrue(self.solution.has_commented(commentator.id))
+
+    def test_magnitude_to_value(self):
+        """ Test the function magnitude_to_vote_value. """
+        self.assertEqual(Solution.magnitude_to_vote_value(1), 10)
+        self.assertEqual(Solution.magnitude_to_vote_value(2), 100)
+        self.assertEqual(Solution.magnitude_to_vote_value(3), 1000)
+        self.assertEqual(Solution.magnitude_to_vote_value(4), 10000)
+        self.assertEqual(Solution.magnitude_to_vote_value(5), 100000)

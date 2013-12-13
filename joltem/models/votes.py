@@ -245,6 +245,19 @@ class Voteable(Notifying, Owned, ProjectContext):
         """
         return True
 
+    @staticmethod
+    def magnitude_to_vote_value(magnitude):
+        """ Map the determined vote magnitude to corresponding vote value.
+
+        Override in the extended class, to modify behaviour. By default
+        the behaviour is simply to make it a power of 10.
+
+        :param magnitude: magnitude of vote
+        :return int: effective vote value
+
+        """
+        return pow(10, magnitude)
+
     MAGNITUDE_THRESHOLD = 0.159  #: minimum supporting impact integral
 
     def get_vote_value(self, vote):
@@ -272,5 +285,5 @@ class Voteable(Notifying, Owned, ProjectContext):
                 excluding_integral = ie[magnitude]
                 p = float(excluding_integral) / excluding_total
                 if p > Voteable.MAGNITUDE_THRESHOLD:
-                    return pow(10, magnitude)
-        return 10  # default
+                    return self.magnitude_to_vote_value(magnitude)
+        return self.magnitude_to_vote_value(1)  # default

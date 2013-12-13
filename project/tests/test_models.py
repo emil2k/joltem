@@ -561,11 +561,11 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
         self._mock_votes_out(3)
         self._mock_vote_in(self.old)
         self._mock_vote_in(self.new)
-        self.assertEqual(self._load_user().impact, 20)
+        self.assertEqual(self._load_user().impact, 2)
         self.assertEqual(self._load_impact().frozen_impact, 0)
         self.ratio.mark_frozen()
-        self.assertEqual(self._load_user().impact, 10)
-        self.assertEqual(self._load_impact().frozen_impact, 10)
+        self.assertEqual(self._load_user().impact, 1)
+        self.assertEqual(self._load_impact().frozen_impact, 1)
 
     def test_unfreeze_impact_comments(self):
         """ Test unfreezing of impact earned on comments.
@@ -590,9 +590,9 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
         )
         self._mock_valid_solution_vote_in(old_solution)
         self.assertTrue(self._load_ratio().is_frozen)
-        self.assertEqual(self._load_user().impact, 20)
-        self.assertEqual(self._load_impact().frozen_impact, 10)
+        self.assertEqual(self._load_user().impact, 11)
+        self.assertEqual(self._load_impact().frozen_impact, 1)
         self._mock_votes_out(1, True)
         self.assertFalse(self._load_ratio().is_frozen)
-        self.assertEqual(self._load_user().impact, 30)
+        self.assertEqual(self._load_user().impact, 12)
         self.assertEqual(self._load_impact().frozen_impact, 0)
