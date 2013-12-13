@@ -319,7 +319,7 @@ class Ratio(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="vote_ratio_set")
 
-    RATIO_THRESHOLD = 1.0
+    RATIO_THRESHOLD = 0.5
     VOTES_THRESHOLD = 5
     INFINITY = 1000.0 * 1000.0
 
