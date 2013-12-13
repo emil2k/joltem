@@ -596,3 +596,69 @@ class VoteRatioCommentFreezeTest(BaseRatioModelTest):
         self.assertFalse(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 12)
         self.assertEqual(self._load_impact().frozen_impact, 0)
+
+
+class VoteRatioPossibilityTest(BaseRatioModelTest):
+
+    """ Tests votes ratio possible range. """
+
+    def test_max_out_no_solutions(self):
+        """ Test max out with no solutions. """
+        self.assertEqual(self.ratio.maximum_possible_votes_out(), 0)
+
+    def test_max_out_incomplete(self):
+        """ Test max out with an incomplete solution.
+
+        Incomplete solution should not count, because it cannot be voted on.
+
+        """
+        s = self._mock_others_solution()
+        s.mark_incomplete()
+        self.assertEqual(self.ratio.maximum_possible_votes_out(), 0)
+
+    def test_max_out_complete(self):
+        """ Test max out with completed solution. """
+        s = self._mock_others_solution()
+        s.mark_complete()
+        self.assertEqual(self.ratio.maximum_possible_votes_out(), 1)
+
+    def test_max_out_own_solution(self):
+        """ Test max out, that own solution does not count. """
+        s = self._mock_solution()
+        s.mark_complete()
+        self.assertEqual(self.ratio.maximum_possible_votes_out(), 0)
+
+    def test_max_out_voted_valid(self):
+        """ Test max out, already have valid vote on.
+
+        If the user already has a valid vote it should count in max out.
+
+        """
+        s = self._mock_others_solution()
+        s.mark_complete()
+        votes = mixer.cycle(Ratio.VOTES_THRESHOLD-1).blend(
+            'joltem.vote', voteable=s, voter_impact=1, magnitude=1,
+            is_accepted=True)
+        self._mock_add_comment_for_vote(*votes)
+        user_vote = mixer.blend(
+            'joltem.vote', voter=self.user, voteable=s, voter_impact=1,
+            magnitude=1, is_accepted=True)
+        self._mock_add_comment_for_vote(user_vote)
+        vote = mixer.blend(
+            'joltem.vote', voteable=s, voter_impact=1, magnitude=1,
+            is_accepted=True)
+        self._mock_add_comment_for_vote(vote)
+        self.assertEqual(self.ratio.maximum_possible_votes_out(), 1)
+
+    def test_possible(self):
+        """ Test when votes ratio threshold possible. """
+        self._mock_others_solution().mark_complete()
+        s = self._mock_solution()
+        self._mock_valid_solution_vote_in(s)
+        self.assertTrue(self.ratio.is_threshold_possible())
+
+    def test_impossible(self):
+        """ Test when votes ratio threshold impossible. """
+        s = self._mock_solution()
+        self._mock_valid_solution_vote_in(s)
+        self.assertFalse(self.ratio.is_threshold_possible())

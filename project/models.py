@@ -348,12 +348,63 @@ class Ratio(models.Model):
         return ratio
 
     def update_frozen_state(self):
-        """ Update frozen state based on current votes ratio. """
+        """ Update frozen state based on current votes ratio.
+
+        State cannot be frozen if it is impossible for a user to achieve a
+        votes ratio equal to the RATIO_THRESHOLD. This can happen when a user
+        has the majority of completed solutions and there simply isn't enough
+        solutions for the user to review.
+
+        """
         if self.votes_ratio is not None \
+                and self.is_threshold_possible() \
                 and self.votes_ratio < Ratio.RATIO_THRESHOLD:
             self.mark_frozen()
         else:
             self.mark_unfrozen()
+
+    def is_threshold_possible(self):
+        """ Determine whether it is possible to achieve minimum votes ratio.
+
+        :return bool: whether it is possible for the user to achieve a votes
+            ratio equal to the RATIO_THRESHOLD
+
+        """
+        max_out = self.maximum_possible_votes_out()
+        max_ratio = self.get_votes_ratio(votes_out=max_out)
+        return max_ratio >= Ratio.RATIO_THRESHOLD
+
+    # todo test when solution gains vote and becomes not available anymore for votes out
+    def maximum_possible_votes_out(self):
+        """ Calculate the maximum possible votes out.
+
+        Used for determining whether RATIO_THRESHOLD is possible for the user
+        in determining whether to freeze impact earning or not.
+
+        Counts the number of completed solutions, not owned by the user, that
+        have less than the VOTES_THRESHOLD number of votes therefore making
+        it possible for the user to increment the votes out metric via vote.
+
+        :return int: maximum possible votes out
+
+        """
+        max_out = 0
+        solutions = self.project.solution_set.exclude(owner_id=self.user_id)\
+            .filter(is_completed=True)
+        for solution in solutions:
+            valid_count = 0
+            valid_vote = False
+            for vote in solution.vote_set.order_by('time_voted'):
+                if vote.voter_impact > 0 and solution.is_vote_valid(vote):
+                    if valid_count < Ratio.VOTES_THRESHOLD \
+                        and vote.voter_id == self.user_id:
+                            valid_vote = True
+                    valid_count += 1
+            if valid_vote:
+                max_out += 1
+            elif valid_count < Ratio.VOTES_THRESHOLD:
+                max_out += 1
+        return max_out
 
     def mark_frozen(self):
         """ Mark the user impact frozen due to low votes ratio.
@@ -442,14 +493,18 @@ class Ratio(models.Model):
                     break
         return votes_out
 
-    def get_votes_ratio(self):
+    def get_votes_ratio(self, votes_out=None, votes_in=None):
         """ Calculate votes ratio.
 
+        :param votes_out: override votes out
+        :param votes_in: override votes in
         :return float: the votes ratio metric.
 
         """
-        votes_out = self.get_votes_out()
-        votes_in = self.get_votes_in()
+        if votes_out is None:
+            votes_out = self.get_votes_out()
+        if votes_in is None:
+            votes_in = self.get_votes_in()
         if votes_in:
             return float(votes_out) / votes_in
         elif votes_out:
