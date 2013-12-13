@@ -9,7 +9,7 @@ from django.views.generic import TemplateView, UpdateView
 from django.views.generic.edit import BaseFormView
 
 from .forms import ProjectSettingsForm, ProjectSubscribeForm
-from .models import Project
+from .models import Project, Impact, Ratio
 from joltem.views.generic import RequestBaseView, ValidUserMixin
 
 
@@ -59,12 +59,45 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
     template_name = "project/project.html"
     form_class = ProjectSubscribeForm
 
+    def load_project_impact(self):
+        """ Load the user's project impact.
+
+        :return Impact: defaults to None if DoesNotExist
+
+        """
+        try:
+            return Impact.objects.get(
+                project_id=self.project.id, user_id=self.user.id)
+        except Impact.DoesNotExist:
+            return None
+
+    def load_project_ratio(self):
+        """ Load the user's project ratio.
+
+        :return Ratio: defaults to None if DoesNotExist
+
+        """
+        try:
+            return Ratio.objects.get(
+                project_id=self.project.id, user_id=self.user.id)
+        except Ratio.DoesNotExist:
+            return None
+
     def get_context_data(self, **kwargs):
         """ Get context for templates.
+
+
+        Loads and caches a project specific overview, also loads the user's
+        project specific impact and ratio to pass to the context.
+
 
         :return dict: A context
 
         """
+        # User specific
+        kwargs['project_impact'] = self.load_project_impact()
+        kwargs['project_ratio'] = self.load_project_ratio()
+        # Project specific
         key = 'project:overview:%s' % self.project.id
         overview = cache.get(key)
         if not overview:

@@ -48,7 +48,16 @@ A vote of 0 represents unacceptable work, any vote above 0 is regarded as accept
 
 If you find the work is acceptable you should decide whether the work is a 10, 100, 10^3, … or 10^6 on your own evaluation scale. Votes above 10 require sufficient justification from other votes to count, otherwise they will default to a lower level.
 
-The peer review system is crucial to the health of the system, so it is important we get feedback and debate tweaks and alternatives. If you have a suggestion leave a comment on the [current live solution](http://joltem.com/joltem/solution/1/) or create your own solution on the [Determining Impact task](http://joltem.com/joltem/task/6/).
+The peer review system is crucial to the health of the system, so it is important we get feedback and debate tweaks and alternatives. If you have a suggestion leave a comment on the [current live solution](http://joltem.com/joltem/solution/1/) or create your own solution on the [Determining Impact](http://joltem.com/joltem/task/6/) task.
+
+<a name="ratio" class="anchor-fix"></a>
+#### What is the votes ratio?
+
+The  **votes ratio** is meant to couple reviewing with earning of impact. 
+
+Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational](http://joltem.com/joltem/task/45/) task and the [current live solution](http://joltem.com/joltem/solution/48/).
+
+If your votes ratio drops below a certain threshold you are still able to earn impact, however the impact you earn will be withheld until the votes ratio is raised back up again.
 
 <a name="exchange" class="anchor-fix"></a>
 #### How is impact exchanged for equity?

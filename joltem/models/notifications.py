@@ -109,8 +109,15 @@ class Notifying(models.Model):
         abstract = True
 
     def notify(self, user, ntype, update=False, kwargs=None):
-        """ Send notification to user. """
+        """ Send notification to user.
 
+        :param user: user to notify.
+        :param ntype: a string that identifies the notification type.
+        :param update: whether to replace previous notification of the same
+            type or create a new notification.
+        :param kwargs: extra options to pass for rending the notification.
+
+        """
         if kwargs is None:
             kwargs = {}
 

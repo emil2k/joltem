@@ -74,7 +74,7 @@ class Solution(Voteable, Commentable, Updatable):
         a comment in the solution review.
 
         """
-        return vote.is_accepted or self.has_commented(vote.voter_id)
+        return self.has_commented(vote.voter_id)
 
     @property
     def default_title(self):
@@ -118,9 +118,12 @@ class Solution(Voteable, Commentable, Updatable):
                 task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
-    def has_commented(self, user_id):
-        """ Return whether passed user has commented on the solution. """
-        return self.comment_set.count() > 0
+    def save(self, **kwargs):
+        """ Notify at creation. """
+        created = not self.pk
+        super(Solution, self).save(**kwargs)
+        if created:
+            self.notify_created()
 
     def mark_complete(self):
         """ Mark the solution complete. """
