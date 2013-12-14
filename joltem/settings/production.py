@@ -83,6 +83,11 @@ CELERYBEAT_SCHEDULE = {
         'task': 'joltem.tasks.daily_diggest',
         'schedule': timedelta(hours=24),
         'args': (),
+    },
+    'activity-feed': {
+        'task': 'project.tasks.prepare_activity_feeds',
+        'schedule': timedelta(hours=24),
+        'args': (),
     }
 }
 
