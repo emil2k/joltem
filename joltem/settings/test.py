@@ -25,5 +25,8 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # Celery
 CELERY_ALWAYS_EAGER = True
 
+# Haystack
+HAYSTACK_CONNECTIONS['default']['PATH'] = '/tmp/whoosh'
+
 
 logging.info("Test settings loaded.")

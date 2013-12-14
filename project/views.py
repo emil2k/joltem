@@ -11,6 +11,7 @@ from django.views.generic.edit import BaseFormView
 from .forms import ProjectSettingsForm, ProjectSubscribeForm
 from .models import Project, Impact, Ratio
 from joltem.views.generic import RequestBaseView, ValidUserMixin
+from haystack.query import SearchQuerySet
 
 
 class ProjectMixin(ValidUserMixin):
@@ -161,3 +162,24 @@ class ProjectSettingsView(UpdateView, ProjectBaseView):
         return reverse('project:settings', kwargs={
             'project_name': self.project.name
         })
+
+
+class ProjectSearchView(ProjectBaseView, TemplateView):
+
+    """ Search by project. """
+
+    template_name = 'project/search.html'
+
+    def get_context_data(self, **kwargs):
+        """ Search by project.
+
+        :return dict:
+
+        """
+        query = self.request.GET.get('q', '')
+        results = []
+        if query:
+            results = SearchQuerySet().filter(
+                content=query, project=self.project.title).load_all()
+        return super(ProjectSearchView, self).get_context_data(
+            results=results, query=query, **kwargs)
