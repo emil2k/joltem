@@ -2,6 +2,7 @@
 
 	* Added activity feed
 	* Fix notification templates
+	* Setup debian package
 
 2013-12-02  emil
 	* Added user groups admins, managers, and developers.
