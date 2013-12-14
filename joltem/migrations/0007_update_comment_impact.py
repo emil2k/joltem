@@ -7,6 +7,10 @@ from joltem.models import Comment
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ('project', '0004_ratio'),
+    )
+
     def forwards(self, orm):
         """ Update comment impact and acceptance.
 

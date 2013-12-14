@@ -69,8 +69,9 @@ class Migration(SchemaMigration):
         },
         u'project.impact': {
             'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Impact'},
+            'frozen_impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'impact_set'", 'to': u"orm['joltem.User']"})
         },
@@ -81,9 +82,20 @@ class Migration(SchemaMigration):
             'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'developer_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'manager_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'subscriber_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'subscriber_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
+        u'project.ratio': {
+            'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Ratio'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_frozen': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_frozen': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vote_ratio_set'", 'to': u"orm['joltem.User']"}),
+            'votes_in': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'votes_out': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'votes_ratio': ('django.db.models.fields.FloatField', [], {'null': 'True'})
         }
     }
 
