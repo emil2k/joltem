@@ -92,14 +92,6 @@ class Notification(models.Model):
         """
         return self.notifying.get_notification_text(self)
 
-    def get_url(self):
-        """ Get notification URL.
-
-        :return str:
-
-        """
-        return self.notifying.get_notification_url(self)
-
 
 class Notifying(models.Model):
 
