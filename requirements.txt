@@ -24,6 +24,7 @@ redis==2.8.0
 Werkzeug==0.9.4
 django-debug-toolbar==0.10.2
 django-extensions==1.2.5
+gunicorn==18.0
 
 # Tests
 # =====
