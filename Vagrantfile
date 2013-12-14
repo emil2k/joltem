@@ -17,7 +17,7 @@ Vagrant.configure('2') do |config|
   config.vm.synced_folder './deploy/salt/roots/', '/srv/'
 
   config.vm.provision :salt do |salt|
-    salt.minion_config = 'salt/minion.conf'
+    salt.minion_config = './deploy/salt/minion.conf'
     salt.run_highstate = true
     salt.verbose = true
   end
