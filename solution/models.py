@@ -212,7 +212,7 @@ class Solution(Voteable, Commentable, Updatable):
         """ Return notification text for when vote added. """
         first_names = self.get_voter_first_names(
             queryset=self.vote_set.select_related('voter').exclude(
-                owner=notification.user).order_by("-time_voted")
+                voter=notification.user).order_by("-time_voted")
         )
         return "%s voted on your solution \"%s\"" % \
                (list_string_join(first_names), self.default_title)

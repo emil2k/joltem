@@ -1,22 +1,18 @@
 """ Tests for notifications. """
-
 import time
 
-from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
 from django.core import mail
+from django.test import TestCase, testcases
 
 from ..libs.mix import mixer
-
 from ..libs.mock.models import (get_mock_project, get_mock_task,
                                 get_mock_solution, get_mock_user)
-
+from ..models import User
 from ..models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
                                NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-from ..models import User, Notification
 from ..models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                             NOTIFICATION_TYPE_VOTE_UPDATED)
-
 from solution.models import (NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                              NOTIFICATION_TYPE_SOLUTION_POSTED)
 from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
@@ -621,13 +617,11 @@ class EmailNotificationTestCase(TestCase):
         m = mail.outbox.pop()
         self.assertEqual(m.recipients(), [task.owner.email])
         self.assertEqual(m.subject, '[joltem.com] comment_added')
-        notification = Notification.objects.last()
 
         self.assertTrue('%s commented on task "%s"' % (
             self.mike.first_name,
             task.title
         ) in m.body)
-        self.assertTrue(notification.get_url() in m.body)
 
         task.notify_comment_added(comment)
         self.assertFalse(mail.outbox)
