@@ -18,17 +18,19 @@ class BaseTaskViewTest(BaseProjectViewTest):
         super(BaseTaskViewTest, self).setUp()
         self.task = models.get_mock_task(self.project, self.user)
 
-    def _get(self, view):
+    def _get(self, view, task=None):
         """ Get GET response on given task view.
 
         :param view: view to test.
         :return: HTTP response.
 
         """
+        if task is None:
+            task = self.task
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
-        return view(request, project_name=self.project.name,
-                    task_id=self.task.id)
+        return view(request, project_name=task.project.name,
+                    task_id=task.id)
 
     def _post(self, view, data):
         """ Get POST response on given task view.
@@ -49,7 +51,11 @@ class TaskViewTest(BaseTaskViewTest):
 
     def test_task_view_get(self):
         """ Test simple GET of task view. """
-        response = self._get(views.TaskView.as_view())
+        task = mixer.blend('task.task', project=self.project)
+        response = self._get(views.TaskView.as_view(), task=task)
+        response = response.render()
+        self.assertContains(response, '<h4><a href="/user/%s/">%s</a></h4>' % (
+            task.author.username, task.author.first_name))
         self.assertTrue(response.status_code, 200)
 
     def _test_task_view_action(self, action):
@@ -88,7 +94,16 @@ class TaskListViewTests(BaseProjectViewTest):
 
     def test_get_my_open_tasks(self):
         """ Test simple GET of my open tasks view. """
-        self._test_get_task_list(views.MyOpenTasksView.as_view())
+        task = mixer.blend(
+            'task.task', project=self.project, owner=self.user,
+            is_accepted=True)
+        response = self._get(views.MyOpenTasksView.as_view())
+        response = response.render()
+        self.assertContains(
+            response,
+            'by <a href="/user/%s/" class="muted">%s</a>' % (
+                task.author.username, task.author.first_name
+            ))
 
     def test_get_my_closed_tasks(self):
         """ Test simple GET of my closed tasks view. """
