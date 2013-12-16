@@ -104,7 +104,8 @@ class NotificationsView(RequestBaseView, ListView):
         :return list:
 
         """
-        notifications = self.user.notification_set.select_related().all()
+        notifications = self.user.notification_set.select_related()\
+            .order_by('-time_notified')
         cache = defaultdict(list)
         for notify in notifications:
             cache[notify.notifying_type].append(notify.notifying_id)
