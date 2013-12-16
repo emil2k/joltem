@@ -132,10 +132,8 @@ class SignUpView(ExtraContextMixin, CreateView):
             password=form.cleaned_data['password1'],
         )
         login(self.request, user)
-
-        if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
-            user.save()
-
+        user.gravatar = form.cleaned_data['gravatar_email']
+        user.save()
         return response
 
     def get_form_kwargs(self):
@@ -149,6 +147,7 @@ class SignUpView(ExtraContextMixin, CreateView):
         for oauth in self.request.session.get('oauth', {}).values():
             initial.setdefault('username', oauth.get('username'))
             initial.setdefault('email', oauth.get('email'))
+            initial.setdefault('gravatar_email', oauth.get('email'))
             initial.setdefault('first_name', oauth.get('first_name'))
             initial.setdefault('last_name', oauth.get('last_name'))
         return kwargs
@@ -184,11 +183,9 @@ class GeneralSettingsView(BaseAccountView, UpdateView):
 
         """
         response = super(GeneralSettingsView, self).form_valid(form)
-
         user = form.instance
-        if user.set_gravatar_email(form.cleaned_data['gravatar_email']):
-            user.save()
-
+        user.gravatar = form.cleaned_data['gravatar_email']
+        user.save()
         return response
 
     def get_context_data(self, **kwargs):

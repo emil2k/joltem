@@ -50,13 +50,17 @@ class User(AbstractUser):
     def get_completed(self):
         return self.solution_set.filter(is_completed=True).count()
 
-    def set_gravatar_email(self, gravatar_email):
+    @property
+    def gravatar(self):
+        """ Return the gravatar image source url. """
+        return 'https://secure.gravatar.com/avatar/%s' % self.gravatar_hash
+
+    @gravatar.setter
+    def gravatar(self, email):
+        """ Set the gravatar hash and email properties.
+
+        :param email: gravatar email.
+
         """
-        Set gravatar email and hash, checks if changed from old
-        return boolean whether changed value or not
-        """
-        if self.gravatar_email != gravatar_email:
-            self.gravatar_email = gravatar_email
-            self.gravatar_hash = hashlib.md5(gravatar_email).hexdigest()
-            return True
-        return False
+        self.gravatar_email = email
+        self.gravatar_hash = hashlib.md5(email).hexdigest()
