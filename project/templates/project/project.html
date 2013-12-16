@@ -1,29 +1,6 @@
 {% extends 'project/base.html' %}
 {% load filters %}
 {% block project_content %}
-    <h3>{{ project.title }}</h3>
-    <div class="clearfix">
-        <form class="form-search pull-left" method="GET" action="./search/">
-            <div class="input-append">
-                <input type="text" name="q" class="search-query span5" value="{{ query }}">
-                <button type="submit" class="btn">Search</button>
-            </div>
-        </form>
-        <form class="pull-right" method="POST" accept-charset="utf-8" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
-            <div class="btn-group">
-                {% if not subscribe %}
-                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> <span class="hidden-phone">watch</span></button>
-                {% else %}
-                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> <span class="hidden-phone">unwatch</span></button>
-                {% endif %}
-                {% if is_admin %}
-                    <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i><span class="hidden-phone"> settings</span></a>
-                {% endif %}
-            </div>
-        </form>
-    </div>
     {% if project_ratio and project_ratio.is_frozen %}
         <div class="alert">
             <strong><i class="fa fa-warning"></i> Your votes ratio is low ( <a href="#" title="show / hide details" onclick="$('#votes-ratio-details').toggle(); return false;">{{ project_ratio.votes_ratio|floatformat:2 }}</a>
@@ -41,103 +18,88 @@
             <a href="{% url 'help:index' %}#ratio">What is the votes ratio?</a>
         </div>
     {% endif %}
+
     <div class="row">
-        <div class="span3">
+        <div class="span3 text-center">
+            <h3 style="padding: 0; margin: 0;">{{ project.title }}</h3>
+        </div>
+        <div class="span5 text-center">
+            <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                <div class="btn-group">
+                    {% if not subscribe %}
+                        <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                    {% else %}
+                        <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                    {% endif %}
+                    {% if is_admin %}
+                        <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i> settings</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        <div class="span4 text-center">
+            <form class="form-search" method="GET" action="./search/">
+                <div class="input-append">
+                    <input type="text" name="q" class="search-query" value="{{ query }}">
+                    <button type="submit" class="btn">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span3 text-center">
             {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
-        </div>
-        <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
-        </div>
-        <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
-        </div>
-        <div class="span3">
             {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
         </div>
-    </div>
-    <div class="row">
-        <div class="span6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        <i class="fa fa-clock-o"></i>
-                        Recent Tasks
-                    </h3>
+        <div class="span5">
+            <h4>Recent tasks</h4>
+            {% for task in tasks %}
+                <div class="list-group-item">
+                    <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
+                    <a href="{% url 'project:task:task' project.name task.id %}">
+                        {% if task.is_closed %}
+                            <i class="fa fa-check" title="closed"></i>
+                        {% elif task.is_reviewed %}
+                            <i class="fa fa-flag" title="reviewed"></i>
+                        {% else %}
+                            <i class="fa fa-file-o" title="accepted"></i>
+                        {% endif %}
+                        {{ task.title|default:"No title" }}</a>
                 </div>
-                <div class="panel-body">
-                    <div class="list-group">
-                        {% for task in tasks %}
-                            <div class="list-group-item">
-                                <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
-                                <a href="{% url 'project:task:task' project.name task.id %}">
-                                    {% if task.is_closed %}
-                                        <i class="fa fa-check" title="closed"></i>
-                                    {% elif task.is_reviewed %}
-                                        <i class="fa fa-flag" title="reviewed"></i>
-                                    {% else %}
-                                        <i class="fa fa-file-o" title="accepted"></i>
-                                    {% endif %}
-                                    {{ task.title|default:"No title" }}</a>
-                            </div>
-                        {% empty %}
-                            <p class="muted">There are no tasks.</p>
-                        {% endfor %}
-                    </div>
+            {% empty %}
+                <p class="muted">There are no tasks.</p>
+            {% endfor %}
+            <h4>Recent solutions</h4>
+            {% for solution in solutions %}
+                <div class="list-group-item">
+                    <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
+                    <a href="{% url 'project:solution:solution' project.name solution.id %}">
+                        {% if solution.is_completed %}
+                            <i class="fa fa-check" title="completed"></i>
+                        {% else %}
+                            <i class="fa fa-pencil-square-o" title="open"></i>
+                        {% endif %}
+                        {{ solution.default_title }}</a>
                 </div>
-            </div>
+            {% empty %}
+                <p class="muted">There are no solutions.</p>
+            {% endfor %}
         </div>
-        <div class="span6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        <i class="fa fa-clock-o"></i>
-                        Recent Solutions
-                    </h3>
+        <div class="span4">
+            <h4>Recent comments</h4>
+            {% for comment in comments %}
+                <div class="list-group-item">
+                    <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
+                    <a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a>
+                    <a href="{{ comment.get_comment_url }}">commented {{ comment.commentable_type }} "{{ comment.commentable.default_title }}".</a>
                 </div>
-                <div class="panel-body">
-                    <div class="list-group">
-                        {% for solution in solutions %}
-                            <div class="list-group-item">
-                                <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
-                                <a href="{% url 'project:solution:solution' project.name solution.id %}">
-                                    {% if solution.is_completed %}
-                                        <i class="fa fa-check" title="completed"></i>
-                                    {% else %}
-                                        <i class="fa fa-pencil-square-o" title="open"></i>
-                                    {% endif %}
-                                    {{ solution.default_title }}</a>
-                            </div>
-                        {% empty %}
-                            <p class="muted">There are no solutions.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="span6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        <i class="fa fa-clock-o"></i>
-                        Recent Comments
-                    </h3>
-                </div>
-                <div class="panel-body">
-                    <div class="list-group">
-                        {% for comment in comments %}
-                            <div class="list-group-item">
-                                <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
-                                <a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a>
-                                <a href="{{ comment.get_comment_url }}">commented {{ comment.commentable_type }} "{{ comment.commentable.default_title }}".</a>
-                            </div>
-                        {% empty %}
-                            <p class="muted">There are no comments.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+            {% empty %}
+                <p class="muted">There are no comments.</p>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}
