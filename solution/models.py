@@ -118,13 +118,6 @@ class Solution(Voteable, Commentable, Updatable):
                 task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
-    def save(self, **kwargs):
-        """ Notify at creation. """
-        created = not self.pk
-        super(Solution, self).save(**kwargs)
-        if created:
-            self.notify_created()
-
     def mark_complete(self):
         """ Mark the solution complete. """
         self.is_completed = True
@@ -209,8 +202,8 @@ class Solution(Voteable, Commentable, Updatable):
     def get_notification_text_comment_added(self, notification):
         """ Return notification text for when comment added. """
         first_names = self.get_commentator_first_names(
-            queryset=self.comment_set.all().order_by("-time_commented"),
-            exclude=[notification.user]
+            queryset=self.comment_set.select_related('owner').exclude(
+                owner=notification.user).order_by("-time_commented")
         )
         return "%s commented on solution \"%s\"" % \
                (list_string_join(first_names), self.default_title)
@@ -218,8 +211,8 @@ class Solution(Voteable, Commentable, Updatable):
     def get_notification_text_vote_added(self, notification):
         """ Return notification text for when vote added. """
         first_names = self.get_voter_first_names(
-            queryset=self.vote_set.all().order_by("-time_voted"),
-            exclude=[notification.user]
+            queryset=self.vote_set.select_related('voter').exclude(
+                voter=notification.user).order_by("-time_voted")
         )
         return "%s voted on your solution \"%s\"" % \
                (list_string_join(first_names), self.default_title)

@@ -2,7 +2,9 @@
 """ Joltem views. """
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import TemplateView, RedirectView, View, DetailView
+from django.views.generic import (
+    TemplateView, RedirectView, View, DetailView, ListView)
+from collections import defaultdict
 
 from joltem.models import Notification, Comment, User
 from project.models import Project
@@ -65,11 +67,12 @@ class CommentView(View):
         return HttpResponse(comment.comment)
 
 
-class NotificationsView(TemplateView, RequestBaseView):
+class NotificationsView(RequestBaseView, ListView):
 
     """ Displays the users notifications. """
 
     template_name = "joltem/notifications.html"
+    paginate_by = 10
 
     @staticmethod
     def post(request, *args, **kwargs):
@@ -91,11 +94,30 @@ class NotificationsView(TemplateView, RequestBaseView):
         :return dict:
 
         """
-        from joltem.holders import NotificationHolder
         kwargs["nav_tab"] = "notifications"
-        kwargs["notifications"] = NotificationHolder.get_notifications(
-            self.user)
+
         return super(NotificationsView, self).get_context_data(**kwargs)
+
+    def get_queryset(self):
+        """ Preload notifications.
+
+        :return list:
+
+        """
+        notifications = self.user.notification_set.select_related()\
+            .order_by('-time_notified')
+        cache = defaultdict(list)
+        for notify in notifications:
+            cache[notify.notifying_type].append(notify.notifying_id)
+
+        for ct_type in cache.keys():
+            cache[ct_type] = ct_type.model_class().objects.select_related()\
+                .in_bulk(cache[ct_type])
+
+        for notify in notifications:
+            notify.notifying = cache[notify.notifying_type][notify.notifying_id]
+
+        return notifications
 
 
 class NotificationRedirectView(RedirectView):

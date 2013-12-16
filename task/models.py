@@ -244,8 +244,8 @@ class Task(Commentable, Updatable):
 
         if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             first_names = self.get_commentator_first_names(
-                queryset=self.comment_set.all().order_by("-time_commented"),
-                exclude=[notification.user]
+                queryset=self.comment_set.select_related('owner').exclude(
+                    owner=notification.user).order_by("-time_commented")
             )
             return "%s commented on task \"%s\"" % (
                 list_string_join(first_names), self.title)
