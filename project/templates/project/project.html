@@ -7,7 +7,11 @@
                 {% csrf_token %}
                 <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
                 <div class="btn-group pull-right">
-                    <button class="btn {{ subscribe|is_true:"btn-danger" }}" title="Watch project." type="Submit"><i class="fa fa-eye"></i><span class="hidden-phone"> {{ subscribe|is_true:"unwatch" }}{{ subscribe|is_false:"watch" }}</span></button>
+                    {% if not subscribe %}
+                        <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> <span class="hidden-phone">watch</span></button>
+                    {% else %}
+                        <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> <span class="hidden-phone">unwatch</span></button>
+                    {% endif %}
                     {% if is_admin %}
                         <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i><span class="hidden-phone"> settings</span></a>
                     {% endif %}
