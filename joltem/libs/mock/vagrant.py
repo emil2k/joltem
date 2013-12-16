@@ -18,11 +18,10 @@ def initialize_data():
                         password='123')
     project.admin_set.add(admin)
     project.save()
-    usernames = ('becky', 'bob', 'ian', 'jill', 'kate', 'will')
-    first_names = ('Becky', 'Bob', 'Ian', 'Iill', 'Kate', 'Will')
+    first_names = ('Becky', 'Bob', 'Ian', 'Jill', 'Kate', 'Will')
     mixer.cycle(6).blend('joltem.user',
-                         username=(username for username in usernames),
-                         first_names=(first_name for first_name in first_names),
+                         first_name=(first_name for first_name in first_names),
+                         username=mixer.mix.first_name(lambda x: x.lower()),
                          password='123')
 
 
