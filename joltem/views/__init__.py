@@ -83,9 +83,8 @@ class NotificationsView(RequestBaseView, ListView):
         """
 
         if request.POST.get("clear_all"):
-            for notification in request.user.notification_set.filter(
-                    is_cleared=False):
-                notification.mark_cleared()
+            request.user.notification_set.filter(
+                is_cleared=False).mark_cleared()
         return redirect("notifications")
 
     def get_context_data(self, **kwargs):
