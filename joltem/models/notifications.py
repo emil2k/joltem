@@ -3,10 +3,12 @@
 import logging
 
 from django.db import models
+from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
+from model_utils.managers import PassThroughManager
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 
@@ -20,7 +22,24 @@ import json
 logger = logging.getLogger('django')
 
 
-# Notification related
+class NotificationQuerySet(QuerySet):
+
+    """ Operations with notifications. """
+
+    def mark_cleared(self):
+        """ Mark self query as cleared.
+
+        :return Notification:
+
+        """
+        notifications = list(self.select_related('user'))
+        self.update(is_cleared=True, time_cleared=timezone.now())
+        for user in set(n.user for n in notifications):
+            user.notifications = user.notification_set.filter(
+                is_cleared=False).count()
+            user.save()
+        return self
+
 
 class Notification(models.Model):
 
@@ -42,11 +61,14 @@ class Notification(models.Model):
     notifying_id = models.PositiveIntegerField()
     notifying = generic.GenericForeignKey('notifying_type', 'notifying_id')
 
+    objects = PassThroughManager.for_queryset_class(NotificationQuerySet)()
+
     class Meta:
         app_label = "joltem"
 
     def __unicode__(self):
-        return u"%s [%s]" % (self.type, self.user.username)
+        return u"%s%s [%s]" % (
+            self.type, self.is_cleared and '-' or '+', self.user.username)
 
     @property
     def kwargs(self):
@@ -72,9 +94,10 @@ class Notification(models.Model):
         :return Notification:
 
         """
-        self.is_cleared = True
-        self.time_cleared = timezone.now()
-        return self.save()
+        [n] = type(self).objects.filter(pk=self.pk).mark_cleared()
+        self.is_cleared = n.is_cleared
+        self.time_cleared = n.time_cleared
+        return self
 
     def send_mail(self):
         """ Send email to self.user.

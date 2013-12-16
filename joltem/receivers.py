@@ -48,6 +48,7 @@ def update_project_metrics_from_vote(sender, **kwargs):
         Ratio.update(solution.project_id, solution.owner_id)
         Ratio.update(solution.project_id, vote.voter_id)
 
+
 def update_project_metrics_from_comment(sender, **kwargs):
     """ Update project specific vote ratio due to comment.
 
@@ -63,7 +64,7 @@ def update_project_metrics_from_comment(sender, **kwargs):
     solution_type = ContentType.objects.get_for_model(Solution)
     comment = kwargs.get('instance')
     if comment and comment.commentable and \
-                    comment.commentable_type_id == solution_type.id:
+            comment.commentable_type_id == solution_type.id:
         solution = comment.commentable
         Ratio.update(solution.project_id, solution.owner_id)
         Ratio.update(solution.project_id, comment.owner_id)
