@@ -115,6 +115,8 @@ class CommonNotificationTestCase(BaseNotificationTestCase):
         self.assertEqual(n.is_cleared, True)
         self.assertEqual(
             self.bob.notification_set.filter(is_cleared=False).count(), 2)
+        self.bob = type(self.bob).objects.get(pk=self.bob.pk)
+        self.assertEqual(self.bob.notifications, 2)
 
         Notification.objects.filter(user=self.jill).mark_cleared()
         self.assertFalse(self.jill.notification_set.filter(is_cleared=False))
@@ -122,6 +124,8 @@ class CommonNotificationTestCase(BaseNotificationTestCase):
 
         Notification.objects.filter(user=self.bob).mark_cleared()
         self.assertFalse(self.bob.notification_set.filter(is_cleared=False))
+        self.bob = type(self.bob).objects.get(pk=self.bob.pk)
+        self.assertEqual(self.bob.notifications, 0)
 
 
 class TasksNotificationTestCase(BaseNotificationTestCase):

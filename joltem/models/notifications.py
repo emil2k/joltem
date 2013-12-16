@@ -32,11 +32,9 @@ class NotificationQuerySet(QuerySet):
         :return Notification:
 
         """
-        from joltem.models import User
-
+        notifications = list(self.select_related('user'))
         self.update(is_cleared=True, time_cleared=timezone.now())
-        users = User.objects.filter(pk__in=set(n.user_id for n in self))
-        for user in users:
+        for user in set(n.user for n in notifications):
             user.notifications = user.notification_set.filter(
                 is_cleared=False).count()
             user.save()
@@ -69,7 +67,8 @@ class Notification(models.Model):
         app_label = "joltem"
 
     def __unicode__(self):
-        return u"%s [%s]" % (self.type, self.user.username)
+        return u"%s%s [%s]" % (
+            self.type, self.is_cleared and '-' or '+', self.user.username)
 
     @property
     def kwargs(self):

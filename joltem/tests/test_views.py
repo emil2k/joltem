@@ -33,10 +33,15 @@ class TestJoltemViews(TestCase):
             response = self.client.get('/notifications/')
         self.assertContains(response, guest.first_name)
 
-        self.assertTrue(
-            self.user.notification_set.filter(is_cleared=False).count())
-        with self.assertNumQueries(3):
+        self.user.notifications = self.user.notification_set.filter(
+            is_cleared=False).count()
+        self.assertTrue(self.user.notifications)
+        self.user.save()
+
+        with self.assertNumQueries(5):
             response = self.client.post('/notifications/', data=dict(
                 clear_all=True))
         self.assertFalse(
             self.user.notification_set.filter(is_cleared=False).count())
+        self.user = type(self.user).objects.get(pk=self.user.pk)
+        self.assertFalse(self.user.notifications)
