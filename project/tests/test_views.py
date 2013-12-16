@@ -156,3 +156,20 @@ class TestProjectSettingsView(TestCase):
 
         self.client.post(uri, data=dict(subscribe=''))
         self.assertFalse(self.user in self.project.subscriber_set.all())
+
+
+class TestProjectSearch(TestCase):
+
+    """ Test project search view. """
+
+    def setUp(self):
+        self.project = mixer.blend('project.project')
+        self.user = mixer.blend('joltem.user', password='test')
+        self.uri = reverse(
+            'project:search', kwargs=dict(project_name=self.project.name))
+
+    def test_search(self):
+        mixer.blend('task.task', description='hello world')
+        self.client.login(username=self.user.username, password='test')
+        response = self.client.get(self.uri, data=dict(q='hello'))
+        self.assertContains(response, 'search')

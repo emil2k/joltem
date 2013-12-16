@@ -66,6 +66,16 @@ CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
 SECRET_KEY = 'imsosecret'
 
+# Haystack settings
+INSTALLED_APPS += 'haystack',
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': op.join(PROJECT_ROOT, 'whoosh_index'),
+    }
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
 # Gateway settings
 GATEWAY_PORT = 22
 GATEWAY_HOST = 'joltem.com'

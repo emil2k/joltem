@@ -14,6 +14,18 @@
                 </div>
             </form>
     </div>
+
+    <div class="row">
+        <div class="span12">
+            <form class="form-search" method="GET" action="./search/">
+                <div class="input-append">
+                    <input type="text" name="q" class="search-query span5" value="{{ query }}">
+                    <button type="submit" class="btn">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {% if project_ratio and project_ratio.is_frozen %}
         <div class="alert">
             <strong><i class="fa fa-warning"></i> Your votes ratio is low ( <a href="#" title="show / hide details" onclick="$('#votes-ratio-details').toggle(); return false;">{{ project_ratio.votes_ratio|floatformat:2 }}</a>

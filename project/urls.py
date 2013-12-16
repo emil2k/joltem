@@ -12,4 +12,6 @@ urlpatterns = patterns(
     url(r'^git/', include('git.urls', namespace='git')),
     url(r'^task/', include('task.urls', namespace='task')),
     url(r'^solution/', include('solution.urls', namespace='solution')),
+    url(r'^search/', login_required(views.ProjectSearchView.as_view()),
+        name='search'),
 )
