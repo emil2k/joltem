@@ -2,6 +2,12 @@
 
 	* Search in project by tasks and solutions
 
+2013-12-13  emil
+
+    * Implemented votes ratio and impact freezing.
+    * Downgraded impact from comments.
+    * Made all votes public.
+
 2013-12-06  klen
 
 	* Added activity feed
@@ -16,7 +22,7 @@
 2013-11-30  emil
 	* Version 0.6.0
 	* Project dashboard added.
-	* Email notification tempaltes added.
+	* Email notification templates added.
 	* Fixed gateway's cloning bug.
 
 2013-11-25  klen
@@ -40,14 +46,14 @@
 
 	* Version 0.4.3
 	* Support OAuth authentication
-	* Fix solution complete actio
+	* Fix solution complete action
 
 2013-11-19  klen
 
 	* Version 0.3.1
 	* Setup celery
 	* Setup periodical tasks
-	* Setup email motifications (immedeately, daily)
+	* Setup email notifications (immediately, daily)
 	* Add to user 'notify_by_email', 'time_notified' fields
 
 2013-11-17  klen
@@ -69,17 +75,7 @@
 	* Finish deployment joltem.com with chef
 	* Optimize SQL queries in solutions and tasks views
 
-2013-11-12  vagrant
-
-	* Version 0.1.5
-	* Test deploy
-
-2013-11-08  vagrant
-
-	* Version 0.1.2
-	* Release for testing stage environment
-
-2013-11-07  horneds
+2013-11-07  klen
 
 	* Version 0.1.0
-	* Initial release for stage deploing
+	* Initial release for stage deploying
