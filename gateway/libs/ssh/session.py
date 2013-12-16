@@ -11,6 +11,7 @@ from twisted.conch.insults.insults import ServerProtocol
 from twisted.internet import reactor
 
 from django.conf import settings
+from django.db import close_old_connections
 from git.models import Repository
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import (
@@ -24,6 +25,7 @@ class GatewaySession(SSHSession):
 
     def channelOpen(self, specificData):
         """ Bind GatewaySessionInterface. """
+        close_old_connections()
         self.session = GatewaySessionInterface(self.avatar)
 
     def loseConnection(self):
@@ -32,6 +34,7 @@ class GatewaySession(SSHSession):
         Described here : http://twistedmatrix.com/trac/ticket/2754
 
         """
+        close_old_connections()
         if self.client and self.client.transport:
             self.client.transport.loseConnection()
         SSHChannel.loseConnection(self)
