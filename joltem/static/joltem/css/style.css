@@ -48,6 +48,43 @@ body.landing .introduction hr {
     margin: 20px 50px;
 }
 
+@media (max-width: 767px) {
+    body.landing .introduction {
+        font-size: 18px;
+        line-height: 22px;
+        padding: 0 10px;
+    }
+
+    body.landing .introduction .social {
+        font-size: 26px;
+        line-height: 32px;
+        padding: 10px 10px;
+    }
+
+    body.landing .introduction .btn-large {
+        width: 70px;
+        font-size: 14px;
+        line-height: 18px;
+    }
+
+    body.landing .introduction h1 {
+        color: #ffffff;
+        text-transform: lowercase;
+        font-size: 70px;
+        line-height: 80px;
+    }
+
+    body.landing .introduction p {
+        padding: 0 20px;
+    }
+
+    body.landing .introduction hr {
+        border-top: 3px dashed #15455E;
+        border-bottom: none;
+        margin: 20px 50px;
+    }
+}
+
 /*
     Difference viewing styles
 */
