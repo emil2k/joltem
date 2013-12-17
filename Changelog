@@ -1,12 +1,16 @@
+2013-12-17  klen
+
+	* Upgrade to font awesome
+
 2013-12-14  klen
 
 	* Search in project by tasks and solutions
 
 2013-12-13  emil
 
-    * Implemented votes ratio and impact freezing.
-    * Downgraded impact from comments.
-    * Made all votes public.
+	* Implemented votes ratio and impact freezing.
+	* Downgraded impact from comments.
+	* Made all votes public.
 
 2013-12-06  klen
 

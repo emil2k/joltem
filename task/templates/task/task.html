@@ -85,14 +85,14 @@
                             {% csrf_token %}
                             <div class="btn-group">
                                 {% if vote and vote.is_accepted %}
-                                    <button class="btn btn-success" type="submit" name="accept" value="1"><i class="icon-ok icon-white"></i></button>
+                                    <button class="btn btn-success" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
                                 {% else %}
-                                    <button class="btn" type="submit" name="accept" value="1"><i class="icon-ok"></i></button>
+                                    <button class="btn" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
                                 {% endif %}
                                 {% if vote and not vote.is_accepted %}
-                                    <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="icon-remove icon-white"></i></button>
+                                    <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="fa fa-minus"></i></button>
                                 {% else %}
-                                    <button class="btn" type="submit" name="reject" value="1"><i class="icon-remove"></i></button>
+                                    <button class="btn" type="submit" name="reject" value="1"><i class="fa fa-minus"></i></button>
                                 {% endif %}
                             </div>
                         </form>
@@ -102,7 +102,7 @@
                     <div class="span4 text-center">
                         {% for task_vote in task_accept_votes %}
                             <p>
-                                <i class="icon-ok"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
+                                <i class="fa fa-check"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
                                 <small class="muted">{{ task_vote.time_voted|date }} @ {{ task_vote.time_voted|time }}</small>
                             </p>
                         {% endfor %}
@@ -110,7 +110,7 @@
                     <div class="span4 text-center">
                         {% for task_vote in task_reject_votes %}
                             <p>
-                                <i class="icon-remove"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
+                                <i class="fa fa-minus"></i> <b>from {{ task_vote.voter.first_name }}</b><br/>
                                 <small class="muted">{{ task_vote.time_voted|date }} @ {{ task_vote.time_voted|time }}</small>
                             </p>
                         {% endfor %}
