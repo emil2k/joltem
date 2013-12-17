@@ -1,4 +1,54 @@
 /*
+    Landing page
+*/
+
+body.landing {
+    background-color: #15455E;
+    background-image: url(../img/joltem-landing-page-background.png);
+    background-size: cover;
+    background-repeat: repeat-y;
+}
+
+body.landing .introduction {
+    color: #d6d6d6;
+    font-size: 20px;
+    line-height: 26px;
+    padding: 0 50px;
+}
+
+body.landing .introduction .tagline {
+    color: #9BCDE8;
+}
+
+body.landing .introduction .social {
+    color: #CDE6F4;
+    font-size: 36px;
+    line-height: 42px;
+    padding: 15px 15px;
+}
+
+body.landing .introduction .btn-large {
+    width: 100px;
+}
+
+body.landing .introduction h1 {
+    color: #ffffff;
+    text-transform: lowercase;
+    font-size: 70px;
+    line-height: 80px;
+}
+
+body.landing .introduction p {
+    padding: 0 50px;
+}
+
+body.landing .introduction hr {
+    border-top: 3px dashed #15455E;
+    border-bottom: none;
+    margin: 20px 50px;
+}
+
+/*
     Difference viewing styles
 */
 

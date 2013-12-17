@@ -11,12 +11,13 @@ from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
-class HomeView(View):
+class HomeView(TemplateView):
 
     """ View to serve up homepage. """
 
-    @staticmethod
-    def get(request, *args, **kwargs):
+    template_name = 'joltem/landing.html'
+
+    def get(self, request, *args, **kwargs):
         """ Handle GET request.
 
         If user is authenticated redirect to project dashboard.
@@ -32,8 +33,8 @@ class HomeView(View):
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
             return redirect('project:project', project_name=project.name)
-        return redirect('sign_in')
-
+        else:
+            return self.render_to_response(context={})
 
 class UserView(DetailView):
 

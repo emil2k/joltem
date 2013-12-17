@@ -1,0 +1,25 @@
+{% extends 'joltem/base.html' %}
+{% block title %}Joltem - An Open Incubator{% endblock %}
+{% block body_class %}landing{% endblock %}
+{% block content %}
+    <div class="introduction text-center">
+        <h1>an open incubator.</h1>
+        <p class="tagline">
+            openly collaborate to build and launch a business.
+        </p>
+        <hr/>
+        <p>
+            We are openly building a platform to make it easy to spontaneously come together and build for-profit businesses.
+        </p>
+        <p>
+            <a class="btn btn-large" href="{% url 'project:project' 'joltem' %}"><b>enter</b></a>
+            <a class="btn btn-large" href="{% url 'help:index' %}"><b>more info</b></a>
+        </p>
+        <p>
+            <a href="https://twitter.com/thejolted"><i class="fa fa-twitter social"></i></a>
+            <a href="https://plus.google.com/u/0/106027363250938473661/"><i class="fa fa-google-plus social"></i></a>
+            <a href="https://www.facebook.com/joltem"><i class="fa fa-facebook social"></i></a>
+        </p>
+    </div>
+{% endblock %}
+{% block footer %}{% endblock %}

@@ -49,8 +49,8 @@
     </style>
 </head>
 
-<body>
-
+<body class="{% block body_class %}{% endblock %}">
+{% block navbar %}
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <div class="container">
@@ -95,21 +95,19 @@
         </div>
     </div>
 </div>
-
+{% endblock %}
 <div class="container">
-    {% for message in messages %}
-        <div class="alert">{{ message }}</div>
-    {% endfor %}
     {% block content %}{% endblock %}
 </div> <!-- /container -->
 
-
+{% block footer %}
 <div id="footer">
     <div class="container">
         <hr/>
         <p class="muted credit text-center">&copy; Joltem</p>
     </div>
 </div>
+{% endblock %}
 
 {% if DEBUG %}
     <script src="{% static 'joltem/js/jquery.js' %}"></script>
