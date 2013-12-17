@@ -23,32 +23,30 @@
             {{ user.impact }} impact on {{ user.completed }} completed solution{{ user.completed|pluralize }}.
         </h4>
         <small class="muted">Joined {{ user.date_joined|date }}</small>
-        <div>
-            {% for service in services %}
-                <a href="{{ service.get_profile_url }}"><b class="fa fa-{{ service.service }}"></b> {{ service.username|default:service.service }}</a>
-            {% endfor %}
-        </div>
+        <p>
+            <div class="btn-group">
+                {% for service in services %}
+                    <a class="btn" href="{{ service.get_profile_url }}"><b class="fa fa-{{ service.service }}"></b> {{ service.username|default:service.service }}</a>
+                {% endfor %}
+                <button class="btn btn-info" disabled><i class="fa fa-link"></i> </button>
+                {% for provider in providers %}
+                    <a class="btn" href="{% url 'oauth' provider %}/"><b class="fa fa-{{ provider }}"></b></a>
+                {% endfor %}
+            </div>
+        </p>
     </div>
     <div class="span2 text-right">
         <p><img class="img-rounded" src="{{ user.gravatar }}?s=100" /></p>
     </div>
 </div>
-        <div class="control-group">
-            <div class="controls">
-                Connect: 
-                {% for provider in providers %}
-                    <a class="btn btn-success" href="{% url 'oauth' provider %}/"><b class="fa fa-{{ provider }}"></b> {{ provider|capfirst }}</a>
-                {% endfor %}
-            </div>
-        </div>
+
 
 <hr class="hidden-phone"/>
 
 <div class="row">
-    <div class="offset1 span8">
+    <div class="span10">
         <form action="" method="post" class="form-horizontal" id="account-general-settings-form">
             {% csrf_token %}
-
             {% if form.non_field_errors %}
                 <div class="alert alert-error">
                     {{ form.non_field_errors|join:' ' }}
