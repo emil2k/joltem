@@ -121,18 +121,20 @@
     </form>
     <hr/>
     {% include "joltem/commenting.html" %}
-    {% if is_owner %}
-        <div class="alert alert-info">
-            <p>Checkout this solution's branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Then push to this solutions designated remote solution branch :</p>
-            <pre>git push -u origin s/{{ solution.id }}</pre>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            <p>Checkout this solution's branch :</p>
-            <pre>git fetch origin</pre>
-            <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
-        </div>
+    {% if user.is_authenticated %}
+        {% if is_owner %}
+            <div class="alert alert-info">
+                <p>Checkout this solution's branch :</p>
+                <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+                <p>Then push to this solutions designated remote solution branch :</p>
+                <pre>git push -u origin s/{{ solution.id }}</pre>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p>Checkout this solution's branch :</p>
+                <pre>git fetch origin</pre>
+                <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
+            </div>
+        {% endif %}
     {% endif %}
 {% endblock %}
