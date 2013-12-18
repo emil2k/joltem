@@ -24,20 +24,22 @@
             <h3 style="padding: 0; margin: 0;">{{ project.title }}</h3>
         </div>
         <div class="span5 text-center">
-            <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
-                <div class="btn-group">
-                    {% if not subscribe %}
-                        <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
-                    {% else %}
-                        <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
-                    {% endif %}
-                    {% if is_admin %}
-                        <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i> settings</a>
-                    {% endif %}
-                </div>
-            </form>
+            {% if user.is_authenticated %}
+                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                    <div class="btn-group">
+                        {% if not subscribe %}
+                            <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                        {% else %}
+                            <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                        {% endif %}
+                        {% if is_admin %}
+                            <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i> settings</a>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}
         </div>
         <div class="span4 text-center">
             <form class="form-search" method="GET" action="./search/">
