@@ -9,11 +9,11 @@ The internet has scaled by orders of magnitude many of our interactions. In rare
 
 However as it currently stands starting a company is a lonesome arduous process fueled by oudated fears and processes. Traditions of closed development are boxing in innovators, locking up talent, and creating unnecessary risk for both founders and investors.
 
-We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with unimaginable ease. 
+We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with relative ease. 
 
 What we propose here is the development of *an open incubator* to make this real by first focusing on the people most capable of accepting the idea - programmers.
 
-We are currently in the *alpha* stage of the development process and we are openly seeking colloborators to help us build the company.
+We are currently in the *alpha* stage of the development process and we are openly seeking collaborators to help us build the company.
 
 ---
 
