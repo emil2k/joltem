@@ -8,12 +8,12 @@ urlpatterns = patterns(
     '',
     url(r'^(?:(?P<solution_id>(\d)+)/)?new/$', login_required(
         views.SolutionCreateView.as_view()), name='new'),
-    url(r'^(?P<solution_id>(\d)+)/$', login_required(
-        views.SolutionView.as_view()), name='solution'),
+    url(r'^(?P<solution_id>(\d)+)/$',
+        views.SolutionView.as_view(), name='solution'),
     url(r'^(?P<solution_id>(\d)+)/edit/$', login_required(
         views.SolutionEditView.as_view()), name='solution_edit'),
-    url(r'^(?P<solution_id>(\d)+)/review/$', login_required(
-        views.SolutionReviewView.as_view()), name='review'),
+    url(r'^(?P<solution_id>(\d)+)/review/$',
+        views.SolutionReviewView.as_view(), name='review'),
 
     url(r'^(?P<solution_id>(\d)+)/commits/(?:repository/(?P<repository_id>[0-9]+)/)?$',
         views.SolutionCommitsView.as_view(),

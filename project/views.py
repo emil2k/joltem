@@ -14,7 +14,7 @@ from joltem.views.generic import RequestBaseView, ValidUserMixin
 from haystack.query import SearchQuerySet
 
 
-class ProjectMixin(ValidUserMixin):
+class ProjectMixin():
 
     """Gets project by name from url."""
 
