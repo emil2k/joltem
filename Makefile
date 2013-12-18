@@ -44,7 +44,7 @@ db: $(ENV)
 .PHONY: shell
 # target: shell - Run project shell
 shell: $(ENV)
-	$(ENV)/bin/python $(CURDIR)/manage.py shell_plus --settings=$(SETTINGS)
+	$(ENV)/bin/python $(CURDIR)/manage.py shell_plus --settings=$(SETTINGS) || $(ENV)/bin/python $(CURDIR)/manage.py shell --settings=$(SETTINGS)
 
 .PHONY: static
 # target: static - Compile project static
