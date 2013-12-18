@@ -146,4 +146,3 @@ build: clean static
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
 	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
-	touch $(ENV)
