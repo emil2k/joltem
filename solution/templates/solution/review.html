@@ -43,19 +43,21 @@
                 {% endif %}
             </div>
         </div>
-        <div class="row">
-            <div class="span12 text-center">
-                <small>
-                    <a href="#" onclick="$('#review-votes').toggle(); return false;" class="muted">show / hide votes</a>
-                </small>
-            </div>
-        </div>
-        <div id="review-votes" style="display:none;">
-            <hr/>
+        {% if vote_count > 0 %}
             <div class="row">
-                {% include "solution/review_votes.html" %}
+                <div class="span12 text-center">
+                    <small>
+                        <a href="#" onclick="$('#review-votes').toggle(); return false;" class="muted">show / hide votes</a>
+                    </small>
+                </div>
             </div>
-        </div>
+            <div id="review-votes" style="display:none;">
+                <hr/>
+                <div class="row">
+                    {% include "solution/review_votes.html" %}
+                </div>
+            </div>
+        {% endif %}
     {% endif %}
     <hr/>
     {% include "joltem/commenting.html" %}
