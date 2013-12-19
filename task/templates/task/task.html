@@ -18,10 +18,23 @@
             <p><b>{{ task.author.completed }}</b> solutions</p>
         </div>
         <div class="span8">
-            <h4>{{ task.title }}</h4>
-            {% if task.owner_id != task.author_id %}
-                <p class="muted">Suggested by <a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a>, administrated by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>.</p>
-            {% endif %}
+            <h4>
+                {{ task.title }}
+                <small>
+                    {% if task.priority == task.LOW_PRIORITY %}
+                        <i class="fa fa-circle-o" title="low priority"></i>
+                    {% elif task.priority == task.NORMAL_PRIORITY %}
+                        <i class="fa fa-circle" title="normal priority"></i>
+                    {% else %}
+                        <i class="fa fa-asterisk" title="high priority"></i>
+                    {% endif %}
+                </small>
+            </h4>
+            <p class="muted">
+                {% if task.owner_id != task.author_id %}
+                    Suggested by <a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a>, administrated by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>.
+                {% endif %}
+            </p>
             {% if task.description %}
                 {{ task.description|markdown:"tables,fenced_code" }}
             {% else %}
