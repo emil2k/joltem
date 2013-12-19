@@ -75,9 +75,10 @@ At any point the company’s board, which is initially just the founders, can de
 <a name="idea" class="anchor-fix"></a>
 #### Have an idea?
 
-This will be a place where anybody will be able to draft out ideas, get feedback, and when ready openly solicit collaboration.
+In the *alpha* stage the only project available is the *Joltem* project itself. However, in the near future, this will be a place where anybody will be able to broadcast their idea, work openly, and attract collaborators to bring the idea to reality. 
 
-However, in the *alpha* stage the only project available is the *Joltem* project itself. 
+If you have an idea or you are part of an existing startup that would like to work openly on our platform contact us at <support@joltem.com> with a description of the idea.
+
 
 ---
 
