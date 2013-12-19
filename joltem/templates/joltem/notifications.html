@@ -4,7 +4,7 @@
 {% block content %}
     <form method="post">
         {% csrf_token %}
-        <h4>Notifications <button class="btn btn-mini pull-right" name="clear_all" value="1"><i class="icon-list"></i> clear all</button></h4>
+        <h4>Notifications <button class="btn btn-mini pull-right" name="clear_all" value="1"><i class="fa fa-list"></i> clear all</button></h4>
         {% for notification in notification_list %}
             <div class="row">
                 <div class="span12">

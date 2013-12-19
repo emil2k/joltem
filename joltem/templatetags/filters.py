@@ -69,16 +69,6 @@ def is_match(string, actual, expected):
 
 
 @register.filter
-def icon_white(actual, expected):
-    """ Render icon when metches.
-
-    :return str:
-
-    """
-    return is_match('icon-white', actual, expected)
-
-
-@register.filter
 def btn_success(actual, expected):
     """ Render button when metches.
 

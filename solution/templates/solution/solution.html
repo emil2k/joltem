@@ -42,7 +42,7 @@
                                 <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
                                 {% if not solution.is_completed %}
                                     <button class="btn" type="submit" name="close" value="1">close</button>
-                                    <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                                    <button class="btn btn-info" type="submit" name="complete" value="1"><i class="fa fa-check"></i></button>
                                 {% else %}
                                     <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                                 {% endif %}
