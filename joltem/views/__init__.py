@@ -142,7 +142,7 @@ class NotificationRedirectView(RedirectView):
         return notification.notifying.get_notification_url(notification)
 
 
-class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+class IntroductionView(TemplateView, RequestBaseView):
 
     """ A view to display a basic introduction to the site.
 
@@ -151,5 +151,3 @@ class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
     """
 
     template_name = "joltem/introduction.html"
-    text_names = ["joltem/introduction.md"]
-    text_context_object_prefix = "introduction_"
