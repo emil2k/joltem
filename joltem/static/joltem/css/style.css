@@ -1,4 +1,41 @@
 /*
+    Logged out message
+*/
+
+.anonymous {
+    text-align: center;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    z-index: 1000;
+    color: #d6d6d6;
+    background-color: #15455E;
+    color: #ffffff;
+    padding: 15px 50px;
+    border-top: 1px solid #102f40;
+    border-left: 1px solid #102f40;
+}
+
+.anonymous .hide-anonymous {
+    position: fixed;
+    font-weight: bold;
+    bottom: 0px;
+    right: 0px;
+    margin: 5px 10px ;
+    z-index: 1050;
+}
+
+.anonymous h3 {
+    color: #ffffff;
+    font-size: 26px;
+    line-height: 30px;
+}
+
+.anonymous .tagline {
+    color: #9BCDE8;
+}
+
+/*
     Landing page
 */
 
