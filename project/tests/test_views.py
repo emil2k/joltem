@@ -88,7 +88,7 @@ class TestProjectViews(TestCase):
         self.assertTrue(response.context['tasks'])
 
         solution = comments[0].commentable
-        self.assertContains(response, 'commented solution "%s"' % solution.default_title)
+        self.assertContains(response, solution.default_title)
 
 
 class TestProjectSettingsView(TestCase):

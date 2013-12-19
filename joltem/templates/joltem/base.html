@@ -74,8 +74,8 @@
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
+                    <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
                     {% if user.is_authenticated %}
-                        <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                 Hello, {{ user.first_name }} <b class="caret"></b>
@@ -95,6 +95,19 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block message %}
+    {% if not user.is_authenticated %}
+        <div class="anonymous">
+            <a href="#" class="hide-anonymous" onclick="$('.anonymous').toggle(); return false;"><i class="fa fa-times"></i></a>
+            <h3>an open incubator.</h3>
+            <p class="tagline">openly collaborate to build and launch a business <i class="fa fa-rocket"></i></p>
+            <p>
+                <a class="btn" href="{% url 'sign_in' %}"><b>sign in</b></a>
+                <a class="btn" href="{% url 'help:index' %}"><b>more info</b></a>
+            </p>
+        </div>
+    {% endif %}
 {% endblock %}
 <div class="container">
     {% block content %}{% endblock %}

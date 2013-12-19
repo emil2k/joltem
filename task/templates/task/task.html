@@ -27,24 +27,26 @@
             {% else %}
                 <p class="muted">Task has not been described yet.</p>
             {% endif %}
-            <form method="post">
-                {% csrf_token %}
-                <div class="btn-group">
-                    {% if task.is_accepted and not task.is_closed %}
-                        <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
-                    {% endif %}
-                    {% if is_owner %}
-                        {% if not task.is_closed %}
-                            <button class="btn" type="submit" name="close" value="1">close</button>
-                        {% else %}
-                            <button class="btn" type="submit" name="reopen" value="1">reopen</button>
+            {% if user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="btn-group">
+                        {% if task.is_accepted and not task.is_closed %}
+                            <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
                         {% endif %}
-                    {% endif %}
-                    {% if is_owner %}
-                        <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
-                    {% endif %}
-                </div>
-            </form>
+                        {% if is_owner %}
+                            {% if not task.is_closed %}
+                                <button class="btn" type="submit" name="close" value="1">close</button>
+                            {% else %}
+                                <button class="btn" type="submit" name="reopen" value="1">reopen</button>
+                            {% endif %}
+                        {% endif %}
+                        {% if is_owner %}
+                            <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}
             {% if task.is_closed %}
                 <div class="alert alert-info">
                     <strong>This task was closed on {{ task.time_closed|date }}</strong>, not accepting new solutions.
@@ -70,34 +72,40 @@
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
             <hr/>
             {% if not task.is_reviewed %}
-                {% if vote %}
-                    <div class="alert">
-                        <strong>This task is being reviewed.</strong> You voted on {{ vote.time_voted|date }}.
+                {% if user.is_authenticated %}
+                    {% if vote %}
+                        <div class="alert">
+                            <strong>This task is being reviewed.</strong> You voted on {{ vote.time_voted|date }}.
+                        </div>
+                    {% else %}
+                        <div class="alert">
+                            <strong>You should review this task.</strong> It was posted on {{ task.time_posted|date }}.
+                        </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="span8 text-center">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="btn-group">
+                                    {% if vote and vote.is_accepted %}
+                                        <button class="btn btn-success" type="submit" name="accept" value="1"><i class="icon-ok icon-white"></i></button>
+                                    {% else %}
+                                        <button class="btn" type="submit" name="accept" value="1"><i class="icon-ok"></i></button>
+                                    {% endif %}
+                                    {% if vote and not vote.is_accepted %}
+                                        <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="icon-remove icon-white"></i></button>
+                                    {% else %}
+                                        <button class="btn" type="submit" name="reject" value="1"><i class="icon-remove"></i></button>
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 {% else %}
                     <div class="alert">
-                        <strong>You should review this task.</strong> It was posted on {{ task.time_posted|date }}.
+                        <strong>This task is being reviewed.</strong>
                     </div>
                 {% endif %}
-                <div class="row">
-                    <div class="span8 text-center">
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="btn-group">
-                                {% if vote and vote.is_accepted %}
-                                    <button class="btn btn-success" type="submit" name="accept" value="1"><i class="icon-ok icon-white"></i></button>
-                                {% else %}
-                                    <button class="btn" type="submit" name="accept" value="1"><i class="icon-ok"></i></button>
-                                {% endif %}
-                                {% if vote and not vote.is_accepted %}
-                                    <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="icon-remove icon-white"></i></button>
-                                {% else %}
-                                    <button class="btn" type="submit" name="reject" value="1"><i class="icon-remove"></i></button>
-                                {% endif %}
-                            </div>
-                        </form>
-                    </div>
-                </div>
                 <div class="row">
                     <div class="span4 text-center">
                         {% for task_vote in task_accept_votes %}
