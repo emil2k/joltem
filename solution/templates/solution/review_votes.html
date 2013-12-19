@@ -9,7 +9,7 @@
 <div class="span6 text-center">
     {% for vote in reject_votes %}
         <p>
-            <i class="fa fa-minus"></i> <b>from {{ vote.voter.first_name }}</b><br/>
+            <i class="fa fa-times"></i> <b>from {{ vote.voter.first_name }}</b><br/>
             <small class="muted">{{ vote.time_voted|date }} @ {{ vote.time_voted|time }}</small>
         </p>
     {% endfor %}

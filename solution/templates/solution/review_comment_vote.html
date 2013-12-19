@@ -18,7 +18,7 @@
             {% endif %}
         {% else %}
             <button class="btn btn-mini {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
-                <i data-toggle="tooltip" title="Not helpful = 0" class="impact_vote fa fa-minus"></i>
+                <i data-toggle="tooltip" title="Not helpful = 0" class="impact_vote fa fa-times"></i>
             </button>
             <button class="btn btn-mini {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
                 <i data-toggle="tooltip" title="Helpful = 10" class="impact_vote fa fa-check"></i>
