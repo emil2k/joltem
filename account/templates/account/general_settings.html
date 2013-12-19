@@ -26,11 +26,11 @@
         <p>
             <div class="btn-group">
                 {% for service in services %}
-                    <a class="btn" href="{{ service.get_profile_url }}"><b class="fa fa-{{ service.service }}"></b> {{ service.username|default:service.service }}</a>
+                    <a class="btn" href="{{ service.get_profile_url }}"><b class="fa fa-{{ service.service }}{% if service.service == 'google' %}-plus{% endif %}"></b> {{ service.username|default:service.service }}</a>
                 {% endfor %}
                 <button class="btn btn-info" disabled><i class="fa fa-link"></i> </button>
                 {% for provider in providers %}
-                    <a class="btn" href="{% url 'oauth' provider %}/"><b class="fa fa-{{ provider }}"></b></a>
+                    <a class="btn" href="{% url 'oauth' provider %}/"><b class="fa fa-{{ provider }}{% if provider == 'google' %}-plus{% endif %}"></b></a>
                 {% endfor %}
             </div>
         </p>
