@@ -1,27 +1,17 @@
-2013-12-17  klen
+2013-12-19  emil
 
-	* Upgrade to font awesome
-
-2013-12-14  klen
-
-	* Search in project by tasks and solutions
-
-2013-12-13  emil
-
+	* Version 0.7.0
+	* Polished up user interfaces for public release.
+	* Anonymous browsing of work.
+	* Upgrade to font awesome.
+	* Search in project for tasks and solutions.
 	* Implemented votes ratio and impact freezing.
 	* Downgraded impact from comments.
 	* Made all votes public.
-
-2013-12-06  klen
-
-	* Added activity feed
-	* Fix notification templates
-	* Setup debian package
-
-2013-12-02  emil
+	* Added activity feed.
+	* Fixed notification templates.
+	* Setup debian package.
 	* Added user groups admins, managers, and developers.
-
---- on master
 
 2013-11-30  emil
 	* Version 0.6.0
