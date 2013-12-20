@@ -13,11 +13,11 @@ Vagrant.configure('2') do |config|
 
   config.vm.network :private_network, ip: '33.33.33.33'
 
-  config.vm.synced_folder '..', '/home/vagrant/joltem/'
-  config.vm.synced_folder 'salt/roots/', '/srv/'
+  config.vm.synced_folder '.', '/home/vagrant/joltem/'
+  config.vm.synced_folder './deploy/salt/roots/', '/srv/'
 
   config.vm.provision :salt do |salt|
-    salt.minion_config = 'salt/minion.conf'
+    salt.minion_config = './deploy/salt/minion.conf'
     salt.run_highstate = true
     salt.verbose = true
   end

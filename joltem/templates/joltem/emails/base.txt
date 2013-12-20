@@ -1,4 +1,5 @@
-Dear {{ user.first_name }},
+{% block title %}Dear {{ user.first_name }},{% endblock %}
+
 
 
 {% block content %}{% endblock %}

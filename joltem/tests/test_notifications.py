@@ -1,22 +1,18 @@
 """ Tests for notifications. """
-
 import time
 
-from django.test import TestCase, testcases
 from django.contrib.contenttypes.generic import ContentType
 from django.core import mail
+from django.test import TestCase, testcases
 
 from ..libs.mix import mixer
-
 from ..libs.mock.models import (get_mock_project, get_mock_task,
                                 get_mock_solution, get_mock_user)
-
+from ..models import User, Notification
 from ..models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
                                NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-from ..models import User
 from ..models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                             NOTIFICATION_TYPE_VOTE_UPDATED)
-
 from solution.models import (NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                              NOTIFICATION_TYPE_SOLUTION_POSTED)
 from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
@@ -26,16 +22,6 @@ from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
 class NotificationTestCase(TestCase):
 
     """ Test the delivery of notifications, their text and urls. """
-
-    def setUp(self):
-        """ Setup notifications test case.
-
-        Create a project and two mock users, jill and bob.
-
-        """
-        self.project = get_mock_project("bread", "Sliced Bread")
-        self.jill = get_mock_user("jill", first_name="Jill")
-        self.bob = get_mock_user("bob", first_name="Bob")
 
     # Custom assertions
 
@@ -100,7 +86,49 @@ class NotificationTestCase(TestCase):
             "Notification text equal to value that it shouldn't be.")
 
 
-class TasksNotificationTestCase(NotificationTestCase):
+class BaseNotificationTestCase(NotificationTestCase):
+
+    """ Contains basic setup for the rest of notification tests. """
+
+    def setUp(self):
+        """ Setup notifications test case.
+
+        Create a project and two mock users, jill and bob.
+
+        """
+        self.project = get_mock_project("bread", "Sliced Bread")
+        self.jill = get_mock_user("jill", first_name="Jill")
+        self.bob = get_mock_user("bob", first_name="Bob")
+
+
+class CommonNotificationTestCase(BaseNotificationTestCase):
+
+    def test_mark_cleared(self):
+        notifications = mixer.cycle(5).blend(
+            'joltem.notification', user=mixer.sequence(self.bob, self.jill),
+            owner=self.bob
+        )
+        n = notifications[0]
+        self.assertEqual(
+            self.bob.notification_set.filter(is_cleared=False).count(), 3)
+        n = n.mark_cleared()
+        self.assertEqual(n.is_cleared, True)
+        self.assertEqual(
+            self.bob.notification_set.filter(is_cleared=False).count(), 2)
+        self.bob = type(self.bob).objects.get(pk=self.bob.pk)
+        self.assertEqual(self.bob.notifications, 2)
+
+        Notification.objects.filter(user=self.jill).mark_cleared()
+        self.assertFalse(self.jill.notification_set.filter(is_cleared=False))
+        self.assertTrue(self.bob.notification_set.filter(is_cleared=False))
+
+        Notification.objects.filter(user=self.bob).mark_cleared()
+        self.assertFalse(self.bob.notification_set.filter(is_cleared=False))
+        self.bob = type(self.bob).objects.get(pk=self.bob.pk)
+        self.assertEqual(self.bob.notifications, 0)
+
+
+class TasksNotificationTestCase(BaseNotificationTestCase):
 
     """ Test task related notifications. """
 
@@ -254,7 +282,7 @@ class TasksNotificationTestCase(NotificationTestCase):
                                            NOTIFICATION_TYPE_TASK_ACCEPTED)
 
 
-class SolutionNotificationTestCase(NotificationTestCase):
+class SolutionNotificationTestCase(BaseNotificationTestCase):
 
     """ Test notifications related to solutions. """
 
@@ -502,7 +530,7 @@ class SolutionNotificationTestCase(NotificationTestCase):
             solution.default_title, expected_count=2)
 
 
-class CommentNotificationTestCase(NotificationTestCase):
+class CommentNotificationTestCase(BaseNotificationTestCase):
 
     """ Test notifications related to comments. """
 
@@ -608,8 +636,8 @@ class EmailNotificationTestCase(TestCase):
         self.assertFalse(mail.outbox)
 
     def test_immedeately(self):
-        task = mixer.blend('task.task',
-                           owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
+        task = mixer.blend(
+            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
         comment = task.add_comment(self.mike, "Mike are here.")
         self.assertTrue(mail.outbox)
 
@@ -623,6 +651,10 @@ class EmailNotificationTestCase(TestCase):
         ) in m.body)
 
         task.notify_comment_added(comment)
+        self.assertFalse(mail.outbox)
+
+        [notification] = task.owner.notification_set.all()
+        notification.save()
         self.assertFalse(mail.outbox)
 
     def test_diggest(self):

@@ -5,16 +5,20 @@
     <div class="row">
         <div class="span2">
             <ul class="nav nav-list well">
-                <li><a href="{% url 'project:task:new' project.name %}">Create</a></li>
-                <li class="nav-header">My</li>
-                <li class="{{ tasks_tab|active:"my_open" }}"><a href="{% url 'project:task:my_open' project.name %}">Open</a></li>
-                <li class="{{ tasks_tab|active:"my_closed" }}"><a href="{% url 'project:task:my_closed' project.name %}">Closed</a></li>
-                <li class="nav-header">Review</li>
-                <li class="{{ tasks_tab|active:"my_review" }}"><a href="{% url 'project:task:my_review' project.name %}">Review</a></li>
-                <li class="{{ tasks_tab|active:"my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.name %}">Reviewed</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'project:task:new' project.name %}">Create</a></li>
+                {% endif %}
                 <li class="nav-header">All</li>
                 <li class="{{ tasks_tab|active:"all_open" }}"><a href="{% url 'project:task:all_open' project.name %}">Open</a></li>
                 <li class="{{ tasks_tab|active:"all_closed" }}"><a href="{% url 'project:task:all_closed' project.name %}">Closed</a></li>
+                {% if user.is_authenticated %}
+                    <li class="nav-header">My</li>
+                    <li class="{{ tasks_tab|active:"my_open" }}"><a href="{% url 'project:task:my_open' project.name %}">Open</a></li>
+                    <li class="{{ tasks_tab|active:"my_closed" }}"><a href="{% url 'project:task:my_closed' project.name %}">Closed</a></li>
+                    <li class="nav-header">Review</li>
+                    <li class="{{ tasks_tab|active:"my_review" }}"><a href="{% url 'project:task:my_review' project.name %}">Review</a></li>
+                    <li class="{{ tasks_tab|active:"my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.name %}">Reviewed</a></li>
+                {% endif %}
             </ul>
         </div>
         <div class="span10">

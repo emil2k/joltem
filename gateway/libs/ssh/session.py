@@ -10,7 +10,9 @@ from twisted.conch.interfaces import ISession
 from twisted.conch.insults.insults import ServerProtocol
 from twisted.internet import reactor
 
-from git.models import Repository, REPOSITORIES_DIRECTORY
+from django.conf import settings
+from django.db import close_old_connections
+from git.models import Repository
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import (
     GitProcessProtocol, GitReceivePackProcessProtocol)
@@ -23,6 +25,7 @@ class GatewaySession(SSHSession):
 
     def channelOpen(self, specificData):
         """ Bind GatewaySessionInterface. """
+        close_old_connections()
         self.session = GatewaySessionInterface(self.avatar)
 
     def loseConnection(self):
@@ -31,6 +34,7 @@ class GatewaySession(SSHSession):
         Described here : http://twistedmatrix.com/trac/ticket/2754
 
         """
+        close_old_connections()
         if self.client and self.client.transport:
             self.client.transport.loseConnection()
         SSHChannel.loseConnection(self)
@@ -44,6 +48,9 @@ class GatewaySessionInterface():
 
     def __init__(self, avatar):
         self.avatar = avatar
+        self._ssh_process_protocol = None
+        self._git_process_protocol = None
+        self._git_process_transport = None
 
     def getPty(self, term, windowSize, modes):
         """ Get a psuedo-terminal for use by a shell or command. """
@@ -93,7 +100,7 @@ class GatewaySessionInterface():
                 self._git_process_transport = reactor.spawnProcess(
                     self._git_process_protocol, '/usr/bin/%s' % process,
                     (process, '%d.git' % repository_id),
-                    path=REPOSITORIES_DIRECTORY)
+                    path=settings.GATEWAY_REPOSITORIES_DIR)
                 self._git_process_transport.debug = True
                 self._git_process_transport.debug_child = True
                 # Wrap the git process transport with the git process protocol,
@@ -125,4 +132,3 @@ class GatewaySessionInterface():
     def closed(self):
         """ Called when the session is closed. """
         log.msg("Connection closed")
-

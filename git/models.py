@@ -1,6 +1,4 @@
 """ Git related modules. """
-import os
-
 import logging
 from django.conf import settings
 from django.db import models
@@ -8,14 +6,11 @@ from model_utils.managers import PassThroughManager
 from pygit2 import Repository as PyGitRepository
 from twisted.conch.ssh.keys import Key, BadKeyError
 
-from project.models import Project
 from .managers import RepositoryQuerySet
+from project.models import Project
 
 
 logger = logging.getLogger('joltem')
-
-REPOSITORIES_DIRECTORY = os.path.join(settings.PROJECT_ROOT,
-                                      'gateway/repositories')
 
 
 class Repository(models.Model):
@@ -41,7 +36,7 @@ class Repository(models.Model):
 
         """
 
-        return "%s/%d.git" % (REPOSITORIES_DIRECTORY, self.id)
+        return "%s/%d.git" % (settings.GATEWAY_REPOSITORIES_DIR, self.id)
 
     def load_pygit_object(self):
         """ Load pygit2 repository object for this repository.

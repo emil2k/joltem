@@ -1,10 +1,13 @@
-# coding: utf-8
+""" Tasks forms. """
+
 from django import forms
 
 from .models import Task
 
 
 class TaskCreateForm(forms.ModelForm):
+
+    """ Implement tasks creation. """
 
     priority = forms.ChoiceField(
         widget=forms.RadioSelect(),
@@ -17,10 +20,17 @@ class TaskCreateForm(forms.ModelForm):
         fields = ('title', 'description', 'priority', 'project', 'owner',)
 
     def clean_title(self):
+        """ Strip whitespaces from title.
+
+        :return str:
+
+        """
         return self.cleaned_data.get('title', '').strip()
 
 
 class TaskEditForm(forms.ModelForm):
+
+    """ Implement tasks edition. """
 
     priority = forms.ChoiceField(
         widget=forms.RadioSelect(),
@@ -32,4 +42,9 @@ class TaskEditForm(forms.ModelForm):
         fields = ('title', 'description', 'priority',)
 
     def clean_title(self):
+        """ Strip whitespaces from title.
+
+        :return str:
+
+        """
         return self.cleaned_data.get('title', '').strip()

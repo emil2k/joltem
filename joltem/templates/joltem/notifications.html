@@ -1,19 +1,20 @@
 {% extends 'joltem/base.html' %}
+{% load pagination_tags %}
 {% block title %}Notifications - Joltem{% endblock %}
 {% block content %}
     <form method="post">
         {% csrf_token %}
-        <h4>Notifications <button class="btn btn-mini pull-right" name="clear_all" value="1"><i class="icon-list"></i> clear all</button></h4>
-        {% for notification in notifications %}
+        <h4>Notifications <button class="btn btn-mini pull-right" name="clear_all" value="1"><i class="fa fa-list"></i> clear all</button></h4>
+        {% for notification in notification_list %}
             <div class="row">
                 <div class="span12">
                     <p>
-                        {% if not notification.notification.is_cleared %}
-                            <strong><a href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/></strong>
+                        {% if not notification.is_cleared %}
+                            <strong><a href="{% url "notification_redirect" notification.id %}">{{ notification.get_text }}</a><br/></strong>
                         {% else %}
-                            <a class="muted" href="{% url "notification_redirect" notification.notification.id %}">{{ notification.text }}</a><br/>
+                            <a class="muted" href="{% url "notification_redirect" notification.id %}">{{ notification.get_text }}</a><br/>
                         {% endif %}
-                        <small class="muted">{{ notification.notification.time_notified|date}} @ {{ notification.notification.time_notified|time}}</small>
+                        <small class="muted">{{ notification.time_notified|date}} @ {{ notification.time_notified|time}}</small>
                     </p>
                 </div>
             </div>
@@ -21,5 +22,23 @@
             <p class="muted">You have no notifications.</p>
         {% endfor %}
     </form>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% pagination paginator page_obj.number as pages %}
+
+        <ul>
+        {% for p in pages %}
+            {% if page_obj.number == p %}
+                <li class="active"><a href="?page={{ p }}">{{ p }}</a></li>
+            {% elif p == '.' %}
+                <li class="disabled"><span>...</span></li>
+            {% else %}
+                <li><a href="?page={{ p }}">{{ p }}</a></li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 
 {% endblock %}

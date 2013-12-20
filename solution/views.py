@@ -1,11 +1,13 @@
 """ Solution related views. """
+from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, DetailView, ListView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
-from joltem.models import Vote
+from joltem.models import Vote, Comment
 from joltem.views.generic import (
     VoteableView, CommentableView, ExtraContextMixin,
 )
@@ -35,22 +37,36 @@ class SolutionBaseView(ProjectBaseView):
 
         """
         super(SolutionBaseView, self).initiate_variables(request, args, kwargs)
-        self.solution = get_object_or_404(Solution,
-                                          id=self.kwargs.get("solution_id"))
-        self.is_owner = self.solution.is_owner(self.user)
+        try:
+            self.solution = Solution.objects\
+                .prefetch_related('vote_set__voter')\
+                .select_related('owner')\
+                .get(id=self.kwargs.get("solution_id"))
+        except Solution.DoesNotExist:
+            return HttpResponseNotFound("Solution not found.")
+        else:
+            self.is_owner = self.solution.is_owner(self.user)
 
     def get_context_data(self, **kwargs):
         """ Return context for template. """
         kwargs["solution"] = self.solution
         kwargs["solution_tab"] = self.solution_tab
         # Get the users vote on this solution
-        try:
-            kwargs["vote"] = self.solution.vote_set.get(voter_id=self.user.id)
-        except Vote.DoesNotExist:
-            kwargs["vote"] = None
-
+        kwargs["vote"] = None
+        for vote in self.solution.vote_set.all():
+            if vote.voter_id == self.user.id:
+                kwargs["vote"] = vote
+                kwargs["vote_valid"] = self.solution.is_vote_valid(vote)
+                break
+        comment_qs = Comment.objects\
+            .filter(commentable_id=self.solution.id,
+                    commentable_type_id=\
+                        ContentType.objects.get_for_model(Solution))\
+            .select_related('project', 'owner')\
+            .prefetch_related('vote_set__voter')\
+            .order_by('time_commented')
         kwargs["comments"] = CommentHolder.get_comments(
-            self.solution.comment_set.all().order_by('time_commented'),
+            comment_qs,
             self.user)
         kwargs["subtasks"] = self.solution.subtask_set.filter(
             is_accepted=True).order_by('-time_posted')
@@ -79,9 +95,12 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
         Returns a HTTP response.
 
         """
-        # Mark solution complete
-        if self.solution.is_owner(self.user):
-
+        if self.solution.is_owner(self.user) and not (
+            'comment' in request.POST \
+                    or 'comment_id' in request.POST \
+                    or 'voteable_id' in request.POST
+        ):
+            # Mark solution complete
             if request.POST.get('complete')\
                     and not self.solution.is_completed \
                     and not self.solution.is_closed:
@@ -103,12 +122,9 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             if request.POST.get('reopen') and self.solution.is_closed:
                 self.solution.mark_open()
 
-            if not ('comment' in request.POST
-                    or 'comment_edit' in request.POST
-                    or 'comment_delete' in request.POST):
-                return redirect('project:solution:solution',
-                                project_name=self.project.name,
-                                solution_id=self.solution.id)
+            return redirect('project:solution:solution',
+                            project_name=self.project.name,
+                            solution_id=self.solution.id)
 
         return super(SolutionView, self).post(request, *args, **kwargs)
 
@@ -181,12 +197,18 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
 
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add vote results. """
-        kwargs["vote_count"] = self.solution.vote_set.count()
-        kwargs["accept_votes"] = \
-            self.solution.vote_set.filter(is_accepted=True)
-        kwargs["reject_votes"] = \
-            self.solution.vote_set.filter(is_accepted=False)
-        kwargs["has_commented"] = self.solution.has_commented(self.user.id)
+        vote_count = 0
+        accept_votes = []
+        reject_votes = []
+        for v in self.solution.vote_set.all():
+            vote_count += 1
+            if v.is_accepted:
+                accept_votes.append(v)
+            else:
+                reject_votes.append(v)
+        kwargs["vote_count"] = vote_count
+        kwargs["accept_votes"] = accept_votes
+        kwargs["reject_votes"] = reject_votes
         return super(SolutionReviewView, self).get_context_data(**kwargs)
 
     def get_vote_redirect(self):

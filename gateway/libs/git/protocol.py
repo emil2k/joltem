@@ -119,6 +119,7 @@ class GitProcessProtocol(SubprocessProtocol):
         SubprocessProtocol.__init__(self, protocol)
         self.avatar = avatar
         self.repository = repository  # repository model instance
+        self.process_transport = None
 
     def wrap_process_transport(self, transport):
         """ Wrap the process transport to the git process.
@@ -131,7 +132,7 @@ class GitProcessProtocol(SubprocessProtocol):
         self.process_transport = transport
 
     @staticmethod
-    def log(data, system, newline=False):  # todo maybe i can move this out of here and into utils
+    def log(data, system, newline=False):
         """ Logging.
 
         :param data:
@@ -140,13 +141,14 @@ class GitProcessProtocol(SubprocessProtocol):
         :return:
 
         """
+        # todo move this out of here and into utils
         output = "\n" if newline else ""
         output += data if len(data) < 8192 else \
             "large data : %d bytes" % len(data)
         log.msg(output, system=system)
 
     @staticmethod
-    def eof_received():  # todo i don't think this is necessary
+    def eof_received():
         """ For receiving end of file requests, from the SSH connection. """
         GitProcessProtocol.log("End of file received.", "client")
 
@@ -161,7 +163,6 @@ class GitProcessProtocol(SubprocessProtocol):
         """
         self.log(data, "gateway - fd %d" % childFD, True)
         SubprocessProtocol.childDataReceived(self, childFD, data)
-
 
     def outReceived(self, data):
         """ Logging. """
@@ -200,10 +201,10 @@ class GitProcessProtocol(SubprocessProtocol):
     # Process
 
     def write(self, data):
-        """
-        Call this to write to standard input on this process.
+        """ Call this to write to standard input on this process.
 
         NOTE: This will silently lose data if there is no standard input.
+
         """
         self.log("write to stdin", "gateway")
         self.writeToChild(0, data)
@@ -211,38 +212,33 @@ class GitProcessProtocol(SubprocessProtocol):
     # IProcessTransport
 
     def closeStdin(self):
-        """
-        Close stdin after all data has been written out.
-        """
+        """ Close stdin after all data has been written out. """
         self.log("close stdin", "gateway")
         self.process_transport.closeStdin()
 
     def closeStdout(self):
-        """
-        Close stdout.
-        """
+        """ Close stdout. """
         self.log("close stdout", "gateway")
         self.process_transport.closeStdin()
 
     def closeStderr(self):
-        """
-        Close stderr.
-        """
+        """ Close stderr. """
         self.log("close stderr", "gateway")
         self.process_transport.closeStderr()
 
     def closeChildFD(self, descriptor):
-        """
-        Close a file descriptor which is connected to the child process, identified
-        by its FD in the child process.
+        """ Close a file descriptor which is connected to the child process.
+
+        Identified by its FD in the child process.
+
         """
         self.log("close child fd %d" % descriptor, "gateway")
         self.process_transport.closeChildFD(descriptor)
 
     def writeToChild(self, childFD, data):
-        """
-        Similar to L{ITransport.write} but also allows the file descriptor in
-        the child process which will receive the bytes to be specified.
+        """ Similar to L{ITransport.write} but also allows the file descriptor.
+
+        In the child process which will receive the bytes to be specified.
 
         @type childFD: C{int}
         @param childFD: The file descriptor to which to write.
@@ -255,20 +251,18 @@ class GitProcessProtocol(SubprocessProtocol):
         @raise KeyError: If C{childFD} is not a file descriptor that was mapped
             in the child when L{IReactorProcess.spawnProcess} was used to create
             it.
+
         """
         self.log(data, "client - fd %d" % childFD, True)
         self.process_transport.writeToChild(childFD, data)
 
     def loseConnection(self):
-        """
-        Close stdin, stderr and stdout.
-        """
+        """ Close stdin, stderr and stdout. """
         self.log("lose connection", "gateway")
         self.process_transport.loseConnection()
 
     def signalProcess(self, signalID):
-        """
-        Send a signal to the process.
+        """ Send a signal to the process.
 
         @param signalID: can be
           - one of C{"KILL"}, C{"TERM"}, or C{"INT"}.
@@ -282,6 +276,7 @@ class GitProcessProtocol(SubprocessProtocol):
             already exited.
         @raise OSError: If the C{os.kill} call fails with an errno different
             from C{ESRCH}.
+
         """
         self.log("signal process %d" % signalID, "gateway")
         self.process_transport.signalProcess(signalID)
@@ -325,7 +320,21 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self._buffering = False
 
     def write(self, data):
-        # todo write docstring
+        """ Write data to the git process.
+
+        Usually the data is received from the git client.
+
+        While packet lines are being transferred to negotiate what
+        to send in the PACK file, the client input is buffered.
+
+        After negotiations end the gateway either accepts or rejects the push
+        based on the user's permissions. If the push is rejected the input
+        is ignored (not passed to the git process), but if accepted the PACK
+        file is directly passed to the git-receive-pack process.
+
+        :param data: data to write.
+
+        """
         if self._buffering:
             self.log(data, "client - buffered", True)
             self._buffer.extend(data)
@@ -339,7 +348,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     # Receivers
 
     def received_packet_line(self, line):
-        """ Should have dosctrings. """
+        """ Callback for when a packet line has been received. """
         log.msg(line, system="packet-line")
         if self._abilities is None:
             parts = line.split('\x00')
@@ -353,8 +362,11 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         self.handle_push_line(line)
 
     def received_empty_packet_line(self):
-        """ Should have dosctrings. """
+        """ Callback for when an empty packet line has been received.
 
+        An empty packet line is 0000 and acts a flush statement.
+
+        """
         log.msg("empty packet line received.", system="packet-line")
         self.stop_buffering()  # client should now send PACK data
 
@@ -386,17 +398,28 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
 
         To push to the specified reference, returns a boolean.
 
-        Keyword arguments :
-        reference -- pushing to this reference
-        old_oid -- the old object id the reference pointed to
-        new_oid -- the new object id the reference will point to
-                   if the push is accepted
+        Only the solution owners have writes to push to their solution
+        branch. Project admins and managers can push to all other branches.
+        Developers can only push to `refs/heads/develop`.
+
+        :param reference: pushing to this reference.
+        :param old_oid: the old object id the reference pointed to.
+        :param new_oid: the new object id the reference will point to
+            if the push is accepted.
+        :return bool: whether user has push permissions.
 
         """
         parts = reference.split('/')
+        project = self.repository.project
+        user_id = self.avatar.user.id
+        is_admin = project.is_admin(user_id)
+        is_manager = project.is_manager(user_id)
+        is_developer = project.is_developer(user_id)
         if parts[0] == 'refs' and parts[1] == 'heads':
             if parts[2] == 'master':
-                return self.repository.project.is_admin(self.avatar.user.id)
+                return is_admin or is_manager
+            elif parts[2] == 'develop':
+                return is_admin or is_manager or is_developer
             elif parts[2] == 's':  # solution branches
                 try:
                     solution_id = int(parts[3])
@@ -407,13 +430,21 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                         Solution.MultipleObjectsReturned):
                     return False
                 else:
+                    # Only solution owner can push to solution branch.
                     return solution.is_owner(self.avatar.user)
-        return False
+        # For all other branches and tags creation must be admin or manager.
+        return is_admin or is_manager
 
     def eof_received(self):
-        """ Should have docstring. """
+        """ End of file received on git receive pack.
+
+        The client has signaled that the PACK file transfer is over.
+        If the push was rejected the must generate an unpack report, send
+        it back, and end the process manually. Otherwise do nothing because
+        git-receive-pack process will generate a report itself.
+
+        """
         GitProcessProtocol.eof_received()  # just logging
-        # todo
         if self._rejected:
             # Respond back with a status report
             self.outReceived(get_report(self._command_statuses))

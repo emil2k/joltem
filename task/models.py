@@ -164,16 +164,16 @@ class Task(Commentable, Updatable):
         review is complete, and if so whether it was accepted or not.
 
         Criteria for acceptance :
-        - An acceptance vote from a project admin.
+        - An acceptance vote from a project admin or manager.
 
         Criteria for rejection :
-        - A rejection vote from a project admin.
+        - A rejection vote from a project admin or manager.
 
-        Keyword argument :
-        vote -- the vote to process.
+        :param vote: the vote to process.
 
         """
-        if self.project.is_admin(vote.voter_id):
+        if self.project.is_admin(vote.voter_id) or \
+                self.project.is_manager(vote.voter_id):
             self.mark_reviewed(vote.voter, vote.is_accepted)
 
     def mark_reviewed(self, acceptor, is_accepted):
@@ -225,6 +225,14 @@ class Task(Commentable, Updatable):
                         admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
                             "role": "project_admin"})
 
+    def default_title(self):
+        """ Just prevent conflict with solutions.
+
+        :return str:
+
+        """
+        return self.title
+
     def get_notification_text(self, notification):
         """ Prepare text for notification.
 
@@ -236,8 +244,8 @@ class Task(Commentable, Updatable):
 
         if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             first_names = self.get_commentator_first_names(
-                queryset=self.comment_set.all().order_by("-time_commented"),
-                exclude=[notification.user]
+                queryset=self.comment_set.select_related('owner').exclude(
+                    owner=notification.user).order_by("-time_commented")
             )
             return "%s commented on task \"%s\"" % (
                 list_string_join(first_names), self.title)

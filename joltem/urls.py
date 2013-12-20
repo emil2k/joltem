@@ -22,8 +22,8 @@ urlpatterns = patterns(
         views.NotificationsView.as_view()), name='notifications'),
     url(r'^comment/(?P<comment_id>([0-9])+)/', login_required(
         views.CommentView.as_view()), name='comment'),
-    url(r'^user/(?P<username>([-\w\.])+)/$', login_required(
-        views.UserView.as_view()), name='user'),
+    url(r'^user/(?P<username>([-\w\.])+)/$',
+        views.UserView.as_view(), name='user'),
     url(r'^account/', include('account.urls')),
     url(r'^help/$', include('help.urls', namespace='help')),
     url(r'^(?P<project_name>([-\w])+)/', include(

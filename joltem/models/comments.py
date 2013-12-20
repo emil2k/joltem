@@ -5,6 +5,7 @@ import logging
 from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
@@ -41,6 +42,17 @@ class Comment(Voteable, Updatable):
 
     def __unicode__(self):
         return str(self.comment)
+
+    @staticmethod
+    def magnitude_to_vote_value(magnitude):
+        """ Map the determined vote magnitude to corresponding vote value.
+
+        For a comment the default value at where magnitude=1 is 1, unlike a
+        solution where it is 10, and it goes up by an order of 10 from there.
+
+        """
+        magnitude -= 1
+        return pow(10, magnitude)
 
     def notify_vote_added(self, vote):
         """ Override to only notify of "Helpful" or positive votes. """
@@ -108,7 +120,8 @@ class Comment(Voteable, Updatable):
         # Depends on the commentable type
         anchor = lambda path: path + \
             "#comment-%s" % self.id  # add a comment anchor
-        if isinstance(self.commentable, Solution):
+        if self.commentable_type_id == \
+                ContentType.objects.get_for_model(Solution).id:
             return anchor(reverse(
                 "project:solution:solution", args=[self.project.name,
                                                    self.commentable_id]))
@@ -122,6 +135,11 @@ post_save.connect(
     receivers.update_solution_metrics_from_comment, sender=Comment)
 post_delete.connect(
     receivers.update_solution_metrics_from_comment, sender=Comment)
+
+post_save.connect(
+    receivers.update_project_metrics_from_comment, sender=Comment)
+post_delete.connect(
+    receivers.update_project_metrics_from_comment, sender=Comment)
 
 post_save.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
@@ -142,6 +160,15 @@ class Commentable(Notifying, Owned, ProjectContext):
 
     class Meta:
         abstract = True
+
+    def has_commented(self, user_id):
+        """ Return whether passed user has commented on this commentable.
+
+        :param user_id: user id of commentator
+
+        """
+        return self.comment_set.filter(owner_id=user_id).exists()
+
 
     def add_comment(self, commentator, comment_text):
         """ Add comment to commentable, returns comment.

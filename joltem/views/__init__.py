@@ -2,19 +2,22 @@
 """ Joltem views. """
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import TemplateView, RedirectView, View, DetailView
+from django.views.generic import (
+    TemplateView, RedirectView, View, DetailView, ListView)
+from collections import defaultdict
 
 from joltem.models import Notification, Comment, User
 from project.models import Project
 from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
-class HomeView(View):
+class HomeView(TemplateView):
 
     """ View to serve up homepage. """
 
-    @staticmethod
-    def get(request, *args, **kwargs):
+    template_name = 'joltem/landing.html'
+
+    def get(self, request, *args, **kwargs):
         """ Handle GET request.
 
         If user is authenticated redirect to project dashboard.
@@ -30,8 +33,8 @@ class HomeView(View):
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
             return redirect('project:project', project_name=project.name)
-        return redirect('sign_in')
-
+        else:
+            return self.render_to_response(context={})
 
 class UserView(DetailView):
 
@@ -65,11 +68,12 @@ class CommentView(View):
         return HttpResponse(comment.comment)
 
 
-class NotificationsView(TemplateView, RequestBaseView):
+class NotificationsView(RequestBaseView, ListView):
 
     """ Displays the users notifications. """
 
     template_name = "joltem/notifications.html"
+    paginate_by = 10
 
     @staticmethod
     def post(request, *args, **kwargs):
@@ -80,9 +84,8 @@ class NotificationsView(TemplateView, RequestBaseView):
         """
 
         if request.POST.get("clear_all"):
-            for notification in request.user.notification_set.filter(
-                    is_cleared=False):
-                notification.mark_cleared()
+            request.user.notification_set.filter(
+                is_cleared=False).mark_cleared()
         return redirect("notifications")
 
     def get_context_data(self, **kwargs):
@@ -91,11 +94,30 @@ class NotificationsView(TemplateView, RequestBaseView):
         :return dict:
 
         """
-        from joltem.holders import NotificationHolder
         kwargs["nav_tab"] = "notifications"
-        kwargs["notifications"] = NotificationHolder.get_notifications(
-            self.user)
+
         return super(NotificationsView, self).get_context_data(**kwargs)
+
+    def get_queryset(self):
+        """ Preload notifications.
+
+        :return list:
+
+        """
+        notifications = self.user.notification_set.select_related()\
+            .order_by('-time_notified')
+        cache = defaultdict(list)
+        for notify in notifications:
+            cache[notify.notifying_type].append(notify.notifying_id)
+
+        for ct_type in cache.keys():
+            cache[ct_type] = ct_type.model_class().objects.select_related()\
+                .in_bulk(cache[ct_type])
+
+        for notify in notifications:
+            notify.notifying = cache[notify.notifying_type][notify.notifying_id]
+
+        return notifications
 
 
 class NotificationRedirectView(RedirectView):
@@ -120,7 +142,7 @@ class NotificationRedirectView(RedirectView):
         return notification.notifying.get_notification_url(notification)
 
 
-class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
+class IntroductionView(TemplateView, RequestBaseView):
 
     """ A view to display a basic introduction to the site.
 
@@ -129,5 +151,3 @@ class IntroductionView(TextContextMixin, TemplateView, RequestBaseView):
     """
 
     template_name = "joltem/introduction.html"
-    text_names = ["joltem/introduction.md"]
-    text_context_object_prefix = "introduction_"

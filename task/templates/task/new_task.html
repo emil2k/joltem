@@ -36,18 +36,30 @@
                 <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
             {% endif %}
 
-            {% for radio in form.priority %}
-                <label class="radio">
-                    {{ radio.tag }}
-                    {{ radio.choice_label }}
-                </label>
-            {% endfor %}
-
             {% if form.priority.errors %}
                 <div class="alert alert-error">{{ form.priority.errors|join:' ' }}</div>
             {% endif %}
 
-            <button type="submit" class="btn btn-success">Create task</button>
+            <p class="btn-group" data-toggle="buttons-radio">
+                {% for radio in form.priority %}
+                    <label class="btn {% if form.priority.value == radio.choice_value|add:0 %}active{% endif %} ">
+                        <span style="display: none;">{{ radio.tag }}</span>
+                        {% if radio.choice_label == 'high' %}
+                            <i class="fa fa-asterisk"></i>
+                        {% elif radio.choice_label == 'normal' %}
+                            <i class="fa fa-circle"></i>
+                        {% else %}
+                            <i class="fa fa-circle-o"></i>
+                        {% endif %}
+                        {{ radio.choice_label }}
+                    </label>
+                {% endfor %}
+            </p>
+
+            <p>
+                <button type="submit" class="btn btn-success">Save</button>
+            </p>
+
         </form>
     </div>
 </div>

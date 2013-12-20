@@ -26,7 +26,7 @@ class GatewayUser(ConchUser):
 
     def logout(self):
         """ Logout user. """
-        pass  # implement when necessary
+        log.msg('User logout')
 
 
 class GatewayRealm(object):

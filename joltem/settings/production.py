@@ -66,6 +66,16 @@ CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
 SECRET_KEY = 'imsosecret'
 
+# Haystack settings
+INSTALLED_APPS += 'haystack',
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': op.join(PROJECT_ROOT, 'whoosh_index'),
+    }
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
 # Gateway settings
 GATEWAY_PORT = 22
 GATEWAY_HOST = 'joltem.com'
@@ -83,6 +93,11 @@ CELERYBEAT_SCHEDULE = {
         'task': 'joltem.tasks.daily_diggest',
         'schedule': timedelta(hours=24),
         'args': (),
+    },
+    'activity-feed': {
+        'task': 'project.tasks.prepare_activity_feeds',
+        'schedule': timedelta(hours=24),
+        'args': (),
     }
 }
 
@@ -95,16 +110,25 @@ AUTHOMATIC = {
     'twitter': {
         'id': authomatic.provider_id(),
         'class_': oauth1.Twitter,
-        'consumer_key': 'pS3vnCVoC91AAyXPD9Oog',
-        'consumer_secret': 'ZYHUSJsxwdmJp4U3EtE8OJprymb8JIiiwXimQ17V04',
+        'consumer_key': 'na',
+        'consumer_secret': 'na',
         'profile_url': 'http://twitter.com/{username}',
+    },
+
+    'google': {
+        'id': authomatic.provider_id(),
+        'class_': oauth2.Google,
+        'consumer_key': 'na',
+        'consumer_secret': 'na',
+        'scope': ['email'],
+        'profile_url': 'https://plus.google.com/u/0/{username}/',
     },
 
     'facebook': {
         'id': authomatic.provider_id(),
         'class_': oauth2.Facebook,
-        'consumer_key': '426893780769525',
-        'consumer_secret': '5124dcc7a27fb858f7172299fcd48abe',
+        'consumer_key': 'na',
+        'consumer_secret': 'na',
         'scope': ['email'],
         'profile_url': 'http://facebook.com/{username}',
     },
@@ -112,8 +136,8 @@ AUTHOMATIC = {
     'github': {
         'id': authomatic.provider_id(),
         'class_': oauth2.GitHub,
-        'consumer_key': 'c2225b4da7ac43f56d22',
-        'consumer_secret': '641c458a2170d7f922576b0cd6b00713f2726d0f',
+        'consumer_key': 'na',
+        'consumer_secret': 'na',
         'scope': ['user:email'],
         'profile_url': 'http://github.com/{username}',
     },
@@ -121,8 +145,8 @@ AUTHOMATIC = {
     'bitbucket': {
         'id': authomatic.provider_id(),
         'class_': oauth1.Bitbucket,
-        'consumer_key': 'Ph9TEyPMRgP6TYb9tt',
-        'consumer_secret': 'dQ9xHmu3AZfzHjYKRg2eKNFgKUNHCdA3',
+        'consumer_key': 'na',
+        'consumer_secret': 'na',
         'profile_url': 'http://bitbucket.com/{username}',
     }
 

@@ -24,7 +24,7 @@ or do the following if you have a slow network connection :
 `vagrant box add` is required only once. It installs a box named
 `precise64` to `~/.vagrant.d`.
 
-Run the following command in the `vagrant` folder. It will install every dependency that the project needs,
+Run the following command, it will install every dependency that the project needs,
 setup any networking, and sync folders :
 
     $ vagrant up

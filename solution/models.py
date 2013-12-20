@@ -1,22 +1,18 @@
 """ Solution related models. """
-
 import logging
-
-from model_utils.managers import PassThroughManager
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from django.db.models.signals import post_save, post_delete
-from django.conf import settings
+from model_utils.managers import PassThroughManager
 
-from joltem import receivers as joltem_receivers
+from .managers import SolutionQuerySet
 from joltem.models import Voteable, Commentable
-from joltem.models.generic import Updatable
 from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
+from joltem.models.generic import Updatable
 from joltem.models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                                  NOTIFICATION_TYPE_VOTE_UPDATED)
 from joltem.utils import list_string_join
 
-from .managers import SolutionQuerySet
 
 logger = logging.getLogger('joltem')
 
@@ -64,6 +60,13 @@ class Solution(Voteable, Commentable, Updatable):
     def __unicode__(self):
         return str(self.id)
 
+    def save(self, **kwargs):
+        """ Notify at creation. """
+        created = not self.pk
+        super(Solution, self).save(**kwargs)
+        if created:
+            self.notify_created()
+
     def is_vote_valid(self, vote):
         """ Return whether vote should count.
 
@@ -71,7 +74,7 @@ class Solution(Voteable, Commentable, Updatable):
         a comment in the solution review.
 
         """
-        return vote.is_accepted or self.has_commented(vote.voter_id)
+        return self.has_commented(vote.voter_id)
 
     @property
     def default_title(self):
@@ -114,17 +117,6 @@ class Solution(Voteable, Commentable, Updatable):
                 solution_is_completed, solution_is_closed,
                 task_is_reviewed, task_is_accepted, task_is_closed)
         return count
-
-    def has_commented(self, user_id):
-        """ Return whether passed user has commented on the solution. """
-        return self.comment_set.count() > 0
-
-    def save(self, **kwargs):
-        """ Notify at creation. """
-        created = not self.pk
-        super(Solution, self).save(**kwargs)
-        if created:
-            self.notify_created()
 
     def mark_complete(self):
         """ Mark the solution complete. """
@@ -210,8 +202,8 @@ class Solution(Voteable, Commentable, Updatable):
     def get_notification_text_comment_added(self, notification):
         """ Return notification text for when comment added. """
         first_names = self.get_commentator_first_names(
-            queryset=self.comment_set.all().order_by("-time_commented"),
-            exclude=[notification.user]
+            queryset=self.comment_set.select_related('owner').exclude(
+                owner=notification.user).order_by("-time_commented")
         )
         return "%s commented on solution \"%s\"" % \
                (list_string_join(first_names), self.default_title)
@@ -219,8 +211,8 @@ class Solution(Voteable, Commentable, Updatable):
     def get_notification_text_vote_added(self, notification):
         """ Return notification text for when vote added. """
         first_names = self.get_voter_first_names(
-            queryset=self.vote_set.all().order_by("-time_voted"),
-            exclude=[notification.user]
+            queryset=self.vote_set.select_related('voter').exclude(
+                voter=notification.user).order_by("-time_voted")
         )
         return "%s voted on your solution \"%s\"" % \
                (list_string_join(first_names), self.default_title)
@@ -333,6 +325,7 @@ class Solution(Voteable, Commentable, Updatable):
         """
         # TODO test when solution branch has not been pushed yet
         from pygit2 import GIT_SORT_TOPOLOGICAL
+
         solution_branch_oid, checkout_oid = \
             self.get_pygit_solution_range(pygit_repository)
         commits = []
@@ -358,9 +351,3 @@ class Solution(Voteable, Commentable, Updatable):
         return DiffHolder(
             pygit_repository.diff(pygit_repository[checkout_oid],
                                   pygit_repository[solution_branch_oid]))
-
-
-post_save.connect(
-    joltem_receivers.update_project_impact_from_voteables, sender=Solution)
-post_delete.connect(
-    joltem_receivers.update_project_impact_from_voteables, sender=Solution)

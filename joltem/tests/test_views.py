@@ -4,22 +4,44 @@ from django.test.testcases import TestCase
 from joltem.libs import mixer
 
 
-class HomeTest(TestCase):
+class TestJoltemViews(TestCase):
 
-    """ Test home view.
+    @classmethod
+    def setUpClass(cls):
+        cls.project = mixer.blend('project.project')
+        cls.user = mixer.blend('joltem.user', password='test')
 
-    Should just redirect to the main project page, because there is
-    no other projects.
-
-    """
-
-    def setUp(self):
-        """ Setup a project and request factory. """
-        self.project = mixer.blend('project.project')
-
-    def test_get(self):
-        """ Test GET homepage request. """
-        user = mixer.blend('joltem.user', password='test')
-        self.client.login(username=user.username, password='test')
+    def test_home(self):
+        self.client.login(username=self.user.username, password='test')
         response = self.client.get('/')
         self.assertEqual(response.status_code, 302)
+
+    def test_notifications(self):
+        for _ in range(2):
+            task = mixer.blend('task.task', author=self.user, owner=self.user)
+            guest = mixer.blend('joltem.user')
+            task.add_comment(guest, mixer.g.get_string())
+
+            solution = mixer.blend('solution.solution', task=task,
+                                   author=self.user, owner=self.user)
+            solution.add_comment(guest, mixer.g.get_string())
+
+        self.assertEqual(self.user.notification_set.count(), 4)
+
+        self.client.login(username=self.user.username, password='test')
+        with self.assertNumQueries(10):
+            response = self.client.get('/notifications/')
+        self.assertContains(response, guest.first_name)
+
+        self.user.notifications = self.user.notification_set.filter(
+            is_cleared=False).count()
+        self.assertTrue(self.user.notifications)
+        self.user.save()
+
+        with self.assertNumQueries(5):
+            response = self.client.post('/notifications/', data=dict(
+                clear_all=True))
+        self.assertFalse(
+            self.user.notification_set.filter(is_cleared=False).count())
+        self.user = type(self.user).objects.get(pk=self.user.pk)
+        self.assertFalse(self.user.notifications)
