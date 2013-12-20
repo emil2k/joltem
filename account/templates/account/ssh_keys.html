@@ -12,7 +12,7 @@
         <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
     </div>
     <div class="span9">
-        <p class="text-info"><i class="icon-briefcase"></i> {{ key.name }}</p>
+        <p class="text-info"><i class="fa fa-briefcase"></i> {{ key.name }}</p>
         <pre>{{ key.key }}</pre>
     </div>
 </div>
@@ -43,7 +43,7 @@
             {% csrf_token %}
 
             <small class="help-block">
-                <i class="icon-question-sign"></i>
+                <i class="fa fa-question-circle"></i>
                 Authentication keys are used to identify and authenticate your workstation,
                 so you can push and pull commits without entering a password each time.<br/>
             </small>
@@ -55,7 +55,7 @@
             {% endif %}
 
             <small class="help-block">
-                <i class="icon-globe"></i> <a class="text-info" href="http://www.linuxproblem.org/art_9.html" target="_blank">How to get a SSH key?</a>
+                <i class="fa fa-globe"></i> <a class="text-info" href="http://www.linuxproblem.org/art_9.html" target="_blank">How to get a SSH key?</a>
             </small>
 
             {% render_field form.key class="input-block-level" rows="10" placeholder=form.name.help_text %}

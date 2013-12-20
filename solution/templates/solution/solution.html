@@ -28,31 +28,33 @@
             {% else %}
                 <p class="muted">Solution has not been described yet.</p>
             {% endif %}
-            <form method="post">
-                {% csrf_token %}
-                {% if solution.is_closed %}
-                    <button class="btn" type="submit" name="reopen" value="1">reopen</button>
-                {% else %}
-                    <div class="btn-group">
-                        {% if not solution.is_completed %}
-                            <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a>
-                        {% endif %}
-                        {% if is_owner %}
-                            <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+            {% if user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% if solution.is_closed %}
+                        <button class="btn" type="submit" name="reopen" value="1">reopen</button>
+                    {% else %}
+                        <div class="btn-group">
                             {% if not solution.is_completed %}
-                                <button class="btn" type="submit" name="close" value="1">close</button>
-                                <button class="btn btn-info" type="submit" name="complete" value="1"><i class="icon-ok icon-white"></i></button>
+                                <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a>
+                            {% endif %}
+                            {% if is_owner %}
+                                <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+                                {% if not solution.is_completed %}
+                                    <button class="btn" type="submit" name="close" value="1">close</button>
+                                    <button class="btn btn-info" type="submit" name="complete" value="1"><i class="fa fa-check"></i></button>
+                                {% else %}
+                                    <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
+                                {% endif %}
                             {% else %}
-                                <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
+                                {% if not solution.is_completed %}
+                                    <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
+                                {% endif %}
                             {% endif %}
-                        {% else %}
-                            {% if not solution.is_completed %}
-                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </form>
+                        </div>
+                    {% endif %}
+                </form>
+            {% endif %}
             {% if solution.is_completed %}
                 <div class="alert alert-info">
                     <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
@@ -119,18 +121,20 @@
     </form>
     <hr/>
     {% include "joltem/commenting.html" %}
-    {% if is_owner %}
-        <div class="alert alert-info">
-            <p>Checkout this solution's branch :</p>
-            <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-            <p>Then push to this solutions designated remote solution branch :</p>
-            <pre>git push -u origin s/{{ solution.id }}</pre>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            <p>Checkout this solution's branch :</p>
-            <pre>git fetch origin</pre>
-            <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
-        </div>
+    {% if user.is_authenticated %}
+        {% if is_owner %}
+            <div class="alert alert-info">
+                <p>Checkout this solution's branch :</p>
+                <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+                <p>Then push to this solutions designated remote solution branch :</p>
+                <pre>git push -u origin s/{{ solution.id }}</pre>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p>Checkout this solution's branch :</p>
+                <pre>git fetch origin</pre>
+                <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
+            </div>
+        {% endif %}
     {% endif %}
 {% endblock %}

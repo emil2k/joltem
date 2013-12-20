@@ -223,11 +223,6 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
             solution_id=self.solution.pk,
         )
 
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
-
     def test_it_is_ok_if_project_has_no_repositories(self):
         response = self.app.get(self.url, user=self.user)
 
@@ -272,11 +267,6 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
             project_name=self.project.name,
         )
 
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
-
     def test_user_has_two_reviewed_solutions(self):
         mixer.blend('solution.solution')
 
@@ -303,11 +293,6 @@ class MyReviewSolutionsTest(WebTest, ViewTestMixin):
         self.url = MY_REVIEW_SOLUTIONS_URL.format(
             project_name=self.project.name,
         )
-
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_two_solutions_to_review(self):
         mixer.blend(
@@ -343,11 +328,6 @@ class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
             project_name=self.project.name,
         )
 
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
-
     def test_user_has_one_incompleted_solution(self):
         mixer.blend(
             'solution.solution',
@@ -375,11 +355,6 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
         self.url = MY_COMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
         )
-
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_completed_solution(self):
         mixer.blend(
@@ -409,11 +384,6 @@ class IncompleteSolutionsTest(WebTest, ViewTestMixin):
             project_name=self.project.name,
         )
 
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
-
     def test_user_has_one_incompleted_solution(self):
         mixer.blend(
             'solution.solution',
@@ -440,11 +410,6 @@ class CompleteSolutionsTest(WebTest, ViewTestMixin):
         self.url = ALL_COMPLETE_SOLUTIONS_URL.format(
             project_name=self.project.name,
         )
-
-    def test_redirect_to_login_page_when_user_is_not_logged_in(self):
-        response = self.app.get(self.url)
-
-        self._test_sign_in_redirect_url(response, self.url)
 
     def test_user_has_one_completed_solution(self):
         mixer.blend(

@@ -1,7 +1,18 @@
 {% extends 'joltem/base.html' %}
-
+{% block title %}Sign up - Joltem{% endblock %}
+{% block message %}{% endblock %}
 {% block content %}
-<form action="" method="post" class="form-horizontal" id="sign-up-form">
+    <p>
+        <div class="btn-group">
+            <a class="btn" href="{% url 'oauth' 'github' %}/"><b class="fa fa-github fa-3x"></b> <span class="hidden-phone">GitHub</span></a>
+            <a class="btn" href="{% url 'oauth' 'bitbucket' %}/"><b class="fa fa-bitbucket fa-3x"></b> <span class="hidden-phone">BitBucket</span></a>
+            <a class="btn" href="{% url 'oauth' 'twitter' %}/"><b class="fa fa-twitter fa-3x"></b> <span class="hidden-phone">Twitter</span></a>
+            <a class="btn" href="{% url 'oauth' 'google' %}/"><b class="fa fa-google-plus fa-3x"></b> <span class="hidden-phone">Google</span></a>
+            <a class="btn" href="{% url 'oauth' 'facebook' %}/"><b class="fa fa-facebook-square fa-3x"></b> <span class="hidden-phone">Facebook</span></a>
+        </div>
+    </p>
+    <hr/>
+    <form action="" method="post" class="form-horizontal" id="sign-up-form">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
@@ -11,15 +22,14 @@
     {% endif %}
 
     {% include 'joltem/includes/form_field.html' with field=form.username help_html='Make it unique.' %}
-
+    <hr/>
     {% include 'joltem/includes/form_field.html' with field=form.first_name %}
 
     {% include 'joltem/includes/form_field.html' with field=form.last_name help_html='Optional.' %}
-
+    <hr/>
     {% include 'joltem/includes/form_field.html' with field=form.email %}
-
-    {% include 'joltem/includes/form_field.html' with field=form.gravatar_email help_html='Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="icon-globe"></i>' %}
-
+    {% include 'joltem/includes/form_field.html' with field=form.gravatar_email help_html='Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="fa fa-globe"></i>' %}
+    <hr/>
     {% include 'joltem/includes/form_field.html' with field=form.password1 %}
 
     {% include 'joltem/includes/form_field.html' with field=form.password2 %}

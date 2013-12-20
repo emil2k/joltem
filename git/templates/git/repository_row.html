@@ -15,8 +15,10 @@
             {% else %}
                 <small class="muted">~</small>
             {% endif %}
-            <br/>
-            <input type="text" disabled value="git clone {{ user.username }}@{{ host }}:{{ repo.id }}" class="input-block-level">
+            {% if user.is_authenticated %}
+                <br/>
+                <input type="text" disabled value="git clone {{ user.username }}@{{ host }}:{{ repo.id }}" class="input-block-level">
+            {% endif %}
         </p>
     </div>
 </div>

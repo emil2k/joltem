@@ -6,5 +6,5 @@ from help import views
 
 urlpatterns = patterns(
     '',
-    url(r'^$', login_required(views.HelpIndexView.as_view()), name='index')
+    url(r'^$', views.HelpIndexView.as_view(), name='index')
 )
