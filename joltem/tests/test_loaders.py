@@ -8,7 +8,7 @@ from joltem.libs.loaders.text import TextLoader, app_text_dirs
 class TextsLoaderTestCase(TestCase):
 
     def setUp(self):
-        self.text_name = "joltem/introduction.md"
+        self.text_name = "help/index.md"
         self.loader = TextLoader()
 
     # Custom assertions
