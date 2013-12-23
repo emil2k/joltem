@@ -88,7 +88,7 @@ def authomatic_login(request, provider):
             first_name=first_name,
             last_name=last_name,
             email=result.user.email,
-            username=result.user.username or request.user.name or '',
+            username=result.user.username or result.user.name or '',
         )
         request.session.save()
 
