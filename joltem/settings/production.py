@@ -140,6 +140,7 @@ AUTHOMATIC = {
         'consumer_secret': 'na',
         'scope': ['user:email'],
         'profile_url': 'http://github.com/{username}',
+        'access_headers': {'User-Agent': 'Joltem'},
     },
 
     'bitbucket': {

@@ -88,6 +88,7 @@ def authomatic_login(request, provider):
             email=result.user.email,
             username=result.user.username or request.user.name,
         )
+        request.session.save()
 
     return redirect('sign_up')
 
