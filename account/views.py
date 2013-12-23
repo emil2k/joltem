@@ -79,14 +79,16 @@ def authomatic_login(request, provider):
 
                 return redirect(redirect_to)
 
-        first_name, _, last_name = result.user.name.partition(' ')
+        first_name, last_name = '', ''
+        if result.user.name:
+            first_name, _, last_name = result.user.name.partition(' ')
         request.session.setdefault('oauth', {})
         request.session['oauth'][result.provider.name] = dict(
             service_id=result.user.id,
             first_name=first_name,
             last_name=last_name,
             email=result.user.email,
-            username=result.user.username or request.user.name,
+            username=result.user.username or request.user.name or '',
         )
         request.session.save()
 
