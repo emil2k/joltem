@@ -7,7 +7,7 @@ from django.views.generic import TemplateView, DetailView, ListView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
-from joltem.models import Vote, Comment
+from joltem.models import Comment
 from joltem.views.generic import (
     VoteableView, CommentableView, ExtraContextMixin,
 )
@@ -60,8 +60,8 @@ class SolutionBaseView(ProjectBaseView):
                 break
         comment_qs = Comment.objects\
             .filter(commentable_id=self.solution.id,
-                    commentable_type_id=\
-                        ContentType.objects.get_for_model(Solution))\
+                    commentable_type_id=
+                    ContentType.objects.get_for_model(Solution))\
             .select_related('project', 'owner')\
             .prefetch_related('vote_set__voter')\
             .order_by('time_commented')
@@ -96,9 +96,9 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
         """
         if self.solution.is_owner(self.user) and not (
-            'comment' in request.POST \
-                    or 'comment_id' in request.POST \
-                    or 'voteable_id' in request.POST
+            'comment' in request.POST
+            or 'comment_id' in request.POST
+            or 'voteable_id' in request.POST
         ):
             # Mark solution complete
             if request.POST.get('complete')\

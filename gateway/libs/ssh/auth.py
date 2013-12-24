@@ -24,7 +24,8 @@ class GatewayUser(ConchUser):
         self.user = User.objects.get(username=username)
         self.channelLookup['session'] = GatewaySession
 
-    def logout(self):
+    @staticmethod
+    def logout():
         """ Logout user. """
         log.msg('User logout')
 

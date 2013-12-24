@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from joltem.libs import mixer
 from solution.models import Solution
 

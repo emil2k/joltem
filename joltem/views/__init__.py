@@ -1,14 +1,14 @@
 # coding: utf-8
 """ Joltem views. """
+from collections import defaultdict
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (
     TemplateView, RedirectView, View, DetailView, ListView)
-from collections import defaultdict
 
 from joltem.models import Notification, Comment, User
+from joltem.views.generic import RequestBaseView
 from project.models import Project
-from joltem.views.generic import TextContextMixin, RequestBaseView
 
 
 class HomeView(TemplateView):
@@ -35,6 +35,7 @@ class HomeView(TemplateView):
             return redirect('project:project', project_name=project.name)
         else:
             return self.render_to_response(context={})
+
 
 class UserView(DetailView):
 
@@ -115,7 +116,8 @@ class NotificationsView(RequestBaseView, ListView):
                 .in_bulk(cache[ct_type])
 
         for notify in notifications:
-            notify.notifying = cache[notify.notifying_type][notify.notifying_id]
+            notify.notifying = cache[
+                notify.notifying_type][notify.notifying_id]
 
         return notifications
 

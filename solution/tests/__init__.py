@@ -6,7 +6,7 @@ from joltem.libs.mock.models import (
     get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
     get_mock_vote, get_mock_comment, get_mock_setup_solution,
     load_project_impact, load_model)
-from joltem.models import Vote, Voteable, User
+from joltem.models import Vote, Voteable
 from project.models import Impact
 
 
@@ -62,7 +62,8 @@ class ImpactTestCase(TestCase):
 
     # Helpers
 
-    def _mock_complete_solution(self):
+    @staticmethod
+    def _mock_complete_solution():
         """ Mock a completed solution.
 
         :return Solution:
@@ -72,7 +73,8 @@ class ImpactTestCase(TestCase):
         s.mark_complete()
         return s
 
-    def _mock_valid_solution_vote(self, solution, magnitude=1, voter_impact=1):
+    @staticmethod
+    def _mock_valid_solution_vote(solution, magnitude=1, voter_impact=1):
         """ Mock a valid vote on a solution.
 
         A valid vote on a solution means the user should also have commented
@@ -92,14 +94,11 @@ class ImpactTestCase(TestCase):
                     commentable=solution)
         return v
 
-
     # Tests
-
     # Test chain of signals
     # 1. Vote added to Votable
     # 2. Voteable update project impacts
     # 3. Project impacts update user impacts
-
     def test_solution_impact(self):
         """ Test impact from a solution. """
         s = self._mock_complete_solution()
@@ -172,7 +171,7 @@ class ImpactTestCase(TestCase):
     def test_impact_mark_incomplete(self):
         """ Test the effect of marking solution incomplete on impact. """
         s = self._mock_complete_solution()
-        v = self._mock_valid_solution_vote(s, 3, 300)
+        self._mock_valid_solution_vote(s, 3, 300)
         u = load_model(s.owner)
         self.assertImpactEqual(u, 10)
         self.assertCompletedEqual(u, 1)

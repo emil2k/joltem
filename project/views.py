@@ -7,11 +7,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic.edit import BaseFormView
+from haystack.query import SearchQuerySet
 
 from .forms import ProjectSettingsForm, ProjectSubscribeForm
 from .models import Project, Impact, Ratio
-from joltem.views.generic import RequestBaseView, ValidUserMixin
-from haystack.query import SearchQuerySet
+from joltem.views.generic import RequestBaseView
 
 
 class ProjectMixin():

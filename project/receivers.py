@@ -22,7 +22,7 @@ def update_project_impact_from_project_ratio(sender, **kwargs):
                 project_id=project_ratio.project_id,
                 user_id=project_ratio.user_id
             )
-        except Impact.DoesNotExist, Impact.MultipleObjectsReturned:
+        except (Impact.DoesNotExist, Impact.MultipleObjectsReturned):
             pass
         else:
             project_impact.impact = project_impact.get_impact()

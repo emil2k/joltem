@@ -50,6 +50,8 @@ class Comment(Voteable, Updatable):
         For a comment the default value at where magnitude=1 is 1, unlike a
         solution where it is 10, and it goes up by an order of 10 from there.
 
+        :returns: magnitude**10
+
         """
         magnitude -= 1
         return pow(10, magnitude)
@@ -168,7 +170,6 @@ class Commentable(Notifying, Owned, ProjectContext):
 
         """
         return self.comment_set.filter(owner_id=user_id).exists()
-
 
     def add_comment(self, commentator, comment_text):
         """ Add comment to commentable, returns comment.
