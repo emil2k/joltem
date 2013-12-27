@@ -5,13 +5,14 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView, CreateView
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
 from .forms import ProjectSettingsForm, ProjectSubscribeForm
 from .models import Project, Impact, Ratio
 from joltem.views.generic import RequestBaseView
+from account.forms import SSHKeyForm
 
 
 class ProjectMixin():
@@ -183,3 +184,33 @@ class ProjectSearchView(ProjectBaseView, TemplateView):
                 content=query, project=self.project.title).load_all()
         return super(ProjectSearchView, self).get_context_data(
             results=results, query=query, **kwargs)
+
+
+class ProjectKeysView(CreateView, ProjectBaseView):
+
+    form_class = SSHKeyForm
+    template_name = "project/ssh_keys.html"
+
+    def form_valid(self, form):
+        """ Save form.
+
+        :return HttpResponseRedirect:
+
+        """
+        ssh_key_instance = form.save(commit=False)
+        ssh_key_instance.project = self.project
+        ssh_key_instance.save()
+
+        return redirect('account_keys')
+
+    def get_context_data(self, **kwargs):
+        """ Make context.
+
+        :return dict: a context
+
+        """
+        context = super(ProjectKeysView, self).get_context_data(**kwargs)
+
+        context['ssh_key_list'] = self.project.authentication_set.all()
+
+        return context

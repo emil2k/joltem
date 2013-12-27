@@ -1,0 +1,76 @@
+{% extends 'project/base.html' %}
+{% load widget_tweaks %}
+{% load filters %}
+{% block project_content %}
+    <div class="row">
+        <div class="span3">
+        <ul class="nav nav-list well">
+            <li class="nav-header">Project Settings</li>
+            <li><a href="{% url 'project:settings' project.name %}">Main</a></li>
+            <li class="active"><a href="{% url 'project:keys' project.name %}">Keys</a></li>
+        </ul>
+        </div>
+        <div class="span6">
+            {% for key in ssh_key_list %}
+            <div class="row">
+                <div class="pull-right hidden-desktop hidden-tablet">
+                    <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
+                </div>
+                <div class="span1 hidden-phone">
+                    <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
+                </div>
+                <div class="span9">
+                    <p class="text-info"><i class="fa fa-briefcase"></i> {{ key.name }}</p>
+                    <pre>{{ key.key }}</pre>
+                </div>
+            </div>
+            {% empty %}
+            <div class="row">
+                <div class="span10">
+                    <p class="muted">There are no deploy keys for this repository.</p>
+                </div>
+            </div>
+            {% endfor %}
+            <hr/>
+
+<div class="row">
+    <div class="span10">
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+        {% endif %}
+
+        <form action="" method="post" id="account-ssh-keys-form">
+            {% csrf_token %}
+
+            <small class="help-block">
+                <i class="fa fa-question-circle"></i>
+                Deploy keys are used to identify and authenticate an user agents. And allow them only access for reading.
+                <br/>
+            </small>
+
+            {% render_field form.name class="input-block-level" placeholder=form.name.help_text %}
+
+            {% if form.name.errors %}
+                <div class="alert alert-error">{{ form.name.errors|join:' ' }}</div>
+            {% endif %}
+
+            <small class="help-block">
+                <i class="fa fa-globe"></i> <a class="text-info" href="http://www.linuxproblem.org/art_9.html" target="_blank">How to get a SSH key?</a>
+            </small>
+
+            {% render_field form.key class="input-block-level" rows="10" placeholder=form.name.help_text %}
+
+            {% if form.key.errors %}
+                <div class="alert alert-error">{{ form.key.errors|join:' ' }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-success">Add</button>
+        </form>
+    </div>
+</div>
+        </div>
+    </div>
+
+{% endblock %}
