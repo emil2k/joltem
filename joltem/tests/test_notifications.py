@@ -506,123 +506,28 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         """ Test notifications when votes are updated on a solution. """
         solution = get_mock_solution(self.project, self.jill,
                                      title="Cleaning up")
-        solution.put_vote(self.bob, 0)
+        solution.put_vote(self.bob, False)
         self.assertNotificationReceived(self.jill, solution,
                                         NOTIFICATION_TYPE_VOTE_ADDED,
                                         "Bob voted on your solution \"%s\"" %
                                         solution.default_title)
         # same vote, check that updated notification is not sent
-        solution.put_vote(self.bob, 0)
+        solution.put_vote(self.bob, False)
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
             solution.default_title)
-        solution.put_vote(self.bob, 2)
+        solution.put_vote(self.bob, True)
         self.assertNotificationReceived(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
             solution.default_title)
-        # check that it creates another notification todo
-        solution.put_vote(self.bob, 1)
+        # check that it creates another notification instead of replacing
+        solution.put_vote(self.bob, False)
         self.assertReceivedNotificationCount(
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
             solution.default_title, expected_count=2)
-
-
-class CommentNotificationTestCase(BaseNotificationTestCase):
-
-    """ Test notifications related to comments. """
-
-    def test_vote_on_comment(self):
-        """ Test notifications for votes on comments.
-
-        Should only notify when someone marked there comment helpful.
-
-        """
-        ted = get_mock_user("ted", first_name="Ted")
-        katy = get_mock_user("katy", first_name="Katy")
-        solution = get_mock_solution(self.project, self.jill,
-                                     title="Cleaning up")
-        comment = solution.add_comment(self.bob, "You should add some tests.")
-        # negative vote on comment should not trigger notification
-        comment.put_vote(ted, 0)
-        self.assertNotificationNotReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-        comment.put_vote(katy, 2)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Katy marked your comment helpful")
-        time.sleep(1)
-        comment.put_vote(self.jill, 1)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Jill and Katy marked your comment helpful")
-
-    def test_vote_regular_update_on_comment(self):
-        """ Test notifications when votes are updated on a comment.
-
-        With out changing is_accepted state.
-
-        """
-        solution = get_mock_solution(self.project, self.jill,
-                                     title="Cleaning up")
-        comment = solution.add_comment(self.bob,
-                                       "You should add some tests.")
-        comment.put_vote(self.jill, 2)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Jill marked your comment helpful")
-        comment.put_vote(self.jill, 1)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Jill marked your comment helpful")
-
-    def test_vote_negative_update_on_comment(self):
-        """ Test notification when a vote on a comment changes.
-
-        Goes from accepted to unaccepted.
-
-        """
-        ted = get_mock_user("ted", first_name="Ted")
-        solution = get_mock_solution(self.project, self.jill,
-                                     title="Cleaning up")
-        comment = solution.add_comment(self.bob, "You should add some tests.")
-        comment.put_vote(self.jill, 2)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Jill marked your comment helpful")
-        time.sleep(1)  # to get correct order when sorting by time voted
-        comment.put_vote(ted, 1)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Ted and Jill marked your comment helpful")
-        comment.put_vote(self.jill, 0)  # notification still be there
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL,
-            "Ted marked your comment helpful")
-        # notification should now be gone as there are no positive votes left
-        comment.put_vote(ted, 0)
-        self.assertNotificationNotReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-
-    def test_vote_positive_update_on_comment(self):
-        """ Test notifications when a vote on a comment changes.
-
-        Goes from unaccepted to accepted
-
-        """
-        solution = get_mock_solution(self.project, self.jill,
-                                     title="Cleaning up")
-        comment = solution.add_comment(self.bob,
-                                       "You should add some tests.")
-        comment.put_vote(self.jill, 0)
-        self.assertNotificationNotReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
-        # now accepted, should remove notification above
-        comment.put_vote(self.jill, 2)
-        self.assertNotificationReceived(
-            self.bob, comment, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
 
 class EmailNotificationTestCase(TestCase):
