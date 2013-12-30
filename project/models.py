@@ -176,11 +176,6 @@ class Impact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="impact_set")
 
-    # Must be above this threshold to count towards impact, an int between 0
-    # and 100
-    SOLUTION_ACCEPTANCE_THRESHOLD = 75
-    COMMENT_ACCEPTANCE_THRESHOLD = 75
-
     class Meta:
         unique_together = ['project', 'user']
 
@@ -191,19 +186,7 @@ class Impact(models.Model):
 
         """
         return self.user.solution_set.filter(
-            project_id=self.project_id, is_completed=True,
-            acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
-        ).exclude(impact=None)
-
-    def get_comments_qs(self):
-        """ Get the comments eligible for calculating impact.
-
-        :return: queryset of eligible comments.
-
-        """
-        return self.user.comment_set.filter(
-            project_id=self.project_id,
-            acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
+            project_id=self.project_id, is_completed=True
         ).exclude(impact=None)
 
     def get_impact(self):
@@ -224,22 +207,14 @@ class Impact(models.Model):
             ratio = None
         # Load eligible voteables
         solution_qs = self.get_solutions_qs()
-        comment_qs = self.get_comments_qs()
         # Ignore frozen time frame
         if ratio and ratio.is_frozen and ratio.time_frozen:
             solution_qs = solution_qs.filter(time_posted__lt=ratio.time_frozen)
-            comment_qs = comment_qs.filter(
-                time_commented__lt=ratio.time_frozen)
         # Impact from solutions
         solution_impact = solution_qs.aggregate(
             models.Sum('impact')).get('impact__sum')
-        # Impact from review comments
-        comment_impact = comment_qs.aggregate(
-            models.Sum('impact')).get('impact__sum')
         if solution_impact:
             impact += solution_impact
-        if comment_impact:
-            impact += comment_impact
         return impact
 
     def get_frozen_impact(self):
@@ -261,25 +236,17 @@ class Impact(models.Model):
             frozen_impact = 0
             # Load eligible voteables
             solution_qs = self.get_solutions_qs()
-            comment_qs = self.get_comments_qs()
             # Should be in frozen time frame
             if ratio and ratio.is_frozen and ratio.time_frozen:
                 solution_qs = solution_qs.filter(
                     time_posted__gte=ratio.time_frozen)
-                comment_qs = comment_qs.filter(
-                    time_commented__gte=ratio.time_frozen)
             else:
                 return 0
             # Frozen impact from solutions
             solution_impact = solution_qs.aggregate(
                 models.Sum('impact')).get('impact__sum')
-            # Frozen impact from comments
-            comment_impact = comment_qs.aggregate(
-                models.Sum('impact')).get('impact__sum')
             if solution_impact:
                 frozen_impact += solution_impact
-            if comment_impact:
-                frozen_impact += comment_impact
             return frozen_impact
 
 post_save.connect(
@@ -378,8 +345,7 @@ class Ratio(models.Model):
         max_ratio = self.get_votes_ratio(votes_out=max_out)
         return max_ratio is None or max_ratio >= Ratio.RATIO_THRESHOLD
 
-    # todo test when solution gains vote and becomes not available anymore for
-    # votes out
+    # todo test when solution gains vote or validity state changes
     def maximum_possible_votes_out(self):
         """ Calculate the maximum possible votes out.
 

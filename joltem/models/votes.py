@@ -20,9 +20,6 @@ class Vote(models.Model):
 
     voter_impact = models.BigIntegerField()  # at time of vote
     is_accepted = models.BooleanField(default=False)
-    # represents n in 10^n for the vote, n=1 for satisfactory, n=2 for one
-    # star and so on ...
-    magnitude = models.SmallIntegerField(null=True, blank=True)
     time_voted = models.DateTimeField(default=timezone.now)
     # Relations
     voter = models.ForeignKey(settings.AUTH_USER_MODEL)
@@ -53,10 +50,23 @@ post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
 NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
 NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
+VOTEABLE_THRESHOLD = 0.5
 
 class Voteable(Notifying, Owned, ProjectContext):
 
-    """ An abstract object, that can be voted on for impact determination. """
+    """ An abstract object, that can be voted on for impact determination.
+
+    Impact is determined through a bargaining process where the user
+    offers their work for a review along with an evaluation of the impact it
+    should receive.
+
+    Reviewers determine through simple yay or nay votes determine whether
+    the work is satisfactory and whether the evaluation is fair. If impact
+    weighted acceptance is above the VOTEABLE_THRESHOLD the user gets all
+    the impact if it is not they get none and must adjust their work or
+    evaluation and resubmit for review.
+
+    """
 
     impact = models.BigIntegerField(null=True, blank=True)
     # impact-weighted percentage of acceptance
@@ -69,10 +79,15 @@ class Voteable(Notifying, Owned, ProjectContext):
     class Meta:
         abstract = True
 
-    def put_vote(self, voter, vote_magnitude):
-        """ Add or update a vote on this voteable.  """
-        if not self.update_vote(voter, vote_magnitude):
-            self.add_vote(voter, vote_magnitude)
+    def put_vote(self, voter, is_accepted):
+        """ Add or update a vote on this voteable.
+
+        :param voter:
+        :param is_accepted:
+
+        """
+        if not self.update_vote(voter, is_accepted):
+            self.add_vote(voter, is_accepted)
 
     def add_vote(self, voter, vote_magnitude):
         """ Add a vote by the user. """
@@ -91,10 +106,12 @@ class Voteable(Notifying, Owned, ProjectContext):
         """ Send out notification that vote was added. """
         self.notify(self.owner, NOTIFICATION_TYPE_VOTE_ADDED, True)
 
-    def update_vote(self, voter, vote_magnitude):
+    def update_vote(self, voter, is_accepted):
         """ Update vote by the user on this voteable.
 
-        Returns boolean, indicated whether existing vote was found and updated.
+        :param voter:
+        :param is_accepted:
+        :return bool: whether existing vote was found and updated.
 
         """
         try:
@@ -105,19 +122,18 @@ class Voteable(Notifying, Owned, ProjectContext):
                 voteable_id=self.id,
                 voter_id=voter.id
             )
-            old_vote_magnitude = vote.magnitude
-            if old_vote_magnitude != vote_magnitude:
-                vote.is_accepted = vote_magnitude > 0
-                vote.magnitude = vote_magnitude
+            old_vote_is_accepted = vote.is_accepted
+            if old_vote_is_accepted != is_accepted:
+                vote.is_accepted = is_accepted
                 vote.time_voted = timezone.now()
                 vote.voter_impact = voter.impact
                 vote.save()
-                self.notify_vote_updated(vote, old_vote_magnitude)
+                self.notify_vote_updated(vote, old_vote_is_accepted)
             return True
         except Vote.DoesNotExist:
             return False
 
-    def notify_vote_updated(self, vote, old_vote_magnitude):
+    def notify_vote_updated(self, vote, old_vote_is_accepted):
         """ Send out notification that vote was updated.
 
         Override in extending class to disable
@@ -180,61 +196,17 @@ class Voteable(Notifying, Owned, ProjectContext):
     def get_impact(self):
         """ Calculate impact, analogous to value of contribution.
 
-        Returns int representing impact of voteable.
+        If the impact weighted acceptance is above the VOTEABLE_THRESHOLD
+        then user gets all the impact they demanded in their evaluation
+        otherwise they get none.
+
+        :return int: value of contribution
 
         """
-        impact_sum = 0
-        weighted_sum = 0
-        for vote in self.vote_set.all():
-            if not self.is_vote_valid(vote):
-                continue
-            elif vote.is_accepted:
-                weighted_sum += vote.voter_impact * self.get_vote_value(vote)
-            impact_sum += vote.voter_impact
-        if impact_sum == 0:
-            return None
-        return int(round(weighted_sum / float(impact_sum)))
-
-    def get_impact_distribution(self):
-        """ Impact distribution based on magnitude.
-
-        Returns a list representing the distribution of impact
-        based on magnitudes of votes, with 0 representing a
-        rejected vote.
-
-        """
-        d = [0] * (1 + Vote.MAXIMUM_MAGNITUDE)
-        for vote in self.vote_set.all():
-            d[vote.magnitude] += vote.voter_impact
-        return d
-
-    def get_impact_integrals(self):
-        """ Calculate impact integrals.
-
-        Integration of the impact distribution from the given magnitude
-        to the maximum magnitude. Returns list of impact integrals
-        for each magnitude.
-
-        """
-        stop = 1 + Vote.MAXIMUM_MAGNITUDE
-        d = self.get_impact_distribution()
-        ii = [0] * stop
-        for magnitude in range(stop):
-            # Integrate distribution
-            for x in range(magnitude, stop):
-                ii[magnitude] += d[x]
-        return ii
-
-    def get_impact_integrals_excluding_vote(self, vote):
-        """ Calculate impact integrals, excluding the specified vote.
-
-        Returns list of impact integrals for each magnitude.
-
-        """
-        ii = self.get_impact_integrals()
-        for x in range(1 + vote.magnitude):
-            ii[x] -= vote.voter_impact
-        return ii
+        if self.get_acceptance() > VOTEABLE_THRESHOLD:
+            return self.impact
+        else:
+            return 0
 
     @staticmethod
     def is_vote_valid(vote):
@@ -244,46 +216,3 @@ class Voteable(Notifying, Owned, ProjectContext):
 
         """
         return True
-
-    @staticmethod
-    def magnitude_to_vote_value(magnitude):
-        """ Map the determined vote magnitude to corresponding vote value.
-
-        Override in the extended class, to modify behaviour. By default
-        the behaviour is simply to make it a power of 10.
-
-        :param magnitude: magnitude of vote
-        :return int: effective vote value
-
-        """
-        return pow(10, magnitude)
-
-    MAGNITUDE_THRESHOLD = 0.159  #: minimum supporting impact integral
-
-    def get_vote_value(self, vote):
-        """ Return vote value.
-
-        Based on the impact distribution of the other votes.
-
-        Thought process on MAGNITUDE_THRESHOLD ...
-        If vote is less than one standard deviation above of the actual
-        magnitude, a minimum of 15.9% of the rest of distribution would
-        be between it and the maximum.
-
-        If there is no support at that magnitude it goes down a level
-        to the minimum of 1 for an accepted vote
-
-        Assumes vote is accepted, so magnitude must be greater than 0.
-
-        """
-        assert vote.magnitude > 0
-        excluding_total = \
-            sum(self.get_impact_distribution()) - vote.voter_impact
-        ie = self.get_impact_integrals_excluding_vote(vote)
-        if excluding_total > 0:
-            for magnitude in reversed(range(1, 1 + vote.magnitude)):
-                excluding_integral = ie[magnitude]
-                p = float(excluding_integral) / excluding_total
-                if p > Voteable.MAGNITUDE_THRESHOLD:
-                    return self.magnitude_to_vote_value(magnitude)
-        return self.magnitude_to_vote_value(1)  # default

@@ -22,7 +22,7 @@ logger = logging.getLogger('django')
 NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
 
 
-class Comment(Voteable, Updatable):
+class Comment(Updatable):
 
     """ Comments in a solution review. """
 
@@ -42,46 +42,6 @@ class Comment(Voteable, Updatable):
 
     def __unicode__(self):
         return str(self.comment)
-
-    @staticmethod
-    def magnitude_to_vote_value(magnitude):
-        """ Map the determined vote magnitude to corresponding vote value.
-
-        For a comment the default value at where magnitude=1 is 1, unlike a
-        solution where it is 10, and it goes up by an order of 10 from there.
-
-        :returns: magnitude**10
-
-        """
-        magnitude -= 1
-        return pow(10, magnitude)
-
-    def notify_vote_added(self, vote):
-        """ Override to only notify of "Helpful" or positive votes. """
-
-        if vote.is_accepted:
-            self.notify(self.owner,
-                        NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
-
-    def notify_vote_updated(self, vote, old_vote_magnitude):
-        """ Override to disable.
-
-        there should be no notifications when votes are updated on comments.
-        Except when a vote goes from accepted to
-
-        """
-        if vote.is_accepted and old_vote_magnitude == 0:  # became accepted
-            self.notify(self.owner,
-                        NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL, True)
-        elif vote.is_rejected and old_vote_magnitude > 0:  # became rejected
-            # Check if there is any other positive votes
-            positive_votes = self.get_voters(
-                queryset=self.vote_set.filter(is_accepted=True),
-                exclude=[vote.voter]
-            )
-            if len(positive_votes) == 0:
-                self.delete_notifications(
-                    self.owner, NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
 
     def get_notification_text(self, notification=None):
         """ Get text notification.
