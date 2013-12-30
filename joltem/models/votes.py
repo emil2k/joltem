@@ -50,7 +50,7 @@ post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
 NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
 NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
-VOTEABLE_THRESHOLD = 0.5
+VOTEABLE_THRESHOLD = 50  # int between 0-100
 
 class Voteable(Notifying, Owned, ProjectContext):
 
@@ -89,13 +89,12 @@ class Voteable(Notifying, Owned, ProjectContext):
         if not self.update_vote(voter, is_accepted):
             self.add_vote(voter, is_accepted)
 
-    def add_vote(self, voter, vote_magnitude):
+    def add_vote(self, voter, is_accepted):
         """ Add a vote by the user. """
         vote = Vote(
             voteable=self,
             voter=voter,
-            is_accepted=vote_magnitude > 0,
-            magnitude=vote_magnitude,
+            is_accepted=is_accepted,
             time_voted=timezone.now(),
             voter_impact=voter.impact
         )

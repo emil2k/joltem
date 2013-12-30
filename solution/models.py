@@ -74,7 +74,7 @@ class Solution(Voteable, Commentable, Updatable):
         a comment in the solution review.
 
         """
-        return self.has_commented(vote.voter_id)
+        return vote.is_accepted or self.has_commented(vote.voter_id)
 
     @property
     def default_title(self):
