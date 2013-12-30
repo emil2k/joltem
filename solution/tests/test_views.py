@@ -160,30 +160,39 @@ class SolutionReviewViewTest(TestCase):
         response = self.client.get(self.path)
         self.assertEqual(response.status_code, 200)
 
-    def test_solution_vote_no_comment(self):
-        """ Test a review vote with no comment.
+    def test_solution_negative_vote_no_comment(self):
+        """ Test a negative review vote with no comment.
 
-        A message should be visible to the voter that a comment is required
-        for the vote to count.
+        The message that a comment is required should be visible now.
 
         """
         mixer.blend('joltem.vote', voter=self.user, voteable=self.solution,
-                    voter_impact=1, magnitude=1, is_accepted=True)
+                    voter_impact=1, is_accepted=False)
         response = self.client.get(self.path)
         self.assertContains(response, "Votes require an explanation")
 
-    def test_solution_vote_with_comment(self):
-        """ Test a review vote with a comment posted.
+    def test_solution_positive_vote_no_comment(self):
+        """ Test a positive review vote with no comment.
 
         The message that a comment is required should not be visible now.
 
         """
         mixer.blend('joltem.vote', voter=self.user, voteable=self.solution,
-                    voter_impact=1, magnitude=1, is_accepted=True)
+                    voter_impact=1, is_accepted=True)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, "Votes require an explanation")
+
+    def test_solution_negative_vote_with_comment(self):
+        """ Test a negative review vote with a comment posted.
+
+        The message that a comment is required should not be visible now.
+
+        """
+        mixer.blend('joltem.vote', voter=self.user, voteable=self.solution,
+                    voter_impact=1, is_accepted=False)
         mixer.blend('joltem.comment', project=self.solution.project,
                     owner=self.user, commentable=self.solution)
         response = self.client.get(self.path)
-        print response.content
         self.assertNotContains(response, "Votes require an explanation")
 
 
@@ -273,7 +282,7 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
         solutions = mixer.cycle(2).blend(
             'solution.solution', project=self.project)
         for solution in solutions:
-            solution.add_vote(voter=self.user, vote_magnitude=1)
+            solution.add_vote(voter=self.user, is_accepted=True)
 
         response = self.app.get(self.url, user=self.user, status=200)
 

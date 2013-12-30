@@ -11,10 +11,26 @@ class Migration(SchemaMigration):
         # Deleting field 'Vote.magnitude'
         db.delete_column(u'joltem_vote', 'magnitude')
 
+        # Deleting field 'Comment.impact'
+        db.delete_column(u'joltem_comment', 'impact')
+
+        # Deleting field 'Comment.acceptance'
+        db.delete_column(u'joltem_comment', 'acceptance')
+
 
     def backwards(self, orm):
         # Adding field 'Vote.magnitude'
         db.add_column(u'joltem_vote', 'magnitude',
+                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Comment.impact'
+        db.add_column(u'joltem_comment', 'impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Comment.acceptance'
+        db.add_column(u'joltem_comment', 'acceptance',
                       self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
                       keep_default=False)
 
@@ -42,12 +58,10 @@ class Migration(SchemaMigration):
         },
         'joltem.comment': {
             'Meta': {'object_name': 'Comment'},
-            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'commentable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'commentable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),

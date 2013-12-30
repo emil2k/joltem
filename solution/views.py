@@ -63,7 +63,6 @@ class SolutionBaseView(ProjectBaseView):
                     commentable_type_id=
                     ContentType.objects.get_for_model(Solution))\
             .select_related('project', 'owner')\
-            .prefetch_related('vote_set__voter')\
             .order_by('time_commented')
         kwargs["comments"] = CommentHolder.get_comments(
             comment_qs,

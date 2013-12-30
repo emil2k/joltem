@@ -22,7 +22,7 @@ logger = logging.getLogger('django')
 NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL = "comment_marked_helpful"
 
 
-class Comment(Updatable):
+class Comment(Owned, ProjectContext, Updatable):
 
     """ Comments in a solution review. """
 
