@@ -32,36 +32,7 @@
                     </span>
                 {% endif %}
             </div>
-            <div class="span2 text-center">
-                {% with vote=comment_holder.vote %}
-                    {% if vote or comment_holder.is_author %}
-                        <p>
-                            <small>
-                                <a href="#" onclick="$('#comment-votes-{{ comment.id }}').toggle(); return false;" class="muted">
-                                    {% if comment.impact %}
-                                        <strong>{{ comment.impact }}</strong> impact,
-                                        <strong>{{ comment_holder.vote_count }}</strong> vote{{ comment_holder.vote_count|pluralize }}
-                                    {% endif %}
-                                </a>
-                            </small>
-                        </p>
-                    {% endif %}
-                    {% if not comment_holder.is_author %}
-                        {% include 'solution/review_comment_vote.html' %}
-                    {% endif %}
-                {% endwith %}
-            </div>
         </div>
-        {% if comment_holder.vote_count > 0 %}
-            <div id="comment-votes-{{ comment.id }}" style="display:none;">
-                <hr/>
-                <div class="row">
-                    {% with accept_votes=comment_holder.accept_votes reject_votes=comment_holder.reject_votes %}
-                        {% include 'solution/review_comment_votes.html' %}
-                    {% endwith %}
-                </div>
-            </div>
-        {% endif %}
     {% endwith %}
     <hr/>
 {% endfor %}
