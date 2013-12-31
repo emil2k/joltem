@@ -62,15 +62,15 @@ class TestProjectViews(TestCase):
         tasks = mixer.cycle(5).blend('task.task', project=self.project)
         solutions = mixer.cycle(5).blend(
             'solution.solution', task=(t for t in tasks),
-            project=mixer.mix.task.project)
+            project=mixer.MIX.task.project)
 
         comments = mixer.cycle(2).blend(
-            'joltem.comment', commentable=mixer.random(*tasks),
-            owner=mixer.select('joltem.user'), project=self.project)
+            'joltem.comment', commentable=mixer.RANDOM(*tasks),
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         comments = mixer.cycle(3).blend(
-            'joltem.comment', commentable=mixer.random(*solutions),
-            owner=mixer.select('joltem.user'), project=self.project)
+            'joltem.comment', commentable=mixer.RANDOM(*solutions),
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         response = self.client.get(uri)
         self.assertFalse(response.context['solutions'])

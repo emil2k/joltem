@@ -21,15 +21,15 @@ class ProjectModelTest(TestCase):
         """ Test get_overview. """
 
         tasks = mixer.cycle(4).blend(
-            'task.task', project=self.project, is_reviewed=mixer.random)
+            'task.task', project=self.project, is_reviewed=mixer.RANDOM)
 
         solutions = mixer.cycle(4).blend(
             'solution.solution', task=(t for t in tasks),
-            project=mixer.mix.task.project, is_completed=mixer.random)
+            project=mixer.MIX.task.project, is_completed=mixer.RANDOM)
 
         comments = mixer.cycle(4).blend(
             'joltem.comment', commentable=(s for s in solutions),
-            owner=mixer.select('joltem.user'), project=self.project)
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         overview = self.project.get_overview()
         self.assertEqual(set(tasks), set(overview.get('tasks')))

@@ -553,8 +553,8 @@ class AccountSSHKeyDeleteTest(WebTest, ViewTestMixin):
 
     def setUp(self):
         self.user = mixer.blend('joltem.user')
-        self.ssh_key = mixer.blend('git.authentication',
-                                   user=self.user, name='key666')
+        self.ssh_key = mixer.blend(
+            'git.authentication', user=self.user, name='key666')
 
         self.delete_url = ACCOUNT_SSH_KEY_DELETE_URL.format(self.ssh_key.pk)
 

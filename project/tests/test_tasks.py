@@ -12,17 +12,17 @@ class ProjectTasksTestCase(TestCase):
         self.users = mixer.cycle(4).blend('joltem.user')
 
         mixer.cycle(3).blend(
-            'solution.solution', project=mixer.random(*self.projects),
-            owner=mixer.random(*self.users))
+            'solution.solution', project=mixer.RANDOM(*self.projects),
+            owner=mixer.RANDOM(*self.users))
 
         tasks = mixer.cycle(3).blend(
-            'task.task', project=mixer.random(*self.projects),
-            owner=mixer.random(*self.users))
+            'task.task', project=mixer.RANDOM(*self.projects),
+            owner=mixer.RANDOM(*self.users))
 
         mixer.cycle(3).blend(
-            'joltem.comment', project=mixer.random(*self.projects),
-            comment=mixer.random, owner=mixer.random(*self.users),
-            commentable=mixer.random(*tasks))
+            'joltem.comment', project=mixer.RANDOM(*self.projects),
+            comment=mixer.RANDOM, owner=mixer.RANDOM(*self.users),
+            commentable=mixer.RANDOM(*tasks))
 
     def test_activity_feed(self):
         prepare_activity_feeds()

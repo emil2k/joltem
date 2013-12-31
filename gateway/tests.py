@@ -1,16 +1,12 @@
 from unittest import TestCase
 
-from gateway.libs.terminal.utils import *
-from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import (
     BaseBufferedSplitter, PacketLineSplitter, GitReceivePackProcessProtocol)
-from gateway.libs.git.utils import (
-    get_packet_line, get_packet_line_size, get_unpack_status,
-    get_command_status, get_report,
-)
+from gateway.libs.git.utils import *
+from gateway.libs.terminal.utils import *
 from git.models import Authentication
+from joltem.libs import mixer
 from joltem.models import User
-from mixer.backend.django import mixer
 
 
 class TestTerminalProtocolUtilities(TestCase):
@@ -128,15 +124,11 @@ class TestSSH(TestCase):
             call_command('syncdb')
             call_command('migrate')
 
-    def test_auth(self):
+    def test_auth_user(self):
         from gateway.libs.ssh.auth import GatewayCredentialChecker
 
-        key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD6qRSV4zDxKXp5vqLiGYj0y3CmoBtXSXuh3ZUyBLwwgw62Wmn1JyqbqlM9dOJysz+gwAi8YlPKCRsAPSr2moR3ThZlk/5qflaiTT4NgGwl/n5XNHVW8Ot5n2KrtnwOMbX7PtSomARhXE9ejpGZwL3SKDaScIGRNbz8cWmVKG1JqdiBo+qTe4HeabREunqztN0Oq44FXCuqlYbvkRud4lkjnzZTP2XL36MfeT3AdCDCs30AgzuVq2nerCnVdRD5v/MkUW2uzonLuJaLDvJZ75ha/vn/l2XINgsfl4SzZtYe50r04YHVflK/p2TdQNhV69eK87WBDwp8xsSR4Rr0swcd joltem@joltem.local"
-
-        authentication = mixer.blend(Authentication)
-        authentication.blob = key
-        authentication.save()
-        authentication.user.blob = key
+        authentication = mixer.blend(Authentication, user=mixer.RANDOM)
+        authentication.user.blob = authentication.key
 
         checker = GatewayCredentialChecker()
 
@@ -144,10 +136,15 @@ class TestSSH(TestCase):
         self.assertEqual(result.result, authentication.user.username)
 
         wrong_user = mixer.blend(User)
-        wrong_user.blob = key
+        wrong_user.blob = 'WRONGBLOB'
 
         result = checker.requestAvatarId(wrong_user)
         self.assertTrue(isinstance(result.value, Exception))
+
+    def test_auth_project(self):
+        from gateway.libs.ssh.auth import GatewayCredentialChecker
+
+        authentication = mixer.blend(Authentication, project=mixer.RANDOM)
 
 
 class MockAvatar(object):

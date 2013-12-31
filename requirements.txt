@@ -36,4 +36,4 @@ django-nose
 django-webtest==1.7.5
 factory-boy==2.2.1
 ipdb
-mixer>=1.6.0
+mixer>=2.0.1

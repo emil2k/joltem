@@ -95,27 +95,3 @@ class GatewayCredentialChecker(object):
                 else:
                     return Failure(UnauthorizedLogin(
                         "Authentication failed, key not found."))
-
-
-class DummyEmilChecker(object):
-    # todo remove this checker
-
-    """ Approves all users with the username `emil` for testing. """
-
-    implements(ICredentialsChecker)
-    credentialInterfaces = (ISSHPrivateKey, )
-
-    @staticmethod
-    def requestAvatarId(credentials):
-        """ Return success for username 'emil'.
-
-
-        :return : Status
-
-        """
-        log.msg("Request avatar id for %s." % credentials.username,
-                system="auth")
-        if credentials.username == "emil":
-            return succeed("emil")
-        else:
-            return Failure(UnauthorizedLogin("You are %s, not `emil`. Login failed." % credentials.username))  # noqa

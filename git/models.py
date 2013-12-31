@@ -87,7 +87,7 @@ class Authentication(models.Model):
 
     name = models.CharField(max_length=200)
     key = models.TextField()  # open ssh representation of public rsa key
-    fingerprint = models.CharField(max_length=47, unique=True)
+    fingerprint = models.CharField(max_length=47, unique=True, blank=True)
 
     # Relations
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
