@@ -23,6 +23,8 @@ class Command(BaseCommand):
             project = mixer.blend(Project, name='Joltem', title='Joltem')
             project.admin_set = [root]
 
+            mixer.blend('git.repository', project=project)
+
             users = mixer.cycle(5).blend(User)
 
             tasks = mixer.cycle(20).blend(
