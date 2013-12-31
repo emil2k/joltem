@@ -5,7 +5,8 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, UpdateView, CreateView
+from django.views.generic import (
+    TemplateView, UpdateView, CreateView, DeleteView)
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
@@ -188,6 +189,8 @@ class ProjectSearchView(ProjectBaseView, TemplateView):
 
 class ProjectKeysView(CreateView, ProjectBaseView):
 
+    """ Setup project deployment keys. """
+
     form_class = SSHKeyForm
     template_name = "project/ssh_keys.html"
 
@@ -201,7 +204,7 @@ class ProjectKeysView(CreateView, ProjectBaseView):
         ssh_key_instance.project = self.project
         ssh_key_instance.save()
 
-        return redirect('account_keys')
+        return redirect('project:keys', project_name=self.project.name)
 
     def get_context_data(self, **kwargs):
         """ Make context.
@@ -209,8 +212,45 @@ class ProjectKeysView(CreateView, ProjectBaseView):
         :return dict: a context
 
         """
+        if not self.is_admin:
+            raise Http404
+
         context = super(ProjectKeysView, self).get_context_data(**kwargs)
 
         context['ssh_key_list'] = self.project.authentication_set.all()
 
         return context
+
+
+class ProjectKeysDeleteView(ProjectBaseView, DeleteView):
+
+    """Deletes public SSH key by id from project."""
+
+    template_name = 'project/ssh_keys_confirm_delete.html'
+
+    def delete(self, *args, **kwargs):
+        """ Check for current user is project's admin.
+
+        :return:
+
+        """
+        if not self.is_admin:
+            raise Http404
+        return super(ProjectKeysDeleteView, self).delete(*args, **kwargs)
+
+    def get_queryset(self):
+        """ Get queryset.
+
+        :return Queryset:
+
+        """
+        return self.project.authentication_set
+
+    def get_success_url(self):
+        """ Redirect to project keys.
+
+        :returns: str
+
+        """
+        return reverse('project:keys', kwargs=dict(
+            project_name=self.project.name))

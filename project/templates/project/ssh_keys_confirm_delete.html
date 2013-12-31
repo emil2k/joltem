@@ -1,0 +1,22 @@
+{% extends 'project/base.html' %}
+
+{% block project_content %}
+    <div class="row">
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Project Settings</li>
+                <li><a href="{% url 'project:settings' project.name %}">Main</a></li>
+                <li class="active"><a href="{% url 'project:keys' project.name %}">Keys</a></li>
+            </ul>
+        </div>
+        <div class="span10">
+            <p class="text-info"><i class="fa fa-briefcase"></i> {{ object.name }}</p>
+            <pre>{{ object.key }}</pre>
+
+            <form action="" method="post" id="account-ssh-key-delete-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete SSH key</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

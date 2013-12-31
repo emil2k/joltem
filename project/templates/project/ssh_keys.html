@@ -3,21 +3,21 @@
 {% load filters %}
 {% block project_content %}
     <div class="row">
-        <div class="span3">
-        <ul class="nav nav-list well">
-            <li class="nav-header">Project Settings</li>
-            <li><a href="{% url 'project:settings' project.name %}">Main</a></li>
-            <li class="active"><a href="{% url 'project:keys' project.name %}">Keys</a></li>
-        </ul>
+        <div class="span2">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Project Settings</li>
+                <li><a href="{% url 'project:settings' project.name %}">Main</a></li>
+                <li class="active"><a href="{% url 'project:keys' project.name %}">Keys</a></li>
+            </ul>
         </div>
-        <div class="span6">
+        <div class="span10">
             {% for key in ssh_key_list %}
             <div class="row">
                 <div class="pull-right hidden-desktop hidden-tablet">
-                    <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
+                    <a class="btn btn-mini" href="{% url 'project:keys_delete' project.name key.pk %}">remove</a>
                 </div>
                 <div class="span1 hidden-phone">
-                    <a class="btn btn-mini" href="{% url 'account_key_delete' key.pk %}">remove</a>
+                    <a class="btn btn-mini" href="{% url 'project:keys_delete' project.name key.pk %}">remove</a>
                 </div>
                 <div class="span9">
                     <p class="text-info"><i class="fa fa-briefcase"></i> {{ key.name }}</p>
