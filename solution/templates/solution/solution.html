@@ -42,7 +42,6 @@
                                 <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
                                 {% if not solution.is_completed %}
                                     <button class="btn" type="submit" name="close" value="1">close</button>
-                                    <button class="btn btn-info" type="submit" name="complete" value="1"><i class="fa fa-check"></i></button>
                                 {% else %}
                                     <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                                 {% endif %}
@@ -72,6 +71,19 @@
                 <div class="alert alert-info">
                     This is a <strong>suggested solution</strong> without a parent ( task or solution ).
                 </div>
+            {% endif %}
+            {% if user.is_authenticated and is_owner and not solution.is_closed and not solution.is_completed %}
+                <div id="compensation-q" class="alert">
+                    <strong>
+                        <i class="fa fa-check"></i> Is the solution <a href="#" onclick="$('#compensation').show(); $('#compensation-q').hide();  return false;">complete</a>?
+                    </strong>
+                </div>
+                <form method="post" id="compensation" class="compensation">
+                    {% csrf_token %}
+                    <p>How much <a href="{% url 'help:index' %}#impact" title="What is impact?">impact</a> do you want for the solution?</p>
+                    <p><input type="number" min="0" max="10000" size="5" name="compensation_value" placeholder="amount of impact"/></p>
+                    <p><button class="btn btn-info">mark complete</button></p>
+                </form>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
             <hr/>
