@@ -69,8 +69,8 @@ class ImpactTestCase(TestCase):
         :return Solution:
 
         """
-        s = mixer.blend('solution.solution', impact=impact)
-        s.mark_complete()
+        s = mixer.blend('solution.solution')
+        s.mark_complete(impact)
         return s
 
     @staticmethod

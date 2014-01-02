@@ -54,10 +54,11 @@ class SolutionViewTest(BaseSolutionViewTest):
         response = self._get(views.SolutionView.as_view())
         self.assertTrue(response.status_code, 200)
 
-    def _test_solution_view_action(self, action):
+    def _test_solution_view_action(self, action, **data):
         """ Generate test for solution action. """
+        data.update({ action: 1 })
         response = self._post(
-            views.SolutionView.as_view(), {action: 1})
+            views.SolutionView.as_view(), data)
         self.assertEqual(response.status_code, 302)
         self.solution = self.solution.__class__.objects.get(
             pk=self.solution.pk)
@@ -66,12 +67,12 @@ class SolutionViewTest(BaseSolutionViewTest):
         """ Test mark solution complete. """
         self.solution.mark_open()
         self.solution.mark_incomplete()
-        self._test_solution_view_action('complete')
+        self._test_solution_view_action('complete', compensation_value=5)
         self.assertTrue(self.solution.is_completed)
 
     def test_solution_view_post_incomplete(self):
         """ Test mark solution incomplete. """
-        self.solution.mark_complete()
+        self.solution.mark_complete(5)
         self._test_solution_view_action('incomplete')
         self.assertFalse(self.solution.is_completed)
 
@@ -149,7 +150,7 @@ class SolutionReviewViewTest(TestCase):
         self.solution = mixer.blend('solution.solution', title="Make bread",
                                     description="Mix dough and bake.",
                                     owner__first_name="Jill")
-        self.solution.mark_complete()
+        self.solution.mark_complete(5)
         self.path = reverse('project:solution:review', args=[
             self.solution.project.name,
             self.solution.id

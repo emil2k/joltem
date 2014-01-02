@@ -291,7 +291,7 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         task = get_mock_task(self.project, self.jill,
                              is_reviewed=True, is_accepted=True)
         solution = get_mock_solution(self.project, self.bob, task=task)
-        solution.mark_complete()
+        solution.mark_complete(5)
         self.assertNotificationReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
             "Solution \"%s\" was marked complete" % solution.default_title)
@@ -309,7 +309,7 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         task = get_mock_task(self.project, self.jill,
                              is_reviewed=True, is_accepted=True, is_closed=True)
         solution = get_mock_solution(self.project, self.bob, task=task)
-        solution.mark_complete()
+        solution.mark_complete(5)
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
@@ -323,7 +323,7 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         task = get_mock_task(self.project, self.jill,
                              is_reviewed=True, is_accepted=True)
         solution = get_mock_solution(self.project, self.jill, task=task)
-        solution.mark_complete()
+        solution.mark_complete(5)
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
 
@@ -338,12 +338,12 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         """
         solution = get_mock_solution(
             self.project, self.bob, title="Making Jam")
-        solution.mark_complete()  # solution marked complete for first time
+        solution.mark_complete(5)  # solution marked complete for first time
         self.assertNotificationNotReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
         solution.put_vote(self.jill, 2)
         solution.mark_incomplete()
-        solution.mark_complete()
+        solution.mark_complete(5)
         self.assertNotificationReceived(
             self.jill, solution, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
             "Solution \"%s\" was revised, update your vote" %

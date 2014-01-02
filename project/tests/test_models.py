@@ -537,7 +537,7 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
         """ Test unfreezing of impact on solutions. """
         # add some complete solutions so that threshold is possible
         for s in self._mock_others_solution(2):
-            s.mark_complete()
+            s.mark_complete(5)
         self._mock_valid_solution_vote_in(self.old)
         self._mock_valid_solution_vote_in(self.new)
         self.assertTrue(self._load_ratio().is_frozen)
@@ -570,13 +570,13 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
     def test_max_out_complete(self):
         """ Test max out with completed solution. """
         s = self._mock_others_solution()
-        s.mark_complete()
+        s.mark_complete(5)
         self.assertEqual(self.ratio.maximum_possible_votes_out(), 1)
 
     def test_max_out_own_solution(self):
         """ Test max out, that own solution does not count. """
         s = self._mock_solution()
-        s.mark_complete()
+        s.mark_complete(5)
         self.assertEqual(self.ratio.maximum_possible_votes_out(), 0)
 
     def test_max_out_voted_valid(self):
@@ -586,7 +586,7 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
 
         """
         s = self._mock_others_solution()
-        s.mark_complete()
+        s.mark_complete(5)
         votes = mixer.cycle(Ratio.VOTES_THRESHOLD - 1).blend(
             'joltem.vote', voteable=s, voter_impact=1, magnitude=1,
             is_accepted=True)
@@ -603,7 +603,7 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
 
     def test_possible(self):
         """ Test when votes ratio threshold possible. """
-        self._mock_others_solution().mark_complete()
+        self._mock_others_solution().mark_complete(5)
         s = self._mock_solution()
         self._mock_valid_solution_vote_in(s)
         self.assertTrue(self.ratio.is_threshold_possible())
