@@ -210,8 +210,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
         """
         if self.is_owner and request.POST.get('change_value'):
             compensation_value = int(request.POST.get('compensation_value'))
-            self.solution.impact = compensation_value
-            self.solution.save()
+            self.solution.change_evaluation(compensation_value)
             return redirect('project:solution:review',
                             project_name=self.project.name,
                             solution_id=self.solution.id)
