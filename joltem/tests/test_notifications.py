@@ -9,12 +9,12 @@ from ..libs.mix import mixer
 from ..libs.mock.models import (get_mock_project, get_mock_task,
                                 get_mock_solution, get_mock_user)
 from ..models import User, Notification
-from ..models.comments import (NOTIFICATION_TYPE_COMMENT_ADDED,
-                               NOTIFICATION_TYPE_COMMENT_MARKED_HELPFUL)
+from ..models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 from ..models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
                             NOTIFICATION_TYPE_VOTE_UPDATED)
 from solution.models import (NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
-                             NOTIFICATION_TYPE_SOLUTION_POSTED)
+                             NOTIFICATION_TYPE_SOLUTION_POSTED,
+                             NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED)
 from task.models import (NOTIFICATION_TYPE_TASK_POSTED,
                          NOTIFICATION_TYPE_TASK_ACCEPTED)
 
@@ -503,6 +503,31 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
             self.jill, solution, NOTIFICATION_TYPE_VOTE_UPDATED,
             "Bob updated a vote on your solution \"%s\"" %
             solution.default_title, expected_count=2)
+
+    def test_solution_evaluation_changed(self):
+        """ Test notification when solution evaluation changes.
+
+        Notification is sent to all the voters, informing them to update
+        their vote as the vote is cleared when this happens.
+
+        Also test that new notifications are created each time, instead
+        of updating.
+
+        """
+        solution = mixer.blend('solution.solution', title="Bird House")
+        solution.mark_complete(5)
+        voter = mixer.blend('joltem.user')
+        solution.put_vote(voter, True)
+        solution.change_evaluation(10)
+        self.assertNotificationReceived(
+            voter, solution, NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED,
+            'Update your vote, the evaluation of "Bird House" was changed')
+        solution.put_vote(voter, True)
+        solution.change_evaluation(5)  # should create new notification
+        self.assertReceivedNotificationCount(
+            voter, solution, NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED,
+            'Update your vote, the evaluation of "Bird House" was changed',
+            expected_count=2)
 
 
 class EmailNotificationTestCase(TestCase):
