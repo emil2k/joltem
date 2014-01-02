@@ -138,6 +138,7 @@ class Solution(Voteable, Commentable, Updatable):
 
         """
         self.vote_set.clear()
+        self.impact = None
         self.is_completed = False
         self.time_completed = None
         self.save()
