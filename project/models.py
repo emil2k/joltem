@@ -211,10 +211,8 @@ class Impact(models.Model):
         if ratio and ratio.is_frozen and ratio.time_frozen:
             solution_qs = solution_qs.filter(time_posted__lt=ratio.time_frozen)
         # Impact from solutions
-        solution_impact = solution_qs.aggregate(
-            models.Sum('impact')).get('impact__sum')
-        if solution_impact:
-            impact += solution_impact
+        for solution in solution_qs:
+            impact += solution.get_impact()
         return impact
 
     def get_frozen_impact(self):
