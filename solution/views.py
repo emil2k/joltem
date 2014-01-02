@@ -101,9 +101,11 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
         ):
             # Mark solution complete
             if request.POST.get('complete')\
+                    and request.POST.get('compensation_value')\
                     and not self.solution.is_completed \
                     and not self.solution.is_closed:
-                self.solution.mark_complete()
+                compensation = int(request.POST.get('compensation_value'))
+                self.solution.mark_complete(compensation)
 
             # Mark solution incomplete
             if request.POST.get('incomplete') \

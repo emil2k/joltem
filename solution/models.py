@@ -118,8 +118,14 @@ class Solution(Voteable, Commentable, Updatable):
                 task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
-    def mark_complete(self):
-        """ Mark the solution complete. """
+    def mark_complete(self, impact):
+        """ Mark the solution complete.
+
+        :param impact: amount of impact demanded by the contributor for
+            the solution.
+
+        """
+        self.impact = impact
         self.is_completed = True
         self.time_completed = timezone.now()
         self.save()
