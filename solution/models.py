@@ -181,11 +181,6 @@ class Solution(Voteable, Commentable, Updatable):
             self.notify(self.task.owner,
                         NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                         True, kwargs={"role": "task_owner"})
-        # Notify any people who previously voted on the solution
-        # that it has been revised
-        for vote in self.vote_set.all():
-            self.notify(vote.voter, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
-                        True, kwargs={"role": "voter"})
 
     def notify_incomplete(self):
         """ Remove completion notifications. """
@@ -241,12 +236,7 @@ class Solution(Voteable, Commentable, Updatable):
 
     def get_notification_text_solution_complete(self, notification):
         """ Return notification text for when solution completed. """
-        if notification.kwargs["role"] == "voter":
-            return "Solution \"%s\" was revised, update your vote" % \
-                   self.default_title
-        else:
-            return "Solution \"%s\" was marked complete" % \
-                   self.default_title
+        return "Solution \"%s\" was marked complete" % self.default_title
 
     def get_notification_text_solution_posted(self, notification):
         """ Return notification text for when solution posted. """
