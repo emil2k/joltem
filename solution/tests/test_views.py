@@ -8,6 +8,7 @@ from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest
 from solution import views
+from solution.models import Solution
 
 
 class BaseSolutionViewTest(BaseProjectViewTest):
@@ -353,6 +354,30 @@ class SolutionEditView(BaseSolutionViewTest):
         reloaded = models.load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
+
+
+class SolutionReviewViewOwnerTest(TestCase):
+
+    """ Test SolutionReviewView responses for owner of solution. """
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user', password='test')
+        self.solution = mixer.blend('solution.solution', owner=self.user)
+        self.solution.mark_complete(5)
+        self.client.login(username=self.user.username, password='test')
+        self.path = reverse('project:solution:review', args=[
+            self.solution.project.name,
+            self.solution.id
+        ])
+
+    def test_change_evaluation(self):
+        """ Test change evaluation. """
+        self.assertEqual(self.solution.impact, 5)
+        response = self.client.post(self.path, { 'compensation_value':100,
+                                      'change_value':1 })
+        self.assertRedirects(response, self.path)
+        loaded = Solution.objects.get(id=self.solution.id)
+        self.assertEqual(loaded.impact, 100)
 
 
 class SolutionReviewViewTest(TestCase):

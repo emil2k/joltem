@@ -196,6 +196,28 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
     template_name = "solution/review.html"
     solution_tab = "review"
 
+    def post(self, request, *args, **kwargs):
+        """ Handle POST requests.
+
+        Handle changing of solution evaluation, and passing everything to
+        super class.
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return: HTTP response
+
+        """
+        if self.is_owner and request.POST.get('change_value'):
+            compensation_value = int(request.POST.get('compensation_value'))
+            self.solution.impact = compensation_value
+            self.solution.save()
+            return redirect('project:solution:review',
+                            project_name=self.project.name,
+                            solution_id=self.solution.id)
+        return super(SolutionReviewView, self).post(request, *args, **kwargs)
+
+
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add vote results. """
         vote_count = 0
