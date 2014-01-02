@@ -45,6 +45,220 @@ class BaseSolutionViewTest(BaseProjectViewTest):
             solution_id=self.solution.id)
 
 
+class SolutionViewOwnerTest(TestCase):
+
+    """ Test SolutionView responses for owner of the solution. """
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user', password='test')
+        self.solution = mixer.blend('solution.solution', owner=self.user)
+        self.path = reverse('project:solution:solution', args=[
+            self.solution.project.name,
+            self.solution.id
+        ])
+        self.client.login(username=self.user.username, password='test')
+
+    def test_incomplete_get(self):
+        """ Test GET of open and incomplete solution by owner.
+
+        Visible : edit, create task, close, and complete dialog
+        Invisible : suggest solution, mark incomplete, reopen
+
+        """
+        self.assertFalse(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertContains(response, 'edit</a>')
+        self.assertContains(response, 'create task</a>')
+        self.assertContains(response, 'close</button>')
+        self.assertContains(response, '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response, 'suggest solution</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+
+    def test_complete_get(self):
+        """ Test GET of open and complete solution by owner.
+
+        Visible : edit and mark incomplete
+        Invisible : create task, close, complete dialog, reopen,
+            and suggest solution
+
+        """
+        self.solution.mark_complete(5)
+        self.assertTrue(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertContains(response, 'edit</a>')
+        self.assertContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+    def test_closed_get(self):
+        """ Test GET of closed solution by owner.
+
+        Visible : reopen
+        Invisible : edit, complete dialog, mark incomplete, close, create task,
+            and suggest solution
+
+        """
+        self.solution.mark_close()
+        self.assertTrue(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertContains(response, 'reopen</button>')
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+
+class SolutionViewUserTest(TestCase):
+
+    """ Test SolutionView responses for a signed in user.
+
+    The user is not owner of the solution.
+
+    """
+    def setUp(self):
+        self.user = mixer.blend('joltem.user', password='test')
+        self.solution = mixer.blend('solution.solution')
+        self.path = reverse('project:solution:solution', args=[
+            self.solution.project.name,
+            self.solution.id
+        ])
+        self.client.login(username=self.user.username, password='test')
+
+    def test_incomplete_get(self):
+        """ Test GET of open and incomplete solution by a user.
+
+        Visible : create task and suggest solution
+        Invisible : edit, close, complete dialog, mark incomplete, reopen
+
+        """
+        self.assertFalse(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertContains(response, 'create task</a>')
+        self.assertContains(response, 'suggest solution</a>')
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+
+    def test_complete_get(self):
+        """ Test GET of open and complete solution by a user.
+
+        Invisible : all
+
+        """
+        self.solution.mark_complete(5)
+        self.assertTrue(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+    def test_closed_get(self):
+        """ Test GET of closed solution by a user.
+
+        Invisible : all
+
+        """
+        self.solution.mark_close()
+        self.assertTrue(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+class SolutionViewAnonymousTest(TestCase):
+
+    """ Test SolutionView responses for an anonymous user.
+
+    The user is not signed in.
+
+    """
+
+    def setUp(self):
+        self.solution = mixer.blend('solution.solution')
+        self.path = reverse('project:solution:solution', args=[
+            self.solution.project.name,
+            self.solution.id
+        ])
+
+    def test_incomplete_get(self):
+        """ Test GET of open and incomplete solution by an anonymous user.
+
+        Invisible : all
+
+        """
+        self.assertFalse(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'suggest solution</a>')
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+
+    def test_complete_get(self):
+        """ Test GET of open and complete solution by an anonymous user.
+
+        Invisible : all
+
+        """
+        self.solution.mark_complete(5)
+        self.assertTrue(self.solution.is_completed)
+        self.assertFalse(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+    def test_closed_get(self):
+        """ Test GET of closed solution by an anonymous.
+
+        Invisible : all
+
+        """
+        self.solution.mark_close()
+        self.assertTrue(self.solution.is_closed)
+        response = self.client.get(self.path)
+        self.assertNotContains(response, 'edit</a>')
+        self.assertNotContains(response, 'mark incomplete</button>')
+        self.assertNotContains(response, 'create task</a>')
+        self.assertNotContains(response, 'close</button>')
+        self.assertNotContains(response, 'reopen</button>')
+        self.assertNotContains(response,
+                               '<div id="compensation-q" class="alert">')
+        self.assertNotContains(response, 'suggest solution</a>')
+
+
 class SolutionViewTest(BaseSolutionViewTest):
 
     """ Test SolutionView responses. """

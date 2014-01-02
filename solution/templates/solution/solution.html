@@ -31,27 +31,26 @@
             {% if user.is_authenticated %}
                 <form method="post">
                     {% csrf_token %}
-                    {% if solution.is_closed %}
-                        <button class="btn" type="submit" name="reopen" value="1">reopen</button>
-                    {% else %}
-                        <div class="btn-group">
-                            {% if not solution.is_completed %}
-                                <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a>
+                    <div class="btn-group">
+                        {% if solution.is_closed %}
+                            {% if is_owner %}
+                                <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                             {% endif %}
+                        {% elif solution.is_completed %}
                             {% if is_owner %}
                                 <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
-                                {% if not solution.is_completed %}
-                                    <button class="btn" type="submit" name="close" value="1">close</button>
-                                {% else %}
-                                    <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
-                                {% endif %}
-                            {% else %}
-                                {% if not solution.is_completed %}
-                                    <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
-                                {% endif %}
+                                <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                             {% endif %}
-                        </div>
-                    {% endif %}
+                        {% else %}
+                            {% if is_owner %}
+                                <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+                                <button class="btn" type="submit" name="close" value="1">close</button>
+                            {% else %}
+                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
+                            {% endif %}
+                            <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a>
+                        {% endif %}
+                    </div>
                 </form>
             {% endif %}
             {% if solution.is_completed %}
