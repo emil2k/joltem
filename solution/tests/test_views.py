@@ -69,6 +69,7 @@ class SolutionViewTest(BaseSolutionViewTest):
         self.solution.mark_incomplete()
         self._test_solution_view_action('complete', compensation_value=5)
         self.assertTrue(self.solution.is_completed)
+        self.assertEqual(self.solution.impact, 5)
 
     def test_solution_view_post_incomplete(self):
         """ Test mark solution incomplete. """
