@@ -132,7 +132,12 @@ class Solution(Voteable, Commentable, Updatable):
         self.notify_complete()
 
     def mark_incomplete(self):
-        """ Mark the solution incomplete. """
+        """ Mark the solution incomplete.
+
+        Clears vote set.
+
+        """
+        self.vote_set.clear()
         self.is_completed = False
         self.time_completed = None
         self.save()
