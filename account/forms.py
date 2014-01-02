@@ -8,6 +8,7 @@ from twisted.conch.ssh.keys import BadKeyError, Key as ConchKey
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 from joltem.models import User
 from git.models import Authentication
@@ -36,10 +37,11 @@ class SignUpForm(UserCreationForm):
 
         """
         username = self.cleaned_data["username"]
-        try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
-            return username
+        if not username in settings.AUTH_SERVICE_USERNAMES:
+            try:
+                User.objects.get(username=username)
+            except User.DoesNotExist:
+                return username
         raise forms.ValidationError(
             self.error_messages['duplicate_username'],
             code='duplicate_username',

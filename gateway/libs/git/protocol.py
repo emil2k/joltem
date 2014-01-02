@@ -131,6 +131,16 @@ class GitProcessProtocol(SubprocessProtocol):
         """
         self.process_transport = transport
 
+    def has_read_permission(self):
+        """ Check for the avatar has permission to read.
+
+        :returns: Bool
+
+        """
+        if self.avatar.project:
+            return self.repository.project == self.avatar.project
+        return True
+
     @staticmethod
     def log(data, system, newline=False):
         """ Logging.
@@ -358,6 +368,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 log.msg("abilities : %s" % self._abilities, system='parser')
             elif len(parts) > 2:
                 raise IOError('Multiple null bytes in abilities lines.')
+
         # Parse line
         self.handle_push_line(line)
 
@@ -411,16 +422,23 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         """
         parts = reference.split('/')
         project = self.repository.project
+
+        # Read only for project keys
+        if self.avatar.project or not self.avatar.user:
+            return False
+
         user_id = self.avatar.user.id
-        is_admin = project.is_admin(user_id)
-        is_manager = project.is_manager(user_id)
-        is_developer = project.is_developer(user_id)
         if parts[0] == 'refs' and parts[1] == 'heads':
             if parts[2] == 'master':
-                return is_admin or is_manager
-            elif parts[2] == 'develop':
-                return is_admin or is_manager or is_developer
-            elif parts[2] == 's':  # solution branches
+                return project.is_admin(user_id) or project.is_manager(user_id)
+
+            if parts[2] == 'develop':
+                return (
+                    project.is_admin(user_id) or
+                    project.is_manager(user_id) or
+                    project.is_developer(user_id))
+
+            if parts[2] == 's':  # solution branches
                 try:
                     solution_id = int(parts[3])
                     solution = Solution.objects.get(id=solution_id)
@@ -432,8 +450,9 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
                 else:
                     # Only solution owner can push to solution branch.
                     return solution.is_owner(self.avatar.user)
+
         # For all other branches and tags creation must be admin or manager.
-        return is_admin or is_manager
+        return project.is_admin(user_id) or project.is_manager(user_id)
 
     def eof_received(self):
         """ End of file received on git receive pack.

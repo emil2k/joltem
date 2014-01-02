@@ -87,6 +87,7 @@ class GatewaySessionInterface():
                 log.msg("Repository not found.")
                 self._ssh_process_protocol.loseConnection()
             else:
+
                 # Initiate the git protocol to run on top of the ssh process
                 # protocol, all output from the git process should funnel
                 # through it and through the ssh channel.
@@ -96,21 +97,28 @@ class GatewaySessionInterface():
                 else:
                     self._git_process_protocol = GitProcessProtocol(
                         self._ssh_process_protocol, self.avatar, repository)
-                # Start up the git process, returns a Process instance
-                self._git_process_transport = reactor.spawnProcess(
-                    self._git_process_protocol, '/usr/bin/%s' % process,
-                    (process, '%d.git' % repository_id),
-                    path=settings.GATEWAY_REPOSITORIES_DIR)
-                self._git_process_transport.debug = True
-                self._git_process_transport.debug_child = True
-                # Wrap the git process transport with the git process protocol,
-                # so it can intercept process input.
-                self._git_process_protocol.wrap_process_transport(
-                    self._git_process_transport)
-                # Connect the git process protocol to ssh process protocol
-                # to receive data from the ssh channel.
-                self._ssh_process_protocol.makeConnection(
-                    self._git_process_protocol)
+                # Check access
+                if not self._git_process_protocol.has_read_permission():
+                    log.msg("Access denied.")
+                    self._ssh_process_protocol.loseConnection()
+
+                else:
+                    # Start up the git process, returns a Process instance
+                    self._git_process_transport = reactor.spawnProcess(
+                        self._git_process_protocol, '/usr/bin/%s' % process,
+                        (process, '%d.git' % repository_id),
+                        path=settings.GATEWAY_REPOSITORIES_DIR)
+                    self._git_process_transport.debug = settings.DEBUG
+                    self._git_process_transport.debug_child = settings.DEBUG
+
+                    # Wrap the git process transport with the git process
+                    # protocol, so it can intercept process input.
+                    self._git_process_protocol.wrap_process_transport(
+                        self._git_process_transport)
+                    # Connect the git process protocol to ssh process protocol
+                    # to receive data from the ssh channel.
+                    self._ssh_process_protocol.makeConnection(
+                        self._git_process_protocol)
         else:
             log.msg("Command not allowed.")
             self._ssh_process_protocol.loseConnection()

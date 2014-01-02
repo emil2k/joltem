@@ -16,21 +16,16 @@ class Migration(SchemaMigration):
 
         # Changing field 'Authentication.user'
         db.alter_column(u'git_authentication', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.User'], null=True))
-        # Adding unique constraint on 'Authentication', fields ['fingerprint']
-        db.create_unique(u'git_authentication', ['fingerprint'])
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'Authentication', fields ['fingerprint']
-        db.delete_unique(u'git_authentication', ['fingerprint'])
-
         # Deleting field 'Authentication.project'
         db.delete_column(u'git_authentication', 'project_id')
 
 
         # User chose to not deal with backwards NULL issues for 'Authentication.user'
         raise RuntimeError("Cannot reverse this migration. 'Authentication.user' and its values cannot be restored.")
-        
+
         # The following code is provided here to aid in writing a correct migration
         # Changing field 'Authentication.user'
         db.alter_column(u'git_authentication', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.User']))
@@ -58,7 +53,7 @@ class Migration(SchemaMigration):
         },
         u'git.authentication': {
             'Meta': {'object_name': 'Authentication'},
-            'fingerprint': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '47'}),
+            'fingerprint': ('django.db.models.fields.CharField', [], {'max_length': '47'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.TextField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
