@@ -79,7 +79,7 @@
                 </div>
                 <form method="post" id="compensation" class="compensation">
                     {% csrf_token %}
-                    <p>How much <a href="{% url 'help:index' %}#impact" title="What is impact?">impact</a> do you want for the solution?</p>
+                    <p>How much <a href="{% url 'help:index' %}#impact" title="What is impact?">impact</a> do you want for the solution? <a href="{% url 'help:index' %}#review"><i class="fa fa-info-circle"> More info about bargaining.</i></a></p>
                     <p><input type="number" min="0" max="10000" size="5" name="compensation_value" placeholder="amount of impact"/></p>
                     <p><button class="btn btn-info" type="submit" name="complete" value="1">mark complete</button></p>
                 </form>
