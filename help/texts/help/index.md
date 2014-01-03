@@ -37,27 +37,9 @@ On completion of a solution, a peer review is initiated to evaluate the complete
 <a name="impact" class="anchor-fix"></a>
 #### What is impact?
 
-To track each user's continuous contribution to a project we use a metric called **impact**. Impact is earned through the peer review of comments and solutions.
+To track each user's continuous contribution to a project we use a metric called **impact**. 
 
-<a name="peer-review" class="anchor-fix"></a>
-#### How does the peer review work?
-
-The voting system uses a logarithmic scale and weighs votes by the voter's impact. When voting your decision will be to determine whether you find the work acceptable and if so the value of the contribution.
-
-A vote of 0 represents unacceptable work, any vote above 0 is regarded as acceptable. If impact weighted acceptability is below 75% the user won't be awarded impact for the solution unless things are corrected.
-
-If you find the work is acceptable you should decide whether the work is a 10, 100, 10^3, … or 10^6 on your own evaluation scale. Votes above 10 require sufficient justification from other votes to count, otherwise they will default to a lower level.
-
-The peer review system is crucial to the health of the system, so it is important we get feedback and debate tweaks and alternatives. If you have a suggestion leave a comment on the [current live solution](http://joltem.com/joltem/solution/1/) or create your own solution on the [Determining Impact](http://joltem.com/joltem/task/6/) task.
-
-<a name="ratio" class="anchor-fix"></a>
-#### What is the votes ratio?
-
-The  **votes ratio** is meant to couple reviewing with earning of impact. 
-
-Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational](http://joltem.com/joltem/task/45/) task and the [current live solution](http://joltem.com/joltem/solution/48/).
-
-If your votes ratio drops below a certain threshold you are still able to earn impact, however the impact you earn will be withheld until the votes ratio is raised back up again.
+Overtime accumulated **impact** will be [exchanged for equity](#exchange) in the company. The value of impact is backed by the work of the contributors and is determined through the [review and bargain process](#review).
 
 <a name="exchange" class="anchor-fix"></a>
 #### How is impact exchanged for equity?
@@ -69,6 +51,27 @@ Periodically users will be able to exchange a portion of their impact for equity
 The periodicity of the exchange events rewards people who accumulated the most impact earliest in the project’s development by allowing them to exchange at higher rates. 
 
 At any point the company’s board, which is initially just the founders, can decide to exchange the remaining backing pool at the current exchange rate or to allocate more stock for the backing pool. If the board decides on any action that may lower the value of the backing pool, such as a financing round or allocating stock to hire regular employees, they must file a proposition with the project participants and have them approve it.
+
+
+<a name="review" class="anchor-fix"></a>
+#### How does the review and bargain process work?
+
+The review & bargain process is used for determing the value of each contribution. It is also meant to be a mechanism to promptly surface potential conflicts so that they may be resolved. 
+
+After a contributor completes a solution they determine a fair amount for their contribution and they submit it along with the solution for review by the other contributors.
+
+The other contributors determine whether the solution is satisfactory and whether the evaluation for the work is fair. If the evaluation is determined to be unreasonable by the other contributors, a bargaining process follows to determine the value of the contribution.
+
+As long as people want to keep working with each other, the bargaining process will allow them to resolve any compensation and quality control issues. 
+
+<a name="ratio" class="anchor-fix"></a>
+#### What is the votes ratio?
+
+The **votes ratio** is meant to couple reviewing with earning of impact. 
+
+Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational](http://joltem.com/joltem/task/45/) task and the [current live solution](http://joltem.com/joltem/solution/48/).
+
+If your votes ratio drops below a certain threshold you are still able to earn impact, however the impact you earn will be withheld until the votes ratio is raised back up again.
 
 ---
 

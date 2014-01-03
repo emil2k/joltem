@@ -18,7 +18,6 @@ def update_solution_metrics_from_comment(sender, **kwargs):
             and comment.commentable_type_id == solution_type.id:
         solution = comment.commentable
         solution.acceptance = solution.get_acceptance()
-        solution.impact = solution.get_impact()
         solution.save()
 
 
@@ -28,7 +27,6 @@ def update_voteable_metrics_from_vote(sender, **kwargs):
     if vote and vote.voteable:
         voteable = vote.voteable
         voteable.acceptance = voteable.get_acceptance()
-        voteable.impact = voteable.get_impact()
         voteable.save()
 
 

@@ -33,10 +33,32 @@ class SolutionModelTest(TestCase):
         self._mock_comment(commentator)
         self.assertTrue(self.solution.has_commented(commentator.id))
 
-    def test_magnitude_to_value(self):
-        """ Test the function magnitude_to_vote_value. """
-        self.assertEqual(Solution.magnitude_to_vote_value(1), 10)
-        self.assertEqual(Solution.magnitude_to_vote_value(2), 100)
-        self.assertEqual(Solution.magnitude_to_vote_value(3), 1000)
-        self.assertEqual(Solution.magnitude_to_vote_value(4), 10000)
-        self.assertEqual(Solution.magnitude_to_vote_value(5), 100000)
+    def test_mark_complete(self):
+        """ Test the mark_complete function.
+
+        Should set the demanded impact, set the is_completed boolean,
+        timestamp, and save.
+
+        """
+        self.solution.mark_complete(5)
+        loaded = Solution.objects.get(id=self.solution.id)
+        self.assertEqual(loaded.impact, 5)
+        self.assertTrue(loaded.is_completed)
+        self.assertIsNotNone(loaded.time_completed)
+
+    def test_mark_incomplete(self):
+        """ Test the mark_incomplete function. """
+        self.solution.mark_complete(5)
+        self.solution.mark_incomplete()
+        loaded = Solution.objects.get(id=self.solution.id)
+        self.assertEqual(loaded.impact, None)
+        self.assertFalse(loaded.is_completed)
+        self.assertIsNone(loaded.time_completed)
+
+    def test_mark_incomplete_clear_votes(self):
+        """ Test that mark_incomplete clears votes. """
+        self.solution.mark_complete(5)
+        mixer.cycle(3).blend('joltem.vote', voteable=self.solution)
+        self.assertEqual(self.solution.vote_set.count(), 3)
+        self.solution.mark_incomplete()
+        self.assertEqual(self.solution.vote_set.count(), 0)

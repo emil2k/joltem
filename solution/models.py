@@ -18,6 +18,7 @@ logger = logging.getLogger('joltem')
 
 NOTIFICATION_TYPE_SOLUTION_POSTED = "solution_posted"
 NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
+NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED = "solution_evaluation_changed"
 
 
 class Solution(Voteable, Commentable, Updatable):
@@ -74,7 +75,7 @@ class Solution(Voteable, Commentable, Updatable):
         a comment in the solution review.
 
         """
-        return self.has_commented(vote.voter_id)
+        return vote.is_accepted or self.has_commented(vote.voter_id)
 
     @property
     def default_title(self):
@@ -118,15 +119,41 @@ class Solution(Voteable, Commentable, Updatable):
                 task_is_reviewed, task_is_accepted, task_is_closed)
         return count
 
-    def mark_complete(self):
-        """ Mark the solution complete. """
+    def change_evaluation(self, value):
+        """ Change evaluation of solution.
+
+        :param value: new value to set.
+        :return:
+
+        """
+        if self.impact != value:
+            self.notify_evaluation_changed()
+            self.impact = value
+            self.save()
+            self.vote_set.clear()
+
+
+    def mark_complete(self, impact):
+        """ Mark the solution complete.
+
+        :param impact: amount of impact demanded by the contributor for
+            the solution.
+
+        """
+        self.impact = impact
         self.is_completed = True
         self.time_completed = timezone.now()
         self.save()
         self.notify_complete()
 
     def mark_incomplete(self):
-        """ Mark the solution incomplete. """
+        """ Mark the solution incomplete.
+
+        Clears vote set.
+
+        """
+        self.vote_set.clear()
+        self.impact = None
         self.is_completed = False
         self.time_completed = None
         self.save()
@@ -143,6 +170,18 @@ class Solution(Voteable, Commentable, Updatable):
         self.is_closed = False
         self.time_closed = None
         self.save()
+
+    def notify_evaluation_changed(self):
+        """ Send out notifications about the evaluation changing.
+
+         Notify all the people who had previously voted on the solution.
+
+        """
+        for vote in self.vote_set.all():
+            self.notify(vote.voter,
+                        NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED, False)
+
+
 
     def notify_created(self):
         """ Send out notifications about the solution being posted. """
@@ -169,11 +208,6 @@ class Solution(Voteable, Commentable, Updatable):
             self.notify(self.task.owner,
                         NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
                         True, kwargs={"role": "task_owner"})
-        # Notify any people who previously voted on the solution
-        # that it has been revised
-        for vote in self.vote_set.all():
-            self.notify(vote.voter, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
-                        True, kwargs={"role": "voter"})
 
     def notify_incomplete(self):
         """ Remove completion notifications. """
@@ -192,6 +226,9 @@ class Solution(Voteable, Commentable, Updatable):
             return self.get_notification_text_vote_added(notification)
         elif NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
             return self.get_notification_text_vote_updated(notification)
+        elif NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED == notification.type:
+            return self.get_notification_text_solution_evaluation_changed(
+                notification)
         elif NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE == notification.type:
             return self.get_notification_text_solution_complete(notification)
         elif NOTIFICATION_TYPE_SOLUTION_POSTED == notification.type:
@@ -227,14 +264,14 @@ class Solution(Voteable, Commentable, Updatable):
             return "A vote was updated on your solution \"%s\"" % \
                    self.default_title
 
+    def get_notification_text_solution_evaluation_changed(self, notification):
+        """ Return notification text for when evaluation changed. """
+        return "Update your vote, the evaluation of \"%s\" was changed" \
+               % self.default_title
+
     def get_notification_text_solution_complete(self, notification):
         """ Return notification text for when solution completed. """
-        if notification.kwargs["role"] == "voter":
-            return "Solution \"%s\" was revised, update your vote" % \
-                   self.default_title
-        else:
-            return "Solution \"%s\" was marked complete" % \
-                   self.default_title
+        return "Solution \"%s\" was marked complete" % self.default_title
 
     def get_notification_text_solution_posted(self, notification):
         """ Return notification text for when solution posted. """
@@ -247,11 +284,18 @@ class Solution(Voteable, Commentable, Updatable):
         elif notification.kwargs["role"] == "project_admin":
             return "%s posted a solution" % self.owner.first_name
 
-    def get_notification_url(self, url):
+    def get_notification_url(self, notification):
         """ Return notification target url. """
         from django.core.urlresolvers import reverse
-        return reverse("project:solution:solution",
-                       args=[self.project.name, self.id])
+        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type \
+            or NOTIFICATION_TYPE_VOTE_UPDATED == notification.type \
+            or NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED \
+                        == notification.type:
+            return reverse("project:solution:review",
+                           args=[self.project.name, self.id])
+        else:
+            return reverse("project:solution:solution",
+                           args=[self.project.name, self.id])
 
     # Git related
 
