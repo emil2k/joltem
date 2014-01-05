@@ -220,6 +220,14 @@ class Notifying(models.Model):
         raise ImproperlyConfigured(
             "Extending class must implement get notification url.")
 
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of users.
+
+        """
+        raise NotImplementedError
 
 post_save.connect(update_notification_count, sender=Notification)
 post_save.connect(
