@@ -15,15 +15,8 @@ from twisted.cred.portal import Portal
 
 from django.conf import settings
 
-from gateway.libs.ssh.factory import GatewayFactory
-from gateway.libs.ssh.auth import GatewayRealm, GatewayCredentialChecker
+from gateway.libs.factory import factory
 
-# Set up the gateway service
-factory = GatewayFactory()
-# Setup portal and credential checkers
-portal = Portal(GatewayRealm())
-portal.registerChecker(GatewayCredentialChecker())
-factory.portal = portal
 
 if __name__ == '__main__':
     """

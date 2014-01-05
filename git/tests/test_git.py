@@ -1,107 +1,15 @@
-""" Tests for git app. """
-
-import uuid
-import pygit2
-from datetime import datetime
 from os.path import isdir
-from mixer.backend.django import mixer
-from unittest import TestCase as UnitTestCase
-from django.utils import timezone
+
+import pygit2
 from django.test import TestCase
+from django.utils import timezone
+from unittest import TestCase as UnitTestCase
 
-from git.utils import get_checkout_oid, get_branch_reference
-from git.models import Repository
+from .mock import get_mock_signature, make_mock_commit, mock_commits
+from git.utils import get_checkout_oid
+from joltem.libs import mixer
 from project.models import Project
-from joltem.libs.mock.models import (get_mock_user, get_mock_solution,
-                                     get_mock_task)
 
-
-def get_mock_repository(name, project, is_hidden=False, description=None):
-    """ Setup a mock project and repository.
-
-    Returns a Repository object.
-
-    """
-    r = Repository(
-        name=name,
-        project=project,
-        is_hidden=is_hidden,
-        description=description
-    )
-    r.save()
-    return r
-
-
-def get_mock_signature(name, email=None):
-    """ Get a mock signature object from pygit2.
-
-    Returns a pygit2 Signature object.
-
-    """
-    email = '%s@gmail.com' % name if email is None else email
-    return pygit2.Signature(name, email)
-
-
-def get_mock_commit(repository, tree_oid, signature,
-                    reference, message, parents):
-    """ Make a mock commit to the given repository, returns commit Oid. """
-    commit_oid = repository.create_commit(
-        reference,              # reference to update
-        signature,              # author
-        signature,              # committer
-        message,                # message
-        tree_oid,               # commit tree, representing file structure
-        parents                 # commit parents
-    )
-    return commit_oid
-
-
-def put_mock_file(name, data, repository, tree=None):
-    """ Put a mock file into a tree.
-
-    If tree not passed creates a tree.
-    Emulate addition or update of files, returns new tree Oid.
-
-    """
-    blob_oid = repository.create_blob(data)
-    # Put blob into tree
-    builder = repository.TreeBuilder(tree) if tree is not None \
-        else repository.TreeBuilder()
-    builder.insert(name, blob_oid, pygit2.GIT_FILEMODE_BLOB)
-    # Create tree
-    tree_oid = builder.write()
-    return tree_oid
-
-
-def mock_commits(number, pygit_repository, signature,
-                 branch_name, initial_parents):
-    """ Generator for sequential commits. """
-    commit_oid = None
-    for _ in range(number):
-        parents = [commit_oid] if commit_oid else initial_parents
-        commit_oid = make_mock_commit(pygit_repository, signature,
-                                      branch_name, parents)
-        yield commit_oid
-
-
-def make_mock_commit(pygit_repository, signature, branch_name, parents):
-    """ Make a mock commit and returns its commit Oid. """
-    datetime_string = datetime.now().strftime("%X on %x")
-    tree_oid = put_mock_file(
-        "test.txt", "Line added at %s.\n%s" % (datetime_string, uuid.uuid4()),
-        pygit_repository)
-    commit_oid = get_mock_commit(
-        pygit_repository,
-        tree_oid,
-        signature,
-        get_branch_reference(branch_name),
-        "Mock commit to `%s` at %s." % (branch_name, datetime_string),
-        parents
-    )
-    return commit_oid
-
-
-# Test cases
 
 class PyGit2TestCase(UnitTestCase):
 
@@ -131,7 +39,8 @@ class RepositoryTestCase(TestCase):
         """ Setup project and repository. """
         self.project = mixer.blend(Project, name='joltem')
         self.assertEqual(self.project.name, 'joltem')
-        self.repository = get_mock_repository("TEST", self.project)
+        self.repository = mixer.blend(
+            'git.repository', name='TEST', project=self.project)
         self.assertDirectoryExistence(self.repository.absolute_path, True)
 
         # Load repo
@@ -159,11 +68,12 @@ class SolutionTestCase(RepositoryTestCase):
     def setUp(self):
         """ Setup a user, signature, and solution. """
         super(SolutionTestCase, self).setUp()
-        self.emil = get_mock_user("emil", first_name="Emil")
-        self.emil_signature = get_mock_signature(self.emil.first_name,
-                                                 self.emil.email)
+        self.emil = mixer.blend('joltem.user', username='emil')
+        self.emil_signature = get_mock_signature(
+            self.emil.first_name, self.emil.email)
         # a suggested solution
-        self.solution = get_mock_solution(self.project, self.emil)
+        self.solution = mixer.blend(
+            'solution.solution', project=self.project, author=self.emil)
 
     # Custom assertions
 
@@ -198,8 +108,6 @@ class SolutionTestCase(RepositoryTestCase):
         commit_oid_set = solution.get_commit_oid_set(self.pygit_repository)
         self.assertListEqual(expected_commit_oid_set, commit_oid_set)
 
-# todo Diff tests
-
 
 class ReferenceTestCase(SolutionTestCase):
 
@@ -215,15 +123,16 @@ class ReferenceTestCase(SolutionTestCase):
         self.assertEqual(self.solution.get_parent_reference(),
                          'refs/heads/master')  # default solution is a suggested solution
         # Add it to a task to a root task
-        task = get_mock_task(self.project, get_mock_user('jill'),
-                             is_reviewed=True, is_accepted=True)
+        task = mixer.blend(
+            'task.task', project=self.project, is_reviewed=True,
+            is_accepted=True)
         self.solution.task = task
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(),
                          'refs/heads/master')  # still should default to master because branching from a root task
         # Add a parent solution for the parent task
-        parent_solution = get_mock_solution(
-            self.project, get_mock_user('zack'))
+        parent_solution = mixer.blend(
+            'solution.solution', project=self.project)
         task.parent = parent_solution
         task.save()
         self.assertEqual(self.solution.get_parent_reference(),
@@ -234,8 +143,8 @@ class ReferenceTestCase(SolutionTestCase):
         self.assertEqual(self.solution.get_parent_reference(),
                          'refs/heads/master')  # default solution is a suggested solution
         # Add a parent solution
-        parent_solution = get_mock_solution(
-            self.project, get_mock_user('zack'))
+        parent_solution = mixer.blend(
+            'solution.solution', project=self.project)
         self.solution.solution = parent_solution
         self.solution.save()
         self.assertEqual(self.solution.get_parent_reference(),
@@ -263,8 +172,9 @@ class CommitSetTestCase(SolutionTestCase):
 
         # Create suggested solution for this solution branch and make a few
         # commits to it
-        child_solution = get_mock_solution(self.project, self.emil,
-                                           solution=self.solution)
+        child_solution = mixer.blend(
+            'solution.solution', project=self.project, author=self.emil,
+            solution=self.solution)
         child_solution_commits = [c for c in mock_commits(
             3, self.pygit_repository, self.emil_signature,
             child_solution.get_branch_name(), [commit_oid])]
@@ -308,8 +218,8 @@ class CommitSetTestCase(SolutionTestCase):
 
         # Create suggested solution for this branch and make a few commits to
         # it
-        child_solution = get_mock_solution(self.project, self.emil,
-                                           solution=self.solution)
+        child_solution = mixer.blend(
+            'solution.solution', project=self.project, solution=self.solution)
         child_solution_commits = [c for c in mock_commits(
             3, self.pygit_repository, self.emil_signature,
             child_solution.get_branch_name(), [commit_oid])]

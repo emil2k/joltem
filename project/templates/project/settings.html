@@ -3,10 +3,11 @@
 {% load filters %}
 {% block project_content %}
     <div class="row">
-        <div class="span3">
+        <div class="span2">
         <ul class="nav nav-list well">
             <li class="nav-header">Project Settings</li>
             <li class="active"><a href="{% url 'project:settings' project.name %}">Main</a></li>
+            <li><a href="{% url 'project:keys' project.name %}">Keys</a></li>
         </ul>
         </div>
         <div class="span6">

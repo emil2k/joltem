@@ -11,6 +11,7 @@ LOGIN_URL = 'sign_in'
 LOGOUT_URL = 'sign_out'
 LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'joltem.User'
+AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
 ALLOWED_HOSTS = [
