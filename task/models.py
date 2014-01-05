@@ -81,6 +81,16 @@ class Task(Commentable, Updatable):
     def __unicode__(self):
         return self.title
 
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of users.
+
+        """
+        return set([self.author, self.owner] + list(
+            self.iterate_commentators()))
+
     def get_subtask_count(
             self, solution_is_completed=False, solution_is_closed=False,
             task_is_reviewed=False, task_is_accepted=False,

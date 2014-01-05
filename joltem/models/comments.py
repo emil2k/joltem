@@ -119,9 +119,10 @@ class Commentable(Notifying, Owned, ProjectContext):
     def notify_comment_added(self, comment):
         """ Notify other commentators of comment, and owner of notifying. """
 
-        for commentator in self.iterate_commentators(
-                exclude={'owner': comment.owner}):
-            self.notify(commentator, NOTIFICATION_TYPE_COMMENT_ADDED, True)
+        for user in self.followers:
+            if user == comment.owner:
+                continue
+            self.notify(user, NOTIFICATION_TYPE_COMMENT_ADDED, True)
 
     def iterate_commentators(self, queryset=None, exclude=None):
         """ Iterate through comments and return distinct commentators.
@@ -147,8 +148,8 @@ class Commentable(Notifying, Owned, ProjectContext):
         :return list:
 
         """
-        return [commentator.first_name for commentator in self.get_commentators(
-            queryset=queryset, exclude=exclude)]
+        return [commentator.first_name for commentator in
+                self.iterate_commentators(queryset=queryset, exclude=exclude)]
 
     @property
     def followers(self):
@@ -157,4 +158,4 @@ class Commentable(Notifying, Owned, ProjectContext):
         :returns: A set of commentators.
 
         """
-        return list(self.iterate_commentators())
+        return set(self.iterate_commentators())
