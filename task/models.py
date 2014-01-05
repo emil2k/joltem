@@ -251,9 +251,8 @@ class Task(Commentable, Updatable):
 
         """
         from joltem.utils import list_string_join
-        from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 
-        if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
+        if settings.NOTIFICATION_TYPES.comment_added == notification.type:
             first_names = self.get_commentator_first_names(
                 queryset=self.comment_set.select_related('owner').exclude(
                     owner=notification.user).order_by("-time_commented")

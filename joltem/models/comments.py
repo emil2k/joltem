@@ -76,8 +76,6 @@ post_save.connect(
 post_delete.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
 
-NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
-
 
 class Commentable(Notifying, Owned, ProjectContext):
 
@@ -122,7 +120,7 @@ class Commentable(Notifying, Owned, ProjectContext):
         for user in self.followers:
             if user == comment.owner:
                 continue
-            self.notify(user, NOTIFICATION_TYPE_COMMENT_ADDED, True)
+            self.notify(user, settings.NOTIFICATION_TYPES.comment_added, True)
 
     def iterate_commentators(self, queryset=None, exclude=None):
         """ Iterate through comments and return distinct commentators.

@@ -47,10 +47,8 @@ post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_save.connect(receivers.update_project_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
 
-NOTIFICATION_TYPE_VOTE_ADDED = "vote_added"
-NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
-
 VOTEABLE_THRESHOLD = 50  # int between 0-100
+
 
 class Voteable(Notifying, Owned, ProjectContext):
 
@@ -103,7 +101,7 @@ class Voteable(Notifying, Owned, ProjectContext):
 
     def notify_vote_added(self, vote):
         """ Send out notification that vote was added. """
-        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_ADDED, True)
+        self.notify(self.owner, settings.NOTIFICATION_TYPES.vote_added, True)
 
     def update_vote(self, voter, is_accepted):
         """ Update vote by the user on this voteable.
@@ -138,8 +136,9 @@ class Voteable(Notifying, Owned, ProjectContext):
         Override in extending class to disable
 
         """
-        self.notify(self.owner, NOTIFICATION_TYPE_VOTE_UPDATED, False,
-                    {"voter_first_name": vote.voter.first_name})
+        self.notify(
+            self.owner, settings.NOTIFICATION_TYPES.vote_updated, False,
+            {"voter_first_name": vote.voter.first_name})
 
     def iterate_voters(self, queryset=None, exclude=None):
         """ Iterate through votes and return distinct voters. """
