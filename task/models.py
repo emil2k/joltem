@@ -165,6 +165,7 @@ class Task(Commentable, Updatable):
         vote.is_accepted = is_accepted
         vote.time_voted = timezone.now()
         vote.save()
+
         self.determine_acceptance(vote)
 
     def determine_acceptance(self, vote):
@@ -216,10 +217,10 @@ class Task(Commentable, Updatable):
         """
         ntype = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted\
             else NOTIFICATION_TYPE_TASK_REJECTED
-        if self.owner_id != self.author_id:  # suggested task accepted
-            self.notify(self.author, ntype, True)
-        elif acceptor.id != self.author_id:
-            self.notify(self.author, ntype, True)
+
+        listeners = self.followers - set([acceptor])
+        for user in listeners:
+            self.notify(user, ntype, True)
 
     def notify_created(self):
         """ Send out appropriate notifications about the task being posted. """

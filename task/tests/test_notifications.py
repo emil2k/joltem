@@ -16,3 +16,10 @@ class TaskNotificationsTest(TestCase):
 
         mixer.blend('comment', commentable=task, owner=task.owner)
         self.assertEqual(len(task.followers), 3)
+
+    def test_review(self):
+        task = mixer.blend('task.task', project=self.project)
+        acceptor = mixer.blend('user')
+        task.mark_reviewed(acceptor, True)
+        self.assertTrue(task.author.notification_set.exists())
+        self.assertFalse(acceptor.notification_set.exists())
