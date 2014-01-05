@@ -6,29 +6,12 @@
             <input type="hidden" name="voteable_id" value="{{ solution.id }}" />
             <input type="hidden" name="voteable_type" value="solution" />
             <div class="btn-group">
-                {% if vote.magnitude > 1 %}
-                    <button class="btn" type="submit" name="voteable_vote" value="{{ vote.magnitude|add:-1 }}">
-                        <i data-toggle="tooltip" title="10^{{ vote.magnitude|add:-1 }}" class="impact_vote fa fa-minus"></i>
-                    </button>
-                    <button class="btn btn-success" disabled>
-                        <i data-toggle="tooltip" title="10^{{ vote.magnitude }}" class="impact_vote fa fa-check"></i> <sup>{{ vote.magnitude }}</sup>
-                    </button>
-                    {% if vote.magnitude < maximum_magnitude %}
-                        <button class="btn" type="submit" name="voteable_vote" value="{{ vote.magnitude|add:1 }}">
-                            <i data-toggle="tooltip" title="10^{{ vote.magnitude|add:1 }}" class="impact_vote icon-plus"></i>
-                        </button>
-                    {% endif %}
-                {% else %}
-                    <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
-                        <i data-toggle="tooltip" title="0" class="impact_vote fa fa-times"></i>
-                    </button>
-                    <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
-                        <i data-toggle="tooltip" title="10" class="impact_vote fa fa-check"></i>
-                    </button>
-                    <button class="btn" type="submit" name="voteable_vote" value="2">
-                        <i data-toggle="tooltip" title="100" class="impact_vote icon-plus"></i>
-                    </button>
-                {% endif %}
+                <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
+                    <i data-toggle="tooltip" title="Accept" class="impact_vote fa fa-check"></i>
+                </button>
+                <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
+                    <i data-toggle="tooltip" title="Reject" class="impact_vote fa fa-times"></i>
+                </button>
             </div>
         </p>
     </form>

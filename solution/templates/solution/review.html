@@ -14,10 +14,8 @@
             <div class="span4 text-center">
                 {% if solution.impact == None %}
                     <h2 class="muted">~</h2>
-                {% elif solution.impact > 0 %}
-                    <h2 class="text-success">{{ solution.impact }}</h2>
                 {% else %}
-                    <h2 class="muted">0</h2>
+                    <h2 class="muted">{{ solution.impact }}</h2>
                 {% endif %}
                 <small class="muted">impact</small>
             </div>
@@ -58,6 +56,19 @@
                 </div>
             </div>
         {% endif %}
+    {% endif %}
+    {% if user.is_authenticated and is_owner and not solution.is_closed %}
+        <hr/>
+        <div id="compensation-q" class="alert alert-info">
+            <strong>You requested an impact of {{ solution.impact }}</strong> for this solution.
+            <a href="#" onclick="$('#compensation').show(); $('#compensation-q').hide();  return false;">Change evaluation</a>.
+        </div>
+        <form method="post" id="compensation" class="compensation">
+            {% csrf_token %}
+            <p>How much <a href="{% url 'help:index' %}#impact" title="What is impact?">impact</a> do you want for the solution? <a href="{% url 'help:index' %}#review"><i class="fa fa-info-circle"> More info about bargaining.</i></a></p>
+            <p><input type="number" min="0" max="10000" size="5" name="compensation_value" value="{{ solution.impact }}" placeholder="amount of impact"/></p>
+            <p><button class="btn btn-info" type="submit" name="change_value" value="1">change</button></p>
+        </form>
     {% endif %}
     <hr/>
     {% include "joltem/commenting.html" %}

@@ -13,7 +13,7 @@ class SolutionsReviewedByUserTest(TestCase):
         solution = mixer.blend('solution.solution')
 
         user = mixer.blend('joltem.user')
-        solution.add_vote(voter=user, vote_magnitude=1)
+        solution.add_vote(voter=user, is_accepted=True)
 
         expected_solution = Solution.objects.reviewed_by_user(user).get()
 
@@ -25,7 +25,7 @@ class SolutionsReviewedByUserTest(TestCase):
 
         bob = mixer.blend('joltem.user')
         jon = mixer.blend('joltem.user')
-        solution.add_vote(voter=bob, vote_magnitude=1)
+        solution.add_vote(voter=bob, is_accepted=True)
 
         expected_solution_qty = 0
 
@@ -38,7 +38,7 @@ class SolutionsReviewedByUserTest(TestCase):
         solution = mixer.blend('solution.solution')
 
         user = mixer.blend('joltem.user')
-        solution.add_vote(voter=user, vote_magnitude=1)
+        solution.add_vote(voter=user, is_accepted=True)
 
         # "step" parameter of slice syntax is used to evaluate QuerySet.
         with self.assertNumQueries(1):
@@ -56,7 +56,7 @@ class SolutionsNeedReviewFromUserTest(TestCase):
 
         bob = mixer.blend('joltem.user')
         jon = mixer.blend('joltem.user')
-        solution.add_vote(voter=bob, vote_magnitude=1)
+        solution.add_vote(voter=bob, is_accepted=True)
 
         expected_solution = Solution.objects.need_review_from_user(jon).get()
 
@@ -99,7 +99,7 @@ class SolutionsNeedReviewFromUserTest(TestCase):
         )
 
         jon = mixer.blend('joltem.user')
-        solution.add_vote(voter=jon, vote_magnitude=1)
+        solution.add_vote(voter=jon, is_accepted=True)
 
         expected_solution_qty = 0
 
