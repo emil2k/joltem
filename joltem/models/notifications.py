@@ -132,15 +132,13 @@ class Notifying(models.Model):
             type or create a new notification.
         :param kwargs: extra options to pass for rending the notification.
 
+        :returns: A created/updated notification
+
         """
         if kwargs is None:
             kwargs = {}
 
-        if not update:
-            # Just create a new notification
-            self.create_notification(user, ntype, kwargs)
-
-        else:
+        if update:
             # Attempt to update the latest notifications instead of creating
             # a new one
             notifying_type = ContentType.objects.get_for_model(self)
@@ -153,24 +151,35 @@ class Notifying(models.Model):
 
             if notifications.count() > 0:
                 # update latest notification
-                self.update_notification(notifications[0])
+                return self.update_notification(notifications[0])
 
-            else:
-                self.create_notification(user, ntype, kwargs)
+        # Just create a new notification
+        return self.create_notification(user, ntype, kwargs)
 
     @staticmethod
     def update_notification(notification):
-        """ Update notification. """
+        """ Update notification.
+
+        :returns: A updated notification.
+
+        """
 
         notification.is_cleared = False
         notification.time_cleared = None
         notification.time_notified = timezone.now()
         notification.save()
 
+        return notification
+
     def create_notification(self, user, ntype, kwargs=None):
-        """ Create notification. Why Im exists?.  """
+        """ Create notification.
+
+        :returns: A created notification.
+
+        """
         if kwargs is None:
             kwargs = {}
+
         # todo add kwargs
         notification = Notification(
             user=user,
@@ -181,6 +190,8 @@ class Notifying(models.Model):
             kwargs=kwargs
         )
         notification.save()
+
+        return notification
 
     def delete_notifications(self, user, ntype):
         """ Delete all notifications of this type from this notifying to this user. """ # noqa
