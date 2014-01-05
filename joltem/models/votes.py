@@ -70,9 +70,9 @@ class Voteable(Notifying, Owned, ProjectContext):
     # impact-weighted percentage of acceptance
     acceptance = models.SmallIntegerField(null=True, blank=True)
     # Generic relations
-    vote_set = generic.GenericRelation('joltem.Vote',
-                                       content_type_field='voteable_type',
-                                       object_id_field='voteable_id')
+    vote_set = generic.GenericRelation(
+        'joltem.Vote', content_type_field='voteable_type',
+        object_id_field='voteable_id')
 
     class Meta:
         abstract = True
@@ -98,10 +98,6 @@ class Voteable(Notifying, Owned, ProjectContext):
         )
         vote.save()
         self.notify_vote_added(vote)
-
-    def notify_vote_added(self, vote):
-        """ Send out notification that vote was added. """
-        self.notify(self.owner, settings.NOTIFICATION_TYPES.vote_added, True)
 
     def update_vote(self, voter, is_accepted):
         """ Update vote by the user on this voteable.
@@ -130,37 +126,45 @@ class Voteable(Notifying, Owned, ProjectContext):
         except Vote.DoesNotExist:
             return False
 
+    def notify_vote_added(self, vote):
+        """ Send out notification that vote was added. """
+        for user in self.followers:
+            if user == vote.voter:
+                continue
+
+            self.notify(
+                user, settings.NOTIFICATION_TYPES.vote_added, True)
+
     def notify_vote_updated(self, vote, old_vote_is_accepted):
         """ Send out notification that vote was updated.
 
         Override in extending class to disable
 
         """
-        self.notify(
-            self.owner, settings.NOTIFICATION_TYPES.vote_updated, False,
-            {"voter_first_name": vote.voter.first_name})
+        for user in self.followers:
+            if user == vote.voter:
+                continue
+            self.notify(
+                self.owner, settings.NOTIFICATION_TYPES.vote_updated, False,
+                {"voter_first_name": vote.voter.first_name})
 
     def iterate_voters(self, queryset=None, exclude=None):
-        """ Iterate through votes and return distinct voters. """
-        if exclude is None:
-            exclude = []
-        queryset = self.vote_set.all() if queryset is None else queryset
-        voter_ids = []
-        for vote in queryset:
-            if vote.voter in exclude:
-                continue
-            if not vote.voter.id in voter_ids:
-                voter_ids.append(vote.voter.id)
-                yield vote.voter
+        """ Iterate through votes and return distinct voters.
 
-    def get_voters(self, queryset=None, exclude=None):
-        """ Return a distinct list of voters.
-
-        :return list:
+        :returns: Voters generator.
 
         """
-        return [voter for voter in
-                self.iterate_voters(queryset=queryset, exclude=exclude)]
+        if queryset is None:
+            queryset = self.vote_set.select_related('voter')
+
+        if not exclude is None:
+            queryset = queryset.exclude(**exclude)
+
+        voter_ids = []
+        for vote in queryset:
+            if not vote.voter_id in voter_ids:
+                voter_ids.append(vote.voter_id)
+                yield vote.voter
 
     def get_voter_first_names(self, queryset=None, exclude=None):
         """ Return a distinct list of the voter first names.
@@ -169,7 +173,7 @@ class Voteable(Notifying, Owned, ProjectContext):
 
         """
         return [voter.first_name for voter in
-                self.get_voters(queryset=queryset, exclude=exclude)]
+                self.iterate_voters(queryset=queryset, exclude=exclude)]
 
     def get_acceptance(self):
         """ Impact-weighted percentage of acceptance amongst reviewers.
@@ -203,8 +207,8 @@ class Voteable(Notifying, Owned, ProjectContext):
         """
         if self.get_acceptance() > VOTEABLE_THRESHOLD:
             return self.impact
-        else:
-            return 0
+
+        return 0
 
     @staticmethod
     def is_vote_valid(vote):
@@ -214,3 +218,12 @@ class Voteable(Notifying, Owned, ProjectContext):
 
         """
         return True
+
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of voters.
+
+        """
+        return set(self.iterate_voters()).union(set([self.owner]))

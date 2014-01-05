@@ -7,10 +7,6 @@ from django.conf import settings
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
 
-NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
-NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
-NOTIFICATION_TYPE_TASK_REJECTED = "task_rejected"
-
 
 class Task(Commentable, Updatable):
 
@@ -88,8 +84,10 @@ class Task(Commentable, Updatable):
         :returns: A set of users.
 
         """
-        return set([self.author, self.owner] + list(
-            self.iterate_commentators()))
+        return set([
+            self.author, self.owner] +
+            list(self.iterate_commentators()) +
+            [v.voter for v in self.vote_set.select_related('voter')])
 
     def get_subtask_count(
             self, solution_is_completed=False, solution_is_closed=False,
@@ -154,17 +152,24 @@ class Task(Commentable, Updatable):
         is_accepted -- whether the voter accepts the task as ready.
 
         """
-        try:
-            vote = Vote.objects.all().get(voter=voter, task=self)
-        except Vote.DoesNotExist:
-            vote = Vote(
-                task=self,
-                voter=voter
-            )
+        vote, create = Vote.objects.get_or_create(
+            voter=voter, task=self, defaults={
+                'voter_impact': voter.impact
+            })
         vote.voter_impact = voter.impact
         vote.is_accepted = is_accepted
         vote.time_voted = timezone.now()
         vote.save()
+
+        ntype = settings.NOTIFICATION_TYPES.vote_added if create else settings.NOTIFICATION_TYPES.vote_updated # noqa
+        for user in self.followers:
+            if user == vote.voter:
+                continue
+            self.notify(user, ntype, create, kwargs={
+                "voter_first_name": vote.voter.first_name,
+                "type": "task",
+                "title": self.title,
+            })
 
         self.determine_acceptance(vote)
 
@@ -215,8 +220,8 @@ class Task(Commentable, Updatable):
         If not the acceptor, that the task was either accepted or rejected.
 
         """
-        ntype = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted\
-            else NOTIFICATION_TYPE_TASK_REJECTED
+        ntype = settings.NOTIFICATION_TYPES.task_accepted if is_accepted\
+            else settings.NOTIFICATION_TYPES.task_rejected
 
         listeners = self.followers - set([acceptor])
         for user in listeners:
@@ -227,14 +232,14 @@ class Task(Commentable, Updatable):
         if self.parent:
             if self.parent.owner_id != self.author_id:
                 self.notify(
-                    self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True,
-                    kwargs={"role": "parent_solution"})
+                    self.parent.owner, settings.NOTIFICATION_TYPES.task_posted,
+                    True, kwargs={"role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
                 if admin.id != self.author_id:
                     self.notify(
-                        admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
-                            "role": "project_admin"})
+                        admin, settings.NOTIFICATION_TYPES.task_posted, True,
+                        kwargs={"role": "project_admin"})
 
     def default_title(self):
         """ Just prevent conflict with solutions.
@@ -260,18 +265,26 @@ class Task(Commentable, Updatable):
             return "%s commented on task \"%s\"" % (
                 list_string_join(first_names), self.title)
 
-        elif NOTIFICATION_TYPE_TASK_POSTED == notification.type:
+        elif settings.NOTIFICATION_TYPES.task_posted == notification.type:
             if notification.kwargs["role"] == "parent_solution":
                 return "%s posted a task on your solution \"%s\"" % (
                     self.author.first_name, self.parent.default_title)
             elif notification.kwargs["role"] == "project_admin":
                 return "%s posted a task" % self.author.first_name
 
-        elif NOTIFICATION_TYPE_TASK_ACCEPTED == notification.type:
+        if settings.NOTIFICATION_TYPES.task_accepted == notification.type:
             return "Your task \"%s\" was accepted" % self.title
 
-        elif NOTIFICATION_TYPE_TASK_REJECTED == notification.type:
+        if settings.NOTIFICATION_TYPES.task_rejected == notification.type:
             return "Your task \"%s\" was not accepted" % self.title
+
+        if settings.NOTIFICATION_TYPES.vote_added == notification.type:
+            return "%s voted on your task \"%s\"" % (
+                notification.kwargs['voter_first_name'], self.title)
+
+        if settings.NOTIFICATION_TYPES.vote_updated == notification.type:
+            return "%s updated a vote on your task \"%s\"" % (
+                notification.kwargs['voter_first_name'], self.title)
 
         return "Task updated : %s" % self.title
 
