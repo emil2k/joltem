@@ -125,17 +125,6 @@ If you experience a problem contact the development team at <dev@joltem.com> and
 
 ---
 
-<a name="job" class="anchor-fix"></a>
-#### We are hiring.
-
-We don't interview though.
-
-If you already contribute to the project and want to work full time contact us. We are always looking to grow our core team.
-
-A full time position comes with a monthly salary and of course all the equity you can earn. Relocation is not necessary, we all work remotely.
-
-<job@joltem.com>
-
 <a name="press" class="anchor-fix"></a>
 #### We like the press.
 
@@ -144,14 +133,6 @@ Writing a story about us?
 We will be happy to answer your questions, provide media, and talk your ear off about why what we are doing is important.
 
 <press@joltem.com>
-
-
-<a name="invest" class="anchor-fix"></a>
-#### We talk to investors.
-
-We have a plan, and we are looking for partners to help us execute it.
-
-<invest@joltem.com>
 
 
 
