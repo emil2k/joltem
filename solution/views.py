@@ -510,4 +510,4 @@ class MyReviewedSolutionsView(SolutionListMixin):
     """ View for viewing a list of reviewed solutions. """
 
     solutions_tab = 'my_reviewed'
-    filters = {'vote_set__voter__ne': lambda s: s.request.user}
+    filters = {'vote_set__voter': lambda s: s.request.user}
