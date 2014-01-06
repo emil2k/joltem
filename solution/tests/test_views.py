@@ -72,7 +72,8 @@ class SolutionViewOwnerTest(TestCase):
         self.assertContains(response, 'edit</a>')
         self.assertContains(response, 'create task</a>')
         self.assertContains(response, 'close</button>')
-        self.assertContains(response, '<div id="compensation-q" class="alert">')
+        self.assertContains(
+            response, '<div id="compensation-q" class="alert">')
         self.assertNotContains(response, 'reopen</button>')
         self.assertNotContains(response, 'suggest solution</a>')
         self.assertNotContains(response, 'mark incomplete</button>')
@@ -126,6 +127,7 @@ class SolutionViewUserTest(TestCase):
     The user is not owner of the solution.
 
     """
+
     def setUp(self):
         self.user = mixer.blend('joltem.user', password='test')
         self.solution = mixer.blend('solution.solution')
@@ -149,7 +151,8 @@ class SolutionViewUserTest(TestCase):
         self.assertContains(response, 'suggest solution</a>')
         self.assertNotContains(response, 'edit</a>')
         self.assertNotContains(response, 'close</button>')
-        self.assertNotContains(response, '<div id="compensation-q" class="alert">')
+        self.assertNotContains(
+            response, '<div id="compensation-q" class="alert">')
         self.assertNotContains(response, 'reopen</button>')
         self.assertNotContains(response, 'mark incomplete</button>')
 
@@ -190,6 +193,7 @@ class SolutionViewUserTest(TestCase):
                                '<div id="compensation-q" class="alert">')
         self.assertNotContains(response, 'suggest solution</a>')
 
+
 class SolutionViewAnonymousTest(TestCase):
 
     """ Test SolutionView responses for an anonymous user.
@@ -218,7 +222,8 @@ class SolutionViewAnonymousTest(TestCase):
         self.assertNotContains(response, 'suggest solution</a>')
         self.assertNotContains(response, 'edit</a>')
         self.assertNotContains(response, 'close</button>')
-        self.assertNotContains(response, '<div id="compensation-q" class="alert">')
+        self.assertNotContains(
+            response, '<div id="compensation-q" class="alert">')
         self.assertNotContains(response, 'reopen</button>')
         self.assertNotContains(response, 'mark incomplete</button>')
 
@@ -271,7 +276,7 @@ class SolutionViewTest(BaseSolutionViewTest):
 
     def _test_solution_view_action(self, action, **data):
         """ Generate test for solution action. """
-        data.update({ action: 1 })
+        data.update({action: 1})
         response = self._post(
             views.SolutionView.as_view(), data)
         self.assertEqual(response.status_code, 302)
@@ -373,8 +378,8 @@ class SolutionReviewViewOwnerTest(TestCase):
     def test_change_evaluation(self):
         """ Test change evaluation. """
         self.assertEqual(self.solution.impact, 5)
-        response = self.client.post(self.path, { 'compensation_value':100,
-                                      'change_value':1 })
+        response = self.client.post(self.path, {'compensation_value': 100,
+                                                'change_value': 1})
         self.assertRedirects(response, self.path)
         loaded = Solution.objects.get(id=self.solution.id)
         self.assertEqual(loaded.impact, 100)
@@ -521,7 +526,7 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
         mixer.blend('solution.solution')
 
         solutions = mixer.cycle(2).blend(
-            'solution.solution', project=self.project)
+            'solution.solution', project=self.project, title=mixer.RANDOM)
         for solution in solutions:
             solution.add_vote(voter=self.user, is_accepted=True)
 

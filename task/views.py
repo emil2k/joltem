@@ -1,8 +1,9 @@
 """ Task related views. """
 
 from django.http import Http404
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.shortcuts import redirect, get_object_or_404
+from django.core.cache import cache
 from django.views.generic import (
     TemplateView, CreateView, UpdateView, ListView,
 )
@@ -260,15 +261,31 @@ class TaskCreateView(ProjectBaseView, CreateView):
                         task_id=task.id)
 
 
+class TaskBaseListMeta(type):
+
+    """ Build views hierarchy. """
+
+    tasks_tabs = []
+
+    def __new__(mcs, name, bases, params):
+        cls = super(TaskBaseListMeta, mcs).__new__(mcs, name, bases, params)
+        if cls.tasks_tab:
+            mcs.tasks_tabs.append((cls.tasks_tab, cls))
+        return cls
+
+
 class TaskBaseListView(ListView, ProjectBaseView):
 
     """ Base view for displaying lists of tasks. """
 
-    template_name = 'task/tasks_list.html'
+    __metaclass__ = TaskBaseListMeta
+
     context_object_name = 'tasks'
+    filters = {}
     paginate_by = 10
     project_tab = "tasks"
     tasks_tab = None
+    template_name = 'task/tasks_list.html'
 
     def get_context_data(self, **kwargs):
         """ Get template's context.
@@ -276,84 +293,37 @@ class TaskBaseListView(ListView, ProjectBaseView):
         :return dict:
 
         """
+        kwargs["tasks_tabs"] = cache.get("%s:tasks_tabs" % self.project.pk)
         kwargs["tasks_tab"] = self.tasks_tab
+
+        if not kwargs["tasks_tabs"]:
+            kwargs["tasks_tabs"] = {
+                n: self.get_queryset(**c.filters).count()
+                for n, c in TaskBaseListView.tasks_tabs
+            }
+            cache.set("%s:tasks_tabs" % self.project.pk, kwargs["tasks_tabs"])
+
         return super(TaskBaseListView, self).get_context_data(**kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self, **filters):
         """ Filter tasks by current project.
 
         :return QuerySet:
 
         """
-        return self.project.task_set.select_related('owner').prefetch_related(
-            'solution_set').all()
+        filters = filters or self.filters
+        qs = self.project.task_set.select_related('author')\
+            .prefetch_related('solution_set')
 
+        for k in filters:
+            if callable(filters[k]):
+                filters[k] = filters[k](self)
+            if k.endswith('__ne'):
+                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
+            else:
+                qs = qs.filter(**{k: filters[k]})
 
-class MyOpenTasksView(TaskBaseListView):
-
-    """ List opened tasks. """
-
-    tasks_tab = "my_open"
-
-    def get_queryset(self):
-        """ Filter tasks by status and user.
-
-        :return QuerySet:
-
-        """
-        return super(MyOpenTasksView, self).get_queryset().filter(
-            is_accepted=True, is_closed=False, owner=self.user
-        ).order_by('-priority', '-time_posted')
-
-
-class MyClosedTasksView(TaskBaseListView):
-
-    """ List closed tasks. """
-
-    tasks_tab = "my_closed"
-
-    def get_queryset(self):
-        """ Filter tasks by status and user.
-
-        :return QuerySet:
-
-        """
-        return super(MyClosedTasksView, self).get_queryset().filter(
-            is_accepted=True, is_closed=True, owner=self.user
-        ).order_by('-priority', '-time_closed')
-
-
-class MyReviewTasksView(TaskBaseListView):
-
-    """ List of tasks the user should review. """
-
-    tasks_tab = "my_review"
-
-    def get_queryset(self):
-        """ Filter tasks by status and user.
-
-        :return QuerySet:
-
-        """
-        return super(MyReviewTasksView, self).get_queryset().filter(
-            is_reviewed=False, is_closed=False).exclude(vote__voter=self.user)\
-            .order_by('-priority', '-time_posted')
-
-
-class MyReviewedTasksView(TaskBaseListView):
-
-    """ List of tasks the user has reviewed. """
-
-    tasks_tab = "my_reviewed"
-
-    def get_queryset(self):
-        """ Filter tasks by status and user.
-
-        :return QuerySet:
-
-        """
-        return super(MyReviewedTasksView, self).get_queryset().filter(
-            vote__voter=self.user).order_by('-priority', '-vote__time_voted')
+        return qs.order_by('-priority', '-time_posted')
 
 
 class AllOpenTasksView(TaskBaseListView):
@@ -361,16 +331,7 @@ class AllOpenTasksView(TaskBaseListView):
     """ List all opened tasks. """
 
     tasks_tab = "all_open"
-
-    def get_queryset(self):
-        """ Load data to list.
-
-        :return Queryset:
-
-        """
-        return super(AllOpenTasksView, self).get_queryset().filter(
-            is_accepted=True, is_closed=False
-        ).order_by('-priority', '-time_posted')
+    filters = {'is_accepted': True, 'is_closed': False}
 
 
 class AllClosedTasksView(TaskBaseListView):
@@ -378,13 +339,39 @@ class AllClosedTasksView(TaskBaseListView):
     """ List all closed tasks. """
 
     tasks_tab = "all_closed"
+    filters = {'is_accepted': True, 'is_closed': True}
 
-    def get_queryset(self):
-        """ Load data to list.
 
-        :return Queryset:
+class MyOpenTasksView(TaskBaseListView):
 
-        """
-        return super(AllClosedTasksView, self).get_queryset().filter(
-            is_accepted=True, is_closed=True
-        ).order_by('-priority', '-time_closed')
+    """ List opened tasks. """
+
+    tasks_tab = "my_open"
+    filters = {
+        'is_accepted': True, 'is_closed': False, 'owner': lambda s: s.user}
+
+
+class MyClosedTasksView(TaskBaseListView):
+
+    """ List closed tasks. """
+
+    tasks_tab = "my_closed"
+    filters = {
+        'is_accepted': True, 'is_closed': True, 'owner': lambda s: s.user}
+
+
+class MyReviewTasksView(TaskBaseListView):
+
+    """ List of tasks the user should review. """
+
+    tasks_tab = "my_review"
+    filters = {'is_reviewed': False, 'is_closed': False,
+               'vote__voter__ne': lambda s: s.user}
+
+
+class MyReviewedTasksView(TaskBaseListView):
+
+    """ List of tasks the user has reviewed. """
+
+    tasks_tab = "my_reviewed"
+    filters = {'vote__voter': lambda s: s.user}
