@@ -1,5 +1,7 @@
 """ Solution related views. """
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+from django.db.models import Q
 from django.http import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
@@ -216,7 +218,6 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
                             solution_id=self.solution.id)
         return super(SolutionReviewView, self).post(request, *args, **kwargs)
 
-
     def get_context_data(self, **kwargs):
         """ Return context to pass to template. Add vote results. """
         vote_count = 0
@@ -392,13 +393,30 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                             solution_id=solution.id)
 
 
-class SolutionListMixin(ProjectMixin, ExtraContextMixin, ListView):
+class SolutionListMeta(type):
+
+    """ Build views hierarchy. """
+
+    solutions_tabs = []
+
+    def __new__(mcs, name, bases, params):
+        cls = super(SolutionListMeta, mcs).__new__(mcs, name, bases, params)
+        if cls.solutions_tab:
+            mcs.solutions_tabs.append((cls.solutions_tab, cls))
+        return cls
+
+
+class SolutionListMixin(ProjectMixin, ListView):
 
     """ View mixin for solution's list. """
 
-    template_name = 'solution/solutions_list.html'
+    __metaclass__ = SolutionListMeta
+
     context_object_name = 'solutions'
     paginate_by = 10
+    project_tab = 'solutions'
+    solutions_tab = None
+    template_name = 'solution/solutions_list.html'
 
     def get_context_data(self, **kwargs):
         """ Get context data for templates.
@@ -407,94 +425,89 @@ class SolutionListMixin(ProjectMixin, ExtraContextMixin, ListView):
 
         """
         kwargs['project'] = self.project
+        kwargs['project_tab'] = self.project_tab
+        kwargs['solutions_tab'] = self.solutions_tab
+        kwargs["solutions_tabs"] = cache.get("%s:solutions_tabs"
+                                             % self.project.pk)
+        if not kwargs["solutions_tabs"]:
+            kwargs["solutions_tabs"] = {
+                n: self.get_queryset(**c.filters).count()
+                for n, c in SolutionListMixin.solutions_tabs
+            }
+            cache.set("%s:solutions_tabs" % self.project.pk,
+                      kwargs["solutions_tabs"])
         return super(SolutionListMixin, self).get_context_data(**kwargs)
 
+    def get_queryset(self, **filters):
+        """ Filter solutions by current project.
 
-class MyReviewedSolutionsView(SolutionListMixin):
-
-    """ View for viewing a list of reviewed solutions. """
-
-    def get_queryset(self):
-        """ Filter solutions.
-
-        :return Queryset:
+        :return QuerySet:
 
         """
-        return Solution.objects.reviewed_by_user(user=self.request.user) \
-                               .order_by('-vote_set__time_voted') \
-                               .select_related('owner')
+        filters = filters or self.filters
+        qs = self.project.solution_set.select_related('task', 'owner')\
+            .prefetch_related('vote_set')
+        for k in filters:
+            if callable(filters[k]):
+                filters[k] = filters[k](self)
+            if k.endswith('__ne'):
+                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
+            else:
+                qs = qs.filter(**{k: filters[k]})
 
-
-class MyReviewSolutionsView(SolutionListMixin):
-
-    """ View for viewing a list of solutions to review. """
-
-    def get_queryset(self):
-        """ Filter solutions.
-
-        :return Queryset:
-
-        """
-        return Solution.objects.need_review_from_user(user=self.request.user) \
-                               .order_by('-time_completed') \
-                               .select_related('owner')
-
-
-class MyIncompleteSolutionsView(SolutionListMixin):
-
-    """ View for viewing a list of your incomplete solutions. """
-
-    def get_queryset(self):
-        """ Filter solutions.
-
-        :return Queryset:
-
-        """
-        return Solution.objects.incomplete_by_user(user=self.request.user) \
-                               .order_by('-time_posted') \
-                               .select_related('owner')
-
-
-class MyCompleteSolutionsView(SolutionListMixin):
-
-    """ View for viewing a list of your complete solutions. """
-
-    def get_queryset(self):
-        """ Filter solutions.
-
-        :return Queryset:
-
-        """
-        return Solution.objects.completed_by_user(user=self.request.user) \
-                               .order_by('-time_completed') \
-                               .select_related('owner')
+        return qs.order_by('-time_posted')
 
 
 class AllIncompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of all incomplete solutions. """
 
-    def get_queryset(self):
-        """ Filter solutions.
-
-        :return Queryset:
-
-        """
-        return Solution.objects.incomplete() \
-                               .order_by('-time_posted') \
-                               .select_related('task', 'owner')
+    solutions_tab = 'all_incomplete'
+    filters = {'is_completed': False, 'is_closed': False}
 
 
 class AllCompleteSolutionsView(SolutionListMixin):
 
     """ View for viewing a list of complete solutions. """
 
-    def get_queryset(self):
-        """ Filter solutions.
+    solutions_tab = 'all_complete'
+    filters = {'is_completed': True, 'is_closed': False}
 
-        :return Queryset:
 
-        """
-        return Solution.objects.completed() \
-                               .order_by('-time_completed') \
-                               .select_related('task', 'owner')
+class MyIncompleteSolutionsView(SolutionListMixin):
+
+    """ View for viewing a list of your incomplete solutions. """
+
+    solutions_tab = 'my_incomplete'
+    filters = {
+        'is_completed': False, 'is_closed': False,
+        'owner': lambda s: s.request.user}
+
+
+class MyCompleteSolutionsView(SolutionListMixin):
+
+    """ View for viewing a list of your complete solutions. """
+
+    solutions_tab = 'my_complete'
+    filters = {
+        'is_completed': True, 'is_closed': False,
+        'owner': lambda s: s.request.user}
+
+
+class MyReviewSolutionsView(SolutionListMixin):
+
+    """ View for viewing a list of solutions to review. """
+
+    solutions_tab = 'my_review'
+    filters = {
+        'is_completed': True, 'is_closed': False,
+        'owner__ne': lambda s: s.request.user,
+        'vote_set__voter__ne': lambda s: s.request.user}
+
+
+class MyReviewedSolutionsView(SolutionListMixin):
+
+    """ View for viewing a list of reviewed solutions. """
+
+    solutions_tab = 'my_reviewed'
+    filters = {'vote_set__voter__ne': lambda s: s.request.user}

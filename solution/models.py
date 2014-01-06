@@ -1,6 +1,7 @@
 """ Solution related models. """
 import logging
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
 from model_utils.managers import PassThroughManager
@@ -67,6 +68,7 @@ class Solution(Voteable, Commentable, Updatable):
         super(Solution, self).save(**kwargs)
         if created:
             self.notify_created()
+        cache.delete('%s:solutions_tabs' % self.project_id)
 
     def is_vote_valid(self, vote):
         """ Return whether vote should count.
@@ -132,7 +134,6 @@ class Solution(Voteable, Commentable, Updatable):
             self.save()
             self.vote_set.clear()
 
-
     def mark_complete(self, impact):
         """ Mark the solution complete.
 
@@ -174,14 +175,12 @@ class Solution(Voteable, Commentable, Updatable):
     def notify_evaluation_changed(self):
         """ Send out notifications about the evaluation changing.
 
-         Notify all the people who had previously voted on the solution.
+        Notify all the people who had previously voted on the solution.
 
         """
         for vote in self.vote_set.all():
             self.notify(vote.voter,
                         NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED, False)
-
-
 
     def notify_created(self):
         """ Send out notifications about the solution being posted. """
@@ -222,16 +221,16 @@ class Solution(Voteable, Commentable, Updatable):
         """ Return displayed notification text. """
         if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
             return self.get_notification_text_comment_added(notification)
-        elif NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
+        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
             return self.get_notification_text_vote_added(notification)
-        elif NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
+        if NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
             return self.get_notification_text_vote_updated(notification)
-        elif NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED == notification.type:
+        if NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED == notification.type:
             return self.get_notification_text_solution_evaluation_changed(
                 notification)
-        elif NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE == notification.type:
+        if NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE == notification.type:
             return self.get_notification_text_solution_complete(notification)
-        elif NOTIFICATION_TYPE_SOLUTION_POSTED == notification.type:
+        if NOTIFICATION_TYPE_SOLUTION_POSTED == notification.type:
             return self.get_notification_text_solution_posted(notification)
         # Should not resort to this
         return "Solution updated : %s" % self.default_title
@@ -290,7 +289,7 @@ class Solution(Voteable, Commentable, Updatable):
         if NOTIFICATION_TYPE_VOTE_ADDED == notification.type \
             or NOTIFICATION_TYPE_VOTE_UPDATED == notification.type \
             or NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED \
-                        == notification.type:
+                == notification.type:
             return reverse("project:solution:review",
                            args=[self.project.name, self.id])
         else:
