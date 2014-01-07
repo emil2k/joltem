@@ -1,6 +1,7 @@
 """ Solution related models. """
 import logging
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
 from model_utils.managers import PassThroughManager
@@ -69,6 +70,7 @@ class Solution(Voteable, Commentable, Updatable):
         super(Solution, self).save(**kwargs)
         if created:
             self.notify_created()
+        cache.delete('%s:solutions_tabs' % self.project_id)
 
     def is_vote_valid(self, vote):
         """ Return whether vote should count.
@@ -232,10 +234,10 @@ class Solution(Voteable, Commentable, Updatable):
             return self.get_notification_text_vote_added(notification)
         if settings.NOTIFICATION_TYPES.vote_updated == notification.type:
             return self.get_notification_text_vote_updated(notification)
-        if settings.NOTIFICATION_TYPES.solution_evaluation_changed == notification.type: # noqa
+        if settings.NOTIFICATION_TYPES.solution_evaluation_changed == notification.type:  # noqa
             return self.get_notification_text_solution_evaluation_changed(
                 notification)
-        if settings.NOTIFICATION_TYPES.solution_marked_complete == notification.type: # noqa
+        if settings.NOTIFICATION_TYPES.solution_marked_complete == notification.type:  # noqa
             return self.get_notification_text_solution_complete(notification)
         if settings.NOTIFICATION_TYPES.solution_posted == notification.type:
             return self.get_notification_text_solution_posted(notification)

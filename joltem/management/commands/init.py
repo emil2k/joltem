@@ -5,7 +5,15 @@ from django.core.management import BaseCommand
 
 class Command(BaseCommand):
 
+    """ Create initial data. """
+
     def handle(self, *args, **kwargs):
+        """ Handle command.
+
+        :returns: False
+
+        """
+
         from joltem.libs import mixer
         from project.models import Project
         from joltem.models import User
@@ -30,25 +38,25 @@ class Command(BaseCommand):
             tasks = mixer.cycle(20).blend(
                 'task.task',
                 project=project,
-                author=mixer.random(*users),
-                owner=mixer.random(*users),
-                is_completed=mixer.random,
-                is_closed=mixer.random,
+                author=mixer.RANDOM(*users),
+                owner=mixer.RANDOM(*users),
+                is_completed=mixer.RANDOM,
+                is_closed=mixer.RANDOM,
             )
 
             solutions = mixer.cycle(10).blend(
                 'solution.solution',
                 project=project,
-                owner=mixer.random(*users),
-                is_completed=mixer.random,
-                is_closed=mixer.random,
-                task=mixer.select,
+                owner=mixer.RANDOM(*users),
+                is_completed=mixer.RANDOM,
+                is_closed=mixer.RANDOM,
+                task=mixer.SELECT,
             )
 
             mixer.cycle(15).blend(
                 'joltem.comment',
-                owner=mixer.random(*users),
-                comment=mixer.random,
+                owner=mixer.RANDOM(*users),
+                comment=mixer.RANDOM,
                 project=project,
-                commentable=mixer.random(*(tasks + solutions))
+                commentable=mixer.RANDOM(*(tasks + solutions))
             )

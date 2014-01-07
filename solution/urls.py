@@ -21,56 +21,20 @@ urlpatterns = patterns(
         'commits'),
 
     url(r'^review/my/$',
-        views.MyReviewSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'my_review',
-            }
-        },
-        'my_review'),
+        views.MyReviewSolutionsView.as_view(), name='my_review'),
 
     url(r'^reviewed/my/$',
-        views.MyReviewedSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'my_reviewed',
-            }
-        },
-        'my_reviewed'),
+        views.MyReviewedSolutionsView.as_view(), name='my_reviewed'),
 
     url(r'^incomplete/my/$',
-        views.MyIncompleteSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'my_incomplete',
-            }
-        },
-        'my_incomplete'),
+        views.MyIncompleteSolutionsView.as_view(), name='my_incomplete'),
 
     url(r'^complete/my/$',
-        views.MyCompleteSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'my_complete',
-            }
-        },
-        'my_complete'),
+        views.MyCompleteSolutionsView.as_view(), name='my_complete'),
 
     url(r'^incomplete/$',
-        views.AllIncompleteSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'all_incomplete',
-            }
-        },
-        'all_incomplete'),
+        views.AllIncompleteSolutionsView.as_view(), name='all_incomplete'),
 
     url(r'^complete/$',
-        views.AllCompleteSolutionsView.as_view(), {
-            'extra_context': {
-                'project_tab': 'solutions',
-                'solutions_tab': 'all_complete',
-            }
-        },
-        'all_complete'),
+        views.AllCompleteSolutionsView.as_view(), name='all_complete'),
 )

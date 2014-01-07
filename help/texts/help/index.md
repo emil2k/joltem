@@ -1,36 +1,31 @@
 <a name="what" class="anchor-fix"></a>
 ### What is this?
 
-Let us first start out by defining the problem we are looking to solve : 
+This is a platform to openly collaborate with others to build and launch a business. We have rethinked the way companies are formed based on the idea that an openly developed business has major advantages over its closed counterparts.
 
-*How can a workforce scale into the millions?*
+##### Building a team
 
-The internet has scaled by orders of magnitude many of our interactions. In rare instances, it has shown us glimpses of what is possible if we work together. 
+In order to pursue most ideas you are going need a partner or two. On our platform you can post your idea, share the idea with anybody willing to listen, and begin collaborating on it immediately. 
 
-However as it currently stands starting a company is a lonesome arduous process fueled by oudated fears and processes. Traditions of closed development are boxing in innovators, locking up talent, and creating unnecessary risk for both founders and investors.
+If others find the idea interesting they can join you in making it a reality, in return they [receive an ownership stake](#impact) in the company. Essentially you allow people to invest in your company with their work.
 
-We believe the companies of tomorrow will attain workforces with millions of people nearly instantaneously and ambitious ideas will be pursued with relative ease. 
+##### Raising investment
 
-What we propose here is the development of *an open incubator* to make this real by first focusing on the people most capable of accepting the idea - programmers.
+Most of the money raised by early stage startups goes to hiring a team. This is a risky proposition for venture capitalists so they either must take a large stake in the company or close the door on a lot of projects.
 
-We are currently in the *alpha* stage of the development process and we are openly seeking collaborators to help us build the company.
+However, if  you build your team openly and they are compensated with ownership raising capital can either be postponed or avoided completely. Best of all you won’t need anyones permission to pursue your idea.
 
----
+More so, we believe having ownership concentrated amongst the people directly working on the product gives you the best chance to succeed and if you manage to prove something raising capital will be a lot cheaper.
 
-<a name="task-solutions" class="anchor-fix"></a>
-#### What are tasks and solutions?
+##### Hiring people
 
-A **task** is a description of work, while a **solution** represents work or an intent to execute some work.
+Once your company reaches a certain scale or if you simply have some task that needs specialized expertise you are going to need to hire people. 
 
-Tasks are proposed and curated through a process similar to [Python’s PEP system](http://en.wikipedia.org/wiki/Python_Enhancement_Proposal#Development), once approved solutions are solicited publicly using an open allocation model.
+The conventional way of hiring people is an extremely difficult process to navigate, especially for a young startup. Individuals with impressive resumes are mostly employed in comfortable positions, so most of the time you are left to sort a stack of questionable resumes hoping to find a diamond in the rough.
 
-Each task may receive multiple solutions by anyone who is willing to contribute. Each solution may contain its own set of tasks, allowing for recursive delegation of work.
+In an open company hiring is completely natural, you can freely broadcast ( job boards, freelance sites, etc. ) work that you want done on and the amount you are willing to pay. Anyone who is willing and capable may complete the work, without either of you wasting time reading a resume. If the company grows you can refer back and attempt to hire the best contributors as employees
 
-Each solutions is designated a branch name in each repository of the project and only the initiator of the solution has push access to that particular branch. 
-
-As solutions are completed, the initiator of the parent task has the responsibility of merging in the work into the branch that initiated the task. This is similar to concepts in parallel computing where tasks are performed by individual components then later reduced into a cohesive solution.
-
-On completion of a solution, a peer review is initiated to evaluate the completed work.
+Furthermore, with an open model you have a better chance of attracting the most talented people as they might be willing to contribute in their spare time if they are convinced of your idea.
 
 ---
 
@@ -63,6 +58,23 @@ After a contributor completes a solution they determine a fair amount for their 
 The other contributors determine whether the solution is satisfactory and whether the evaluation for the work is fair. If the evaluation is determined to be unreasonable by the other contributors, a bargaining process follows to determine the value of the contribution.
 
 As long as people want to keep working with each other, the bargaining process will allow them to resolve any compensation and quality control issues. 
+
+---
+
+<a name="task-solutions" class="anchor-fix"></a>
+#### What are tasks and solutions?
+
+A **task** is a description of work, while a **solution** represents work or an intent to execute some work.
+
+Tasks are proposed and curated through a process similar to [Python’s PEP system](http://en.wikipedia.org/wiki/Python_Enhancement_Proposal#Development), once approved solutions are solicited publicly using an open allocation model.
+
+Each task may receive multiple solutions by anyone who is willing to contribute. Each solution may contain its own set of tasks, allowing for recursive delegation of work.
+
+Each solutions is designated a branch name in each repository of the project and only the initiator of the solution has push access to that particular branch. 
+
+As solutions are completed, the initiator of the parent task has the responsibility of merging in the work into the branch that initiated the task. This is similar to concepts in parallel computing where tasks are performed by individual components then later reduced into a cohesive solution.
+
+On completion of a solution, a peer review is initiated to evaluate the completed work.
 
 <a name="ratio" class="anchor-fix"></a>
 #### What is the votes ratio?
@@ -113,17 +125,6 @@ If you experience a problem contact the development team at <dev@joltem.com> and
 
 ---
 
-<a name="job" class="anchor-fix"></a>
-#### We are hiring.
-
-We don't interview though.
-
-If you already contribute to the project and want to work full time contact us. We are always looking to grow our core team.
-
-A full time position comes with a monthly salary and of course all the equity you can earn. Relocation is not necessary, we all work remotely.
-
-<job@joltem.com>
-
 <a name="press" class="anchor-fix"></a>
 #### We like the press.
 
@@ -132,14 +133,6 @@ Writing a story about us?
 We will be happy to answer your questions, provide media, and talk your ear off about why what we are doing is important.
 
 <press@joltem.com>
-
-
-<a name="invest" class="anchor-fix"></a>
-#### We talk to investors.
-
-We have a plan, and we are looking for partners to help us execute it.
-
-<invest@joltem.com>
 
 
 

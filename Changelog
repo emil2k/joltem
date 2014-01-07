@@ -1,3 +1,19 @@
+2014-01-06  klen
+    * Task and solution counts.
+
+2014-01-04  klen
+    * Deployment keys added.
+
+2014-01-04  emil
+    * Bargaining process introduced for impact determination.
+
+-- on master
+
+2013-12-23  emil
+
+	* Version 0.7.1
+	* Fixed OAuth credentials.
+
 2013-12-19  emil
 
 	* Version 0.7.0

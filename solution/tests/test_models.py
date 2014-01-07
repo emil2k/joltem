@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache
 
 from joltem.libs import mixer
 from solution.models import Solution
@@ -62,3 +63,8 @@ class SolutionModelTest(TestCase):
         self.assertEqual(self.solution.vote_set.count(), 3)
         self.solution.mark_incomplete()
         self.assertEqual(self.solution.vote_set.count(), 0)
+
+    def test_invalidate_cache(self):
+        cache.set('%s:solutions_tabs' % self.project.pk, True)
+        mixer.blend('solution', project=self.project)
+        self.assertFalse(cache.get('%s:solutions_tabs' % self.project.pk))

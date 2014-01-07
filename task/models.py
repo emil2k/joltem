@@ -3,6 +3,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
@@ -143,6 +144,9 @@ class Task(Commentable, Updatable):
         super(Task, self).save(**kwargs)
         if created:
             self.notify_created()
+
+        # Clear tabs counter cache
+        cache.delete('%s:tasks_tabs' % self.project_id)
 
     def put_vote(self, voter, is_accepted):
         """ Cast or overwrites a vote cast while reviewing a task.
