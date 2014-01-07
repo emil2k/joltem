@@ -17,7 +17,7 @@
                     <li class="{{ tasks_tab|active:"my_closed" }}"><a href="{% url 'project:task:my_closed' project.name %}">Closed<span class="{{ tasks_tabs.my_closed|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_closed }}</span></a></li>
                     <li class="nav-header">Review</li>
                     <li class="{{ tasks_tab|active:"my_review" }}"><a href="{% url 'project:task:my_review' project.name %}">Review<span class="{{ tasks_tabs.my_review|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_review }}</span></a></li>
-                    <li class="{{ tasks_tab|active:"my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.name %}">Reviewed<span class="{{ tasks_tabs.my_reviewed|is_true:"badge-success" }} badge pull-right">{{ tasks_tabs.my_reviewed }}</span></a></li>
+                    <li class="{{ tasks_tab|active:"my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.name %}">Reviewed<span class="{{ tasks_tabs.my_reviewed|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_reviewed }}</span></a></li>
                 {% endif %}
             </ul>
         </div>
