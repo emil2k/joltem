@@ -28,5 +28,7 @@ CELERY_ALWAYS_EAGER = True
 # Haystack
 HAYSTACK_CONNECTIONS['default']['PATH'] = '/tmp/whoosh'
 
+GATEWAY_PRIVATE_KEY_FILE_PATH = "/usr/lib/joltem/configuration/id_rsa"
+GATEWAY_PUBLIC_KEY_FILE_PATH = "/usr/lib/joltem/configuration/id_rsa.pub"
 
 logging.info("Test settings loaded.")
