@@ -52,6 +52,7 @@ NOTIFICATION_TYPE_VOTE_UPDATED = "vote_updated"
 
 VOTEABLE_THRESHOLD = 50  # int between 0-100
 
+
 class Voteable(Notifying, Owned, ProjectContext):
 
     """ An abstract object, that can be voted on for impact determination.
