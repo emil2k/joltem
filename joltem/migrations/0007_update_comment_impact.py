@@ -1,9 +1,27 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
 from south.v2 import DataMigration
-from django.db import models
-from joltem.models import Comment
+
+
+def get_acceptance(comment):
+    """ Impact-weighted percentage of acceptance amongst reviewers.
+
+    Returns a int between 0 and 100.
+
+    """
+    votes = comment.vote_set.filter(voter_impact__gt=0)
+    impact_sum = 0
+    weighted_sum = 0
+    for vote in votes:
+        if not comment.is_vote_valid(vote):
+            continue
+        elif vote.is_accepted:
+            weighted_sum += vote.voter_impact
+        impact_sum += vote.voter_impact
+    if impact_sum == 0:
+        return None
+
+    return int(round(100 * float(weighted_sum) / impact_sum))
+
 
 class Migration(DataMigration):
 
@@ -20,9 +38,9 @@ class Migration(DataMigration):
         :return:
 
         """
-        for comment in Comment.objects.all():
-            comment.acceptance = comment.get_acceptance()
-            comment.impact = comment.get_impact()
+        for comment in orm['Comment'].objects.all():
+            comment.acceptance = get_acceptance(comment)
+            comment.impact = comment.impact if comment.acceptance > 50 else 0
             comment.save()
 
     def backwards(self, orm):
