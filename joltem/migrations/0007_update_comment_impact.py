@@ -38,7 +38,7 @@ class Migration(DataMigration):
         :return:
 
         """
-        for comment in orm['Comment'].objects.all():
+        for comment in orm['joltem.comment'].objects.all():
             comment.acceptance = get_acceptance(comment)
             comment.impact = comment.impact if comment.acceptance > 50 else 0
             comment.save()
