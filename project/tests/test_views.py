@@ -1,7 +1,7 @@
 """ View related tests for project app. """
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test.testcases import TestCase
-from django.core.cache import cache
 
 from joltem.libs import mixer
 from joltem.libs.mock import models, requests
@@ -62,15 +62,15 @@ class TestProjectViews(TestCase):
         tasks = mixer.cycle(5).blend('task.task', project=self.project)
         solutions = mixer.cycle(5).blend(
             'solution.solution', task=(t for t in tasks),
-            project=mixer.mix.task.project)
+            project=mixer.MIX.task.project)
 
         comments = mixer.cycle(2).blend(
-            'joltem.comment', commentable=mixer.random(*tasks),
-            owner=mixer.select('joltem.user'), project=self.project)
+            'joltem.comment', commentable=mixer.RANDOM(*tasks),
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         comments = mixer.cycle(3).blend(
-            'joltem.comment', commentable=mixer.random(*solutions),
-            owner=mixer.select('joltem.user'), project=self.project)
+            'joltem.comment', commentable=mixer.RANDOM(*solutions),
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         response = self.client.get(uri)
         self.assertFalse(response.context['solutions'])
@@ -173,3 +173,55 @@ class TestProjectSearch(TestCase):
         self.client.login(username=self.user.username, password='test')
         response = self.client.get(self.uri, data=dict(q='hello'))
         self.assertContains(response, 'search')
+
+
+class TestProjectKeysView(TestCase):
+
+    def setUp(self):
+        self.project = mixer.blend('project.project')
+        self.user = mixer.blend('joltem.user', password='test')
+        self.uri = reverse(
+            'project:keys', kwargs=dict(project_name=self.project.name))
+
+    def test_get_keys(self):
+        self.client.login(username=self.user.username, password='test')
+        response = self.client.get(self.uri)
+        self.assertEqual(response.status_code, 404)
+
+        self.project.admin_set = [self.user]
+        response = self.client.get(self.uri)
+        self.assertContains(response, 'deploy keys')
+
+        mixer.blend('git.authentication', project=self.project, name='testkey')
+        response = self.client.get(self.uri)
+        self.assertContains(response, 'testkey')
+
+    def test_create_keys(self):
+        self.project.admin_set = [self.user]
+        self.client.login(username=self.user.username, password='test')
+        with mixer.ctx(commit=False):
+            auth = mixer.blend('git.authentication')
+
+        self.assertFalse(self.project.authentication_set.all())
+        response = self.client.post(self.uri, data=dict(
+            name=auth.name,
+            key=auth.key,
+        ), follow=True)
+        self.assertContains(response, auth.name)
+        self.assertTrue(self.project.authentication_set.all())
+
+    def test_delete_keys(self):
+        self.project.admin_set = [self.user]
+        keys = mixer.cycle(2).blend('git.authentication', project=self.project)
+        self.client.login(username=self.user.username, password='test')
+        uri = reverse(
+            'project:keys_delete', kwargs=dict(
+                pk=keys[0].pk,
+                project_name=self.project.name))
+        response = self.client.get(uri)
+        self.assertContains(response, 'Delete SSH key')
+
+        response = self.client.post(uri, follow=True)
+        self.assertContains(response, keys[1].name)
+        self.assertNotContains(response, keys[0].name)
+        self.assertEqual(self.project.authentication_set.count(), 1)

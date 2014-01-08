@@ -21,15 +21,15 @@ class ProjectModelTest(TestCase):
         """ Test get_overview. """
 
         tasks = mixer.cycle(4).blend(
-            'task.task', project=self.project, is_reviewed=mixer.random)
+            'task.task', project=self.project, is_reviewed=mixer.RANDOM)
 
         solutions = mixer.cycle(4).blend(
             'solution.solution', task=(t for t in tasks),
-            project=mixer.mix.task.project, is_completed=mixer.random)
+            project=mixer.MIX.task.project, is_completed=mixer.RANDOM)
 
         comments = mixer.cycle(4).blend(
             'joltem.comment', commentable=(s for s in solutions),
-            owner=mixer.select('joltem.user'), project=self.project)
+            owner=mixer.SELECT('joltem.user'), project=self.project)
 
         overview = self.project.get_overview()
         self.assertEqual(set(tasks), set(overview.get('tasks')))
@@ -41,7 +41,8 @@ class ProjectModelTest(TestCase):
         )
         self.assertEqual(
             overview['completed_tasks_count'],
-            self.project.task_set.filter(is_closed=True, is_accepted=True).count(),
+            self.project.task_set.filter(
+                is_closed=True, is_accepted=True).count(),
         )
 
         tasks = list(overview.get('tasks'))
@@ -154,10 +155,10 @@ class BaseRatioModelTest(TestCase):
         self.user = self.ratio.user
         self.project = self.ratio.project
 
-    def _mock_solution(self):
+    def _mock_solution(self, impact=10):
         """ Mock a solution on the project owned by the user. """
         return mixer.blend('solution.solution', owner=self.user,
-                           project=self.project)
+                           project=self.project, impact=impact)
 
     def _mock_others_solution(self, n=1):
         """ Mock a solution on the project owned by someone else.
@@ -221,16 +222,17 @@ class BaseRatioModelTest(TestCase):
             votes valid.
 
         """
-        s = lambda : self._mock_others_solution()
+        s = self._mock_others_solution
         votes = mixer.cycle(n).blend(
             'joltem.vote', voteable=s,
-            voter=self.user, voter_impact=100, is_accepted=True, magnitude=1)
+            voter=self.user, voter_impact=100, is_accepted=True)
         if add_comments:
             mixer.cycle(n).blend('joltem.comment', project=self.project,
                                  owner=(v.voter for v in votes),
                                  commentable=(v.voteable for v in votes))
 
-    def _mock_vote_in(self, voteable, magnitude=1, voter_impact=100):
+    @staticmethod
+    def _mock_vote_in(voteable, magnitude=1, voter_impact=100):
         """ Mock valid vote in on voteable.
 
         :param voteable:
@@ -240,24 +242,26 @@ class BaseRatioModelTest(TestCase):
 
         """
         return mixer.blend('joltem.vote', voteable=voteable,
-                        voter_impact=voter_impact, is_accepted=magnitude > 0,
-                        magnitude=magnitude)
+                           voter_impact=voter_impact, is_accepted=magnitude > 0,
+                           magnitude=magnitude)
 
-    def _mock_valid_solution_vote_in(self, solution, magnitude=1,
+    def _mock_valid_solution_vote_in(self, solution, is_accepted=True,
                                      voter_impact=100):
         """ Mock valid vote on a solution, by adding a comment.
 
         :param solution:
-        :param magnitude:
+        :param is_accepted:
         :param voter_impact:
         :return Vote:
 
         """
-        v = self._mock_vote_in(solution, magnitude, voter_impact)
-        self._mock_add_comment_for_vote(v)
+        v = self._mock_vote_in(solution, is_accepted, voter_impact)
+        if not is_accepted:
+            self._mock_add_comment_for_vote(v)
         return v
 
-    def _mock_add_comment_for_vote(self, *votes):
+    @staticmethod
+    def _mock_add_comment_for_vote(*votes):
         """ Mock add comment on solution for a given vote.
 
         Used to make votes valid on solutions.
@@ -269,7 +273,6 @@ class BaseRatioModelTest(TestCase):
         for vote in votes:
             mixer.blend('joltem.comment', project=vote.voteable.project,
                         owner=vote.voter, commentable=vote.voteable)
-
 
 
 class RatioModelTest(BaseRatioModelTest):
@@ -369,7 +372,8 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = self._mock_solution()
-        votes = mixer.cycle(10).blend('joltem.vote', voteable=s, voter_impact=1)
+        votes = mixer.cycle(10).blend(
+            'joltem.vote', voteable=s, voter_impact=1)
         self._mock_add_comment_for_vote(*votes)
         self.assertEqual(self.ratio.get_votes_in(), 5)
 
@@ -377,12 +381,6 @@ class RatioModelTest(BaseRatioModelTest):
         """ Test that votes on other's solutions don't count. """
         s = self._mock_others_solution()
         mixer.blend('joltem.vote', voteable=s, voter_impact=1)
-        self.assertEqual(self.ratio.get_votes_in(), 0)
-
-    def test_votes_in_comments(self):
-        """ Test that votes on comments don't count. """
-        c = self._mock_comment()
-        mixer.blend('joltem.vote', voteable=c, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_in(), 0)
 
     def test_votes_in_no_impact(self):
@@ -413,7 +411,7 @@ class RatioModelTest(BaseRatioModelTest):
         s = self._mock_others_solution()
         votes = mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1)
         v = mixer.blend('joltem.vote', voteable=s, voter=self.user,
-                    voter_impact=1)
+                        voter_impact=1)
         self._mock_add_comment_for_vote(v, *votes)
         self.assertEqual(self.ratio.get_votes_out(), 1)
 
@@ -426,12 +424,6 @@ class RatioModelTest(BaseRatioModelTest):
         s = self._mock_others_solution()
         mixer.cycle(5).blend('joltem.vote', voteable=s, voter_impact=1)
         mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
-        self.assertEqual(self.ratio.get_votes_out(), 0)
-
-    def test_votes_out_comments(self):
-        """ Test that votes on comments don't count towards votes out. """
-        c = self._mock_others_comment()
-        mixer.blend('joltem.vote', voteable=c, voter=self.user, voter_impact=1)
         self.assertEqual(self.ratio.get_votes_out(), 0)
 
     def test_votes_out_no_impact(self):
@@ -448,11 +440,13 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = mixer.blend('solution.solution')
-        v = mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s,
+                        voter=self.user, voter_impact=1)
         self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_out(), 0)
         # load ratio from other project
-        self.assertEqual(self._load_ratio(project=s.project).get_votes_out(), 1)
+        self.assertEqual(self._load_ratio(project=s.project)
+                         .get_votes_out(), 1)
 
     # Votes ratio metric
 
@@ -471,7 +465,6 @@ class RatioModelTest(BaseRatioModelTest):
         self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_ratio(), 0.0)
 
-
     def test_votes_ratio_max(self):
         """ Test votes ratio at maximum value.
 
@@ -481,17 +474,20 @@ class RatioModelTest(BaseRatioModelTest):
 
         """
         s = self._mock_others_solution()
-        v = mixer.blend('joltem.vote', voteable=s, voter=self.user, voter_impact=1)
+        v = mixer.blend('joltem.vote', voteable=s,
+                        voter=self.user, voter_impact=1)
         self._mock_add_comment_for_vote(v)
         self.assertEqual(self.ratio.get_votes_ratio(), Ratio.INFINITY)
 
     def test_votes_ratio_float(self):
         """ Test votes ratio returns a float. """
         s = self._mock_solution()
-        votes = mixer.cycle(4).blend('joltem.vote', voteable=s, voter_impact=1) # in
-        o = lambda : self._mock_others_solution()
-        votes += mixer.cycle(3).blend('joltem.vote', voter=self.user, voteable=o,
-                             voter_impact=1) # out
+        votes = mixer.cycle(4).blend(
+            'joltem.vote', voteable=s, voter_impact=1)  # in
+        o = self._mock_others_solution
+        votes += mixer.cycle(
+            3).blend('joltem.vote', voter=self.user, voteable=o,
+                     voter_impact=1)  # out
         self._mock_add_comment_for_vote(*votes)
         self.assertEqual(self.ratio.get_votes_ratio(), 0.75)
 
@@ -515,15 +511,15 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
 
     def setUp(self):
         super(VoteRatioSolutionFreezeTest, self).setUp()
-        self.old = self._mock_solution()
+        self.old = self._mock_solution(impact=10)
         self.old.is_completed = True
-        self.old.time_completed=timezone.now()-timedelta(days=7)
-        self.old.time_posted=timezone.now()-timedelta(days=10)
+        self.old.time_completed = timezone.now() - timedelta(days=7)
+        self.old.time_posted = timezone.now() - timedelta(days=10)
         self.old.save()
-        self.new = self._mock_solution()
+        self.new = self._mock_solution(impact=10)
         self.new.is_completed = True
-        self.new.time_completed=timezone.now()+timedelta(days=7)
-        self.new.time_posted=timezone.now()+timedelta(days=10)
+        self.new.time_completed = timezone.now() + timedelta(days=7)
+        self.new.time_posted = timezone.now() + timedelta(days=10)
         self.new.save()
 
     def test_freeze_impact_solutions(self):
@@ -541,7 +537,7 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
         """ Test unfreezing of impact on solutions. """
         # add some complete solutions so that threshold is possible
         for s in self._mock_others_solution(2):
-            s.mark_complete()
+            s.mark_complete(5)
         self._mock_valid_solution_vote_in(self.old)
         self._mock_valid_solution_vote_in(self.new)
         self.assertTrue(self._load_ratio().is_frozen)
@@ -550,64 +546,6 @@ class VoteRatioSolutionFreezeTest(BaseRatioModelTest):
         self._mock_votes_out(2, True)
         self.assertFalse(self._load_ratio().is_frozen)
         self.assertEqual(self._load_user().impact, 20)
-        self.assertEqual(self._load_impact().frozen_impact, 0)
-
-
-class VoteRatioCommentFreezeTest(BaseRatioModelTest):
-
-    """ Tests freeze and unfreeze for comment. """
-
-    def setUp(self):
-        super(VoteRatioCommentFreezeTest, self).setUp()
-        self.old = self._mock_comment()
-        self.old.time_commented = timezone.now()-timedelta(days=10)
-        self.old.save()
-        self.new = self._mock_comment()
-        self.new.time_commented = timezone.now()+timedelta(days=10)
-        self.new.save()
-
-    def test_freeze_impact_comments(self):
-        """ Test freezing of impact on comments. """
-        self._mock_votes_out(3)
-        self._mock_vote_in(self.old)
-        self._mock_vote_in(self.new)
-        self.assertEqual(self._load_user().impact, 2)
-        self.assertEqual(self._load_impact().frozen_impact, 0)
-        self.ratio.mark_frozen()
-        self.assertEqual(self._load_user().impact, 1)
-        self.assertEqual(self._load_impact().frozen_impact, 1)
-
-    def test_unfreeze_impact_comments(self):
-        """ Test unfreezing of impact earned on comments.
-
-        Since votes on comments don't count towards votes_in, an old
-        solution is setup to take a vote and freeze the users impact.
-
-        Then the user casts one vote to get the ratio back to 1, to
-        unfreeze the impact earned on the new comment.
-
-        "New" and "old" here refers to either after or before time of
-        freezing.
-
-        """
-        # need completed solutions to make it threshold possible
-        s = self._mock_others_solution()
-        s.mark_complete()
-        self._mock_vote_in(self.old)
-        self._mock_vote_in(self.new)
-        # add vote on solution to freeze impact
-        old_solution = mixer.blend(
-            'solution.solution', owner=self.user, project=self.project,
-            is_completed=True, time_completed=timezone.now()-timedelta(days=7),
-            time_posted=timezone.now()-timedelta(days=10)
-        )
-        self._mock_valid_solution_vote_in(old_solution)
-        self.assertTrue(self._load_ratio().is_frozen)
-        self.assertEqual(self._load_user().impact, 11)
-        self.assertEqual(self._load_impact().frozen_impact, 1)
-        self._mock_votes_out(1, True)
-        self.assertFalse(self._load_ratio().is_frozen)
-        self.assertEqual(self._load_user().impact, 12)
         self.assertEqual(self._load_impact().frozen_impact, 0)
 
 
@@ -632,13 +570,13 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
     def test_max_out_complete(self):
         """ Test max out with completed solution. """
         s = self._mock_others_solution()
-        s.mark_complete()
+        s.mark_complete(5)
         self.assertEqual(self.ratio.maximum_possible_votes_out(), 1)
 
     def test_max_out_own_solution(self):
         """ Test max out, that own solution does not count. """
         s = self._mock_solution()
-        s.mark_complete()
+        s.mark_complete(5)
         self.assertEqual(self.ratio.maximum_possible_votes_out(), 0)
 
     def test_max_out_voted_valid(self):
@@ -648,8 +586,8 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
 
         """
         s = self._mock_others_solution()
-        s.mark_complete()
-        votes = mixer.cycle(Ratio.VOTES_THRESHOLD-1).blend(
+        s.mark_complete(5)
+        votes = mixer.cycle(Ratio.VOTES_THRESHOLD - 1).blend(
             'joltem.vote', voteable=s, voter_impact=1, magnitude=1,
             is_accepted=True)
         self._mock_add_comment_for_vote(*votes)
@@ -665,7 +603,7 @@ class VoteRatioPossibilityTest(BaseRatioModelTest):
 
     def test_possible(self):
         """ Test when votes ratio threshold possible. """
-        self._mock_others_solution().mark_complete()
+        self._mock_others_solution().mark_complete(5)
         s = self._mock_solution()
         self._mock_valid_solution_vote_in(s)
         self.assertTrue(self.ratio.is_threshold_possible())

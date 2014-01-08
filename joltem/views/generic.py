@@ -103,16 +103,9 @@ class VoteableView(RequestBaseView):
         if input_vote is not None \
                 and input_voteable_id is not None \
                 and input_voteable_type is not None:
-            input_vote = int(input_vote)
+            input_vote = int(input_vote) == 1
             input_voteable_id = int(input_voteable_id)
-            input_vote = Vote.MAXIMUM_MAGNITUDE if input_vote > Vote.MAXIMUM_MAGNITUDE else input_vote  # noqa: enforce max
-            input_vote = 0 if input_vote < 0 else input_vote  # enforce min
-            # Determine voteable type
-            if input_voteable_type == 'solution':
-                voteable_model = Solution
-            else:
-                voteable_model = Comment
-            voteable = voteable_model.objects.get(id=input_voteable_id)
+            voteable = Solution.objects.get(id=input_voteable_id)
             if not voteable.is_owner(self.user):  # can't vote for yourself
                 voteable.put_vote(self.user, input_vote)
                 return self.get_vote_redirect()

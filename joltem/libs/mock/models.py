@@ -122,7 +122,7 @@ def get_mock_comment(project, owner, commentable):
     return c
 
 
-def get_mock_vote(voter, voteable, voter_impact, magnitude):
+def get_mock_vote(voter, voteable, voter_impact, is_accepted):
     """ Generate Vote.
 
     :return Vote:
@@ -130,8 +130,7 @@ def get_mock_vote(voter, voteable, voter_impact, magnitude):
     """
     v = Vote(
         voter_impact=voter_impact,  # mock the voter's impact
-        is_accepted=magnitude > 0,
-        magnitude=magnitude,
+        is_accepted=is_accepted,
         voter=voter,
         voteable=voteable,
     )

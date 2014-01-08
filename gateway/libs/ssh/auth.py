@@ -11,20 +11,21 @@ from zope.interface import implements  # noqa
 
 from gateway.libs.ssh.session import GatewaySession
 from git.models import Authentication, BadKeyError
-from joltem.models import User
 
 
 class GatewayUser(ConchUser):
 
     """ SSH user. """
 
-    def __init__(self, username):
+    def __init__(self, key):
         ConchUser.__init__(self)
-        # django, user model instance for logged in avatar
-        self.user = User.objects.get(username=username)
+        # django, authentication model instance for logged in avatar
+        self.user = key.user
+        self.project = key.project
         self.channelLookup['session'] = GatewaySession
 
-    def logout(self):
+    @staticmethod
+    def logout():
         """ Logout user. """
         log.msg('User logout')
 
@@ -36,15 +37,15 @@ class GatewayRealm(object):
     implements(IRealm)
 
     @staticmethod
-    def requestAvatar(username, mind, *interfaces):
+    def requestAvatar(authentication, mind, *interfaces):
         """ Return avatar which provides one of the given interfaces.
 
         :return tuple:
 
         """
-        log.msg("Request avatar for %s." % username)
-        user = GatewayUser(username)
-        return interfaces[0], user, user.logout
+        log.msg("Request avatar for key # %s." % authentication.pk)
+        user = GatewayUser(authentication)
+        return interfaces and interfaces[0] or None, user, user.logout
 
 
 # Credential checkers
@@ -71,50 +72,22 @@ class GatewayCredentialChecker(object):
         """
         log.msg("Request avatar id for %s." % credentials.username,
                 system="auth")
+
         try:
-            user = User.objects.get(username=credentials.username)
-        except User.DoesNotExist:
-            return Failure(UnauthorizedLogin("Username not found."))
-        except User.MultipleObjectsReturned:
-            # should not happen
-            return Failure(UnauthorizedLogin("Multiple usernames found."))
-        else:
-            try:
-                key = Authentication.load_key(credentials.blob)
-            except BadKeyError:
-                return Failure(UnauthorizedLogin(
-                    "Invalid credentials provided, setup RSA keys for your SSH."))  # noqa
-            else:
-                provided_fp = key.fingerprint()
-                log.msg("Fingerprint of provided RSA key : %s" % provided_fp,
-                        system="auth")
-                if user.authentication_set.filter(
-                        fingerprint=provided_fp).exists():
-                    return succeed(credentials.username)
-                else:
-                    return Failure(UnauthorizedLogin(
-                        "Authentication failed, key not found."))
+            key = Authentication.load_key(credentials.blob)
+            keys = Authentication.objects.filter(fingerprint=key.fingerprint)
+            if not keys:
+                raise AssertionError('Keys not found.')
+        except (BadKeyError, AssertionError):
+            return Failure(UnauthorizedLogin(
+                "Invalid credentials provided, setup RSA keys for your SSH."))
 
+        for key in [k for k in keys if k.user_id]:
+            if credentials.username == key.user.username:
+                return succeed(key)
 
-class DummyEmilChecker(object):
-    # todo remove this checker
+        for key in [k for k in keys if k.project_id]:
+            return succeed(key)
 
-    """ Approves all users with the username `emil` for testing. """
-
-    implements(ICredentialsChecker)
-    credentialInterfaces = (ISSHPrivateKey, )
-
-    @staticmethod
-    def requestAvatarId(credentials):
-        """ Return success for username 'emil'.
-
-
-        :return : Status
-
-        """
-        log.msg("Request avatar id for %s." % credentials.username,
-                system="auth")
-        if credentials.username == "emil":
-            return succeed("emil")
-        else:
-            return Failure(UnauthorizedLogin("You are %s, not `emil`. Login failed." % credentials.username))  # noqa
+        return Failure(UnauthorizedLogin(
+            "Authentication failed, key not found for user."))

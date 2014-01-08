@@ -1,16 +1,25 @@
 from unittest import TestCase
 
-from gateway.libs.terminal.utils import *
-from gateway.libs.git.utils import *
 from gateway.libs.git.protocol import (
     BaseBufferedSplitter, PacketLineSplitter, GitReceivePackProcessProtocol)
-from gateway.libs.git.utils import (
-    get_packet_line, get_packet_line_size, get_unpack_status,
-    get_command_status, get_report,
-)
+from gateway.libs.git.utils import *
+from gateway.libs.terminal.utils import *
 from git.models import Authentication
+from joltem.libs import mixer
 from joltem.models import User
-from mixer.backend.django import mixer
+
+
+class __DjangoTestCase(TestCase):
+
+    def setUp(self):
+        from django.core.management import call_command
+        from django.db.utils import OperationalError
+
+        try:
+            mixer.blend(User)
+        except OperationalError:
+            call_command('syncdb')
+            call_command('migrate')
 
 
 class TestTerminalProtocolUtilities(TestCase):
@@ -116,58 +125,62 @@ class TestingGitProtocolUtilities(TestCase):
             get_report(command_statuses, 'permission-denied'), expected)
 
 
-class TestSSH(TestCase):
+class TestSSH(__DjangoTestCase):
 
-    def setUp(self):
-        from django.core.management import call_command
-        from django.db.utils import OperationalError
+    def test_auth_user(self):
+        from gateway.libs.factory import portal
+        from twisted.cred.credentials import SSHPrivateKey
 
-        try:
-            mixer.blend(User)
-        except OperationalError:
-            call_command('syncdb')
-            call_command('migrate')
+        authentication = mixer.blend(Authentication, user=mixer.RANDOM)
+        credentials = SSHPrivateKey(
+            authentication.user.username, None, authentication.key, None, None)
 
-    def test_auth(self):
-        from gateway.libs.ssh.auth import GatewayCredentialChecker
-
-        key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD6qRSV4zDxKXp5vqLiGYj0y3CmoBtXSXuh3ZUyBLwwgw62Wmn1JyqbqlM9dOJysz+gwAi8YlPKCRsAPSr2moR3ThZlk/5qflaiTT4NgGwl/n5XNHVW8Ot5n2KrtnwOMbX7PtSomARhXE9ejpGZwL3SKDaScIGRNbz8cWmVKG1JqdiBo+qTe4HeabREunqztN0Oq44FXCuqlYbvkRud4lkjnzZTP2XL36MfeT3AdCDCs30AgzuVq2nerCnVdRD5v/MkUW2uzonLuJaLDvJZ75ha/vn/l2XINgsfl4SzZtYe50r04YHVflK/p2TdQNhV69eK87WBDwp8xsSR4Rr0swcd joltem@joltem.local"
-
-        authentication = mixer.blend(Authentication)
-        authentication.blob = key
-        authentication.save()
-        authentication.user.blob = key
-
-        checker = GatewayCredentialChecker()
-
-        result = checker.requestAvatarId(authentication.user)
-        self.assertEqual(result.result, authentication.user.username)
+        result = portal.login(credentials, None)
+        self.assertEqual(result.result[1].user, authentication.user)
 
         wrong_user = mixer.blend(User)
-        wrong_user.blob = key
+        credentials = SSHPrivateKey(
+            wrong_user.username, None, 'WRONGBLOB', None, None)
+        result = portal.login(credentials, None)
+        self.assertTrue(isinstance(result.result.value, Exception))
 
-        result = checker.requestAvatarId(wrong_user)
-        self.assertTrue(isinstance(result.value, Exception))
+    def test_auth_project(self):
+        from gateway.libs.factory import portal
+        from twisted.cred.credentials import SSHPrivateKey
 
-
-class MockAvatar(object):
-
-    """ A mock avatar for testing push permissions. """
-
-    def __init__(self, user):
-        self.user = user
+        authentication = mixer.blend(Authentication, project=mixer.RANDOM)
+        credentials = SSHPrivateKey(
+            'joltem', None, authentication.key, None, None)
+        result = portal.login(credentials, None)
+        self.assertEqual(result.result[1].project, authentication.project)
 
 
 class MockGitReceivePackProcessProtocol(GitReceivePackProcessProtocol):
 
     """ Mock git receive pack process protocol for testing push permission. """
 
-    def __init__(self, user, repository): # noqa
-        self.avatar = MockAvatar(user)
+    def __init__(self, authentication, repository): # noqa
+        self.avatar = authentication
         self.repository = repository
 
 
-class TestPushPermissions(TestCase):
+class TestReadPermissions(__DjangoTestCase):
+
+    """ Base class for testing read permissions. """
+
+    def test_project_key(self):
+        repository1 = mixer.blend('git.repository')
+        repository2 = mixer.blend('git.repository')
+        authentication = mixer.blend(
+            'git.authentication', project=repository1.project)
+        pp1 = MockGitReceivePackProcessProtocol(authentication, repository1)
+        self.assertTrue(pp1.has_read_permission())
+
+        pp2 = MockGitReceivePackProcessProtocol(authentication, repository2)
+        self.assertFalse(pp2.has_read_permission())
+
+
+class TestPushPermissions(__DjangoTestCase):
 
     """ Base class for testing push permissions.
 
@@ -176,13 +189,14 @@ class TestPushPermissions(TestCase):
     """
 
     def setUp(self):
+        super(TestPushPermissions, self).setUp()
         self.repository = mixer.blend('git.repository')
         self.project = self.repository.project
 
     def test_mix(self):
         self.assertTrue(self.repository.project)
 
-    def _test_push(self, user, reference, expected=True):
+    def _test_push(self, authentication, reference, expected=True):
         """ Push test generator.
 
         :param pp: instance of git receive pack process protocol.
@@ -190,9 +204,9 @@ class TestPushPermissions(TestCase):
         :param expected: whether has permissions
 
         """
-        pp = MockGitReceivePackProcessProtocol(user, self.repository)
-        self.assertEqual(pp.has_push_permission(reference, 'na', 'na'),
-                         expected)
+        pp = MockGitReceivePackProcessProtocol(authentication, self.repository)
+        self.assertEqual(
+            pp.has_push_permission(reference, 'na', 'na'), expected)
 
 
 class TestAdminPushPermissions(TestPushPermissions):
@@ -207,30 +221,30 @@ class TestAdminPushPermissions(TestPushPermissions):
 
     def setUp(self):
         super(TestAdminPushPermissions, self).setUp()
-        self.admin = mixer.blend('joltem.user')
-        self.project.admin_set.add(self.admin)
-        self.project.save()
+        self.authentication = mixer.blend(
+            'git.authentication', user=mixer.RANDOM)
+        self.project.admin_set.add(self.authentication.user)
 
     def test_push_master(self):
         """ Test admin's ability to push to master. """
-        self._test_push(self.admin, 'refs/heads/master')
+        self._test_push(self.authentication, 'refs/heads/master')
 
     def test_push_develop(self):
         """ Test admin's ability to push to develop. """
-        self._test_push(self.admin, 'refs/heads/develop')
+        self._test_push(self.authentication, 'refs/heads/develop')
 
     def test_create_branch(self):
         """ Test admin's ability to create branches. """
-        self._test_push(self.admin, 'refs/heads/release/0.0.1')
+        self._test_push(self.authentication, 'refs/heads/release/0.0.1')
 
     def test_create_tag(self):
         """ Test admin's ability to create tags. """
-        self._test_push(self.admin, 'refs/tags/0.0.1')
-        self._test_push(self.admin, 'refs/tags/0.0.1^{}')  # peeled version
+        self._test_push(self.authentication, 'refs/tags/0.0.1')
+        self._test_push(self.authentication, 'refs/tags/0.0.1^{}')
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """
-        self._test_push(self.admin, 'refs/heads/s/183895997', False)
+        self._test_push(self.authentication, 'refs/heads/s/183895997', False)
 
     def test_push_another_solution(self):
         """ Test push to an other user's solution.
@@ -239,8 +253,8 @@ class TestAdminPushPermissions(TestPushPermissions):
         solution branch.
 
         """
-        s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
-        self._test_push(self.admin, s.get_reference(), False)
+        s = mixer.blend('solution.solution')
+        self._test_push(self.authentication, s.get_reference(), False)
 
 
 class TestManagerPushPermissions(TestPushPermissions):
@@ -255,30 +269,30 @@ class TestManagerPushPermissions(TestPushPermissions):
 
     def setUp(self):
         super(TestManagerPushPermissions, self).setUp()
-        self.manager = mixer.blend('joltem.user')
-        self.project.manager_set.add(self.manager)
-        self.project.save()
+        self.authentication = mixer.blend(
+            'git.authentication', user=mixer.RANDOM)
+        self.project.manager_set.add(self.authentication.user)
 
     def test_push_master(self):
         """ Test manager's ability to push to master. """
-        self._test_push(self.manager, 'refs/heads/master')
+        self._test_push(self.authentication, 'refs/heads/master')
 
     def test_push_develop(self):
         """ Test manager's ability to push to develop. """
-        self._test_push(self.manager, 'refs/heads/develop')
+        self._test_push(self.authentication, 'refs/heads/develop')
 
     def test_create_branch(self):
         """ Test manager's ability to create branches. """
-        self._test_push(self.manager, 'refs/heads/release/0.0.1')
+        self._test_push(self.authentication, 'refs/heads/release/0.0.1')
 
     def test_create_tag(self):
         """ Test manager's ability to create tags. """
-        self._test_push(self.manager, 'refs/tags/0.0.1')
-        self._test_push(self.manager, 'refs/tags/0.0.1^{}')  # peeled version
+        self._test_push(self.authentication, 'refs/tags/0.0.1')
+        self._test_push(self.authentication, 'refs/tags/0.0.1^{}')  # peeled version
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """
-        self._test_push(self.manager, 'refs/heads/s/183895997', False)
+        self._test_push(self.authentication, 'refs/heads/s/183895997', False)
 
     def test_push_another_solution(self):
         """ Test push to an other user's solution.
@@ -287,8 +301,8 @@ class TestManagerPushPermissions(TestPushPermissions):
         solution branch.
 
         """
-        s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
-        self._test_push(self.manager, s.get_reference(), False)
+        s = mixer.blend('solution.solution')
+        self._test_push(self.authentication, s.get_reference(), False)
 
 
 class TestDeveloperPushPermissions(TestPushPermissions):
@@ -302,30 +316,30 @@ class TestDeveloperPushPermissions(TestPushPermissions):
 
     def setUp(self):
         super(TestDeveloperPushPermissions, self).setUp()
-        self.developer = mixer.blend('joltem.user')
-        self.project.developer_set.add(self.developer)
-        self.project.save()
+        self.authentication = mixer.blend(
+            'git.authentication', user=mixer.RANDOM)
+        self.project.developer_set.add(self.authentication.user)
 
     def test_push_master(self):
         """ Test developer's inability to push to master. """
-        self._test_push(self.developer, 'refs/heads/master', False)
+        self._test_push(self.authentication, 'refs/heads/master', False)
 
     def test_push_develop(self):
         """ Test developer's ability to push to develop. """
-        self._test_push(self.developer, 'refs/heads/develop')
+        self._test_push(self.authentication, 'refs/heads/develop')
 
     def test_create_branch(self):
         """ Test developer's inability to create branches. """
-        self._test_push(self.developer, 'refs/heads/release/0.0.1', False)
+        self._test_push(self.authentication, 'refs/heads/release/0.0.1', False)
 
     def test_create_tag(self):
         """ Test developer's inability to create tags. """
-        self._test_push(self.developer, 'refs/tags/0.0.1', False)
-        self._test_push(self.developer, 'refs/tags/0.0.1^{}', False)  # peeled version
+        self._test_push(self.authentication, 'refs/tags/0.0.1', False)
+        self._test_push(self.authentication, 'refs/tags/0.0.1^{}', False)  # peeled version
 
     def test_push_nonexistent_solution(self):
         """ Test push to nonexistent solution's branch. """
-        self._test_push(self.developer, 'refs/heads/s/183895997', False)
+        self._test_push(self.authentication, 'refs/heads/s/183895997', False)
 
     def test_push_another_solution(self):
         """ Test push to an other user's solution.
@@ -334,5 +348,5 @@ class TestDeveloperPushPermissions(TestPushPermissions):
         solution branch.
 
         """
-        s = mixer.blend('solution.solution', owner=mixer.blend('joltem.user'))
-        self._test_push(self.developer, s.get_reference(), False)
+        s = mixer.blend('solution.solution')
+        self._test_push(self.authentication, s.get_reference(), False)

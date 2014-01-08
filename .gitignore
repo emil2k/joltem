@@ -27,3 +27,4 @@ joltem/settings/chefenv.py
 joltem/settings/local.py
 nosetests.xml
 workspace.xml
+todo.txt

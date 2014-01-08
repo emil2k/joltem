@@ -1,50 +1,35 @@
 # -*- coding: utf-8 -*-
+import datetime
+from south.db import db
 from south.v2 import DataMigration
-
-
-def get_acceptance(comment):
-    """ Impact-weighted percentage of acceptance amongst reviewers.
-
-    Returns a int between 0 and 100.
-
-    """
-    votes = comment.vote_set.filter(voter_impact__gt=0)
-    impact_sum = 0
-    weighted_sum = 0
-    for vote in votes:
-        if not comment.is_vote_valid(vote):
-            continue
-        elif vote.is_accepted:
-            weighted_sum += vote.voter_impact
-        impact_sum += vote.voter_impact
-    if impact_sum == 0:
-        return None
-
-    return int(round(100 * float(weighted_sum) / impact_sum))
-
+from django.db import models
+from solution.models import Solution
 
 class Migration(DataMigration):
 
     depends_on = (
-        ('project', '0004_ratio'),
+        ("joltem", "0008_bargaining"),
     )
 
     def forwards(self, orm):
-        """ Update comment impact and acceptance.
+        """ Transition to new voting system.
 
-        To reflect new comment impact.
+        On solutions clear all previous votes. Also default all solutions'
+        impacts to 0, so that the contributor can come in and specify the
+        impact they would like.
 
         :param orm:
         :return:
 
         """
-        for comment in orm['joltem.comment'].objects.all():
-            comment.acceptance = get_acceptance(comment)
-            comment.impact = comment.impact if comment.acceptance > 50 else 0
-            comment.save()
+        for solution in Solution.objects.all():
+            solution.vote_set.clear()
+            solution.impact = 0
+            solution.acceptance = None
+            solution.save()
 
     def backwards(self, orm):
-        """ Pass
+        """ Empty.
 
         :param orm:
         :return:
@@ -75,12 +60,10 @@ class Migration(DataMigration):
         },
         'joltem.comment': {
             'Meta': {'object_name': 'Comment'},
-            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'commentable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'commentable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
@@ -125,12 +108,19 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'Vote'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'voteable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'voteable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
             'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
+        },
+        u'project.impact': {
+            'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Impact'},
+            'frozen_impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'impact_set'", 'to': u"orm['joltem.User']"})
         },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
@@ -139,10 +129,58 @@ class Migration(DataMigration):
             'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'developer_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'manager_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
+            'subscriber_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'subscriber_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+        },
+        u'project.ratio': {
+            'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Ratio'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_frozen': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_frozen': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vote_ratio_set'", 'to': u"orm['joltem.User']"}),
+            'votes_in': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'votes_out': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'votes_ratio': ('django.db.models.fields.FloatField', [], {'null': 'True'})
+        },
+        u'solution.solution': {
+            'Meta': {'object_name': 'Solution'},
+            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'is_closed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_completed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'solution': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'solution_set'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
+            'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['task.Task']", 'null': 'True', 'blank': 'True'}),
+            'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'title': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
+        },
+        u'task.task': {
+            'Meta': {'object_name': 'Task'},
+            'author': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'tasks_authored_set'", 'to': u"orm['joltem.User']"}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_closed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_reviewed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'subtask_set'", 'null': 'True', 'to': u"orm['solution.Solution']"}),
+            'priority': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '1'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_closed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'time_reviewed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'time_updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }
 
-    complete_apps = ['joltem']
+    complete_apps = ['solution']
     symmetrical = True

@@ -1,56 +1,34 @@
 # -*- coding: utf-8 -*-
-from south.v2 import DataMigration
+import datetime
+from south.db import db
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-def get_acceptance(comment):
-    """ Impact-weighted percentage of acceptance amongst reviewers.
-
-    Returns a int between 0 and 100.
-
-    """
-    votes = comment.vote_set.filter(voter_impact__gt=0)
-    impact_sum = 0
-    weighted_sum = 0
-    for vote in votes:
-        if not comment.is_vote_valid(vote):
-            continue
-        elif vote.is_accepted:
-            weighted_sum += vote.voter_impact
-        impact_sum += vote.voter_impact
-    if impact_sum == 0:
-        return None
-
-    return int(round(100 * float(weighted_sum) / impact_sum))
-
-
-class Migration(DataMigration):
-
-    depends_on = (
-        ('project', '0004_ratio'),
-    )
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        """ Update comment impact and acceptance.
+        # Adding field 'Authentication.project'
+        db.add_column(u'git_authentication', 'project',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['project.Project'], null=True, blank=True),
+                      keep_default=False)
 
-        To reflect new comment impact.
 
-        :param orm:
-        :return:
+        # Changing field 'Authentication.user'
+        db.alter_column(u'git_authentication', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.User'], null=True))
 
-        """
-        for comment in orm['joltem.comment'].objects.all():
-            comment.acceptance = get_acceptance(comment)
-            comment.impact = comment.impact if comment.acceptance > 50 else 0
-            comment.save()
 
     def backwards(self, orm):
-        """ Pass
+        # Deleting field 'Authentication.project'
+        db.delete_column(u'git_authentication', 'project_id')
 
-        :param orm:
-        :return:
 
-        """
-        pass
+        # User chose to not deal with backwards NULL issues for 'Authentication.user'
+        raise RuntimeError("Cannot reverse this migration. 'Authentication.user' and its values cannot be restored.")
+
+        # The following code is provided here to aid in writing a correct migration
+        # Changing field 'Authentication.user'
+        db.alter_column(u'git_authentication', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['joltem.User']))
 
     models = {
         u'auth.group': {
@@ -73,30 +51,23 @@ class Migration(DataMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        'joltem.comment': {
-            'Meta': {'object_name': 'Comment'},
-            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'commentable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'commentable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
+        u'git.authentication': {
+            'Meta': {'object_name': 'Authentication'},
+            'fingerprint': ('django.db.models.fields.CharField', [], {'max_length': '47'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
-            'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'time_updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
+            'key': ('django.db.models.fields.TextField', [], {}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']", 'null': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']", 'null': 'True', 'blank': 'True'})
         },
-        'joltem.notification': {
-            'Meta': {'object_name': 'Notification'},
+        u'git.repository': {
+            'Meta': {'object_name': 'Repository'},
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_cleared': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'json_kwargs': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'notifying_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'notifying_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
-            'time_cleared': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'time_notified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'type': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"})
+            'is_hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'time_updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
         u'joltem.user': {
             'Meta': {'object_name': 'User'},
@@ -121,17 +92,6 @@ class Migration(DataMigration):
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
-        'joltem.vote': {
-            'Meta': {'object_name': 'Vote'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'voteable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'voteable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
-            'voter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
-            'voter_impact': ('django.db.models.fields.BigIntegerField', [], {})
-        },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
             'admin_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'admin_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
@@ -139,10 +99,10 @@ class Migration(DataMigration):
             'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'developer_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'manager_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
+            'subscriber_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'subscriber_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }
 
-    complete_apps = ['joltem']
-    symmetrical = True
+    complete_apps = ['git']

@@ -87,9 +87,23 @@ class Authentication(models.Model):
 
     name = models.CharField(max_length=200)
     key = models.TextField()  # open ssh representation of public rsa key
-    fingerprint = models.CharField(max_length=47)
+    fingerprint = models.CharField(max_length=47, blank=True)
+
     # Relations
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    project = models.ForeignKey(Project, null=True, blank=True)
+
+    def save(self, **kwargs):
+        """ Calculate fingerprint if not exists.
+
+        :returns: A saved instance
+
+        """
+        if not self.fingerprint:
+            key = Authentication.load_key(self.key)
+            self.fingerprint = key.fingerprint()
+
+        return super(Authentication, self).save(**kwargs)
 
     @classmethod
     def load_key(cls, data):

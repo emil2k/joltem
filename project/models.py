@@ -176,11 +176,6 @@ class Impact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="impact_set")
 
-    # Must be above this threshold to count towards impact, an int between 0
-    # and 100
-    SOLUTION_ACCEPTANCE_THRESHOLD = 75
-    COMMENT_ACCEPTANCE_THRESHOLD = 75
-
     class Meta:
         unique_together = ['project', 'user']
 
@@ -191,19 +186,7 @@ class Impact(models.Model):
 
         """
         return self.user.solution_set.filter(
-            project_id=self.project_id, is_completed=True,
-            acceptance__gte=Impact.SOLUTION_ACCEPTANCE_THRESHOLD
-        ).exclude(impact=None)
-
-    def get_comments_qs(self):
-        """ Get the comments eligible for calculating impact.
-
-        :return: queryset of eligible comments.
-
-        """
-        return self.user.comment_set.filter(
-            project_id=self.project_id,
-            acceptance__gte=Impact.COMMENT_ACCEPTANCE_THRESHOLD,
+            project_id=self.project_id, is_completed=True
         ).exclude(impact=None)
 
     def get_impact(self):
@@ -220,25 +203,16 @@ class Impact(models.Model):
         try:
             ratio = Ratio.objects.get(
                 user_id=self.user.id, project_id=self.project.id)
-        except Ratio.DoesNotExist, Ratio.MultipleObjectsReturned:
+        except (Ratio.DoesNotExist, Ratio.MultipleObjectsReturned):
             ratio = None
         # Load eligible voteables
         solution_qs = self.get_solutions_qs()
-        comment_qs = self.get_comments_qs()
         # Ignore frozen time frame
         if ratio and ratio.is_frozen and ratio.time_frozen:
             solution_qs = solution_qs.filter(time_posted__lt=ratio.time_frozen)
-            comment_qs = comment_qs.filter(time_commented__lt=ratio.time_frozen)
         # Impact from solutions
-        solution_impact = solution_qs.aggregate(
-            models.Sum('impact')).get('impact__sum')
-        # Impact from review comments
-        comment_impact = comment_qs.aggregate(
-            models.Sum('impact')).get('impact__sum')
-        if solution_impact:
-            impact += solution_impact
-        if comment_impact:
-            impact += comment_impact
+        for solution in solution_qs:
+            impact += solution.get_impact()
         return impact
 
     def get_frozen_impact(self):
@@ -254,31 +228,23 @@ class Impact(models.Model):
         try:
             ratio = Ratio.objects.get(
                 user_id=self.user.id, project_id=self.project.id)
-        except Ratio.DoesNotExist, Ratio.MultipleObjectsReturned:
+        except (Ratio.DoesNotExist, Ratio.MultipleObjectsReturned):
             return 0
         else:
             frozen_impact = 0
             # Load eligible voteables
             solution_qs = self.get_solutions_qs()
-            comment_qs = self.get_comments_qs()
             # Should be in frozen time frame
             if ratio and ratio.is_frozen and ratio.time_frozen:
                 solution_qs = solution_qs.filter(
                     time_posted__gte=ratio.time_frozen)
-                comment_qs = comment_qs.filter(
-                    time_commented__gte=ratio.time_frozen)
             else:
                 return 0
             # Frozen impact from solutions
             solution_impact = solution_qs.aggregate(
                 models.Sum('impact')).get('impact__sum')
-            # Frozen impact from comments
-            comment_impact = comment_qs.aggregate(
-                models.Sum('impact')).get('impact__sum')
             if solution_impact:
                 frozen_impact += solution_impact
-            if comment_impact:
-                frozen_impact += comment_impact
             return frozen_impact
 
 post_save.connect(
@@ -377,7 +343,7 @@ class Ratio(models.Model):
         max_ratio = self.get_votes_ratio(votes_out=max_out)
         return max_ratio is None or max_ratio >= Ratio.RATIO_THRESHOLD
 
-    # todo test when solution gains vote and becomes not available anymore for votes out
+    # todo test when solution gains vote or validity state changes
     def maximum_possible_votes_out(self):
         """ Calculate the maximum possible votes out.
 
@@ -400,8 +366,8 @@ class Ratio(models.Model):
             for vote in solution.vote_set.order_by('time_voted'):
                 if vote.voter_impact > 0 and solution.is_vote_valid(vote):
                     if valid_count < Ratio.VOTES_THRESHOLD \
-                        and vote.voter_id == self.user_id:
-                            valid_vote = True
+                            and vote.voter_id == self.user_id:
+                        valid_vote = True
                     valid_count += 1
             if valid_vote:
                 max_out += 1
@@ -471,29 +437,29 @@ class Ratio(models.Model):
         votes_out = 0
         solution_type = ContentType.objects.get_for_model(Solution)
         for my_vote in self.user.vote_set.select_related('voteable').filter(
-                voteable_type_id=solution_type.id):
+                voteable_type_id=solution_type.id).exclude(voter_impact=0):
             solution = my_vote.voteable
+
             # Check that voteable is in the same project.
             if solution.project_id != self.project.id:
                 continue
+
             # Ignore invalid votes
             if not solution.is_vote_valid(my_vote):
                 continue
-            # Ignore my votes with no impact
-            if my_vote.voter_impact == 0:
-                continue
+
             solution_votes_in = 0
-            for vote in solution.vote_set.order_by('time_voted'):
-                # Ignore votes from people with no impact
-                if vote.voter_impact == 0:
-                    continue
+
+            for vote in solution.vote_set.exclude(voter_impact=0).order_by(
+                    'time_voted'):
                 # Ignore votes beyond the votes threshold
-                if solution_votes_in < Ratio.VOTES_THRESHOLD:
-                    solution_votes_in += 1
-                    if my_vote.id == vote.id:
-                        votes_out +=1
-                else:
+                if solution_votes_in >= Ratio.VOTES_THRESHOLD:
                     break
+
+                solution_votes_in += 1
+                if my_vote.id == vote.id:
+                    votes_out += 1
+
         return votes_out
 
     def get_votes_ratio(self, votes_out=None, votes_in=None):

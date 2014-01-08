@@ -1,56 +1,39 @@
 # -*- coding: utf-8 -*-
-from south.v2 import DataMigration
+import datetime
+from south.db import db
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-def get_acceptance(comment):
-    """ Impact-weighted percentage of acceptance amongst reviewers.
-
-    Returns a int between 0 and 100.
-
-    """
-    votes = comment.vote_set.filter(voter_impact__gt=0)
-    impact_sum = 0
-    weighted_sum = 0
-    for vote in votes:
-        if not comment.is_vote_valid(vote):
-            continue
-        elif vote.is_accepted:
-            weighted_sum += vote.voter_impact
-        impact_sum += vote.voter_impact
-    if impact_sum == 0:
-        return None
-
-    return int(round(100 * float(weighted_sum) / impact_sum))
-
-
-class Migration(DataMigration):
-
-    depends_on = (
-        ('project', '0004_ratio'),
-    )
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        """ Update comment impact and acceptance.
+        # Deleting field 'Vote.magnitude'
+        db.delete_column(u'joltem_vote', 'magnitude')
 
-        To reflect new comment impact.
+        # Deleting field 'Comment.impact'
+        db.delete_column(u'joltem_comment', 'impact')
 
-        :param orm:
-        :return:
+        # Deleting field 'Comment.acceptance'
+        db.delete_column(u'joltem_comment', 'acceptance')
 
-        """
-        for comment in orm['joltem.comment'].objects.all():
-            comment.acceptance = get_acceptance(comment)
-            comment.impact = comment.impact if comment.acceptance > 50 else 0
-            comment.save()
 
     def backwards(self, orm):
-        """ Pass
+        # Adding field 'Vote.magnitude'
+        db.add_column(u'joltem_vote', 'magnitude',
+                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
+                      keep_default=False)
 
-        :param orm:
-        :return:
+        # Adding field 'Comment.impact'
+        db.add_column(u'joltem_comment', 'impact',
+                      self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True),
+                      keep_default=False)
 
-        """
-        pass
+        # Adding field 'Comment.acceptance'
+        db.add_column(u'joltem_comment', 'acceptance',
+                      self.gf('django.db.models.fields.SmallIntegerField')(null=True, blank=True),
+                      keep_default=False)
+
 
     models = {
         u'auth.group': {
@@ -75,12 +58,10 @@ class Migration(DataMigration):
         },
         'joltem.comment': {
             'Meta': {'object_name': 'Comment'},
-            'acceptance': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'commentable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'commentable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'impact': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['joltem.User']"}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
             'time_commented': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
@@ -125,7 +106,6 @@ class Migration(DataMigration):
             'Meta': {'object_name': 'Vote'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_accepted': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'magnitude': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'time_voted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'voteable_id': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'voteable_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
@@ -139,10 +119,10 @@ class Migration(DataMigration):
             'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'developer_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'manager_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '200'}),
+            'subscriber_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'subscriber_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         }
     }
 
     complete_apps = ['joltem']
-    symmetrical = True

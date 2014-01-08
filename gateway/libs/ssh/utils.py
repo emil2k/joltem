@@ -15,8 +15,9 @@ def parse_repository_id(repository_id):
     :return long|None: Repository ID
 
     """
-    if repository_id.startswith('/'):
-        repository_id = repository_id[1:]
+    repository_id = repository_id.strip('/')
+    if repository_id.endswith('.git'):
+        repository_id = repository_id[:-4]
     try:
         return long(repository_id)
     except ValueError:
