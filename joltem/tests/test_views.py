@@ -1,6 +1,6 @@
 """ View related tests for core app. """
 from django.test.testcases import TestCase
-
+from django.core.urlresolvers import reverse
 from joltem.libs import mixer
 
 
@@ -9,12 +9,28 @@ class TestJoltemViews(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.project = mixer.blend('project.project')
-        cls.user = mixer.blend('joltem.user', password='test')
+        cls.user = mixer.blend('joltem.user', password='test',
+                               first_name='Jane')
 
     def test_home(self):
         self.client.login(username=self.user.username, password='test')
         response = self.client.get('/')
         self.assertEqual(response.status_code, 302)
+
+    def test_user(self):
+        """ Test GET of user profile page.
+
+        Test to make sure the right user's profile is showing and test that
+        the title is set properly.
+
+        """
+        self.client.login(username=self.user.username, password='test')
+        profiled = mixer.blend('joltem.user', username='bill1978',
+                               first_name='Billy', last_name="Bob")
+        response = self.client.get(reverse('user',
+                                           args=[profiled.username]))
+        self.assertContains(response, 'Billy')
+        self.assertContains(response, '<title>Billy Bob - Joltem</title>')
 
     def test_notifications(self):
         for _ in range(2):
