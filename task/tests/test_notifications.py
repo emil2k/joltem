@@ -34,19 +34,21 @@ class TaskNotificationsTest(TestCase):
     def test_vote(self):
         task = mixer.blend('task.task', project=self.project)
 
-        voter = mixer.blend('user')
-        task.put_vote(voter, True)
-        self.assertFalse(voter.notification_set.all())
+        voter1 = mixer.blend('user')
+        task.put_vote(voter1, True)
+
+        self.assertFalse(voter1.notification_set.all())
         self.assertTrue(task.author.notification_set.all())
         self.assertTrue(task.owner.notification_set.all())
 
         notify = task.author.notification_set.first()
         self.assertEqual("%s voted on your task \"%s\"" % (
-            voter.first_name, task.title
+            voter1.first_name, task.title
         ), notify.get_text())
 
-        task.put_vote(voter, False)
+        task.put_vote(voter1, False)
+
         notify = task.author.notification_set.last()
         self.assertEqual("%s updated a vote on your task \"%s\"" % (
-            voter.first_name, task.title
+            voter1.first_name, task.title
         ), notify.get_text())

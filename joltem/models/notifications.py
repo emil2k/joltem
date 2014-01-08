@@ -11,13 +11,13 @@ from django.contrib.contenttypes.generic import ContentType
 from model_utils.managers import PassThroughManager
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
+import jsonfield
 
 from joltem.receivers import (
     update_notification_count, immediately_senf_email_about_notification)
 
 from joltem.tasks import send_immediately_to_user
 
-import json
 
 logger = logging.getLogger('django')
 
@@ -51,7 +51,7 @@ class Notification(models.Model):
     type = models.CharField(max_length=200, null=True, blank=True)
     # pass to the notifying class to determine
     # url and text of notification
-    json_kwargs = models.CharField(max_length=200, null=True, blank=True)
+    kwargs = jsonfield.JSONField(null=True, blank=True)
     # whether the notification has been clicked or marked cleared
     is_cleared = models.BooleanField(default=False)
     time_notified = models.DateTimeField(default=timezone.now)
@@ -69,24 +69,6 @@ class Notification(models.Model):
     def __unicode__(self):
         return u"%s%s [%s]" % (
             self.type, self.is_cleared and '-' or '+', self.user.username)
-
-    @property
-    def kwargs(self):
-        """ TODO: change to JSON field.
-
-        :return return:
-
-        """
-        return json.loads(self.json_kwargs)
-
-    @kwargs.setter
-    def kwargs(self, kwargs):
-        """ TODO: change to JSON field.
-
-        :return return:
-
-        """
-        self.json_kwargs = json.dumps(kwargs)
 
     def mark_cleared(self):
         """ Mark notification as cleared.
