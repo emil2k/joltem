@@ -4,10 +4,25 @@
 {% block title %}{{ project.title }} - Overview - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
-        <div class="offset1 span6">
-            <h3>{{ project.title }}</h3>
+        <div class="span4 hidden-phone text-center">
+            <br/>
+            <h4><a href="#">Emil</a></h4>
+            <p>
+                <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
+            </p>
+            <hr/>
+            <p>This is a little bio, about the founder.</p>
+            <ul class="nav nav-list well text-left hidden-phone">
+                <li class="nav-header">Project Links</li>
+                <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
+                <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
+                <li><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
+                <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
+            </ul>
+        </div>
+        <div class="span6">
             {% if user.is_authenticated %}
-                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data" class="pull-right">
                     {% csrf_token %}
                     <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
                     <div class="btn-group">
@@ -22,25 +37,25 @@
                     </div>
                 </form>
             {% endif %}
+            <h3>{{ project.title }}</h3>
             {{ project.description|markdown }}
             <h4>Structure</h4>
             <strong>85%</strong> of company shares are backing impact, annually <strong>25%</strong> of the unexchanged impact will be exchanged for shares.
-            <div class="hidden-desktop hidden-tablet">
-                <hr/>
-                <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=50" />
-                <h4><a href="#">Emil</a></h4>
-                <p>This is a little bio about the founder.</p>
-            </div>
         </div>
-        <div class="span3 hidden-phone text-center">
-            <br/>
-            <h4><a href="#">Emil</a></h4>
-            <p>
-                <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
-            </p>
-            <hr/>
-            <p>This is a little bio, about the founder.</p>
-        </div>
+    </div>
+    <div class="hidden-desktop hidden-tablet">
+        <hr/>
+        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=50" />
+        <h4><a href="#">Emil</a></h4>
+        <p>This is a little bio about the founder.</p>
+        <hr class="clearfix"/>
+        <ul class="nav nav-list well text-left">
+            <li class="nav-header">Project Links</li>
+            <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
+            <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
+            <li><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
+            <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
+        </ul>
     </div>
 {% endblock %}
 
