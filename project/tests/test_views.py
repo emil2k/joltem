@@ -51,7 +51,7 @@ class TestProjectViews(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_dashboard(self):
-        uri = reverse('project:project', kwargs=dict(
+        uri = reverse('project:dashboard', kwargs=dict(
             project_id=self.project.id))
         response = self.client.get(uri)
         self.assertTrue(response.context['project'])

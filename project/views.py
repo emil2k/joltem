@@ -57,9 +57,17 @@ class ProjectBaseView(RequestBaseView):
 
 class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
 
-    """ View to display a project's information. """
+    """ View to display a project's dashboard. """
 
     template_name = "project/project.html"
+    form_class = ProjectSubscribeForm
+
+
+class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
+
+    """ View to display a project's dashboard. """
+
+    template_name = "project/dashboard.html"
     form_class = ProjectSubscribeForm
 
     def load_project_impact(self):
@@ -109,7 +117,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
         kwargs.update(overview)
         kwargs['subscribe'] = int(self.project.subscriber_set.filter(
             pk=self.request.user.pk).exists())
-        return super(ProjectView, self).get_context_data(**kwargs)
+        return super(ProjectDashboardView, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
         """ Subscribe current user to project.
@@ -123,7 +131,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
             self.project.subscriber_set.remove(self.request.user)
 
         return redirect(reverse(
-            'project:project', kwargs={'project_id': self.project.id}))
+            'project:dashboard', kwargs={'project_id': self.project.id}))
 
     def form_invalid(self, form):
         """ Redirect user to project page.
@@ -132,7 +140,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
 
         """
         return redirect(reverse(
-            'project:project', kwargs={'project_id': self.project.id}))
+            'project:dashboard', kwargs={'project_id': self.project.id}))
 
 
 class ProjectSettingsView(UpdateView, ProjectBaseView):
