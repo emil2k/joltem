@@ -126,7 +126,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
                 self.solution.mark_open()
 
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
 
         return super(SolutionView, self).post(request, *args, **kwargs)
@@ -134,7 +134,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
     def get_vote_redirect(self):
         """ Return url to redirect to after vote. """
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
     def get_commentable(self):
@@ -144,7 +144,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
     def get_comment_redirect(self):
         """ Return url to redirect to after comment. """
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
@@ -165,7 +165,7 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         """
         if not self.is_owner or self.solution.is_closed:
             return redirect('project:solution:solution',
-                            project_name=self.project,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         return super(SolutionEditView, self).get(request, *args, **kwargs)
 
@@ -180,13 +180,13 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         """
         if not self.is_owner or self.solution.is_closed:
             return redirect('project:solution:solution',
-                            project_name=self.project,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         self.solution.title = request.POST.get('title')
         self.solution.description = request.POST.get('description')
         self.solution.save()
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
@@ -214,7 +214,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
             compensation_value = int(request.POST.get('compensation_value'))
             self.solution.change_evaluation(compensation_value)
             return redirect('project:solution:review',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         return super(SolutionReviewView, self).post(request, *args, **kwargs)
 
@@ -237,7 +237,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
     def get_vote_redirect(self):
         """ Return url to redirect to after vote. """
         return redirect('project:solution:review',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
     def get_commentable(self):
@@ -247,7 +247,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
     def get_comment_redirect(self):
         """ Return url to redirect to after comment. """
         return redirect('project:solution:review',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
@@ -355,13 +355,13 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                 (self.parent_task.is_closed or
                  not self.parent_task.is_accepted):
             return redirect('project:task:task',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             task_id=self.parent_task.id)
         if self.parent_solution and \
                 (self.parent_solution.is_completed or
                  self.parent_solution.is_closed):
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.parent_solution.id)
 
         title = request.POST.get('title')
@@ -389,7 +389,7 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
             )
             solution.save()
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=solution.id)
 
 

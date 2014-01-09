@@ -10,7 +10,7 @@
                     {{ project_ratio.votes_in }} in
                 </span>
             )</strong>
-            <a href="{% url 'project:solution:my_review' project.name %}">review solutions</a> from other contributors to raise it.
+            <a href="{% url 'project:solution:my_review' project.id %}">review solutions</a> from other contributors to raise it.
             You are still able to earn impact but it will be withheld until the vote ratio is raised
             {% if project_impact %}
                 , currently <strong>{{ project_impact.frozen_impact }}</strong> has been withheld
@@ -35,7 +35,7 @@
                             <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
                         {% endif %}
                         {% if is_admin %}
-                            <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i> settings</a>
+                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
                         {% endif %}
                     </div>
                 </form>
@@ -70,7 +70,7 @@
                         {% else %}
                             <i class="fa fa-comments muted" title="accepted"></i>
                         {% endif %}
-                        <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title|default:"No title" }}</a>
+                        <a href="{% url 'project:task:task' project.id task.id %}">{{ task.title|default:"No title" }}</a>
                     </div>
                 {% empty %}
                     <p class="muted">There are no tasks.</p>
@@ -86,7 +86,7 @@
                         {% else %}
                             <i class="fa fa-pencil muted" title="open"></i>
                         {% endif %}
-                        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a>
+                        <a href="{% url 'project:solution:solution' project.id solution.id %}">{{ solution.default_title }}</a>
                     </div>
                 {% empty %}
                     <p class="muted">There are no solutions.</p>

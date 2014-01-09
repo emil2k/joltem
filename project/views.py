@@ -23,7 +23,7 @@ class ProjectMixin():
     @cached_property
     def project(self):
         """ Return self.project. """
-        return get_object_or_404(Project, name=self.kwargs['project_name'])
+        return get_object_or_404(Project, id=self.kwargs['project_id'])
 
 
 class ProjectBaseView(RequestBaseView):
@@ -37,10 +37,10 @@ class ProjectBaseView(RequestBaseView):
 
         super(ProjectBaseView, self).initiate_variables(request, args, kwargs)
         try:
-            name = self.kwargs.get("project_name")
-            self.project = Project.objects.get(name=name)
+            self.project = Project.objects.get(
+                id=self.kwargs.get("project_id"))
         except Project.DoesNotExist:
-            raise Http404('Project %s doesn\'t exists.' % name)
+            raise Http404('Project doesn\'t exist.')
         self.is_admin = self.project.is_admin(request.user.id)
 
     def get_context_data(self, **kwargs):
@@ -123,7 +123,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
             self.project.subscriber_set.remove(self.request.user)
 
         return redirect(reverse(
-            'project:project', kwargs={'project_name': self.project.name}))
+            'project:project', kwargs={'project_id': self.project.id}))
 
     def form_invalid(self, form):
         """ Redirect user to project page.
@@ -132,7 +132,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
 
         """
         return redirect(reverse(
-            'project:project', kwargs={'project_name': self.project.name}))
+            'project:project', kwargs={'project_id': self.project.id}))
 
 
 class ProjectSettingsView(UpdateView, ProjectBaseView):
@@ -162,7 +162,7 @@ class ProjectSettingsView(UpdateView, ProjectBaseView):
 
         """
         return reverse('project:settings', kwargs={
-            'project_name': self.project.name
+            'project_id': self.project.id
         })
 
 
@@ -204,7 +204,7 @@ class ProjectKeysView(CreateView, ProjectBaseView):
         ssh_key_instance.project = self.project
         ssh_key_instance.save()
 
-        return redirect('project:keys', project_name=self.project.name)
+        return redirect('project:keys', project_id=self.project.id)
 
     def get_context_data(self, **kwargs):
         """ Make context.
@@ -253,4 +253,4 @@ class ProjectKeysDeleteView(ProjectBaseView, DeleteView):
 
         """
         return reverse('project:keys', kwargs=dict(
-            project_name=self.project.name))
+            project_id=self.project.id))

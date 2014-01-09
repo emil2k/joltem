@@ -38,17 +38,17 @@
                             {% endif %}
                         {% elif solution.is_completed %}
                             {% if is_owner %}
-                                <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+                                <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
                                 <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
                             {% endif %}
                         {% else %}
                             {% if is_owner %}
-                                <a href="{% url 'project:solution:solution_edit' project.name solution.id %}" class="btn">edit</a>
+                                <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
                                 <button class="btn" type="submit" name="close" value="1">close</button>
                             {% else %}
-                                <a class="btn btn-success" href="{% url 'project:solution:new' project.name solution.id %}">suggest solution</a>
+                                <a class="btn btn-success" href="{% url 'project:solution:new' project.id solution.id %}">suggest solution</a>
                             {% endif %}
-                            <a class="btn btn-success" href="{% url 'project:task:new' project.name solution.id %}">create task</a>
+                            <a class="btn btn-success" href="{% url 'project:task:new' project.id solution.id %}">create task</a>
                         {% endif %}
                     </div>
                 </form>
@@ -60,11 +60,11 @@
             {% endif %}
             {% if solution.task %}
                 <div class="alert alert-info">
-                    <strong>Parent task :</strong> <a href="{% url 'project:task:task' project.name solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}
+                    <strong>Parent task :</strong> <a href="{% url 'project:task:task' project.id solution.task.id %}">{{ solution.task.title }}</a> by {{ solution.task.owner.first_name }}
                 </div>
             {% elif solution.solution %}
                 <div class="alert alert-info">
-                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name solution.solution.id %}">{{ solution.solution.default_title }}</a> by {{ solution.solution.owner.first_name }}
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.id solution.solution.id %}">{{ solution.solution.default_title }}</a> by {{ solution.solution.owner.first_name }}
                 </div>
             {% else %}
                 <div class="alert alert-info">

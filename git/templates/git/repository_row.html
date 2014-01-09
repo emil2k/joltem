@@ -9,7 +9,7 @@
     {% endif %}
     <div class="span9">
         <p>
-            <strong><a href="{% url 'project:git:repository' project.name repo.id %}">{{ repo.name }}</a></strong><br/>
+            <strong><a href="{% url 'project:git:repository' project.id repo.id %}">{{ repo.name }}</a></strong><br/>
             {% if repo.description %}
                 <small class="muted">{{ repo.description }}</small>
             {% else %}

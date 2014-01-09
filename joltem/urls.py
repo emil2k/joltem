@@ -26,7 +26,7 @@ urlpatterns = patterns(
         views.UserView.as_view(), name='user'),
     url(r'^account/', include('account.urls')),
     url(r'^help/$', include('help.urls', namespace='help')),
-    url(r'^(?P<project_name>([-\w])+)/', include(
+    url(r'^(?P<project_id>\d+)/', include(
         'project.urls', namespace='project')),
 )
 

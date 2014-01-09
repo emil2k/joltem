@@ -32,7 +32,7 @@ class HomeView(TemplateView):
         if request.user.is_authenticated():
             # Currently there is only one project so just redirect to it
             project = Project.objects.get()
-            return redirect('project:project', project_name=project.name)
+            return redirect('project:project', project_id=project.id)
         else:
             return self.render_to_response(context={})
 

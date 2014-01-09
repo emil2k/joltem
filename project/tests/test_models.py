@@ -67,7 +67,7 @@ class ProjectNotificationTest(NotificationTestCase):
                         type=NOTIFICATION_TYPE_FROZEN_RATIO,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_url(n),
-                         '/apple/')
+                         '/%d/' % self.project.id)
 
     def test_get_notification_text_frozen_ratio(self):
         """ Test notification text for frozen by ratio."""

@@ -20,7 +20,7 @@
             {% if parent_solution %}
             <div class="alert alert-info">
                 This task will be placed under parent solution :
-                <strong><a href="{% url 'project:solution:solution' project.name parent_solution.id %}">{{ parent_solution.default_title }}</a></strong>
+                <strong><a href="{% url 'project:solution:solution' project.id parent_solution.id %}">{{ parent_solution.default_title }}</a></strong>
             </div>
             {% endif %}
 

@@ -5,8 +5,8 @@
         <div class="span2">
             <ul class="nav nav-list well">
                 <li class="nav-header">Project Settings</li>
-                <li><a href="{% url 'project:settings' project.name %}">Main</a></li>
-                <li class="active"><a href="{% url 'project:keys' project.name %}">Keys</a></li>
+                <li><a href="{% url 'project:settings' project.id %}">Main</a></li>
+                <li class="active"><a href="{% url 'project:keys' project.id %}">Keys</a></li>
             </ul>
         </div>
         <div class="span10">

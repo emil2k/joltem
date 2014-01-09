@@ -12,7 +12,7 @@ class BaseProjectViewTest(TestCase):
     """ Test case for view that requires a project. """
 
     def setUp(self):
-        self.project = models.get_mock_project('bread')
+        self.project = models.get_mock_project('Bread')
         self.user = models.get_mock_user('bill')
 
     def _get(self, view):
@@ -24,7 +24,7 @@ class BaseProjectViewTest(TestCase):
         """
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
-        return view(request, project_name=self.project.name)
+        return view(request, project_id=self.project.id)
 
     def _post(self, view, data):
         """ Get POST response on given project view.
@@ -35,7 +35,7 @@ class BaseProjectViewTest(TestCase):
         """
         request = requests.get_mock_post_request(
             user=self.user, is_authenticated=True, data=data)
-        return view(request, project_name=self.project.name)
+        return view(request, project_id=self.project.id)
 
 
 class TestProjectViews(TestCase):
@@ -46,13 +46,13 @@ class TestProjectViews(TestCase):
         self.client.login(username=self.user.username, password='test')
 
     def test_unknown_project(self):
-        uri = reverse('project:project', kwargs=dict(project_name='unknown'))
+        uri = reverse('project:project', kwargs=dict(project_id=100000))
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 404)
 
     def test_dashboard(self):
         uri = reverse('project:project', kwargs=dict(
-            project_name=self.project.name))
+            project_id=self.project.id))
         response = self.client.get(uri)
         self.assertTrue(response.context['project'])
         self.assertFalse(response.context['solutions'])
@@ -99,7 +99,7 @@ class TestProjectSettingsView(TestCase):
         self.project = mixer.blend('project.project')
         self.user = mixer.blend('joltem.user', password='test')
         self.uri = reverse('project:settings',
-                           kwargs=dict(project_name=self.project.name))
+                           kwargs=dict(project_id=self.project.id))
 
     def _test_get(self, expected_code):
         """ Test generator for GETing project settings page.
@@ -144,7 +144,7 @@ class TestProjectSettingsView(TestCase):
         self.assertFalse(self.user in self.project.subscriber_set.all())
 
         uri = reverse('project:project', kwargs=dict(
-            project_name=self.project.name))
+            project_id=self.project.id))
 
         self.client.login(username=self.user.username, password='test')
 
@@ -166,7 +166,7 @@ class TestProjectSearch(TestCase):
         self.project = mixer.blend('project.project')
         self.user = mixer.blend('joltem.user', password='test')
         self.uri = reverse(
-            'project:search', kwargs=dict(project_name=self.project.name))
+            'project:search', kwargs=dict(project_id=self.project.id))
 
     def test_search(self):
         mixer.blend('task.task', description='hello world')
@@ -181,7 +181,7 @@ class TestProjectKeysView(TestCase):
         self.project = mixer.blend('project.project')
         self.user = mixer.blend('joltem.user', password='test')
         self.uri = reverse(
-            'project:keys', kwargs=dict(project_name=self.project.name))
+            'project:keys', kwargs=dict(project_id=self.project.id))
 
     def test_get_keys(self):
         self.client.login(username=self.user.username, password='test')
@@ -217,7 +217,7 @@ class TestProjectKeysView(TestCase):
         uri = reverse(
             'project:keys_delete', kwargs=dict(
                 pk=keys[0].pk,
-                project_name=self.project.name))
+                project_id=self.project.id))
         response = self.client.get(uri)
         self.assertContains(response, 'Delete SSH key')
 
