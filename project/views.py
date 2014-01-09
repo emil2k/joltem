@@ -62,6 +62,39 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
     template_name = "project/project.html"
     form_class = ProjectSubscribeForm
 
+    def get_context_data(self, **kwargs):
+        """ Get context for templates.
+
+        :return dict: A context
+
+        """
+        kwargs['subscribe'] = int(self.project.subscriber_set.filter(
+            pk=self.request.user.pk).exists())
+        return super(ProjectView, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        """ Subscribe current user to project.
+
+        :return HttpResponseRedirect:
+
+        """
+        if form.cleaned_data.get('subscribe'):
+            self.project.subscriber_set.add(self.request.user)
+        else:
+            self.project.subscriber_set.remove(self.request.user)
+
+        return redirect(reverse(
+            'project:project', kwargs={'project_id': self.project.id}))
+
+    def form_invalid(self, form):
+        """ Redirect user to project page.
+
+        :return HttpResponseRedirect:
+
+        """
+        return redirect(reverse(
+            'project:project', kwargs={'project_id': self.project.id}))
+
 
 class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
 
