@@ -2,9 +2,9 @@
 {% load filters %}
 {% block title %}{{ project.title }}{% endblock %}
 {% block nav %}
-    <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.name %}">Tasks</a></li>
-    <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.name %}">Solutions</a></li>
-    <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.name %}">Repositories</a></li>
+    <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
+    <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
+    <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
 {% endblock %}
 {% block content %}
     {% block project_content %}{% endblock %}

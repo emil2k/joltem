@@ -53,11 +53,11 @@ class Comment(Owned, ProjectContext, Updatable):
         if self.commentable_type_id == \
                 ContentType.objects.get_for_model(Solution).id:
             return anchor(reverse(
-                "project:solution:solution", args=[self.project.name,
+                "project:solution:solution", args=[self.project.id,
                                                    self.commentable_id]))
         else:  # it is a Task
             return anchor(reverse(
-                "project:task:task", args=[self.project.name,
+                "project:task:task", args=[self.project.id,
                                            self.commentable_id]))
 
 

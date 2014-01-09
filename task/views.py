@@ -90,14 +90,14 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         if request.POST.get('accept'):
             self.task.put_vote(self.user, True)
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Vote to reject task
         if request.POST.get('reject'):
             self.task.put_vote(self.user, False)
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Close task
@@ -106,7 +106,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             self.task.time_closed = timezone.now()
             self.task.save()
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Reopen task
@@ -115,7 +115,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             self.task.time_closed = None
             self.task.save()
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # to process commenting
@@ -128,7 +128,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         """
         return redirect(
-            'project:task:task', project_name=self.project.name,
+            'project:task:task', project_id=self.project.id,
             task_id=self.task.id)
 
     def get_commentable(self):
@@ -146,7 +146,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         """
         return redirect(
-            'project:task:task', project_name=self.project.name,
+            'project:task:task', project_id=self.project.id,
             task_id=self.task.id)
 
 
@@ -213,7 +213,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
             if self.parent_solution.is_completed:
                 return redirect(
                     'project:solution:solution',
-                    project_name=self.project.name,
+                    project_id=self.project.id,
                     solution_id=self.parent_solution.id,
                 )
 
@@ -257,7 +257,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
         task.author = self.user
         task.save()
 
-        return redirect('project:task:task', project_name=self.project.name,
+        return redirect('project:task:task', project_id=self.project.id,
                         task_id=task.id)
 
 
