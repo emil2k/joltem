@@ -54,7 +54,7 @@ class SolutionViewOwnerTest(TestCase):
         self.user = mixer.blend('joltem.user', password='test')
         self.solution = mixer.blend('solution.solution', owner=self.user)
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
         self.client.login(username=self.user.username, password='test')
@@ -132,7 +132,7 @@ class SolutionViewUserTest(TestCase):
         self.user = mixer.blend('joltem.user', password='test')
         self.solution = mixer.blend('solution.solution')
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
         self.client.login(username=self.user.username, password='test')
@@ -205,7 +205,7 @@ class SolutionViewAnonymousTest(TestCase):
     def setUp(self):
         self.solution = mixer.blend('solution.solution')
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -371,7 +371,7 @@ class SolutionReviewViewOwnerTest(TestCase):
         self.solution.mark_complete(5)
         self.client.login(username=self.user.username, password='test')
         self.path = reverse('project:solution:review', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -397,7 +397,7 @@ class SolutionReviewViewTest(TestCase):
                                     owner__first_name="Jill")
         self.solution.mark_complete(5)
         self.path = reverse('project:solution:review', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -474,7 +474,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
         )
 
         self.url = SOLUTION_COMMITS_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=self.solution.pk,
         )
 
@@ -485,7 +485,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_project_does_not_exist(self):
         url_with_faked_project = SOLUTION_COMMITS_URL.format(
-            project_name='blah',
+            project_id=1000000,
             solution_id=self.solution.pk,
         )
 
@@ -493,7 +493,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_solution_does_not_exist(self):
         url_with_faked_solution = SOLUTION_COMMITS_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=0,
         )
 
@@ -501,7 +501,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_repository_does_not_exist(self):
         url_with_faked_repo = SOLUTION_COMMITS_REPO_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=self.solution.pk,
             repo_id='0'
         )

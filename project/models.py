@@ -153,7 +153,7 @@ class Project(Notifying):
 
         """
         return reverse('project:project',
-                       args=[notification.notifying.name])
+                       args=[notification.notifying.id])
 
 
 post_save.connect(receivers.update_project_impact_from_project, sender=Project)

@@ -179,7 +179,7 @@ class TaskEditView(TaskBaseView, UpdateView):
         return reverse(
             'project:task:task',
             kwargs={
-                'project_name': self.project.name,
+                'project_id': self.project.id,
                 'task_id': self.task.id
             }
         )
