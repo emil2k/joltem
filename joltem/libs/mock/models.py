@@ -42,15 +42,13 @@ def get_mock_user(username, **extra_fields):
         '%s_password' % username, **extra_fields)
 
 
-def get_mock_project(name, title=None):
+def get_mock_project(title):
     """ Generate project.
 
     :return Project:
 
     """
-    title = "Project : %s" % name if not title else title
     p = Project(
-        name=name,
         title=title
     )
     p.save()

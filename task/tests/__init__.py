@@ -8,7 +8,7 @@ from joltem.libs.mock.models import (get_mock_task, get_mock_project,
 class TaskTestCase(TestCase):
 
     def setUp(self):
-        self.project = get_mock_project("zune")
+        self.project = get_mock_project("Zune")
         self.jill = get_mock_user('jill')
         self.jack = get_mock_user('jack')  # other user
         self.task = get_mock_task(self.project, self.jill)
@@ -87,7 +87,7 @@ class PermissionsTestCase(TestCase):
         self.bob = get_mock_user('bob')
         self.zack = get_mock_user('zack')
         # Setup project, make Jill admin
-        self.project = get_mock_project("hover")
+        self.project = get_mock_project("Hover")
         self.project.admin_set.add(self.jill)
         self.project.save()
 

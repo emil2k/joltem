@@ -12,7 +12,7 @@ class BaseProjectViewTest(TestCase):
     """ Test case for view that requires a project. """
 
     def setUp(self):
-        self.project = models.get_mock_project('bread')
+        self.project = models.get_mock_project('Bread')
         self.user = models.get_mock_user('bill')
 
     def _get(self, view):
