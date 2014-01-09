@@ -13,7 +13,7 @@ If others find the idea interesting they can join you in making it a reality, in
 
 Most of the money raised by early stage startups goes to hiring a team. This is a risky proposition for venture capitalists so they either must take a large stake in the company or close the door on a lot of projects.
 
-However, if  you build your team openly and they are compensated with ownership raising capital can either be postponed or avoided completely. Best of all you won’t need anyones permission to pursue your idea.
+However, if  you build your team openly and they are compensated with ownership raising capital can either be postponed or avoided completely. Best of all you won’t need anyone's permission to pursue your idea.
 
 More so, we believe having ownership concentrated amongst the people directly working on the product gives you the best chance to succeed and if you manage to prove something raising capital will be a lot cheaper.
 
@@ -25,7 +25,7 @@ The conventional way of hiring people is an extremely difficult process to navig
 
 In an open company hiring is completely natural, you can freely broadcast ( job boards, freelance sites, etc. ) work that you want done on and the amount you are willing to pay. Anyone who is willing and capable may complete the work, without either of you wasting time reading a resume. If the company grows you can refer back and attempt to hire the best contributors as employees
 
-Furthermore, with an open model you have a better chance of attracting the most talented people as they might be willing to contribute in their spare time if they are convinced of your idea.
+Furthermore, with an open model you have a better chance of attracting the most talented people. If they believe in your organization and find your vision compelling, they might be willing to contribute in their spare time to specific tasks they may find interesting.
 
 ---
 

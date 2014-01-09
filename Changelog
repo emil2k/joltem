@@ -1,91 +1,86 @@
-2014-01-06  klen
+2014-01-08  emil
+    * Version 1.0.0
     * Task and solution counts.
-
-2014-01-04  klen
     * Deployment keys added.
-
-2014-01-04  emil
     * Bargaining process introduced for impact determination.
-
--- on master
 
 2013-12-23  emil
 
-	* Version 0.7.1
-	* Fixed OAuth credentials.
+    * Version 0.7.1
+    * Fixed OAuth credentials.
 
 2013-12-19  emil
 
-	* Version 0.7.0
-	* Polished up user interfaces for public release.
-	* Anonymous browsing of work.
-	* Upgrade to font awesome.
-	* Search in project for tasks and solutions.
-	* Implemented votes ratio and impact freezing.
-	* Downgraded impact from comments.
-	* Made all votes public.
-	* Added activity feed.
-	* Fixed notification templates.
-	* Setup debian package.
-	* Added user groups admins, managers, and developers.
+    * Version 0.7.0
+    * Polished up user interfaces for public release.
+    * Anonymous browsing of work.
+    * Upgrade to font awesome.
+    * Search in project for tasks and solutions.
+    * Implemented votes ratio and impact freezing.
+    * Downgraded impact from comments.
+    * Made all votes public.
+    * Added activity feed.
+    * Fixed notification templates.
+    * Setup debian package.
+    * Added user groups admins, managers, and developers.
 
 2013-11-30  emil
-	* Version 0.6.0
-	* Project dashboard added.
-	* Email notification templates added.
-	* Fixed gateway's cloning bug.
+    * Version 0.6.0
+    * Project dashboard added.
+    * Email notification templates added.
+    * Fixed gateway's cloning bug.
 
 2013-11-25  klen
 
-	* Version 0.5.0
-	* Fixed password reset
+    * Version 0.5.0
+    * Fixed password reset
 
 2013-11-22  klen
 
-	* Version 0.4.5
-	* Task's priority
+    * Version 0.4.5
+    * Task's priority
 
 2013-11-22  klen
 
-	* Version 0.4.4
-	* Fix bug when solution owner cannot comment own solutions
-	* Fix error raises when project not found
+    * Version 0.4.4
+    * Fix bug when solution owner cannot comment own solutions
+    * Fix error raises when project not found
 
 
 2013-11-21  klen
 
-	* Version 0.4.3
-	* Support OAuth authentication
-	* Fix solution complete action
+    * Version 0.4.3
+    * Support OAuth authentication
+    * Fix solution complete action
 
 2013-11-19  klen
 
-	* Version 0.3.1
-	* Setup celery
-	* Setup periodical tasks
-	* Setup email notifications (immediately, daily)
-	* Add to user 'notify_by_email', 'time_notified' fields
+    * Version 0.3.1
+    * Setup celery
+    * Setup periodical tasks
+    * Setup email notifications (immediately, daily)
+    * Add to user 'notify_by_email', 'time_notified' fields
 
 2013-11-17  klen
 
-	* Version 0.2.6
-	* Fix gateway authentication
-	* Added new gateway version
+    * Version 0.2.6
+    * Fix gateway authentication
+    * Added new gateway version
 
 2013-11-15  klen
 
-	* Version 0.2.3
-	* Fix commit's view
-	* Remove AUTH_PROFILE, use AUTH_USER_MODEL instead
+    * Version 0.2.3
+    * Fix commit's view
+    * Remove AUTH_PROFILE, use AUTH_USER_MODEL instead
 
 2013-11-14  klen
 
-	* Version 0.2.1
-	* Add sign-up mechanism without invite restrictions
-	* Finish deployment joltem.com with chef
-	* Optimize SQL queries in solutions and tasks views
+    * Version 0.2.1
+    * Add sign-up mechanism without invite restrictions
+    * Finish deployment joltem.com with chef
+    * Optimize SQL queries in solutions and tasks views
 
 2013-11-07  klen
 
-	* Version 0.1.0
-	* Initial release for stage deploying
+    * Version 0.1.0
+    * Initial release for stage deploying
