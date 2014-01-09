@@ -23,9 +23,6 @@ class Project(Notifying):
 
     """ Represent Project in Joltem. """
 
-    # this is used in the domains, must be lowercase,
-    # and only contain a-z and 0-9
-    name = models.CharField(max_length=200, unique=True)
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
 
