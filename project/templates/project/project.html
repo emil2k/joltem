@@ -1,8 +1,46 @@
 {% extends 'project/base.html' %}
 {% load filters %}
+{% load markup %}
 {% block title %}{{ project.title }} - Overview - Joltem{% endblock %}
 {% block project_content %}
-    <h3>{{ project.title }}</h3>
-    <div class="alert">todo</div>
+    <div class="row">
+        <div class="offset1 span6">
+            <h3>{{ project.title }}</h3>
+            {% if user.is_authenticated %}
+                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                    <div class="btn-group">
+                        {% if not subscribe %}
+                            <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                        {% else %}
+                            <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                        {% endif %}
+                        {% if is_admin %}
+                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}
+            {{ project.description|markdown }}
+            <h4>Structure</h4>
+            <strong>85%</strong> of company shares are backing impact, annually <strong>25%</strong> of the unexchanged impact will be exchanged for shares.
+            <div class="hidden-desktop hidden-tablet">
+                <hr/>
+                <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=50" />
+                <h4><a href="#">Emil</a></h4>
+                <p>This is a little bio about the founder.</p>
+            </div>
+        </div>
+        <div class="span3 hidden-phone text-center">
+            <br/>
+            <h4><a href="#">Emil</a></h4>
+            <p>
+                <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
+            </p>
+            <hr/>
+            <p>This is a little bio, about the founder.</p>
+        </div>
+    </div>
 {% endblock %}
 
