@@ -7,7 +7,20 @@ class TaskNotificationsTest(TestCase):
     def setUp(self):
         self.project = mixer.blend('project.project')
 
+    def test_meta(self):
+        """ Check loading a task notification interfaces. """
+
+        from joltem.notifications import get_notify
+
+        task = mixer.blend('task.task')
+        notification = mixer.blend('joltem.notification',
+                                   notifiyng=task, type='comment_added')
+        nn = get_notify(notification, task)
+        self.assertTrue(nn)
+
     def test_get_followers(self):
+        """ Check task's followers. """
+
         task = mixer.blend('task.task', project=self.project)
         self.assertEqual(len(task.followers), 2)
 
@@ -52,3 +65,9 @@ class TaskNotificationsTest(TestCase):
         self.assertEqual("%s updated a vote on your task \"%s\"" % (
             voter1.first_name, task.title
         ), notify.get_text())
+
+        voter2 = mixer.blend('user')
+        task.put_vote(voter2, False)
+        notify = voter1.notification_set.get()
+        self.assertEqual(notify.get_text(), '%s voted on task "%s"' % (
+            voter2.first_name, task.title))

@@ -2,11 +2,13 @@
 
 from django.db import models
 from django.utils import timezone
+from django.core import serializers
 from django.conf import settings
 from django.core.cache import cache
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
+from joltem.notifications import get_notify
 
 
 class Task(Commentable, Updatable):
@@ -169,6 +171,7 @@ class Task(Commentable, Updatable):
         for user in self.followers:
             if user == vote.voter:
                 continue
+
             self.notify(user, ntype, create, kwargs={
                 "voter_first_name": vote.voter.first_name,
                 "type": "task",
@@ -259,38 +262,8 @@ class Task(Commentable, Updatable):
         :return str:
 
         """
-        from joltem.utils import list_string_join
-
-        if settings.NOTIFICATION_TYPES.comment_added == notification.type:
-            first_names = self.get_commentator_first_names(
-                queryset=self.comment_set.select_related('owner').exclude(
-                    owner=notification.user).order_by("-time_commented")
-            )
-            return "%s commented on task \"%s\"" % (
-                list_string_join(first_names), self.title)
-
-        elif settings.NOTIFICATION_TYPES.task_posted == notification.type:
-            if notification.kwargs["role"] == "parent_solution":
-                return "%s posted a task on your solution \"%s\"" % (
-                    self.author.first_name, self.parent.default_title)
-            elif notification.kwargs["role"] == "project_admin":
-                return "%s posted a task" % self.author.first_name
-
-        if settings.NOTIFICATION_TYPES.task_accepted == notification.type:
-            return "Your task \"%s\" was accepted" % self.title
-
-        if settings.NOTIFICATION_TYPES.task_rejected == notification.type:
-            return "Your task \"%s\" was not accepted" % self.title
-
-        if settings.NOTIFICATION_TYPES.vote_added == notification.type:
-            return "%s voted on your task \"%s\"" % (
-                notification.kwargs['voter_first_name'], self.title)
-
-        if settings.NOTIFICATION_TYPES.vote_updated == notification.type:
-            return "%s updated a vote on your task \"%s\"" % (
-                notification.kwargs['voter_first_name'], self.title)
-
-        return "Task updated : %s" % self.title
+        notify = get_notify(notification, self)
+        return notify.get_text(self)
 
     def get_notification_url(self, url):
         """ Get notification URL.
@@ -300,6 +273,21 @@ class Task(Commentable, Updatable):
         """
         from django.core.urlresolvers import reverse
         return reverse("project:task:task", args=[self.project.name, self.id])
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        kwargs = super(Task, self).get_notification_kwargs(
+            notification, **kwargs)
+        kwargs['owner'] = python_serializer.serialize(
+            [self.owner], fields=('username', 'first_name'))[0]
+        kwargs['author'] = python_serializer.serialize(
+            [self.author], fields=('username', 'first_name'))[0]
+        return kwargs
 
 
 class Vote(models.Model):

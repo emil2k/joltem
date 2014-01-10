@@ -5,6 +5,7 @@ import logging
 from django.db import models
 from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
+from django.core import serializers
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
@@ -169,8 +170,9 @@ class Notifying(models.Model):
             time_notified=timezone.now(),
             is_cleared=False,
             notifying=self,
-            kwargs=kwargs
         )
+        notification.kwargs = self.get_notification_kwargs(
+            notification, **kwargs)
         notification.save()
 
         return notification
@@ -186,14 +188,14 @@ class Notifying(models.Model):
         ).delete()
 
     @staticmethod
-    def get_notification_text(notification):
+    def get_notification_text(notification=None):
         """ Get notification text for a given notification. """
 
         raise ImproperlyConfigured(
             "Extending class must implement get notification text.")
 
     @staticmethod
-    def get_notification_url(notification):
+    def get_notification_url(notification=None):
         """ Get notification url for a given notification.
 
         Implementation should use reverse and should not hard code urls.
@@ -210,6 +212,21 @@ class Notifying(models.Model):
 
         """
         raise NotImplementedError
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        default = {
+            'notifying': python_serializer.serialize([self])[0],
+            'url': self.get_notification_url(notification),
+        }
+        default.update(**kwargs)
+        return default
+
 
 post_save.connect(update_notification_count, sender=Notification)
 post_save.connect(
