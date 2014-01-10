@@ -1,31 +1,28 @@
 {% extends 'project/base.html' %}
 {% load filters %}
+{% load markup %}
+{% block title %}{{ project.title }} - Overview - Joltem{% endblock %}
 {% block project_content %}
-    {% if project_ratio and project_ratio.is_frozen %}
-        <div class="alert">
-            <strong><i class="fa fa-warning"></i> Your votes ratio is low ( <a href="#" title="show / hide details" onclick="$('#votes-ratio-details').toggle(); return false;">{{ project_ratio.votes_ratio|floatformat:2 }}</a>
-                <span id='votes-ratio-details' style="display:none;">
-                    <i class="fa fa-gears"></i>
-                    {{ project_ratio.votes_out }} out /
-                    {{ project_ratio.votes_in }} in
-                </span>
-            )</strong>
-            <a href="{% url 'project:solution:my_review' project.name %}">review solutions</a> from other contributors to raise it.
-            You are still able to earn impact but it will be withheld until the vote ratio is raised
-            {% if project_impact %}
-                , currently <strong>{{ project_impact.frozen_impact }}</strong> has been withheld
-            {% endif %}.
-            <a href="{% url 'help:index' %}#ratio">What is the votes ratio?</a>
-        </div>
-    {% endif %}
-
     <div class="row">
-        <div class="span3 text-center">
-            <h3 style="padding: 0; margin: 0;">{{ project.title }}</h3>
+        <div class="span4 hidden-phone text-center">
+            <br/>
+            <h4><a href="#">Emil</a></h4>
+            <p>
+                <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
+            </p>
+            <hr/>
+            <p>This is a little bio, about the founder.</p>
+            <ul class="nav nav-list well text-left hidden-phone">
+                <li class="nav-header">Project Links</li>
+                <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
+                <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
+                <li><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
+                <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
+            </ul>
         </div>
-        <div class="span5 text-center">
+        <div class="span6">
             {% if user.is_authenticated %}
-                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data" class="pull-right">
                     {% csrf_token %}
                     <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
                     <div class="btn-group">
@@ -35,77 +32,30 @@
                             <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
                         {% endif %}
                         {% if is_admin %}
-                            <a class="btn" title="Settings." href="{% url 'project:settings' project.name %}"><i class="fa fa-gear"></i> settings</a>
+                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
                         {% endif %}
                     </div>
                 </form>
             {% endif %}
-        </div>
-        <div class="span4 text-center">
-            <form class="form-search" method="GET" action="./search/">
-                <div class="input-append">
-                    <input type="text" name="q" class="search-query" value="{{ query }}">
-                    <button type="submit" class="btn">Search</button>
-                </div>
-            </form>
+            <h3>{{ project.title }}</h3>
+            {{ project.description|markdown }}
+            <h4>Structure</h4>
+            <strong>85%</strong> of company shares are backing impact, annually <strong>25%</strong> of the unexchanged impact will be exchanged for shares.
         </div>
     </div>
-    <div class="row">
-        <div class="span3 text-center">
-            {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
-            {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
-            {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
-            {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
-        </div>
-        <div class="span5">
-            <h4><i class="fa fa-clock-o"></i> Tasks</h4>
-            <div>
-                {% for task in tasks %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
-                        {% if task.is_closed %}
-                            <i class="fa fa-archive muted" title="closed"></i>
-                        {% elif task.is_reviewed %}
-                            <i class="fa fa-flag muted" title="reviewed"></i>
-                        {% else %}
-                            <i class="fa fa-comments muted" title="accepted"></i>
-                        {% endif %}
-                        <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title|default:"No title" }}</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no tasks.</p>
-                {% endfor %}
-            </div>
-            <h4><i class="fa fa-clock-o"></i> Solutions</h4>
-            <div>
-                {% for solution in solutions %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
-                        {% if solution.is_completed %}
-                            <i class="fa fa-check muted" title="completed"></i>
-                        {% else %}
-                            <i class="fa fa-pencil muted" title="open"></i>
-                        {% endif %}
-                        <a href="{% url 'project:solution:solution' project.name solution.id %}">{{ solution.default_title }}</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no solutions.</p>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="span4">
-            <h4><i class="fa fa-clock-o"></i> Comments</h4>
-            <div>
-                {% for comment in comments %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
-                        <a href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }} on <em>{{ comment.commentable.default_title }}</em>.</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no comments.</p>
-                {% endfor %}
-            </div>
-        </div>
+    <div class="hidden-desktop hidden-tablet">
+        <hr/>
+        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=50" />
+        <h4><a href="#">Emil</a></h4>
+        <p>This is a little bio about the founder.</p>
+        <hr class="clearfix"/>
+        <ul class="nav nav-list well text-left">
+            <li class="nav-header">Project Links</li>
+            <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
+            <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
+            <li><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
+            <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
+        </ul>
     </div>
 {% endblock %}
 

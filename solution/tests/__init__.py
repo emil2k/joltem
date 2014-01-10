@@ -20,7 +20,7 @@ class PermissionsTestCase(TestCase):
         self.bob = get_mock_user('bob')
         self.zack = get_mock_user('zack')
         # Setup project, make Jill admin
-        self.project = get_mock_project("hover")
+        self.project = get_mock_project("Hover")
         self.project.admin_set.add(self.jill)
         self.project.save()
 

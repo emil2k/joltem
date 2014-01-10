@@ -300,10 +300,10 @@ class Solution(Voteable, Commentable, Updatable):
             or settings.NOTIFICATION_TYPES.solution_evaluation_changed \
                 == notification.type:
             return reverse("project:solution:review",
-                           args=[self.project.name, self.id])
+                           args=[self.project.id, self.id])
         else:
             return reverse("project:solution:solution",
-                           args=[self.project.name, self.id])
+                           args=[self.project.id, self.id])
 
     # Git related
 

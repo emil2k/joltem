@@ -89,7 +89,7 @@ class BaseNotificationTestCase(NotificationTestCase):
         Create a project and two mock users, jill and bob.
 
         """
-        self.project = get_mock_project("bread", "Sliced Bread")
+        self.project = get_mock_project("Sliced Bread")
         self.jill = get_mock_user("jill", first_name="Jill")
         self.bob = get_mock_user("bob", first_name="Bob")
 

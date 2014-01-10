@@ -29,7 +29,7 @@ class BaseTaskViewTest(BaseProjectViewTest):
             task = self.task
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
-        return view(request, project_name=task.project.name,
+        return view(request, project_id=task.project.id,
                     task_id=task.id)
 
     def _post(self, view, data):
@@ -41,7 +41,7 @@ class BaseTaskViewTest(BaseProjectViewTest):
         """
         request = requests.get_mock_post_request(
             user=self.user, is_authenticated=True, data=data)
-        return view(request, project_name=self.project.name,
+        return view(request, project_id=self.project.id,
                     task_id=self.task.id)
 
 
@@ -126,9 +126,9 @@ class TaskListViewTests(BaseProjectViewTest):
         self._test_get_task_list(views.AllClosedTasksView.as_view())
 
 
-TASK_URL = '/{project_name}/task/{task_id}/'
+TASK_URL = '/{project_id}/task/{task_id}/'
 
-TASK_CREATE_URL = '/{project_name}/task/new/'
+TASK_CREATE_URL = '/{project_id}/task/new/'
 TASK_CREATE_FORM_ID = 'task-create-form'
 
 
@@ -140,7 +140,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
         self.user = mixer.blend('joltem.user')
         self.project = mixer.blend('project.project')
 
-        self.url = TASK_CREATE_URL.format(project_name=self.project.name)
+        self.url = TASK_CREATE_URL.format(project_id=self.project.id)
 
     def test_redirect_to_login_page_when_user_is_not_logged_in(self):
         response = self.app.get(self.url)
@@ -158,7 +158,7 @@ class TaskCreateTest(WebTest, ViewTestMixin):
 
         task = Task.objects.get()
 
-        expected_url = TASK_URL.format(project_name=self.project.name,
+        expected_url = TASK_URL.format(project_id=self.project.id,
                                        task_id=task.pk)
         self.assertRedirects(response, expected_url)
 
@@ -213,7 +213,7 @@ class TaskCreateRequiredFieldsTest(WebTest):
         self.user = mixer.blend('joltem.user')
         self.project = mixer.blend('project.project')
 
-        self.url = TASK_CREATE_URL.format(project_name=self.project.name)
+        self.url = TASK_CREATE_URL.format(project_id=self.project.id)
 
     def test_title_is_required(self):
         response = self.app.get(self.url, user=self.user)
@@ -256,7 +256,7 @@ class TaskCreateRequiredFieldsTest(WebTest):
         )
 
 
-TASK_EDIT_URL = '/{project_name}/task/{task_id}/edit/'
+TASK_EDIT_URL = '/{project_id}/task/{task_id}/edit/'
 TASK_EDIT_FORM_ID = 'task-edit-form'
 
 
@@ -268,7 +268,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         self.task = mixer.blend('task.task', project=self.project, owner=self.user)
 
         self.url = TASK_EDIT_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
             task_id=self.task.pk
         )
 
@@ -289,7 +289,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         form['title'] = 'new title'
         response = form.submit()
 
-        expected_url = TASK_URL.format(project_name=self.project.name,
+        expected_url = TASK_URL.format(project_id=self.project.id,
                                        task_id=self.task.pk)
         self.assertRedirects(response, expected_url)
 
@@ -327,7 +327,7 @@ class TaskEditRequiredFieldsTest(WebTest):
         )
 
         self.url = TASK_EDIT_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
             task_id=self.task.pk
         )
 

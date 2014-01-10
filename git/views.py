@@ -6,13 +6,13 @@ from git.models import Repository
 from project.models import Project
 
 
-def repository(request, project_name, repository_id):
+def repository(request, project_id, repository_id):
     """ Render repository template.
 
     :return str: A rendered template
 
     """
-    project = get_object_or_404(Project, name=project_name)
+    project = get_object_or_404(Project, id=project_id)
     repo = get_object_or_404(Repository, id=repository_id)
     context = {
         'project': project,
@@ -21,13 +21,13 @@ def repository(request, project_name, repository_id):
     return render(request, 'git/repository.html', context)
 
 
-def repositories(request, project_name):
+def repositories(request, project_id):
     """ Render list of repositories.
 
     :return str: A rendered page
 
     """
-    project = get_object_or_404(Project, name=project_name)
+    project = get_object_or_404(Project, id=project_id)
     is_admin = project.is_admin(request.user.id)
     is_manager = project.is_manager(request.user.id)
     if (is_admin or is_manager) and request.POST:
@@ -38,7 +38,7 @@ def repositories(request, project_name):
             hide_repo.is_hidden = True
             hide_repo.save()
             return redirect(
-                'project:git:repositories', project_name=project_name)
+                'project:git:repositories', project_id=project_id)
     context = {
         'project_tab': "repositories",
         'repositories_tab': "active",
@@ -52,13 +52,13 @@ def repositories(request, project_name):
     return render(request, 'git/repositories_list.html', context)
 
 
-def repositories_hidden(request, project_name):
+def repositories_hidden(request, project_id):
     """ Render hidden repository.
 
     :return str: A rendered page
 
     """
-    project = get_object_or_404(Project, name=project_name)
+    project = get_object_or_404(Project, id=project_id)
     is_admin = project.is_admin(request.user.id)
     is_manager = project.is_manager(request.user.id)
     if (is_admin or is_manager) and request.POST:
@@ -69,7 +69,7 @@ def repositories_hidden(request, project_name):
             unhide_repo.is_hidden = False
             unhide_repo.save()
             return redirect(
-                'project:git:repositories_hidden', project_name=project_name)
+                'project:git:repositories_hidden', project_id=project_id)
     context = {
         'project_tab': "repositories",
         'repositories_tab': "hidden",
@@ -83,17 +83,17 @@ def repositories_hidden(request, project_name):
     return render(request, 'git/repositories_list.html', context)
 
 
-def new_repository(request, project_name):
+def new_repository(request, project_id):
     """ Support creation of new repository.
 
     :return str: A rendered page
 
     """
-    project = get_object_or_404(Project, name=project_name)
+    project = get_object_or_404(Project, id=project_id)
     is_admin = project.is_admin(request.user.id)
     is_manager = project.is_manager(request.user.id)
     if not (is_admin or is_manager):
-        return redirect('project:git:repositories', project_name=project_name)
+        return redirect('project:git:repositories', project_id=project_id)
     if request.POST:
         action = request.POST.get('action')
         # Create a repository
@@ -108,7 +108,7 @@ def new_repository(request, project_name):
                 )
                 created_repo.save()
                 return redirect(
-                    'project:git:repositories', project_name=project_name)
+                    'project:git:repositories', project_id=project_id)
     context = {
         'project_tab': "repositories",
         'project': project,

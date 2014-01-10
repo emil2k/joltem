@@ -272,7 +272,7 @@ class Task(Commentable, Updatable):
 
         """
         from django.core.urlresolvers import reverse
-        return reverse("project:task:task", args=[self.project.name, self.id])
+        return reverse("project:task:task", args=[self.project.id, self.id])
 
     def get_notification_kwargs(self, notification=None, **kwargs):
         """ Precache notification kwargs.

@@ -29,7 +29,7 @@ class BaseSolutionViewTest(BaseProjectViewTest):
         request = requests.get_mock_get_request(
             user=self.user, is_authenticated=True)
         return view(
-            request, project_name=self.project.name,
+            request, project_id=self.project.id,
             solution_id=self.solution.id)
 
     def _post(self, view, data, **headers):
@@ -42,7 +42,7 @@ class BaseSolutionViewTest(BaseProjectViewTest):
         request = requests.get_mock_post_request(
             user=self.user, is_authenticated=True, data=data, **headers)
         return view(
-            request, project_name=self.project.name,
+            request, project_id=self.project.id,
             solution_id=self.solution.id)
 
 
@@ -54,7 +54,7 @@ class SolutionViewOwnerTest(TestCase):
         self.user = mixer.blend('joltem.user', password='test')
         self.solution = mixer.blend('solution.solution', owner=self.user)
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
         self.client.login(username=self.user.username, password='test')
@@ -132,7 +132,7 @@ class SolutionViewUserTest(TestCase):
         self.user = mixer.blend('joltem.user', password='test')
         self.solution = mixer.blend('solution.solution')
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
         self.client.login(username=self.user.username, password='test')
@@ -205,7 +205,7 @@ class SolutionViewAnonymousTest(TestCase):
     def setUp(self):
         self.solution = mixer.blend('solution.solution')
         self.path = reverse('project:solution:solution', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -371,7 +371,7 @@ class SolutionReviewViewOwnerTest(TestCase):
         self.solution.mark_complete(5)
         self.client.login(username=self.user.username, password='test')
         self.path = reverse('project:solution:review', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -397,7 +397,7 @@ class SolutionReviewViewTest(TestCase):
                                     owner__first_name="Jill")
         self.solution.mark_complete(5)
         self.path = reverse('project:solution:review', args=[
-            self.solution.project.name,
+            self.solution.project.id,
             self.solution.id
         ])
 
@@ -461,8 +461,8 @@ class SolutionCreateView(BaseSolutionViewTest):
         self.assertTrue(response.status_code, 302)
 
 
-SOLUTION_COMMITS_URL = '/{project_name}/solution/{solution_id}/commits/'
-SOLUTION_COMMITS_REPO_URL = '/{project_name}/solution/{solution_id}/commits/repository/{repo_id}/'
+SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'
+SOLUTION_COMMITS_REPO_URL = '/{project_id}/solution/{solution_id}/commits/repository/{repo_id}/'
 
 
 class SolutionCommitsTest(WebTest, ViewTestMixin):
@@ -474,7 +474,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
         )
 
         self.url = SOLUTION_COMMITS_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=self.solution.pk,
         )
 
@@ -485,7 +485,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_project_does_not_exist(self):
         url_with_faked_project = SOLUTION_COMMITS_URL.format(
-            project_name='blah',
+            project_id=1000000,
             solution_id=self.solution.pk,
         )
 
@@ -493,7 +493,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_solution_does_not_exist(self):
         url_with_faked_solution = SOLUTION_COMMITS_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=0,
         )
 
@@ -501,7 +501,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
 
     def test_404_if_repository_does_not_exist(self):
         url_with_faked_repo = SOLUTION_COMMITS_REPO_URL.format(
-            project_name=self.solution.project.name,
+            project_id=self.solution.project.id,
             solution_id=self.solution.pk,
             repo_id='0'
         )
@@ -509,7 +509,7 @@ class SolutionCommitsTest(WebTest, ViewTestMixin):
         self.app.get(url_with_faked_repo, user=self.user, status=404)
 
 
-MY_REVIEWED_SOLUTIONS_URL = '/{project_name}/solution/reviewed/my/'
+MY_REVIEWED_SOLUTIONS_URL = '/{project_id}/solution/reviewed/my/'
 
 
 class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
@@ -519,7 +519,7 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = MY_REVIEWED_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_two_reviewed_solutions(self):
@@ -536,7 +536,7 @@ class MyReviewedSolutionsTest(WebTest, ViewTestMixin):
             self.assertContains(response, solution.title)
 
 
-MY_REVIEW_SOLUTIONS_URL = '/{project_name}/solution/review/my/'
+MY_REVIEW_SOLUTIONS_URL = '/{project_id}/solution/review/my/'
 
 
 class MyReviewSolutionsTest(WebTest, ViewTestMixin):
@@ -546,7 +546,7 @@ class MyReviewSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = MY_REVIEW_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_two_solutions_to_review(self):
@@ -570,7 +570,7 @@ class MyReviewSolutionsTest(WebTest, ViewTestMixin):
             self.assertContains(response, solution.title)
 
 
-MY_INCOMPLETE_SOLUTIONS_URL = '/{project_name}/solution/incomplete/my/'
+MY_INCOMPLETE_SOLUTIONS_URL = '/{project_id}/solution/incomplete/my/'
 
 
 class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
@@ -580,7 +580,7 @@ class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = MY_INCOMPLETE_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_one_incompleted_solution(self):
@@ -598,7 +598,7 @@ class MyIncompleteSolutionsTest(WebTest, ViewTestMixin):
         self.assertContains(response, 'my incomplete solution')
 
 
-MY_COMPLETE_SOLUTIONS_URL = '/{project_name}/solution/complete/my/'
+MY_COMPLETE_SOLUTIONS_URL = '/{project_id}/solution/complete/my/'
 
 
 class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
@@ -608,7 +608,7 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = MY_COMPLETE_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_one_completed_solution(self):
@@ -626,7 +626,7 @@ class MyCompleteSolutionsTest(WebTest, ViewTestMixin):
         self.assertContains(response, 'my completed solution')
 
 
-ALL_INCOMPLETE_SOLUTIONS_URL = '/{project_name}/solution/incomplete/'
+ALL_INCOMPLETE_SOLUTIONS_URL = '/{project_id}/solution/incomplete/'
 
 
 class IncompleteSolutionsTest(WebTest, ViewTestMixin):
@@ -636,7 +636,7 @@ class IncompleteSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = ALL_INCOMPLETE_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_one_incompleted_solution(self):
@@ -653,7 +653,7 @@ class IncompleteSolutionsTest(WebTest, ViewTestMixin):
         self.assertContains(response, 'incomplete solution')
 
 
-ALL_COMPLETE_SOLUTIONS_URL = '/{project_name}/solution/complete/'
+ALL_COMPLETE_SOLUTIONS_URL = '/{project_id}/solution/complete/'
 
 
 class CompleteSolutionsTest(WebTest, ViewTestMixin):
@@ -663,7 +663,7 @@ class CompleteSolutionsTest(WebTest, ViewTestMixin):
         self.project = mixer.blend('project.project')
 
         self.url = ALL_COMPLETE_SOLUTIONS_URL.format(
-            project_name=self.project.name,
+            project_id=self.project.id,
         )
 
     def test_user_has_one_completed_solution(self):

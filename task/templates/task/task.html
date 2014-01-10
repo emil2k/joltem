@@ -45,7 +45,7 @@
                     {% csrf_token %}
                     <div class="btn-group">
                         {% if task.is_accepted and not task.is_closed %}
-                            <a class="btn btn-success" href="{% url 'project:task:solve' project.name task.id %}">solve</a>
+                            <a class="btn btn-success" href="{% url 'project:task:solve' project.id task.id %}">solve</a>
                         {% endif %}
                         {% if is_owner %}
                             {% if not task.is_closed %}
@@ -55,7 +55,7 @@
                             {% endif %}
                         {% endif %}
                         {% if is_owner %}
-                            <a class="btn" href="{% url 'project:task:edit' project.name task.id %}">edit</a>
+                            <a class="btn" href="{% url 'project:task:edit' project.id task.id %}">edit</a>
                         {% endif %}
                     </div>
                 </form>
@@ -79,7 +79,7 @@
             {% endif %}
             {% if task.parent %}
                 <div class="alert alert-info">
-                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.name task.parent.id %}">{{ task.parent.default_title }}</a> by {{ task.parent.owner.first_name }}
+                    <strong>Parent solution :</strong> <a href="{% url 'project:solution:solution' project.id task.parent.id %}">{{ task.parent.default_title }}</a> by {{ task.parent.owner.first_name }}
                 </div>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ task.time_posted|timesince }} ago.</span>
