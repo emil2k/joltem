@@ -223,5 +223,7 @@ class TestProjectKeysView(TestCase):
 
         response = self.client.post(uri, follow=True)
         self.assertContains(response, keys[1].name)
-        self.assertNotContains(response, keys[0].name)
+        ssh_keys = response.context['ssh_key_list']
+        self.assertTrue(keys[1] in ssh_keys)
+        self.assertFalse(keys[0] in ssh_keys)
         self.assertEqual(self.project.authentication_set.count(), 1)
