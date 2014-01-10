@@ -414,7 +414,7 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution.add_comment(self.bob, "Bob waz here.")
         self.assertNotificationReceived(
             self.jill, solution, settings.NOTIFICATION_TYPES.comment_added,
-            "Bob commented on solution \"%s\"" % solution.default_title)
+            "Bob commented on your solution \"%s\"" % solution.default_title)
         self.assertNotificationNotReceived(
             self.bob, solution, settings.NOTIFICATION_TYPES.comment_added,
             "Bob commented on solution \"%s\"" % solution.default_title)
@@ -430,7 +430,7 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution.save()
         self.assertNotificationReceived(
             self.jill, solution, settings.NOTIFICATION_TYPES.comment_added,
-            "Bob commented on solution \"MY TITLE\"")
+            "Bob commented on your solution \"MY TITLE\"")
         self.assertNotificationReceived(
             self.bob, solution, settings.NOTIFICATION_TYPES.comment_added,
             "Jill commented on solution \"MY TITLE\"")

@@ -78,6 +78,8 @@ NOTIFICATION_TYPES('solution_evaluation_changed')
 NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_accepted')
 NOTIFICATION_TYPES('task_rejected')
+NOTIFICATION_TYPES('frozen_ratio')
+NOTIFICATION_TYPES('unfrozen_ratio')
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',

@@ -103,15 +103,23 @@ class VoteAdded(_NotifyInterface):
         :returns: A text
 
         """
+        from joltem.models import User
+
+        if notifying is None:
+            notifying = self.notification.notifying
         owner_id = self.notification.kwargs['owner']['pk']
         author_id = self.notification.kwargs['author']['pk']
         user_id = self.notification.user_id
         prefix = ''
         if owner_id == user_id or author_id == user_id:
             prefix = 'your '
+        first_names = list(
+            User.objects.filter(task_vote_set__task=notifying).values_list(
+                'first_name', flat=True).distinct()
+        )
         title = self.notification.kwargs['notifying']['fields']['title']
-        return "%s voted on %stask \"%s\"" % (
-            self.notification.kwargs['voter_first_name'], prefix, title)
+        return "%s voted on %stask \"%s\"" % \
+               (list_string_join(first_names), prefix, title)
 
 
 class VoteUpdated(_NotifyInterface):

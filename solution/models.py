@@ -1,6 +1,7 @@
 """ Solution related models. """
 import logging
 from django.conf import settings
+from django.core import serializers
 from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
@@ -9,7 +10,6 @@ from model_utils.managers import PassThroughManager
 from .managers import SolutionQuerySet
 from joltem.models import Voteable, Commentable
 from joltem.models.generic import Updatable
-from joltem.utils import list_string_join
 
 
 logger = logging.getLogger('joltem')
@@ -226,72 +226,6 @@ class Solution(Voteable, Commentable, Updatable):
                 vote.voter,
                 settings.NOTIFICATION_TYPES.solution_marked_complete)
 
-    def get_notification_text(self, notification):
-        """ Return displayed notification text. """
-        if settings.NOTIFICATION_TYPES.comment_added == notification.type:
-            return self.get_notification_text_comment_added(notification)
-        if settings.NOTIFICATION_TYPES.vote_added == notification.type:
-            return self.get_notification_text_vote_added(notification)
-        if settings.NOTIFICATION_TYPES.vote_updated == notification.type:
-            return self.get_notification_text_vote_updated(notification)
-        if settings.NOTIFICATION_TYPES.solution_evaluation_changed == notification.type:  # noqa
-            return self.get_notification_text_solution_evaluation_changed(
-                notification)
-        if settings.NOTIFICATION_TYPES.solution_marked_complete == notification.type:  # noqa
-            return self.get_notification_text_solution_complete(notification)
-        if settings.NOTIFICATION_TYPES.solution_posted == notification.type:
-            return self.get_notification_text_solution_posted(notification)
-        # Should not resort to this
-        return "Solution updated : %s" % self.default_title
-
-    def get_notification_text_comment_added(self, notification):
-        """ Return notification text for when comment added. """
-        first_names = self.get_commentator_first_names(
-            queryset=self.comment_set.select_related('owner').exclude(
-                owner=notification.user).order_by("-time_commented")
-        )
-        return "%s commented on solution \"%s\"" % \
-               (list_string_join(first_names), self.default_title)
-
-    def get_notification_text_vote_added(self, notification):
-        """ Return notification text for when vote added. """
-        first_names = self.get_voter_first_names(
-            queryset=self.vote_set.select_related('voter').exclude(
-                voter=notification.user).order_by("-time_voted")
-        )
-        return "%s voted on your solution \"%s\"" % \
-               (list_string_join(first_names), self.default_title)
-
-    def get_notification_text_vote_updated(self, notification):
-        """ Return notification text for when vote updated. """
-        try:
-            return "%s updated a vote on your solution \"%s\"" % \
-                   (notification.kwargs["voter_first_name"],
-                    self.default_title)
-        except KeyError:
-            return "A vote was updated on your solution \"%s\"" % \
-                   self.default_title
-
-    def get_notification_text_solution_evaluation_changed(self, notification):
-        """ Return notification text for when evaluation changed. """
-        return "Update your vote, the evaluation of \"%s\" was changed" \
-               % self.default_title
-
-    def get_notification_text_solution_complete(self, notification):
-        """ Return notification text for when solution completed. """
-        return "Solution \"%s\" was marked complete" % self.default_title
-
-    def get_notification_text_solution_posted(self, notification):
-        """ Return notification text for when solution posted. """
-        if notification.kwargs["role"] == "parent_task":
-            return "%s posted a solution on your task \"%s\"" % \
-                   (self.owner.first_name, self.task.title)
-        elif notification.kwargs["role"] == "parent_solution":
-            return "%s posted a solution on your solution \"%s\"" % \
-                   (self.owner.first_name, self.solution.default_title)
-        elif notification.kwargs["role"] == "project_admin":
-            return "%s posted a solution" % self.owner.first_name
-
     def get_notification_url(self, notification):
         """ Return notification target url. """
         from django.core.urlresolvers import reverse
@@ -304,6 +238,19 @@ class Solution(Voteable, Commentable, Updatable):
         else:
             return reverse("project:solution:solution",
                            args=[self.project.id, self.id])
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        kwargs = super(Solution, self).get_notification_kwargs(
+            notification, **kwargs)
+        kwargs['owner'] = python_serializer.serialize(
+            [self.owner], fields=('username', 'first_name'))[0]
+        return kwargs
 
     # Git related
 

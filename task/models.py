@@ -8,7 +8,6 @@ from django.core.cache import cache
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
-from joltem.notifications import get_notify
 
 
 class Task(Commentable, Updatable):
@@ -255,15 +254,6 @@ class Task(Commentable, Updatable):
 
         """
         return self.title
-
-    def get_notification_text(self, notification):
-        """ Prepare text for notification.
-
-        :return str:
-
-        """
-        notify = get_notify(notification, self)
-        return notify.get_text(self)
 
     def get_notification_url(self, url):
         """ Get notification URL.

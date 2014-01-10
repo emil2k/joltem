@@ -15,9 +15,6 @@ import logging
 
 logger = logging.getLogger('joltem')
 
-NOTIFICATION_TYPE_FROZEN_RATIO = "frozen_ratio"
-NOTIFICATION_TYPE_UNFROZEN_RATIO = "unfrozen_ratio"
-
 
 class Project(Notifying):
 
@@ -117,7 +114,7 @@ class Project(Notifying):
         :param user: the user to notify
 
         """
-        self.notify(user, NOTIFICATION_TYPE_FROZEN_RATIO, True)
+        self.notify(user, settings.NOTIFICATION_TYPES.frozen_ratio, True)
 
     def notify_unfrozen_ratio(self, user):
         """ Notify user that impact has been unfrozen.
@@ -127,23 +124,7 @@ class Project(Notifying):
         :param user: the user to notify
 
         """
-        self.notify(user, NOTIFICATION_TYPE_UNFROZEN_RATIO, True)
-
-    def get_notification_text(self, notification):
-        """ Return the displayed notification text.
-
-        :param notification: Notification instance
-        :return str: notification text
-
-        """
-        if notification.type == NOTIFICATION_TYPE_FROZEN_RATIO:
-            return "Your votes ratio is low, earning of impact " \
-                   "has been frozen on %s" % notification.notifying.title
-        elif notification.type == NOTIFICATION_TYPE_UNFROZEN_RATIO:
-            return "Votes ratio raised, earning of impact " \
-                   "has been unfrozen on %s" % notification.notifying.title
-        else:
-            return "Project %s updated" % notification.notifying.title
+        self.notify(user, settings.NOTIFICATION_TYPES.unfrozen_ratio, True)
 
     def get_notification_url(self, notification):
         """ Return the notification url.
@@ -152,8 +133,7 @@ class Project(Notifying):
         :return str: url target of notification
 
         """
-        return reverse('project:project',
-                       args=[notification.notifying.id])
+        return reverse('project:project', args=[notification.notifying.id])
 
 
 post_save.connect(receivers.update_project_impact_from_project, sender=Project)

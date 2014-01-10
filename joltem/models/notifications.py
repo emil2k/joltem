@@ -1,22 +1,20 @@
 """ Joltem notification support. """
-
+import jsonfield
 import logging
-
-from django.db import models
-from django.db.models.query import QuerySet
-from django.core.exceptions import ImproperlyConfigured
-from django.core import serializers
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
-from model_utils.managers import PassThroughManager
-from django.utils import timezone
+from django.core import serializers
+from django.core.exceptions import ImproperlyConfigured
+from django.db import models
+from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, post_delete
-import jsonfield
+from django.utils import timezone
+from model_utils.managers import PassThroughManager
 
+from joltem.notifications import get_notify
 from joltem.receivers import (
     update_notification_count, immediately_senf_email_about_notification)
-
 from joltem.tasks import send_immediately_to_user
 
 
@@ -187,12 +185,14 @@ class Notifying(models.Model):
             notifying_id=self.id
         ).delete()
 
-    @staticmethod
-    def get_notification_text(notification=None):
-        """ Get notification text for a given notification. """
+    def get_notification_text(self, notification=None):
+        """ Get notification text for a given notification.
 
-        raise ImproperlyConfigured(
-            "Extending class must implement get notification text.")
+        :returns: A notification text
+
+        """
+        notify = get_notify(notification, self)
+        return notify.get_text(self)
 
     @staticmethod
     def get_notification_url(notification=None):
@@ -205,13 +205,13 @@ class Notifying(models.Model):
             "Extending class must implement get notification url.")
 
     @property
-    def followers(self):
+    def followers(self): # noqa
         """ Get users for notify.
 
         :returns: A set of users.
 
         """
-        raise NotImplementedError
+        return set()
 
     def get_notification_kwargs(self, notification=None, **kwargs):
         """ Precache notification kwargs.

@@ -69,5 +69,5 @@ class TaskNotificationsTest(TestCase):
         voter2 = mixer.blend('user')
         task.put_vote(voter2, False)
         notify = voter1.notification_set.get()
-        self.assertEqual(notify.get_text(), '%s voted on task "%s"' % (
-            voter2.first_name, task.title))
+        self.assertEqual(notify.get_text(), '%s and %s voted on task "%s"' % (
+            voter1.first_name, voter2.first_name, task.title))
