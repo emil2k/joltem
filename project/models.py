@@ -65,7 +65,7 @@ class Project(Notifying):
         return self.developer_set.filter(id=user_id).exists()
 
     def __unicode__(self):
-        return self.name
+        return self.title
 
     def get_overview(self, limit=10):
         """ Overview self.
