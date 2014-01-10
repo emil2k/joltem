@@ -52,7 +52,7 @@ class TaskPosted(_NotifyInterface):
 
         if self.notification.kwargs["role"] == "parent_solution":
             return "%s posted a task on your solution \"%s\"" % (
-                self.author.first_name, notifying.parent.default_title)
+                author_name, notifying.parent.default_title)
 
         if self.notification.kwargs["role"] == "project_admin":
             return "%s posted a task" % author_name

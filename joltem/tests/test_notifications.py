@@ -132,7 +132,7 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
         task.add_comment(self.bob, "Bob waz here.")
         self.assertNotificationReceived(
             self.jill, task, settings.NOTIFICATION_TYPES.comment_added,
-            "Bob commented on task \"%s\"" % task.title)
+            "Bob commented on your task \"%s\"" % task.title)
         self.assertNotificationNotReceived(
             self.bob, task, settings.NOTIFICATION_TYPES.comment_added,
             "Bob commented on task \"%s\"" % task.title)
@@ -158,7 +158,7 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
         # Jill should only have one notification from Bob
         self.assertNotificationReceived(
             self.jill, task, settings.NOTIFICATION_TYPES.comment_added,
-            "Bob commented on task \"%s\"" % task.title)
+            "Bob commented on your task \"%s\"" % task.title)
 
     def test_task_posted_with_parent(self):
         """ Test notifications when task is posted with a parent solution.
@@ -543,7 +543,7 @@ class EmailNotificationTestCase(TestCase):
         self.assertEqual(m.recipients(), [task.owner.email])
         self.assertEqual(m.subject, '[joltem.com] comment_added')
 
-        self.assertTrue('%s commented on task "%s"' % (
+        self.assertTrue('%s commented on your task "%s"' % (
             self.mike.first_name,
             task.title
         ) in m.body)
