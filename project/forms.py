@@ -41,7 +41,7 @@ class ProjectCreateForm(forms.ModelForm):
             raise ValidationError("You can't own less than 0%.",
                                   code='invalid')
         elif own > 100:
-            raise ValidationError("You can't own more than 100%",
+            raise ValidationError("You can't own more than 100%.",
                                   code='invalid')
         return own
 
@@ -73,11 +73,11 @@ class ProjectCreateForm(forms.ModelForm):
         """
         m = int(self.cleaned_data.get('exchange_magnitude', 0))
         if m < 0:
-            raise ValidationError("You can't exchange less than 0%.",
-                                  code='invalid')
+            raise ValidationError(
+                "You can't exchange less than 0% each time.", code='invalid')
         elif m > 100:
-            raise ValidationError("You can't exchange more than 100%",
-                                  code='invalid')
+            raise ValidationError(
+                "You can't exchange more than 100% each time.", code='invalid')
         return m
 
 
