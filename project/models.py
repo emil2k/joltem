@@ -21,10 +21,38 @@ NOTIFICATION_TYPE_UNFROZEN_RATIO = "unfrozen_ratio"
 
 class Project(Notifying):
 
-    """ Represent Project in Joltem. """
+    """ Represents a project.
+
+    :param title: the displayed title of the project.
+    :param description: a detailed description of the project, stored
+        in markdown.
+    :param total_shares: the total number of outstanding shares.
+    :param impact_shares: the number of shares allocated to back impact.
+    :param exchange_periodicity: the number of months between impact exchange
+        events.
+    :param exchange_magnitude: int from 0-100, representing the % of impact
+        that can be exchanged at each exchange event.
+    :param date_last_exchange: date of the last exchange event, or the
+        initiation of the project exchange sequence.
+    :param admin_set: users that can change project settings and have all
+        abilities of managers and developers.
+    :param manager_set: users that can push to master, develop, and create
+        new branches, create repositories, and approve/reject tasks
+        unilaterally.
+    :param developer_set: users that can push to develop, can merge in
+        solution branches.
+    :param subscriber_set: users that can follow the project and want to
+        receive notification about project.
+
+    """
 
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    total_shares = models.BigIntegerField(default=0)
+    impact_shares = models.BigIntegerField(default=0)
+    exchange_periodicity = models.SmallIntegerField(default=0)
+    exchange_magnitude = models.SmallIntegerField(default=0)
+    date_last_exchange = models.DateField(default=timezone.now)
 
     # Relations
 
