@@ -1,0 +1,12 @@
+{% extends 'joltem/base.html' %}
+{% block title %}Create Project - Joltem{% endblock %}
+{% block content %}
+    <h3>Create Project</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <p>
+            <button type="submit" class="btn btn-success">Create</button>
+        </p>
+    </form>
+{% endblock %}

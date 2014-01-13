@@ -4,6 +4,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required
 
 from joltem import views
+from project.views import ProjectCreateView
 
 
 from django.contrib import admin
@@ -26,6 +27,7 @@ urlpatterns = patterns(
         views.UserView.as_view(), name='user'),
     url(r'^account/', include('account.urls')),
     url(r'^help/$', include('help.urls', namespace='help')),
+    url(r'^new/$', login_required(ProjectCreateView.as_view()), name='new'),
     url(r'^(?P<project_id>\d+)/', include(
         'project.urls', namespace='project')),
 )

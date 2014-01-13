@@ -10,7 +10,7 @@ from django.views.generic import (
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
-from .forms import ProjectSettingsForm, ProjectSubscribeForm
+from .forms import ProjectSettingsForm, ProjectSubscribeForm, ProjectCreateForm
 from .models import Project, Impact, Ratio
 from joltem.views.generic import RequestBaseView
 from account.forms import SSHKeyForm
@@ -53,6 +53,24 @@ class ProjectBaseView(RequestBaseView):
         kwargs["is_admin"] = self.is_admin
         kwargs["project_tab"] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
+
+
+class ProjectCreateView(CreateView):
+
+    """ View to create new project. """
+
+    template_name = "project/new_project.html"
+    form_class = ProjectCreateForm
+
+    def form_valid(self, form):
+        """ Create project and redirect to project page.
+
+        :param form: submitted form object.
+        :return:
+
+        """
+        project = form.save()
+        return redirect(reverse('project:project', args=[project.id]))
 
 
 class ProjectView(TemplateView, ProjectBaseView, BaseFormView):

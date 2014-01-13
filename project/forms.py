@@ -5,6 +5,24 @@ from django import forms
 
 from .models import Project
 
+class ProjectCreateForm(forms.ModelForm):
+
+    """ Form for creating new project. """
+
+    
+
+    class Meta:
+        model = Project
+        fields = ('title', 'description', 'exchange_periodicity',
+                  'exchange_magnitude')
+
+    def clean_title(self):
+        """ Clean up title, trim whitespace.
+
+        :return str:
+
+        """
+        return self.cleaned_data.get('title', '').strip()
 
 class ProjectSettingsForm(forms.ModelForm):
 
