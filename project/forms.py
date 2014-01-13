@@ -45,6 +45,25 @@ class ProjectCreateForm(forms.ModelForm):
                                   code='invalid')
         return own
 
+    def clean_exchange_periodicity(self):
+        """ Enforce limits on exchange event periodicity.
+
+        Minimum should be 1 month and the maximum should be 12 months.
+
+        :return int: 1-12 integer, representing number of months between
+            exchange events.
+
+        """
+        p = int(self.cleaned_data.get('exchange_periodicity', 0))
+        if p < 1:
+            raise ValidationError("Invalid exchange period.",
+                                  code='invalid')
+        elif p > 12:
+            raise ValidationError(
+                "Maximum time between exchange events is 12 months.",
+                code='invalid')
+        return p
+
 
 class ProjectSettingsForm(forms.ModelForm):
 

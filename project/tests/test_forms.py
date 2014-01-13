@@ -24,3 +24,15 @@ class ProjectCreateFormTest(TestCase):
         self.form.cleaned_data['ownership'] = 101
         with self.assertRaises(ValidationError):
             self.form.clean_ownership()
+
+    def test_exchange_periodicity_minimum(self):
+        """ Test exchange periodicity minimum. """
+        self.form.cleaned_data['exchange_periodicity'] = 0
+        with self.assertRaises(ValidationError):
+            self.form.clean_exchange_periodicity()
+
+    def test_exchange_periodicity_maximum(self):
+        """ Test exchange periodicity maximum. """
+        self.form.cleaned_data['exchange_periodicity'] = 13
+        with self.assertRaises(ValidationError):
+            self.form.clean_exchange_periodicity()
