@@ -36,3 +36,16 @@ class ProjectCreateFormTest(TestCase):
         self.form.cleaned_data['exchange_periodicity'] = 13
         with self.assertRaises(ValidationError):
             self.form.clean_exchange_periodicity()
+
+    def test_exchange_magnitude_minimum(self):
+        """ Test exchange magnitude minimum. """
+        self.form.cleaned_data['exchange_magnitude'] = -1
+        with self.assertRaises(ValidationError):
+            self.form.clean_exchange_magnitude()
+
+    def test_exchange_magnitude_maximum(self):
+        """ Test exchange magnitude maximum. """
+        self.form.cleaned_data['exchange_magnitude'] = 101
+        with self.assertRaises(ValidationError):
+            self.form.clean_exchange_magnitude()
+

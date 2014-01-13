@@ -64,6 +64,22 @@ class ProjectCreateForm(forms.ModelForm):
                 code='invalid')
         return p
 
+    def clean_exchange_magnitude(self):
+        """ Enforce limits on exchange magnitude stake.
+
+        :return int: 0-100 integer representing % of impact that can
+            be exchanged at each exchange event.
+
+        """
+        m = int(self.cleaned_data.get('exchange_magnitude', 0))
+        if m < 0:
+            raise ValidationError("You can't exchange less than 0%.",
+                                  code='invalid')
+        elif m > 100:
+            raise ValidationError("You can't exchange more than 100%",
+                                  code='invalid')
+        return m
+
 
 class ProjectSettingsForm(forms.ModelForm):
 
