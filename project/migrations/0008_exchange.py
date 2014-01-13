@@ -8,6 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'Equity'
+        db.create_table(u'project_equity', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('shares', self.gf('django.db.models.fields.BigIntegerField')(default=0)),
+            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['project.Project'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='equity_set', to=orm['joltem.User'])),
+        ))
+        db.send_create_signal(u'project', ['Equity'])
+
         # Adding field 'Project.total_shares'
         db.add_column(u'project_project', 'total_shares',
                       self.gf('django.db.models.fields.BigIntegerField')(default=0),
@@ -35,6 +44,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting model 'Equity'
+        db.delete_table(u'project_equity')
+
         # Deleting field 'Project.total_shares'
         db.delete_column(u'project_project', 'total_shares')
 
@@ -94,6 +106,13 @@ class Migration(SchemaMigration):
             'time_notified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
+        },
+        u'project.equity': {
+            'Meta': {'object_name': 'Equity'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'shares': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'equity_set'", 'to': u"orm['joltem.User']"})
         },
         u'project.impact': {
             'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Impact'},

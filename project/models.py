@@ -510,3 +510,22 @@ post_save.connect(
     receivers.update_project_impact_from_project_ratio, sender=Ratio)
 post_delete.connect(
     receivers.update_project_impact_from_project_ratio, sender=Ratio)
+
+
+class Equity(models.Model):
+
+    """ Represents a user's project specific ownership.
+
+    :param shares: the number of shares owned by the user on the
+        given project.
+    :param project:
+    :param user:
+
+    """
+
+    shares = models.BigIntegerField(default=0)
+
+    # Relations
+    project = models.ForeignKey('project.Project')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="equity_set")
