@@ -24,7 +24,7 @@
                 {% endif %}
                 <p>
                     {% render_field form.exchange_periodicity min=0 max=12 %} <small class="help-inline">in months, maximum 12 months.</small>
-                <p>
+                </p>
                 <p>
                     What percentage of impact will be <a href="{% url 'help:index' %}#exchange">exchanged</a> each time?
                 </p>
@@ -33,8 +33,7 @@
                 {% endif %}
                 <p>
                     {% render_field form.exchange_magnitude min=0 max=100 %} <small class="help-inline">%</small>
-                <p>
-
+                </p>
                 <p>
                     What percentage of the shares will initially be owned by you? The rest will be <a href="{% url 'help:index' %}#impact">backing impact</a>.
                 </p>
@@ -43,6 +42,7 @@
                 {% endif %}
                 <p>
                     {% render_field form.ownership min=0 max=100 %} <small class="help-inline">%</small>
+                </p>
                 <p>
                     <button type="submit" class="btn btn-success">Create</button>
                 </p>
