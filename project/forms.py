@@ -16,6 +16,8 @@ class ProjectCreateForm(forms.ModelForm):
 
     ownership = forms.IntegerField()
     agree = forms.BooleanField(required=False)
+    exchange_periodicity = forms.IntegerField(initial=None)
+    exchange_magnitude = forms.IntegerField(initial=None)
 
     class Meta:
         model = Project
