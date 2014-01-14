@@ -95,6 +95,11 @@ class Project(Notifying):
     def __unicode__(self):
         return self.title
 
+    @property
+    def impact_percentage(self):
+        """ Returns percentage of shares backing impact. """
+        return float(self.impact_shares) * 100 / self.total_shares
+
     def get_overview(self, limit=10):
         """ Overview self.
 
@@ -529,3 +534,6 @@ class Equity(models.Model):
     project = models.ForeignKey('project.Project')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="equity_set")
+
+    def __unicode__(self):
+        return self.user.username + " : " + self.project.title
