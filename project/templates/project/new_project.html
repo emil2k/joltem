@@ -43,6 +43,12 @@
                 <p>
                     {% render_field form.ownership min=0 max=100 %} <small class="help-inline">%</small>
                 </p>
+                {% if form.agree.errors %}
+                    <div class="alert alert-error">{{ form.agree.errors|join:' ' }}</div>
+                {% endif %}
+                <div class="alert">
+                    <span class="pull-left" style="margin: 0px 15px 5px 5px;">{% render_field form.agree %}</span> <i class="fa fa-warning fa-2x pull-right"></i> I understand that impact exchange and initial ownership parameters cannot be changed after project creation.
+                </div>
                 <p>
                     <button type="submit" class="btn btn-success">Create</button>
                 </p>

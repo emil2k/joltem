@@ -49,3 +49,8 @@ class ProjectCreateFormTest(TestCase):
         with self.assertRaises(ValidationError):
             self.form.clean_exchange_magnitude()
 
+    def test_agree(self):
+        """ Test that agree must be checked. """
+        self.form.cleaned_data['agree'] = ''
+        with self.assertRaises(ValidationError):
+            self.form.clean_agree()

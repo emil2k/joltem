@@ -15,6 +15,7 @@ class ProjectCreateForm(forms.ModelForm):
     """
 
     ownership = forms.IntegerField()
+    agree = forms.BooleanField(required=False)
 
     class Meta:
         model = Project
@@ -28,6 +29,19 @@ class ProjectCreateForm(forms.ModelForm):
 
         """
         return self.cleaned_data.get('title', '').strip()
+
+    def clean_agree(self):
+        """ Enforce understanding agreement.
+
+        :return bool: whether user understood and agreed to project creation.
+
+        """
+        if bool(self.cleaned_data.get('agree')):
+            return True
+        else:
+            raise ValidationError("You should check that you understand.",
+                                  code='invalid')
+
 
     def clean_ownership(self):
         """ Enforce limits on ownership stake.
