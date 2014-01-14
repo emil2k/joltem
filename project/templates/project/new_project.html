@@ -1,0 +1,58 @@
+{% extends 'joltem/base.html' %}
+{% load widget_tweaks %}
+{% block title %}Create Project - Joltem{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <form method="post">
+                {% csrf_token %}
+                {% if form.title.errors %}
+                    <div class="alert alert-error">{{ form.title.errors|join:' ' }}</div>
+                {% endif %}
+                {% render_field form.title class="input-block-level" placeholder=form.title.label %}
+
+                {% if form.description.errors %}
+                    <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
+                {% endif %}
+                {% render_field form.description class="input-block-level" placeholder=form.description.label rows=20 %}
+                <hr/>
+                <p>
+                    How often will impact be <a href="{% url 'help:index' %}#exchange">exchanged</a> for shares?
+                </p>
+                {% if form.exchange_periodicity.errors %}
+                    <div class="alert alert-error">{{ form.exchange_periodicity.errors|join:' ' }}</div>
+                {% endif %}
+                <p>
+                    {% render_field form.exchange_periodicity min=0 max=12 %} <small class="help-inline">in months, maximum 12 months.</small>
+                </p>
+                <p>
+                    What percentage of impact will be <a href="{% url 'help:index' %}#exchange">exchanged</a> each time?
+                </p>
+                {% if form.exchange_magnitude.errors %}
+                    <div class="alert alert-error">{{ form.exchange_magnitude.errors|join:' ' }}</div>
+                {% endif %}
+                <p>
+                    {% render_field form.exchange_magnitude min=0 max=100 %} <small class="help-inline">%</small>
+                </p>
+                <p>
+                    What percentage of the shares will initially be owned by you? The rest will be <a href="{% url 'help:index' %}#impact">backing impact</a>.
+                </p>
+                {% if form.ownership.errors %}
+                    <div class="alert alert-error">{{ form.ownership.errors|join:' ' }}</div>
+                {% endif %}
+                <p>
+                    {% render_field form.ownership min=0 max=100 %} <small class="help-inline">%</small>
+                </p>
+                {% if form.agree.errors %}
+                    <div class="alert alert-error">{{ form.agree.errors|join:' ' }}</div>
+                {% endif %}
+                <div class="alert">
+                    <span class="pull-left" style="margin: 0px 15px 5px 5px;">{% render_field form.agree %}</span> <i class="fa fa-warning fa-2x pull-right"></i> I understand that impact exchange and initial ownership parameters cannot be changed after project creation.
+                </div>
+                <p>
+                    <button type="submit" class="btn btn-success">Create</button>
+                </p>
+            </form>
+        </div>
+    </div>
+{% endblock %}
