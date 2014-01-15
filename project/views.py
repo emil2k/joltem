@@ -10,8 +10,8 @@ from django.views.generic import (
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
-from .forms import ProjectSettingsForm, ProjectSubscribeForm
-from .models import Project, Impact, Ratio
+from .forms import ProjectSettingsForm, ProjectSubscribeForm, ProjectCreateForm
+from .models import Project, Impact, Ratio, Equity
 from joltem.views.generic import RequestBaseView
 from account.forms import SSHKeyForm
 
@@ -53,6 +53,42 @@ class ProjectBaseView(RequestBaseView):
         kwargs["is_admin"] = self.is_admin
         kwargs["project_tab"] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
+
+
+class ProjectCreateView(RequestBaseView, CreateView):
+
+    """ View to create new project. """
+
+    template_name = "project/new_project.html"
+    form_class = ProjectCreateForm
+
+    def form_valid(self, form):
+        """ Create project and redirect to project page.
+
+        :param form: submitted form object.
+        :return:
+
+        """
+        project = form.save()
+        project.exchange_periodicity = \
+            form.cleaned_data.get('exchange_periodicity')
+        project.exchange_magnitude = \
+            form.cleaned_data.get('exchange_magnitude')
+        project.total_shares = 1000000
+        ownership = form.cleaned_data.get('ownership')
+        owner_shares = project.total_shares / 100 * ownership
+        project.impact_shares = project.total_shares - owner_shares
+        project.admin_set.add(self.user)
+        project.save()
+
+        owner_equity = Equity(
+            shares=owner_shares,
+            user=self.user,
+            project=project
+        )
+        owner_equity.save()
+
+        return redirect(reverse('project:project', args=[project.id]))
 
 
 class ProjectView(TemplateView, ProjectBaseView, BaseFormView):

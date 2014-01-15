@@ -18,10 +18,38 @@ logger = logging.getLogger('joltem')
 
 class Project(Notifying):
 
-    """ Represent Project in Joltem. """
+    """ Represents a project.
+
+    :param title: the displayed title of the project.
+    :param description: a detailed description of the project, stored
+        in markdown.
+    :param total_shares: the total number of outstanding shares.
+    :param impact_shares: the number of shares allocated to back impact.
+    :param exchange_periodicity: the number of months between impact exchange
+        events.
+    :param exchange_magnitude: int from 0-100, representing the % of impact
+        that can be exchanged at each exchange event.
+    :param date_last_exchange: date of the last exchange event, or the
+        initiation of the project exchange sequence.
+    :param admin_set: users that can change project settings and have all
+        abilities of managers and developers.
+    :param manager_set: users that can push to master, develop, and create
+        new branches, create repositories, and approve/reject tasks
+        unilaterally.
+    :param developer_set: users that can push to develop, can merge in
+        solution branches.
+    :param subscriber_set: users that can follow the project and want to
+        receive notification about project.
+
+    """
 
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    total_shares = models.BigIntegerField(default=0)
+    impact_shares = models.BigIntegerField(default=0)
+    exchange_periodicity = models.SmallIntegerField(default=0)
+    exchange_magnitude = models.SmallIntegerField(default=0)
+    date_last_exchange = models.DateField(default=timezone.now)
 
     # Relations
 
@@ -62,7 +90,12 @@ class Project(Notifying):
         return self.developer_set.filter(id=user_id).exists()
 
     def __unicode__(self):
-        return self.name
+        return self.title
+
+    @property
+    def impact_percentage(self):
+        """ Returns percentage of shares backing impact. """
+        return float(self.impact_shares) * 100 / self.total_shares
 
     def get_overview(self, limit=10):
         """ Overview self.
@@ -462,3 +495,25 @@ post_save.connect(
     receivers.update_project_impact_from_project_ratio, sender=Ratio)
 post_delete.connect(
     receivers.update_project_impact_from_project_ratio, sender=Ratio)
+
+
+class Equity(models.Model):
+
+    """ Represents a user's project specific ownership.
+
+    :param shares: the number of shares owned by the user on the
+        given project.
+    :param project:
+    :param user:
+
+    """
+
+    shares = models.BigIntegerField(default=0)
+
+    # Relations
+    project = models.ForeignKey('project.Project')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="equity_set")
+
+    def __unicode__(self):
+        return self.user.username + " : " + self.project.title

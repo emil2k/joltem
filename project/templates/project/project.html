@@ -40,7 +40,7 @@
             <h3>{{ project.title }}</h3>
             {{ project.description|markdown }}
             <h4>Structure</h4>
-            <strong>85%</strong> of company shares are backing impact, annually <strong>25%</strong> of the unexchanged impact will be exchanged for shares.
+            <strong>{{ project.impact_percentage|floatformat:-2 }}%</strong> of company shares are backing impact, every {{ project.exchange_periodicity }} months <strong>{{ project.exchange_magnitude }}%</strong> of the unexchanged impact will be exchanged for shares.
         </div>
     </div>
     <div class="hidden-desktop hidden-tablet">
