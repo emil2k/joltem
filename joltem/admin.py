@@ -6,11 +6,12 @@ import project.models
 import task.models
 import solution.models
 
-from .models import User, Vote, Comment
+from .models import User, Vote, Comment, Notification
 
 admin.site.register(Comment)
 admin.site.register(User)
 admin.site.register(Vote)
+admin.site.register(Notification)
 admin.site.register(project.models.Project)
 admin.site.register(project.models.Equity)
 admin.site.register(solution.models.Solution)

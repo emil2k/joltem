@@ -55,10 +55,10 @@ class Comment(Owned, ProjectContext, Updatable):
             return anchor(reverse(
                 "project:solution:solution", args=[self.project.id,
                                                    self.commentable_id]))
-        else:  # it is a Task
-            return anchor(reverse(
-                "project:task:task", args=[self.project.id,
-                                           self.commentable_id]))
+        # it is a Task
+        return anchor(reverse(
+            "project:task:task", args=[
+                self.project_id, self.commentable_id]))
 
 
 post_save.connect(
@@ -75,8 +75,6 @@ post_save.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
 post_delete.connect(
     receivers.update_project_impact_from_voteables, sender=Comment)
-
-NOTIFICATION_TYPE_COMMENT_ADDED = "comment_added"
 
 
 class Commentable(Notifying, Owned, ProjectContext):
@@ -118,35 +116,29 @@ class Commentable(Notifying, Owned, ProjectContext):
 
     def notify_comment_added(self, comment):
         """ Notify other commentators of comment, and owner of notifying. """
-        if comment.owner_id != self.owner.id:  # notify owner
-            self.notify(self.owner, NOTIFICATION_TYPE_COMMENT_ADDED, True)
-        for commentator in self.iterate_commentators():
-            if commentator.id != self.owner.id \
-                    and commentator.id != comment.owner_id:
-                self.notify(commentator, NOTIFICATION_TYPE_COMMENT_ADDED, True)
+
+        for user in self.followers:
+            if user == comment.owner:
+                continue
+            self.notify(user, settings.NOTIFICATION_TYPES.comment_added, True)
 
     def iterate_commentators(self, queryset=None, exclude=None):
-        """ Iterate through comments and return distinct commentators. """
-        if exclude is None:
-            exclude = []
+        """ Iterate through comments and return distinct commentators.
 
-        queryset = self.comment_set.all() if queryset is None else queryset
-        commentator_ids = []
-        for comment in queryset:
-            if comment.owner in exclude:
-                continue
-            if not comment.owner.id in commentator_ids:
-                commentator_ids.append(comment.owner.id)
-                yield comment.owner
-
-    def get_commentators(self, queryset=None, exclude=None):
-        """ Return a distinct list of commentators.
-
-        :return list:
+        :param exclude: dict with exclude kwargs
 
         """
-        return [commentator for commentator in self.iterate_commentators(
-            queryset=queryset, exclude=exclude)]
+        if queryset is None:
+            queryset = self.comment_set.select_related('owner')
+
+        if not exclude is None:
+            queryset = queryset.exclude(**exclude)
+
+        commentator_ids = []
+        for comment in queryset:
+            if not comment.owner_id in commentator_ids:
+                commentator_ids.append(comment.owner_id)
+                yield comment.owner
 
     def get_commentator_first_names(self, queryset=None, exclude=None):
         """ Return a distinct list of the commentator first names.
@@ -154,5 +146,14 @@ class Commentable(Notifying, Owned, ProjectContext):
         :return list:
 
         """
-        return [commentator.first_name for commentator in self.get_commentators(
-            queryset=queryset, exclude=exclude)]
+        return [commentator.first_name for commentator in
+                self.iterate_commentators(queryset=queryset, exclude=exclude)]
+
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of commentators.
+
+        """
+        return set(self.iterate_commentators())

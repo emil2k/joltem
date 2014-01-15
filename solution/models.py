@@ -1,6 +1,7 @@
 """ Solution related models. """
 import logging
 from django.conf import settings
+from django.core import serializers
 from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
@@ -8,18 +9,10 @@ from model_utils.managers import PassThroughManager
 
 from .managers import SolutionQuerySet
 from joltem.models import Voteable, Commentable
-from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
 from joltem.models.generic import Updatable
-from joltem.models.votes import (NOTIFICATION_TYPE_VOTE_ADDED,
-                                 NOTIFICATION_TYPE_VOTE_UPDATED)
-from joltem.utils import list_string_join
 
 
 logger = logging.getLogger('joltem')
-
-NOTIFICATION_TYPE_SOLUTION_POSTED = "solution_posted"
-NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE = "solution_marked_complete"
-NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED = "solution_evaluation_changed"
 
 
 class Solution(Voteable, Commentable, Updatable):
@@ -61,6 +54,15 @@ class Solution(Voteable, Commentable, Updatable):
 
     def __unicode__(self):
         return str(self.id)
+
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of users.
+
+        """
+        return set([self.owner] + list(self.iterate_commentators()))
 
     def save(self, **kwargs):
         """ Notify at creation. """
@@ -179,24 +181,29 @@ class Solution(Voteable, Commentable, Updatable):
 
         """
         for vote in self.vote_set.all():
-            self.notify(vote.voter,
-                        NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED, False)
+            self.notify(
+                vote.voter,
+                settings.NOTIFICATION_TYPES.solution_evaluation_changed, False)
 
     def notify_created(self):
         """ Send out notifications about the solution being posted. """
         # notify parent task owner
         if self.task and self.task.owner_id != self.owner_id:
-            self.notify(self.task.owner, NOTIFICATION_TYPE_SOLUTION_POSTED,
-                        True, kwargs={"role": "parent_task"})
+            self.notify(
+                self.task.owner, settings.NOTIFICATION_TYPES.solution_posted,
+                True, kwargs={"role": "parent_task"})
         # notify parent solution owner
         elif self.solution and self.solution.owner_id != self.owner_id:
-            self.notify(self.solution.owner, NOTIFICATION_TYPE_SOLUTION_POSTED,
-                        True, kwargs={"role": "parent_solution"})
+            self.notify(
+                self.solution.owner,
+                settings.NOTIFICATION_TYPES.solution_posted, True,
+                kwargs={"role": "parent_solution"})
         else:  # no parent, notify project admins
             for admin in self.project.admin_set.all():
                 if admin.id != self.owner_id:
-                    self.notify(admin, NOTIFICATION_TYPE_SOLUTION_POSTED, True,
-                                kwargs={"role": "project_admin"})
+                    self.notify(
+                        admin, settings.NOTIFICATION_TYPES.solution_posted,
+                        True, kwargs={"role": "project_admin"})
 
     def notify_complete(self):
         """ Send out completion notifications. """
@@ -205,96 +212,45 @@ class Solution(Voteable, Commentable, Updatable):
                 and not self.task.is_closed \
                 and self.task.owner_id != self.owner_id:
             self.notify(self.task.owner,
-                        NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE,
+                        settings.NOTIFICATION_TYPES.solution_marked_complete,
                         True, kwargs={"role": "task_owner"})
 
     def notify_incomplete(self):
         """ Remove completion notifications. """
         if self.task:
             self.delete_notifications(
-                self.task.owner, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
+                self.task.owner,
+                settings.NOTIFICATION_TYPES.solution_marked_complete)
         for vote in self.vote_set.all():
             self.delete_notifications(
-                vote.voter, NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE)
-
-    def get_notification_text(self, notification):
-        """ Return displayed notification text. """
-        if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
-            return self.get_notification_text_comment_added(notification)
-        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type:
-            return self.get_notification_text_vote_added(notification)
-        if NOTIFICATION_TYPE_VOTE_UPDATED == notification.type:
-            return self.get_notification_text_vote_updated(notification)
-        if NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED == notification.type:
-            return self.get_notification_text_solution_evaluation_changed(
-                notification)
-        if NOTIFICATION_TYPE_SOLUTION_MARKED_COMPLETE == notification.type:
-            return self.get_notification_text_solution_complete(notification)
-        if NOTIFICATION_TYPE_SOLUTION_POSTED == notification.type:
-            return self.get_notification_text_solution_posted(notification)
-        # Should not resort to this
-        return "Solution updated : %s" % self.default_title
-
-    def get_notification_text_comment_added(self, notification):
-        """ Return notification text for when comment added. """
-        first_names = self.get_commentator_first_names(
-            queryset=self.comment_set.select_related('owner').exclude(
-                owner=notification.user).order_by("-time_commented")
-        )
-        return "%s commented on solution \"%s\"" % \
-               (list_string_join(first_names), self.default_title)
-
-    def get_notification_text_vote_added(self, notification):
-        """ Return notification text for when vote added. """
-        first_names = self.get_voter_first_names(
-            queryset=self.vote_set.select_related('voter').exclude(
-                voter=notification.user).order_by("-time_voted")
-        )
-        return "%s voted on your solution \"%s\"" % \
-               (list_string_join(first_names), self.default_title)
-
-    def get_notification_text_vote_updated(self, notification):
-        """ Return notification text for when vote updated. """
-        try:
-            return "%s updated a vote on your solution \"%s\"" % \
-                   (notification.kwargs["voter_first_name"],
-                    self.default_title)
-        except KeyError:
-            return "A vote was updated on your solution \"%s\"" % \
-                   self.default_title
-
-    def get_notification_text_solution_evaluation_changed(self, notification):
-        """ Return notification text for when evaluation changed. """
-        return "Update your vote, the evaluation of \"%s\" was changed" \
-               % self.default_title
-
-    def get_notification_text_solution_complete(self, notification):
-        """ Return notification text for when solution completed. """
-        return "Solution \"%s\" was marked complete" % self.default_title
-
-    def get_notification_text_solution_posted(self, notification):
-        """ Return notification text for when solution posted. """
-        if notification.kwargs["role"] == "parent_task":
-            return "%s posted a solution on your task \"%s\"" % \
-                   (self.owner.first_name, self.task.title)
-        elif notification.kwargs["role"] == "parent_solution":
-            return "%s posted a solution on your solution \"%s\"" % \
-                   (self.owner.first_name, self.solution.default_title)
-        elif notification.kwargs["role"] == "project_admin":
-            return "%s posted a solution" % self.owner.first_name
+                vote.voter,
+                settings.NOTIFICATION_TYPES.solution_marked_complete)
 
     def get_notification_url(self, notification):
         """ Return notification target url. """
         from django.core.urlresolvers import reverse
-        if NOTIFICATION_TYPE_VOTE_ADDED == notification.type \
-            or NOTIFICATION_TYPE_VOTE_UPDATED == notification.type \
-            or NOTIFICATION_TYPE_SOLUTION_EVALUATION_CHANGED \
+        if settings.NOTIFICATION_TYPES.vote_added == notification.type \
+            or settings.NOTIFICATION_TYPES.vote_updated == notification.type \
+            or settings.NOTIFICATION_TYPES.solution_evaluation_changed \
                 == notification.type:
             return reverse("project:solution:review",
                            args=[self.project.id, self.id])
         else:
             return reverse("project:solution:solution",
                            args=[self.project.id, self.id])
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        kwargs = super(Solution, self).get_notification_kwargs(
+            notification, **kwargs)
+        kwargs['owner'] = python_serializer.serialize(
+            [self.owner], fields=('username', 'first_name'))[0]
+        return kwargs
 
     # Git related
 

@@ -2,12 +2,11 @@ from django.test.testcases import TestCase
 from django.utils import timezone
 from datetime import timedelta
 from joltem.libs import mixer
+from django.conf import settings
 from joltem.models import User
 from joltem.tests.test_notifications import NotificationTestCase
 
-from ..models import (
-    Project, Ratio, Impact, NOTIFICATION_TYPE_FROZEN_RATIO,
-    NOTIFICATION_TYPE_UNFROZEN_RATIO)
+from ..models import Project, Ratio, Impact
 
 
 class ProjectModelTest(TestCase):
@@ -64,7 +63,7 @@ class ProjectNotificationTest(NotificationTestCase):
     def test_get_notification_url(self):
         """ Test project notification url. """
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.frozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_url(n),
                          '/%d/' % self.project.id)
@@ -72,7 +71,7 @@ class ProjectNotificationTest(NotificationTestCase):
     def test_get_notification_text_frozen_ratio(self):
         """ Test notification text for frozen by ratio."""
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.frozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_text(n),
                          self.FROZEN_TEXT)
@@ -80,7 +79,7 @@ class ProjectNotificationTest(NotificationTestCase):
     def test_get_notification_text_unfrozen_ratio(self):
         """ Test notification text for unfrozen by ratio."""
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_UNFROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.unfrozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_text(n),
                          self.UNFROZEN_TEXT)
@@ -94,11 +93,11 @@ class ProjectNotificationTest(NotificationTestCase):
         u = mixer.blend('joltem.user')
         self.project.notify_frozen_ratio(u)
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.frozen_ratio,
             self.FROZEN_TEXT)
         self.project.notify_frozen_ratio(u)  # test that it updates
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.frozen_ratio,
             self.FROZEN_TEXT)  # implies only one received
 
     def test_notify_unfrozen_ratio(self):
@@ -110,11 +109,11 @@ class ProjectNotificationTest(NotificationTestCase):
         u = mixer.blend('joltem.user')
         self.project.notify_unfrozen_ratio(u)
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.unfrozen_ratio,
             self.UNFROZEN_TEXT)
         self.project.notify_unfrozen_ratio(u)  # test that it updates
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.unfrozen_ratio,
             self.UNFROZEN_TEXT)  # implies only one received
 
 
