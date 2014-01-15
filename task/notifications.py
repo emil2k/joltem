@@ -126,7 +126,7 @@ class VoteAdded(_NotifyInterface):
             prefix = 'your '
 
         votes = notifying.vote_set.select_related('voter').exclude(
-            voter_id=user_id).order_by('time_voted')
+            voter_id=user_id).order_by('-time_voted')
         first_names = list(OrderedSet(v.voter.first_name for v in votes))
 
         title = self.notification.kwargs['notifying']['fields']['title']
