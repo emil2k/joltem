@@ -9,7 +9,15 @@ def initialize_data():
     A project, repository, and users.
 
     """
-    project = mixer.blend('project.project', name="joltem", title="Joltem")
+    description = "This is a platform to openly collaborate with others to " \
+                  "build and launch a startup. We have rethinked the way " \
+                  "companies are formed based on the idea that an openly " \
+                  "developed startup has major advantages over its closed " \
+                  "counterparts."
+    project = mixer.blend(
+        'project.project', name="joltem", title="Joltem",
+        description=description, total_shares=1000000, impact_shares=850000,
+        exchange_periodicity=12, exchange_magnitude=25)
     mixer.blend(
         'git.repository', project=project, name="Test repository",
         description="An empty repository for you to play with.")
@@ -21,8 +29,10 @@ def initialize_data():
     first_names = ('Becky', 'Bob', 'Ian', 'Jill', 'Kate', 'Will')
     mixer.cycle(6).blend('joltem.user',
                          first_name=(first_name for first_name in first_names),
-                         username=mixer.mix.first_name(lambda x: x.lower()),
+                         username=mixer.MIX.first_name(lambda x: x.lower()),
                          password='123')
+    mixer.blend('project.equity', user=admin, project=project,
+                shares=150000)
 
 
 if __name__ == "__main__":
