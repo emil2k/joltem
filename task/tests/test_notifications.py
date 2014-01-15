@@ -39,10 +39,19 @@ class TaskNotificationsTest(TestCase):
 
     def test_review(self):
         task = mixer.blend('task.task', project=self.project)
+
+        voter = mixer.blend('user')
+        task.put_vote(voter, True)
+
         acceptor = mixer.blend('user')
         task.mark_reviewed(acceptor, True)
-        self.assertTrue(task.author.notification_set.exists())
-        self.assertFalse(acceptor.notification_set.exists())
+
+        notify = task.author.notification_set.last()
+        self.assertEqual(
+            notify.get_text(), 'Your task "%s" was accepted' % task.title)
+        notify = voter.notification_set.last()
+        self.assertEqual(
+            notify.get_text(), 'Task "%s" was accepted' % task.title)
 
     def test_vote(self):
         task = mixer.blend('task.task', project=self.project)
@@ -69,5 +78,14 @@ class TaskNotificationsTest(TestCase):
         voter2 = mixer.blend('user')
         task.put_vote(voter2, False)
         notify = voter1.notification_set.get()
+        self.assertEqual(notify.get_text(), '%s voted on task "%s"' % (
+            voter2.first_name, task.title))
+
+        voter3 = mixer.blend('user')
+        task.put_vote(voter3, False)
         self.assertEqual(notify.get_text(), '%s and %s voted on task "%s"' % (
-            voter1.first_name, voter2.first_name, task.title))
+            voter2.first_name, voter3.first_name, task.title))
+
+        task.put_vote(voter3, False)
+        self.assertEqual(notify.get_text(), '%s and %s voted on task "%s"' % (
+            voter2.first_name, voter3.first_name, task.title))

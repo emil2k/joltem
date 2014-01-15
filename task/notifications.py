@@ -4,6 +4,7 @@ from django.conf import settings
 
 from joltem.notifications import _NotifyInterface
 from joltem.utils import list_string_join
+from joltem.libs.orderedset import OrderedSet
 
 
 class CommentAdded(_NotifyInterface):
@@ -71,7 +72,13 @@ class TaskAccepted(_NotifyInterface):
         :returns: Text about task posted.
 
         """
-        return "Your task \"%s\" was accepted" % self.notification.kwargs['notifying']['fields']['title'] # noqa
+        user_id = self.notification.user_id
+        owner_id = self.notification.kwargs['owner']['pk']
+        author_id = self.notification.kwargs['author']['pk']
+        title = self.notification.kwargs['notifying']['fields']['title'] # noqa
+        if owner_id == user_id or author_id == user_id:
+            return "Your task \"%s\" was accepted" % title
+        return "Task \"%s\" was accepted" % title
 
 
 class TaskRejected(_NotifyInterface):
@@ -87,7 +94,13 @@ class TaskRejected(_NotifyInterface):
         :returns: Text about task posted.
 
         """
-        return "Your task \"%s\" was not accepted" % self.notification.kwargs['notifying']['fields']['title'] # noqa
+        user_id = self.notification.user_id
+        owner_id = self.notification.kwargs['owner']['pk']
+        author_id = self.notification.kwargs['author']['pk']
+        title = self.notification.kwargs['notifying']['fields']['title'] # noqa
+        if owner_id == user_id or author_id == user_id:
+            return "Your task \"%s\" was rejected" % title
+        return "Task \"%s\" was rejected" % title
 
 
 class VoteAdded(_NotifyInterface):
@@ -103,8 +116,6 @@ class VoteAdded(_NotifyInterface):
         :returns: A text
 
         """
-        from joltem.models import User
-
         if notifying is None:
             notifying = self.notification.notifying
         owner_id = self.notification.kwargs['owner']['pk']
@@ -113,10 +124,11 @@ class VoteAdded(_NotifyInterface):
         prefix = ''
         if owner_id == user_id or author_id == user_id:
             prefix = 'your '
-        first_names = list(
-            User.objects.filter(task_vote_set__task=notifying).values_list(
-                'first_name', flat=True).distinct()
-        )
+
+        votes = notifying.vote_set.select_related('voter').exclude(
+            voter_id=user_id).order_by('time_voted')
+        first_names = list(OrderedSet(v.voter.first_name for v in votes))
+
         title = self.notification.kwargs['notifying']['fields']['title']
         return "%s voted on %stask \"%s\"" % \
                (list_string_join(first_names), prefix, title)
