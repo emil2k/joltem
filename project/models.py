@@ -117,7 +117,7 @@ class Project(Notifying):
             is_completed=True
         ).count()
 
-        tasks = self.task_set.select_related('author')\
+        tasks = self.task_set.select_related('owner')\
             .order_by('-time_updated')[:limit]
 
         open_tasks_count = self.task_set.filter(

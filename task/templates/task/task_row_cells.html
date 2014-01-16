@@ -9,7 +9,7 @@
             {% else %}
                 <i class="fa fa-asterisk" title="high priority"></i>
             {% endif %}
-            by <a href="{% url 'user' task.author.username %}" class="muted">{{ task.author.first_name }}</a> on {{ task.time_posted|date }}
+            by <a href="{% url 'user' task.owner.username %}" class="muted">{{ task.owner.first_name }}</a> on {{ task.time_posted|date }}
             {% if task.is_closed %}
                 <span class="hidden-phone">/ <span class="text-info">Closed on {{ task.time_closed|date }}</span></span>
             {% endif %}

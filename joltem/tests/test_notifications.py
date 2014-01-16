@@ -564,10 +564,8 @@ class EmailNotificationTestCase(TestCase):
 
         task1.add_comment(self.mike, "Comment")
         task1.add_comment(task2.owner, "Comment")
-        task1.add_comment(task2.author, "Comment")
         task2.add_comment(self.mike, "Comment")
         task2.add_comment(task1.owner, "Comment")
-        task2.add_comment(task1.author, "Comment")
 
         self.assertFalse(mail.outbox)
 

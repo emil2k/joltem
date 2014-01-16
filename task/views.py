@@ -254,7 +254,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
         """
         task = form.save(commit=False)
         task.parent = self.parent_solution
-        task.author = self.user
+        task.owner = self.user
         task.save()
 
         return redirect('project:task:task', project_id=self.project.id,
@@ -312,7 +312,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
 
         """
         filters = filters or self.filters
-        qs = self.project.task_set.select_related('author')\
+        qs = self.project.task_set.select_related('owner')\
             .prefetch_related('solution_set')
 
         for k in filters:

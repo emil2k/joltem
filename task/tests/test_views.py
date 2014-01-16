@@ -55,7 +55,7 @@ class TaskViewTest(BaseTaskViewTest):
         response = self._get(views.TaskView.as_view(), task=task)
         response = response.render()
         self.assertContains(response, '<h4><a href="/user/%s/">%s</a></h4>' % (
-            task.author.username, task.author.first_name))
+            task.owner.username, task.owner.first_name))
         self.assertTrue(response.status_code, 200)
 
     def _test_task_view_action(self, action):
@@ -102,7 +102,7 @@ class TaskListViewTests(BaseProjectViewTest):
         self.assertContains(
             response,
             'by <a href="/user/%s/" class="muted">%s</a>' % (
-                task.author.username, task.author.first_name
+                task.owner.username, task.owner.first_name
             ))
 
     def test_get_my_closed_tasks(self):
@@ -158,8 +158,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
 
         task = Task.objects.get()
 
-        expected_url = TASK_URL.format(project_id=self.project.id,
-                                       task_id=task.pk)
+        expected_url = TASK_URL.format(
+            project_id=self.project.id, task_id=task.pk)
         self.assertRedirects(response, expected_url)
 
     def test_title_must_contain_printable_characters(self):
