@@ -28,8 +28,18 @@ class HomeView(RequestBaseView, TemplateView):
         :return dict: context data for template.
 
         """
+        class ProjectHolder():
+
+            """ Holder for a watched project. """
+
+            def __init__(self, project):
+                self.project = project
+                self.overview = project.get_cached_overview()
+
         if self.user.is_authenticated():
-            kwargs['watching'] = self.user.subscriber_project_set.all()
+            kwargs['watching'] = \
+                [ ProjectHolder(project)
+                  for project in self.user.subscriber_project_set.all() ]
             return super(HomeView, self).get_context_data(**kwargs)
         else:
             return {}  # empty context

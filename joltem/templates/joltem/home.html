@@ -11,9 +11,15 @@
             </ul>
         </div>
         <div class="span9">
-            {% for project in watching %}
+            {% for watched in watching %}
                 <p>
-                    <a href="{% url 'project:dashboard' project.id %}"><strong>{{ project.title }}</strong></a>
+                    <a href="{% url 'project:dashboard' watched.project.id %}"><h4>{{ watched.project.title }}</h4></a>
+                    <span class="muted">
+                        <i class="fa fa-tasks"></i> {{ watched.overview.open_tasks_count }}
+                        <i class="fa fa-archive"></i> {{ watched.overview.completed_tasks_count }}
+                        <i class="fa fa-briefcase"></i> {{ watched.overview.open_solutions_count }}
+                        <i class="fa fa-check"></i> {{ watched.overview.completed_solutions_count }}
+                    </span>
                 </p>
             {% empty %}
                 <div class="alert alert-info">
