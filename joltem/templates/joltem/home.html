@@ -1,6 +1,12 @@
 {% extends 'joltem/base.html' %}
 {% block content %}
-    <div class="alert">
-        <strong>To do ...</strong>
-    </div>
+    {% for project in watching %}
+        <p>
+            <a href="{% url 'project:dashboard' project.id %}"><strong>{{ project.title }}</strong></a>
+        </p>
+    {% empty %}
+        <div class="alert alert-info">
+            You are not watching any projects.
+        </div>
+    {% endfor %}
 {% endblock %}

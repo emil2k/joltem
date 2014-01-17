@@ -28,7 +28,11 @@ class HomeView(RequestBaseView, TemplateView):
         :return dict: context data for template.
 
         """
-        return {}  # todo
+        if self.user.is_authenticated():
+            kwargs['watching'] = self.user.subscriber_project_set.all()
+            return super(HomeView, self).get_context_data(**kwargs)
+        else:
+            return {}  # empty context
 
     def get_template_names(self):
         """ Return template name.
