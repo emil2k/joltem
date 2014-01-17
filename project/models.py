@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from joltem.models import Notifying
 
@@ -138,6 +139,19 @@ class Project(Notifying):
             solutions=solutions,
             tasks=tasks,
         )
+
+    def get_cached_overview(self):
+        """ Get cached overview of project, if available.
+
+        :return dict: overview
+
+        """
+        key = 'project:overview:%s' % self.id
+        overview = cache.get(key)
+        if not overview:
+            overview = self.get_overview()
+            cache.set(key, overview)
+        return overview
 
     def notify_frozen_ratio(self, user):
         """ Notify user that impact has been frozen.
