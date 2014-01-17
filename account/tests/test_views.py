@@ -33,7 +33,7 @@ class SignUpTest(WebTest):
         self.assertRedirects(
             response,
             expected_redirect_url,
-            target_status_code=302,
+            target_status_code=200,
         )
 
     def test_user_is_redirected_to_intro_page_after_registration(self):

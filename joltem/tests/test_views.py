@@ -15,7 +15,7 @@ class TestJoltemViews(TestCase):
     def test_home(self):
         self.client.login(username=self.user.username, password='test')
         response = self.client.get('/')
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
 
     def test_user(self):
         """ Test GET of user profile page.
