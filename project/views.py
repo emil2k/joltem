@@ -1,6 +1,5 @@
 # coding: utf-8
 """ Project's views. """
-from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -178,11 +177,7 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
         kwargs['project_impact'] = self.load_project_impact()
         kwargs['project_ratio'] = self.load_project_ratio()
         # Project specific
-        key = 'project:overview:%s' % self.project.id
-        overview = cache.get(key)
-        if not overview:
-            overview = self.project.get_overview()
-            cache.set(key, overview)
+        overview = self.project.get_cached_overview()
         kwargs.update(overview)
         kwargs['subscribe'] = int(self.project.subscriber_set.filter(
             pk=self.request.user.pk).exists())
