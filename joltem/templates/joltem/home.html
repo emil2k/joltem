@@ -1,12 +1,25 @@
 {% extends 'joltem/base.html' %}
+{% block title %}Projects - Joltem{% endblock %}
 {% block content %}
-    {% for project in watching %}
-        <p>
-            <a href="{% url 'project:dashboard' project.id %}"><strong>{{ project.title }}</strong></a>
-        </p>
-    {% empty %}
-        <div class="alert alert-info">
-            You are not watching any projects.
+    <div class="row">
+        <div class="span3">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Projects</li>
+                <li><a href="{% url 'new' %}">Create</a></li>
+                <li><a href="http://www.reddit.com/r/joltem/">Explore <i class="fa fa-external-link"></i></a></li>
+                <li class="nav-header"></li>
+            </ul>
         </div>
-    {% endfor %}
+        <div class="span9">
+            {% for project in watching %}
+                <p>
+                    <a href="{% url 'project:dashboard' project.id %}"><strong>{{ project.title }}</strong></a>
+                </p>
+            {% empty %}
+                <div class="alert alert-info">
+                    You are not watching any projects.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
