@@ -1,0 +1,9 @@
+{% load widget_tweaks %}
+{% if add_form.username.errors %}
+    <div class="alert alert-error">{{ add_form.username.errors|join:' ' }}</div>
+{% endif %}
+<form method="post" class="form-inline">
+    {% csrf_token %}
+    {% render_field add_form.username placeholder=add_form.username.label %}
+    <button name='submit_add_{{ group }}' value="1" class="btn">add</button>
+</form>

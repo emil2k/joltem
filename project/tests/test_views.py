@@ -110,34 +110,48 @@ class TestProjectSettingsView(TestCase):
         response = self.client.get(self.uri)
         self.assertEqual(response.status_code, expected_code)
 
-    def test_get_admin(self):
+    def _test_post(self, expected_code):
+        """ Test generator for POSTing project settings page.
+
+        :param expected_code: expected response code.
+
+        """
+        response = self.client.post(self.uri)
+        self.assertEqual(response.status_code, expected_code)
+
+    def test_admin(self):
         """ Test GET with admin. """
         self.project.admin_set.add(self.user)
         self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(200)
+        self._test_post(302)
 
-    def test_get_manager(self):
+    def test_manager(self):
         """ Test GET with manager. """
         self.project.manager_set.add(self.user)
         self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(404)
+        self._test_post(404)
 
-    def test_get_developer(self):
+    def test_developer(self):
         """ Test GET with developer. """
         self.project.developer_set.add(self.user)
         self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(404)
+        self._test_post(404)
 
-    def test_get_regular(self):
+    def test_regular(self):
         """ Test GET with regular user. """
         self.client.login(username=self.user.username, password='test')
         self._test_get(404)
+        self._test_post(404)
 
-    def test_get_anonymous(self):
+    def test_anonymous(self):
         """ Test GET with anonymous user. """
+        self._test_get(302)
         self._test_get(302)
 
     def test_subscribe(self):

@@ -30,30 +30,31 @@
                     {% render_field form.description class="input-block-level" placeholder=form.description.label %}
                 </p>
 
-                <hr/>
-
                 <p>
-                    <strong>Administrators</strong><br/>
-                    <small class="help-block"><i class="fa fa-info-circle"></i> can edit members of groups and project settings.</small>
-                    {% render_field form.admin_set class="input-block-level" placeholder=form.admin_set.label %}
-                </p>
-
-                <p>
-                    <strong>Managers</strong><br/>
-                    <small class="help-block"><i class="fa fa-info-circle"></i> can push to all branches and create repositories.</small>
-                    {% render_field form.manager_set class="input-block-level" placeholder=form.manager_set.label %}
-                </p>
-
-                <p>
-                    <strong>Developers</strong><br/>
-                    <small class="help-block"><i class="fa fa-info-circle"></i> can push to <em>develop</em> branch.</small>
-                    {% render_field form.developer_set class="input-block-level" placeholder=form.developer_set.label %}
-                </p>
-
-                <p>
-                    <button class="btn btn-success">Save</button>
+                    <button class="btn btn-success" name='submit_settings' value="1">Save</button>
                 </p>
             </form>
+            <hr/>
+
+            <p>
+                <strong>Administrators</strong>
+                <small class="help-inline"><i class="fa fa-info-circle"></i> can edit members of groups and project settings.</small>
+                {% include 'project/includes/add_to_group.html' with group='admin' add_form=admin_form %}
+                {% include 'project/includes/remove_from_group.html' with group='admin' members=admins %}
+            </p>
+            <p>
+                <strong>Managers</strong>
+                <small class="help-inline"><i class="fa fa-info-circle"></i> can push to all branches and create repositories.</small>
+                {% include 'project/includes/add_to_group.html' with group='manager' add_form=manager_form %}
+                {% include 'project/includes/remove_from_group.html' with group='manager' members=managers %}
+            </p>
+            <p>
+                <strong>Developers</strong>
+                <small class="help-inline"><i class="fa fa-info-circle"></i> can push to <em>develop</em> branch.</small>
+                {% include 'project/includes/add_to_group.html' with group='developer' add_form=developer_form %}
+                {% include 'project/includes/remove_from_group.html' with group='developer' members=developers %}
+            </p>
+
         </div>
     </div>
 
