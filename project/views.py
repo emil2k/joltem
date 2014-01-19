@@ -216,15 +216,17 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
     template_name = "project/settings.html"
 
     def get(self, request, *args, **kwargs):
+        if not self.project.is_admin(self.user.id):
+            raise Http404
         context = self.get_context_data(**kwargs)
         context['form'] = ProjectSettingsForm(instance=self.project)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
         if not self.project.is_admin(self.user.id):
-            return redirect(reverse('home'))
-        elif 'submit_settings' in request.POST:
+            raise Http404
+        context = self.get_context_data(**kwargs)
+        if 'submit_settings' in request.POST:
             form = ProjectSettingsForm(request.POST)
             if form.is_valid():
                 self.project.title = form.cleaned_data['title']
