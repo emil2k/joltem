@@ -3,7 +3,8 @@
         {% csrf_token %}
         <input type="hidden" name="username" value="{{ member.username }}" />
         <button type="submit" class="btn btn-mini pull-right" name='submit_remove_{{ group }}' value="1">remove</button>
-        {{ member.first_name }} {{ member.last_name }}
-        <span class="muted clearfix">{{ member.username }}</span>
+        {{ member.first_name }} {{ member.last_name }}<br/>
+        <a href="{% url 'user' member.username %}" class="muted">{{ member.username }}</a>
+        <hr/>
     </form>
 {% endfor %}

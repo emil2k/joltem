@@ -42,14 +42,12 @@
                 {% include 'project/includes/add_to_group.html' with group='admin' add_form=admin_form %}
                 {% include 'project/includes/remove_from_group.html' with group='admin' members=admins %}
             </p>
-            <hr/>
             <p>
                 <strong>Managers</strong>
                 <small class="help-inline"><i class="fa fa-info-circle"></i> can push to all branches and create repositories.</small>
                 {% include 'project/includes/add_to_group.html' with group='manager' add_form=manager_form %}
                 {% include 'project/includes/remove_from_group.html' with group='manager' members=managers %}
             </p>
-            <hr/>
             <p>
                 <strong>Developers</strong>
                 <small class="help-inline"><i class="fa fa-info-circle"></i> can push to <em>develop</em> branch.</small>
