@@ -5,6 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from .models import Project
+from joltem.forms import validate_username
 
 class ProjectCreateForm(forms.ModelForm):
 
@@ -103,8 +104,7 @@ class ProjectSettingsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('title', 'description', 'admin_set', 'manager_set',
-                  'developer_set')
+        fields = ('title', 'description')
 
     def clean_title(self):
         """ Strip whitespaces.
@@ -113,6 +113,17 @@ class ProjectSettingsForm(forms.ModelForm):
 
         """
         return self.cleaned_data.get('title', '').strip()
+
+
+class ProjectGroupForm(forms.Form):
+
+    """ Form for adding or removing a user from a project's group.
+
+    :param username: username of referenced user.
+
+    """
+
+    username = forms.CharField(required=True, validators=[validate_username])
 
 
 class ProjectSubscribeForm(forms.Form):
