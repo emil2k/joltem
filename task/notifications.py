@@ -4,7 +4,6 @@ from django.conf import settings
 
 from joltem.notifications import _NotifyInterface
 from joltem.utils import list_string_join
-from joltem.libs.orderedset import OrderedSet
 
 
 class CommentAdded(_NotifyInterface):
@@ -127,7 +126,7 @@ class VoteAdded(_NotifyInterface):
 
         votes = notifying.vote_set.select_related('voter').exclude(
             voter_id=user_id).order_by('-time_voted')
-        first_names = list(OrderedSet(v.voter.first_name for v in votes))
+        first_names = list(v.voter.first_name for v in votes)
 
         title = self.notification.kwargs['notifying']['fields']['title']
         return "%s voted on %stask \"%s\"" % \
