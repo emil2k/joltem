@@ -12,6 +12,9 @@
             <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
             <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
             <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
+            {% if user.is_authenticated and is_admin %}
+                <li class="{{ project_tab|active:"settings"}}"><a href="{% url 'project:settings' project.id %}">Settings</a></li>
+            {% endif %}
         </ul>
     </li>
 {% endblock %}

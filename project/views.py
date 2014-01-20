@@ -216,6 +216,7 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
     """ View to display and modify a project's settings. """
 
     template_name = "project/settings.html"
+    project_tab = "settings"
 
     def get(self, request, *args, **kwargs):
         if not self.project.is_admin(self.user.id):
