@@ -98,6 +98,7 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
 
     template_name = "project/project.html"
     form_class = ProjectSubscribeForm
+    project_tab = "overview"
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
@@ -139,6 +140,7 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
 
     template_name = "project/dashboard.html"
     form_class = ProjectSubscribeForm
+    project_tab = "dashboard"
 
     def load_project_impact(self):
         """ Load the user's project impact.
@@ -214,6 +216,7 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
     """ View to display and modify a project's settings. """
 
     template_name = "project/settings.html"
+    project_tab = "settings"
 
     def get(self, request, *args, **kwargs):
         if not self.project.is_admin(self.user.id):
