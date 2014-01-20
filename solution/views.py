@@ -393,24 +393,24 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                             solution_id=solution.id)
 
 
-class SolutionListMeta(type):
+class SolutionBaseListMeta(type):
 
     """ Build views hierarchy. """
 
     solutions_tabs = []
 
     def __new__(mcs, name, bases, params):
-        cls = super(SolutionListMeta, mcs).__new__(mcs, name, bases, params)
+        cls = super(SolutionBaseListMeta, mcs).__new__(mcs, name, bases, params)
         if cls.solutions_tab:
             mcs.solutions_tabs.append((cls.solutions_tab, cls))
         return cls
 
 
-class SolutionListMixin(ProjectMixin, ListView):
+class SolutionBaseListView(ListView, ProjectBaseView):
 
     """ View mixin for solution's list. """
 
-    __metaclass__ = SolutionListMeta
+    __metaclass__ = SolutionBaseListMeta
 
     context_object_name = 'solutions'
     paginate_by = 10
@@ -432,11 +432,11 @@ class SolutionListMixin(ProjectMixin, ListView):
         if not kwargs["solutions_tabs"]:
             kwargs["solutions_tabs"] = {
                 n: self.get_queryset(**c.filters).count()
-                for n, c in SolutionListMixin.solutions_tabs
+                for n, c in SolutionBaseListView.solutions_tabs
             }
             cache.set("%s:solutions_tabs" % self.project.pk,
                       kwargs["solutions_tabs"])
-        return super(SolutionListMixin, self).get_context_data(**kwargs)
+        return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
     def get_queryset(self, **filters):
         """ Filter solutions by current project.
@@ -458,7 +458,7 @@ class SolutionListMixin(ProjectMixin, ListView):
         return qs.order_by('-time_posted')
 
 
-class AllIncompleteSolutionsView(SolutionListMixin):
+class AllIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of all incomplete solutions. """
 
@@ -466,7 +466,7 @@ class AllIncompleteSolutionsView(SolutionListMixin):
     filters = {'is_completed': False, 'is_closed': False}
 
 
-class AllCompleteSolutionsView(SolutionListMixin):
+class AllCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of complete solutions. """
 
@@ -474,7 +474,7 @@ class AllCompleteSolutionsView(SolutionListMixin):
     filters = {'is_completed': True, 'is_closed': False}
 
 
-class MyIncompleteSolutionsView(SolutionListMixin):
+class MyIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your incomplete solutions. """
 
@@ -484,7 +484,7 @@ class MyIncompleteSolutionsView(SolutionListMixin):
         'owner': lambda s: s.request.user}
 
 
-class MyCompleteSolutionsView(SolutionListMixin):
+class MyCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your complete solutions. """
 
@@ -494,7 +494,7 @@ class MyCompleteSolutionsView(SolutionListMixin):
         'owner': lambda s: s.request.user}
 
 
-class MyReviewSolutionsView(SolutionListMixin):
+class MyReviewSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of solutions to review. """
 
@@ -505,7 +505,7 @@ class MyReviewSolutionsView(SolutionListMixin):
         'vote_set__voter__ne': lambda s: s.request.user}
 
 
-class MyReviewedSolutionsView(SolutionListMixin):
+class MyReviewedSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of reviewed solutions. """
 
