@@ -95,8 +95,10 @@ class Project(Notifying):
 
     @property
     def impact_percentage(self):
-        """ Returns percentage of shares backing impact. """
-        return float(self.impact_shares) * 100 / self.total_shares
+        """ Return percentage of shares backing impact. """
+        if self.total_shares:
+            return float(self.impact_shares) * 100 / self.total_shares
+        return 0
 
     def get_overview(self, limit=10):
         """ Overview self.
