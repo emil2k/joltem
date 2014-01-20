@@ -3,6 +3,7 @@
 from django.http import Http404
 from django.db.models import Sum, Q
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.functional import cached_property
 from django.core.cache import cache
 from django.views.generic import (
     TemplateView, CreateView, UpdateView, ListView,
@@ -26,14 +27,25 @@ class TaskBaseView(ProjectBaseView):
     def __init__(self, *args, **kwargs):
         super(TaskBaseView, self).__init__(*args, **kwargs)
         self.task = None
-        self.is_owner = False
 
     def initiate_variables(self, request, *args, **kwargs):
         """ Initialize task. """
 
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
-        self.is_owner = self.task.is_owner(self.user)
+
+    @cached_property
+    def is_owner(self):
+        """ Check self.user is owner of self.task.
+
+        :returns: bool
+
+        """
+        return self.task and (
+            self.task.is_owner(self.user) or
+            self.is_admin or
+            self.is_manager
+        )
 
     def get_context_data(self, **kwargs):
         """ Get data for templates.
