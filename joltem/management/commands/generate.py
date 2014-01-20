@@ -5,10 +5,12 @@ from django.core.management import BaseCommand
 
 class Command(BaseCommand):
 
-    """ Create initial data. """
+    """ Generate initial data. """
 
     def handle(self, *args, **kwargs):
         """ Handle command.
+
+        TODO: Support arguments ('tasks', 'solutions', 'users')
 
         :returns: False
 
