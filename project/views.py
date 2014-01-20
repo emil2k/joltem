@@ -4,17 +4,16 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
-from django.views.generic import (
-    TemplateView, UpdateView, CreateView, DeleteView, View)
+from django.views.generic import TemplateView, CreateView, DeleteView
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
-from .forms import ( ProjectSettingsForm, ProjectSubscribeForm,
-                     ProjectCreateForm, ProjectGroupForm )
-from joltem.models import User
+from .forms import (ProjectSettingsForm, ProjectSubscribeForm,
+                    ProjectCreateForm, ProjectGroupForm)
 from .models import Project, Impact, Ratio, Equity
-from joltem.views.generic import RequestBaseView
 from account.forms import SSHKeyForm
+from joltem.models import User
+from joltem.views.generic import RequestBaseView
 
 
 class ProjectMixin():
@@ -42,7 +41,24 @@ class ProjectBaseView(RequestBaseView):
                 id=self.kwargs.get("project_id"))
         except Project.DoesNotExist:
             raise Http404('Project doesn\'t exist.')
-        self.is_admin = self.project.is_admin(request.user.id)
+
+    @cached_property
+    def is_admin(self):
+        """ Check self.user is admin.
+
+        :returns: bool
+
+        """
+        return self.project.is_admin(self.user.pk)
+
+    @cached_property
+    def is_manager(self):
+        """ Check self.user is manager.
+
+        :returns: bool
+
+        """
+        return self.project.is_manager(self.user.pk)
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
@@ -218,65 +234,79 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
     template_name = "project/settings.html"
     project_tab = "settings"
 
-    def get(self, request, *args, **kwargs):
-        if not self.project.is_admin(self.user.id):
+    def initiate_variables(self, request, *args, **kwargs):
+        """ Check for current user is admin. """
+        super(ProjectSettingsView, self).initiate_variables(
+            request, *args, **kwargs)
+        if not self.is_admin:
             raise Http404
+
+    def get(self, request, *args, **kwargs):
+        """ Render project's settings page.
+
+        :returns: A rendered page
+
+        """
         context = self.get_context_data(**kwargs)
         context['form'] = ProjectSettingsForm(instance=self.project)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        if not self.project.is_admin(self.user.id):
-            raise Http404
+        """ Update the project.
+
+        :returns: A Response
+
+        """
         context = self.get_context_data(**kwargs)
         if 'submit_settings' in request.POST:
             form = ProjectSettingsForm(request.POST)
-            if form.is_valid():
-                self.project.title = form.cleaned_data['title']
-                self.project.description = form.cleaned_data['description']
-                self.project.save()
-            else:
+            if not form.is_valid():
                 context['form'] = form
                 return self.render_to_response(context)
+            self.project.title = form.cleaned_data['title']
+            self.project.description = form.cleaned_data['description']
+            self.project.save()
+
         elif 'submit_add_admin' in request.POST \
                 or 'submit_remove_admin' in request.POST:
             form = ProjectGroupForm(request.POST)
-            if form.is_valid():
-                user = User.objects.get(username=form.cleaned_data['username'])
-                if 'submit_remove_admin' in request.POST:
-                    self.project.admin_set.remove(user)
-                else:
-                    self.project.admin_set.add(user)
-                self.project.save()
-            else:
+            if not form.is_valid():
                 context['admin_form'] = form
                 return self.render_to_response(context)
+            user = User.objects.get(username=form.cleaned_data['username'])
+            if 'submit_remove_admin' in request.POST:
+                self.project.admin_set.remove(user)
+            else:
+                self.project.admin_set.add(user)
+            self.project.save()
+
         elif 'submit_add_manager' in request.POST \
                 or 'submit_remove_manager' in request.POST:
             form = ProjectGroupForm(request.POST)
-            if form.is_valid():
-                user = User.objects.get(username=form.cleaned_data['username'])
-                if 'submit_remove_manager' in request.POST:
-                    self.project.manager_set.remove(user)
-                else:
-                    self.project.manager_set.add(user)
-                self.project.save()
-            else:
+            if not form.is_valid():
                 context['manager_form'] = form
                 return self.render_to_response(context)
+
+            user = User.objects.get(username=form.cleaned_data['username'])
+            if 'submit_remove_manager' in request.POST:
+                self.project.manager_set.remove(user)
+            else:
+                self.project.manager_set.add(user)
+            self.project.save()
+
         elif 'submit_add_developer' in request.POST \
                 or 'submit_remove_developer' in request.POST:
             form = ProjectGroupForm(request.POST)
-            if form.is_valid():
-                user = User.objects.get(username=form.cleaned_data['username'])
-                if 'submit_remove_developer' in request.POST:
-                    self.project.developer_set.remove(user)
-                else:
-                    self.project.developer_set.add(user)
-                self.project.save()
-            else:
+            if not form.is_valid():
                 context['developer_form'] = form
                 return self.render_to_response(context)
+            user = User.objects.get(username=form.cleaned_data['username'])
+            if 'submit_remove_developer' in request.POST:
+                self.project.developer_set.remove(user)
+            else:
+                self.project.developer_set.add(user)
+            self.project.save()
+
         return redirect(reverse('project:settings', args=[self.project.id]))
 
     def get_context_data(self, **kwargs):
@@ -286,7 +316,7 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         :return: context
 
         """
-        order = lambda qs : qs.order_by('first_name')
+        order = lambda qs: qs.order_by('first_name')
         kwargs['form'] = ProjectSettingsForm(instance=self.project)
         kwargs['admin_form'] = ProjectGroupForm()
         kwargs['manager_form'] = ProjectGroupForm()
