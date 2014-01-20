@@ -78,7 +78,7 @@
                     {% if user.is_authenticated %}
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                Hello, {{ user.first_name }} <b class="caret"></b>
+                                Hello, {{ user.first_name }} <b class="fa fa-caret-down"></b>
                             </a>
                             <ul class="dropdown-menu pull-right">
                                 <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
