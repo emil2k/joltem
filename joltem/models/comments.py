@@ -60,6 +60,16 @@ class Comment(Owned, ProjectContext, Updatable):
             "project:task:task", args=[
                 self.project_id, self.commentable_id]))
 
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Prepare notification kwargs.
+
+        :returns: dict
+
+        """
+        return dict(
+            owner_id=self.owner_id, owner_name=self.owner.first_name,
+            url=self.get_comment_url())
+
 
 post_save.connect(
     receivers.update_solution_metrics_from_comment, sender=Comment)

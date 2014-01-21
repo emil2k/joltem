@@ -7,6 +7,10 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ('project', '0008_exchange'),
+    )
+
     def forwards(self, orm):
         "Write your forwards methods here."
         for notify in orm.Notification.objects.all():

@@ -182,7 +182,7 @@ class Project(Notifying):
         :return str: url target of notification
 
         """
-        return reverse('project:project', args=[notification.notifying.id])
+        return reverse('project:project', args=[self.id])
 
 
 post_save.connect(receivers.update_project_impact_from_project, sender=Project)
