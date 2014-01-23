@@ -1,0 +1,15 @@
+{% load markup %}
+<div class="row">
+    <div class="span2">
+        <small class="muted">{{ task.time_updated|timesince }}</small>
+    </div>
+    <div class="span1">
+        <p>
+            <img class="img-rounded" src="{{ task.owner.gravatar }}?s=50" />
+        </p>
+    </div>
+    <div class="span6">
+        <p><i class="fa fa-tasks"></i> <strong><a href="#">{{ task.owner.first_name }}</a></strong></p>
+        <blockquote class="muted">{{ task.description|markdown }}</blockquote>
+    </div>
+</div>

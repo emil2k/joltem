@@ -1,5 +1,6 @@
 """ Project's related models. """
 
+import operator
 from django.db import models
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
@@ -100,15 +101,14 @@ class Project(Notifying):
             return float(self.impact_shares) * 100 / self.total_shares
         return 0
 
-    def get_overview(self, limit=10):
-        """ Overview self.
+    def get_overview(self, limit=30):
+        """ Compile overview of project.
 
         :return dict(solutions tasks comments):
 
         """
-        solutions = self.solution_set.select_related('owner', 'task')\
-            .order_by('-time_updated')[:limit]
-
+        # todo split up and write tests
+        # Counts
         open_solutions_count = self.solution_set.filter(
             is_closed=False, is_completed=False
         ).count()
@@ -116,9 +116,6 @@ class Project(Notifying):
         completed_solutions_count = self.solution_set.filter(
             is_completed=True
         ).count()
-
-        tasks = self.task_set.select_related('author')\
-            .order_by('-time_updated')[:limit]
 
         open_tasks_count = self.task_set.filter(
             is_accepted=True, is_closed=False
@@ -128,18 +125,30 @@ class Project(Notifying):
             is_closed=True, is_accepted=True
         ).count()
 
+        # Lists
+        solutions = self.solution_set.select_related('owner', 'task')\
+            .order_by('-time_updated')[:limit]
+
+        tasks = self.task_set.select_related('author')\
+            .order_by('-time_updated')[:limit]
+
         comments = self.comment_set.select_related('owner').prefetch_related(
             'commentable', 'commentable_type').order_by(
             '-time_updated')[:limit]
 
+        # Feed
+        feed = sorted(list(comments)+list(solutions)+list(tasks),
+                      key=operator.attrgetter('time_updated'),
+                      reverse=True)[:limit]
         return dict(
+            feed=feed,
             comments=comments,
+            solutions=solutions,
+            tasks=tasks,
             completed_solutions_count=completed_solutions_count,
             open_solutions_count=open_solutions_count,
             open_tasks_count=open_tasks_count,
             completed_tasks_count=completed_tasks_count,
-            solutions=solutions,
-            tasks=tasks,
         )
 
     def get_cached_overview(self):

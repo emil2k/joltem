@@ -1,0 +1,15 @@
+{% load markup %}
+<div class="row">
+    <div class="span2">
+        <small class="muted">{{ solution.time_updated|timesince }}</small>
+    </div>
+    <div class="span1">
+        <p>
+            <img class="img-rounded" src="{{ solution.owner.gravatar }}?s=50" />
+        </p>
+    </div>
+    <div class="span6">
+        <p><i class="fa fa-briefcase"></i> <strong><a href="#">{{ solution.owner.first_name }}</a></strong></p>
+        <blockquote class="muted">{{ solution.description|markdown }}</blockquote>
+    </div>
+</div>

@@ -56,6 +56,9 @@ class Task(Commentable, Updatable):
         choices=PRIORITY_CHOICES,
         default=NORMAL_PRIORITY,
     )
+
+    model_name = "task"
+
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
 

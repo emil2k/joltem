@@ -58,54 +58,16 @@
             {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
             {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
         </div>
-        <div class="span5">
-            <h4><i class="fa fa-clock-o"></i> Tasks</h4>
-            <div>
-                {% for task in tasks %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
-                        {% if task.is_closed %}
-                            <i class="fa fa-archive muted" title="closed"></i>
-                        {% elif task.is_reviewed %}
-                            <i class="fa fa-flag muted" title="reviewed"></i>
-                        {% else %}
-                            <i class="fa fa-comments muted" title="accepted"></i>
-                        {% endif %}
-                        <a href="{% url 'project:task:task' project.id task.id %}">{{ task.title|default:"No title" }}</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no tasks.</p>
-                {% endfor %}
-            </div>
-            <h4><i class="fa fa-clock-o"></i> Solutions</h4>
-            <div>
-                {% for solution in solutions %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
-                        {% if solution.is_completed %}
-                            <i class="fa fa-check muted" title="completed"></i>
-                        {% else %}
-                            <i class="fa fa-pencil muted" title="open"></i>
-                        {% endif %}
-                        <a href="{% url 'project:solution:solution' project.id solution.id %}">{{ solution.default_title }}</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no solutions.</p>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="span4">
-            <h4><i class="fa fa-clock-o"></i> Comments</h4>
-            <div>
-                {% for comment in comments %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
-                        <a href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }} on <em>{{ comment.commentable.default_title }}</em>.</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no comments.</p>
-                {% endfor %}
-            </div>
+        <div class="span9">
+            {% for item in feed %}
+                {% if item.model_name == "comment" %}
+                    {% include "project/includes/feed_comment.html" with comment=item %}
+                {% elif item.model_name == "task" %}
+                    {% include "project/includes/feed_task.html" with task=item %}
+                {% else %}
+                    {% include "project/includes/feed_solution.html" with solution=item %}
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
 {% endblock %}
