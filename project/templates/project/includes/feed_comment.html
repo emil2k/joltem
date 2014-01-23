@@ -1,14 +1,22 @@
+{% load markup %}
 <div class="row">
-    <div class="span2">
+    <div class="span2 text-right">
         <small class="muted">{{ comment.time_updated|timesince }}</small>
     </div>
-    <div class="span1">
+    <div class="span1 text-center">
         <p>
             <img class="img-rounded" src="{{ comment.owner.gravatar }}?s=50" />
         </p>
     </div>
     <div class="span6">
-        <p><i class="fa fa-comment"></i> <strong><a href="#">{{ comment.owner.first_name }}</a></strong></p>
-        <blockquote class="muted">{{ comment.comment }}</blockquote>
+        <p><i class="fa fa-comment"></i> <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }}
+            commented on
+            {% if comment.commentable.model_name == "task" %}
+                task <em>{{ comment.commentable.title }}</em>
+            {% else %}
+                solution <em>{{ comment.commentable.title }}</em>
+            {% endif %}
+        </a></p>
+        <blockquote class="muted">{{ comment.comment|markdown }}</blockquote>
     </div>
 </div>
