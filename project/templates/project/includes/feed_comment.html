@@ -1,6 +1,8 @@
 {% load markup %}
-<div class="row">
-    <div class="span1 text-center">
+<hr class="hidden-tablet hidden-desktop"/>
+<div class="row clearfix">
+    <img class="img-rounded pull-right hidden-tablet hidden-desktop" src="{{ comment.owner.gravatar }}?s=50" />
+    <div class="span1 text-center hidden-phone">
         <p>
             <img class="img-rounded" src="{{ comment.owner.gravatar }}?s=50" />
         </p>
@@ -16,7 +18,7 @@
         </a></p>
         <blockquote class="muted">{{ comment.comment|markdown }}</blockquote>
     </div>
-    <div class="span2 text-right">
+    <div class="span2 text-center">
         <small class="muted">{{ comment.time_updated|timesince }}</small>
     </div>
 </div>

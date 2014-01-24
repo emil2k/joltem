@@ -34,7 +34,7 @@
                         <input type="text" name="q" class="input-block-level" value="{{ query }}" placeholder="Search project.">
                     </form>
                 </div>
-                <div class="span3 text-right">
+                <div class="span3 text-center">
                     {% if user.is_authenticated %}
                         <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
                             {% csrf_token %}
