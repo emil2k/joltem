@@ -79,7 +79,7 @@ class TestProjectViews(TestCase):
         response = self.client.get(uri)
         self.assertFalse(response.context['feed'])
 
-        cache.set('project:overview:%s' % self.project.id, None)
+        cache.set('project:overview:%s:limit:30' % self.project.id, None)
 
         # with self.assertNumQueries(17):
             # response = self.client.get(uri)

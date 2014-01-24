@@ -175,14 +175,13 @@ class Project(Notifying):
             completed_tasks_count=self.get_completed_tasks_count(),
         )
 
-    # todo add limit parameter to overview cache key
-    def get_cached_overview(self):
+    def get_cached_overview(self, limit=30):
         """ Get cached overview of project, if available.
 
         :return dict: overview
 
         """
-        key = 'project:overview:%s' % self.id
+        key = 'project:overview:%s:limit:%d' % (self.id, limit)
         overview = cache.get(key)
         if not overview:
             overview = self.get_overview()
