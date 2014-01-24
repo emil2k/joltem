@@ -141,33 +141,34 @@ class Project(Notifying):
             is_closed=True, is_accepted=True
         ).count()
 
+    def get_feed(self, limit=30):
+        """ Compile a recent activity feed for the project.
+
+        Included the most recently updated comments, tasks, and solutions.
+
+        :param limit: number of items to return.
+        :return: a list of items, ordered by most recently updated.
+
+        """
+        solutions = self.solution_set.select_related('owner', 'task')\
+            .order_by('-time_updated')[:limit]
+        tasks = self.task_set.select_related('author')\
+            .order_by('-time_updated')[:limit]
+        comments = self.comment_set.select_related('owner').prefetch_related(
+            'commentable', 'commentable_type').order_by(
+            '-time_updated')[:limit]
+        return sorted(list(comments)+list(solutions)+list(tasks),
+                      key=operator.attrgetter('time_updated'),
+                      reverse=True)[:limit]
+
     def get_overview(self, limit=30):
         """ Compile overview of project.
 
         :return dict(solutions tasks comments):
 
         """
-
-        # Lists
-        solutions = self.solution_set.select_related('owner', 'task')\
-            .order_by('-time_updated')[:limit]
-
-        tasks = self.task_set.select_related('author')\
-            .order_by('-time_updated')[:limit]
-
-        comments = self.comment_set.select_related('owner').prefetch_related(
-            'commentable', 'commentable_type').order_by(
-            '-time_updated')[:limit]
-
-        # Feed
-        feed = sorted(list(comments)+list(solutions)+list(tasks),
-                      key=operator.attrgetter('time_updated'),
-                      reverse=True)[:limit]
         return dict(
-            feed=feed,
-            comments=comments,
-            solutions=solutions,
-            tasks=tasks,
+            feed=self.get_feed(limit),
             completed_solutions_count=self.get_completed_solutions_count(),
             open_solutions_count=self.get_open_solutions_count(),
             open_tasks_count=self.get_open_tasks_count(),

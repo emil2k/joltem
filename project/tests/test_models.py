@@ -11,41 +11,41 @@ from ..models import Project, Ratio, Impact
 
 class ProjectModelTest(TestCase):
 
-    """ Tests for the Project model. """
+    """ Tests for the project model. """
 
     def setUp(self):
         self.project = mixer.blend(Project)
 
-    def test_get_overview(self):
-        """ Test get_overview. """
+    def test_feed_order(self):
+        """ Test that the feed is ordered properly. """
+        old = mixer.blend('task.task', project=self.project,
+                           time_updated=timezone.now() - timedelta(days=7))
+        new = mixer.blend('solution.solution', project=self.project,
+                           time_updated=timezone.now())
+        self.assertEqual(self.project.get_feed(),
+                         [new, old])
 
+    def test_feed_includes(self):
+        """ Test that the feed includes comments, tasks, and solutions. """
         tasks = mixer.cycle(4).blend(
             'task.task', project=self.project, is_reviewed=mixer.RANDOM)
-
         solutions = mixer.cycle(4).blend(
             'solution.solution', task=(t for t in tasks),
             project=mixer.MIX.task.project, is_completed=mixer.RANDOM)
-
-        comments = mixer.cycle(4).blend(
+        mixer.cycle(4).blend(
             'joltem.comment', commentable=(s for s in solutions),
             owner=mixer.SELECT('joltem.user'), project=self.project)
+        self.assertEqual(len(self.project.get_feed(limit=20)), 12)
 
+    def test_get_overview(self):
+        """ Test that overview returns all the necessary components. """
         overview = self.project.get_overview()
-        self.assertEqual(set(tasks), set(overview.get('tasks')))
-        self.assertEqual(set(solutions), set(overview.get('solutions')))
-        self.assertEqual(set(comments), set(overview.get('comments')))
-        self.assertEqual(
-            overview['completed_solutions_count'],
-            self.project.solution_set.filter(is_completed=True).count(),
-        )
-        self.assertEqual(
-            overview['completed_tasks_count'],
-            self.project.task_set.filter(
-                is_closed=True, is_accepted=True).count(),
-        )
+        self.assertTrue('feed' in overview)
+        self.assertTrue('completed_solutions_count' in overview)
+        self.assertTrue('open_solutions_count' in overview)
+        self.assertTrue('open_tasks_count' in overview)
+        self.assertTrue('completed_tasks_count' in overview)
 
-        tasks = list(overview.get('tasks'))
-        self.assertTrue(tasks[0].time_updated > tasks[-1].time_updated)
 
 class ProjectCountsTest(TestCase):
 
