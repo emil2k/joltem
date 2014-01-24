@@ -1,10 +1,10 @@
 {% load markup %}
 <div class="row">
-    <div class="span2 text-right">
-        <small class="muted">{{ task.time_updated|timesince }}</small>
-    </div>
     <div class="offset1 span6">
         <p><i class="fa fa-tasks"></i> <a class="muted" href="#">Task <em>{{ task.title }}</em> updated.</a></p>
         <blockquote class="muted">{{ task.description|markdown }}</blockquote>
+    </div>
+    <div class="span2 text-right">
+        <small class="muted">{{ task.time_updated|timesince }}</small>
     </div>
 </div>

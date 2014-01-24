@@ -1,8 +1,5 @@
 {% load markup %}
 <div class="row">
-    <div class="span2 text-right">
-        <small class="muted">{{ solution.time_updated|timesince }}</small>
-    </div>
     <div class="span1 text-center">
         <p>
             <img class="img-rounded" src="{{ solution.owner.gravatar }}?s=50" />
@@ -12,4 +9,8 @@
         <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.title }} updated.</em></a></p>
         <blockquote class="muted">{{ solution.description|markdown }}</blockquote>
     </div>
+    <div class="span2 text-right">
+        <small class="muted">{{ solution.time_updated|timesince }}</small>
+    </div>
+
 </div>

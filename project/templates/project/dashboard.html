@@ -20,40 +20,39 @@
         </div>
     {% endif %}
 
-{#    <div class="row">#}
-{#        <div class="span3 text-center">#}
-{#            <h3 style="padding: 0; margin: 0;">{{ project.title }}</h3>#}
-{#        </div>#}
-{#        <div class="span5 text-center">#}
-{#            {% if user.is_authenticated %}#}
-{#                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">#}
-{#                    {% csrf_token %}#}
-{#                    <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>#}
-{#                    <div class="btn-group">#}
-{#                        {% if not subscribe %}#}
-{#                            <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>#}
-{#                        {% else %}#}
-{#                            <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>#}
-{#                        {% endif %}#}
-{#                        {% if is_admin %}#}
-{#                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>#}
-{#                        {% endif %}#}
-{#                    </div>#}
-{#                </form>#}
-{#            {% endif %}#}
-{#        </div>#}
-{#        <div class="span4 text-center">#}
-{#            <form class="form-search" method="GET" action="./search/">#}
-{#                <div class="input-append">#}
-{#                    <input type="text" name="q" class="search-query" value="{{ query }}">#}
-{#                    <button type="submit" class="btn">Search</button>#}
-{#                </div>#}
-{#            </form>#}
-{#        </div>#}
-{#    </div>#}
-
     <div class="row">
+        <div class="span3 text-center">
+            {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
+            {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
+            {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
+            {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
+        </div>
         <div class="span9">
+            <div class="row">
+                <div class="span6">
+                    <form method="GET" action="{% url 'project:search' project.id %}">
+                        <input type="text" name="q" class="input-block-level" value="{{ query }}" placeholder="Search project.">
+                    </form>
+                </div>
+                <div class="span3 text-right">
+                    {% if user.is_authenticated %}
+                        <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                            <div class="btn-group">
+                                {% if not subscribe %}
+                                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                                {% else %}
+                                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                {% endif %}
+                                {% if is_admin %}
+                                    <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
             {% for item in feed %}
                 {% if item.model_name == "comment" %}
                     {% include "project/includes/feed_comment.html" with comment=item %}
@@ -63,12 +62,6 @@
                     {% include "project/includes/feed_solution.html" with solution=item %}
                 {% endif %}
             {% endfor %}
-        </div>
-        <div class="span3 text-center">
-            {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
-            {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
-            {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
-            {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
         </div>
     </div>
 {% endblock %}
