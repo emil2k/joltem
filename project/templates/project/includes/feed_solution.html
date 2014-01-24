@@ -8,7 +8,7 @@
         </p>
     </div>
     <div class="span6">
-        <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.title }} updated.</em></a></p>
+        <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.default_title }}</em> updated.</a></p>
         {% if solution.description %}
             <blockquote class="muted">{{ solution.description|markdown:"tables,fenced_code" }}</blockquote>
         {% else %}
