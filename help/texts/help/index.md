@@ -1,7 +1,9 @@
 <a name="what" class="anchor-fix"></a>
 ### What is this?
 
-This is a platform to openly collaborate with others to build and launch a business. We have rethinked the way companies are formed based on the idea that an openly developed business has major advantages over its closed counterparts.
+At *Joltem* ( short for “jolt them” ) our goal is to create a place that allows programmers to spontaneously come together and work openly on the best startup ideas. 
+
+We believe the current process of forming companies is outdated. Our founding principle is that working openly can be a pivotal advantage for a young startup.
 
 ##### Building a team
 
@@ -98,7 +100,7 @@ If you have an idea or you are part of an existing startup that would like to wo
 ---
 
 <a name="company" class="anchor-fix"></a>
-#### How is the company structured?
+#### How is Joltem structured?
 
 The *Joltem* project itself is a proof of concept, an open company. 
 
