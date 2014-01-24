@@ -101,29 +101,52 @@ class Project(Notifying):
             return float(self.impact_shares) * 100 / self.total_shares
         return 0
 
+    def get_open_solutions_count(self):
+        """ Calculate the open and incomplete solution count.
+
+        :return int: solution count.
+
+        """
+        return self.solution_set.filter(
+            is_closed=False, is_completed=False
+        ).count()
+
+    def get_completed_solutions_count(self):
+        """ Calculate the completed solutions count.
+
+        :return int: solution count.
+
+        """
+        return self.solution_set.filter(
+            is_completed=True
+        ).count()
+
+    def get_open_tasks_count(self):
+        """ Calculate the reviewed, accepted, and open tasks count.
+
+        :return int: task count.
+
+        """
+        return self.task_set.filter(
+            is_accepted=True, is_closed=False
+        ).count()
+
+    def get_completed_tasks_count(self):
+        """ Calculate the reviewed, accepted, and closed tasks count.
+
+        :return int: task count.
+
+        """
+        return self.task_set.filter(
+            is_closed=True, is_accepted=True
+        ).count()
+
     def get_overview(self, limit=30):
         """ Compile overview of project.
 
         :return dict(solutions tasks comments):
 
         """
-        # todo split up and write tests
-        # Counts
-        open_solutions_count = self.solution_set.filter(
-            is_closed=False, is_completed=False
-        ).count()
-
-        completed_solutions_count = self.solution_set.filter(
-            is_completed=True
-        ).count()
-
-        open_tasks_count = self.task_set.filter(
-            is_accepted=True, is_closed=False
-        ).count()
-
-        completed_tasks_count = self.task_set.filter(
-            is_closed=True, is_accepted=True
-        ).count()
 
         # Lists
         solutions = self.solution_set.select_related('owner', 'task')\
@@ -145,12 +168,13 @@ class Project(Notifying):
             comments=comments,
             solutions=solutions,
             tasks=tasks,
-            completed_solutions_count=completed_solutions_count,
-            open_solutions_count=open_solutions_count,
-            open_tasks_count=open_tasks_count,
-            completed_tasks_count=completed_tasks_count,
+            completed_solutions_count=self.get_completed_solutions_count(),
+            open_solutions_count=self.get_open_solutions_count(),
+            open_tasks_count=self.get_open_tasks_count(),
+            completed_tasks_count=self.get_completed_tasks_count(),
         )
 
+    # todo add limit parameter to overview cache key
     def get_cached_overview(self):
         """ Get cached overview of project, if available.
 

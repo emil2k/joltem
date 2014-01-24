@@ -47,6 +47,79 @@ class ProjectModelTest(TestCase):
         tasks = list(overview.get('tasks'))
         self.assertTrue(tasks[0].time_updated > tasks[-1].time_updated)
 
+class ProjectCountsTest(TestCase):
+
+    """ Tests related to calculation of various project counts. """
+
+    def setUp(self):
+        self.project = mixer.blend(Project)
+
+    def test_open_solutions_count(self):
+        """ Test open solutions count. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False, is_closed=False)
+        self.assertEqual(self.project.get_open_solutions_count(), 1)
+
+    def test_open_solutions_count_closed(self):
+        """ Test open solutions does not count closed solutions. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False, is_closed=True)
+        self.assertEqual(self.project.get_open_solutions_count(), 0)
+
+    def test_open_solutions_count_completed(self):
+        """ Test open solutions does not count completed solutions. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=True, is_closed=False)
+        self.assertEqual(self.project.get_open_solutions_count(), 0)
+
+    def test_completed_solutions_count(self):
+        """ Test completed solutions count. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=True)
+        self.assertEqual(self.project.get_completed_solutions_count(), 1)
+
+    def test_completed_solutions_count_incomplete(self):
+        """ Test completed solutions does not count incomplete. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False)
+        self.assertEqual(self.project.get_completed_solutions_count(), 0)
+
+    def test_open_tasks_count(self):
+        """ Test open tasks count. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=True)
+        self.assertEqual(self.project.get_open_tasks_count(), 1)
+
+    def test_open_tasks_count_rejected(self):
+        """ Test open tasks count does not count rejected tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=False)
+        self.assertEqual(self.project.get_open_tasks_count(), 0)
+
+    def test_open_tasks_count_closed(self):
+        """ Test open tasks count does not count closed tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=True)
+        self.assertEqual(self.project.get_open_tasks_count(), 0)
+
+    def test_completed_tasks_count(self):
+        """ Test completed tasks count. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=True)
+        self.assertEqual(self.project.get_completed_tasks_count(), 1)
+
+    def test_completed_tasks_count_rejected(self):
+        """ Test completed tasks count does not count rejected tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=False)
+        self.assertEqual(self.project.get_completed_tasks_count(), 0)
+
+    def test_completed_tasks_count_open(self):
+        """ Test completed tasks count does not count open tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=True)
+        self.assertEqual(self.project.get_completed_tasks_count(), 0)
+
 
 class ProjectNotificationTest(NotificationTestCase):
 
