@@ -22,90 +22,57 @@
 
     <div class="row">
         <div class="span3 text-center">
-            <h3 style="padding: 0; margin: 0;">{{ project.title }}</h3>
-        </div>
-        <div class="span5 text-center">
-            {% if user.is_authenticated %}
-                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
-                    <div class="btn-group">
-                        {% if not subscribe %}
-                            <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
-                        {% else %}
-                            <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
-                        {% endif %}
-                        {% if is_admin %}
-                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
-                        {% endif %}
-                    </div>
-                </form>
-            {% endif %}
-        </div>
-        <div class="span4 text-center">
-            <form class="form-search" method="GET" action="./search/">
-                <div class="input-append">
-                    <input type="text" name="q" class="search-query" value="{{ query }}">
-                    <button type="submit" class="btn">Search</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div class="row">
-        <div class="span3 text-center">
             {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
             {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
             {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
             {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
         </div>
-        <div class="span5">
-            <h4><i class="fa fa-clock-o"></i> Tasks</h4>
-            <div>
-                {% for task in tasks %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ task.time_updated|timesince }} ago.</small>
-                        {% if task.is_closed %}
-                            <i class="fa fa-archive muted" title="closed"></i>
-                        {% elif task.is_reviewed %}
-                            <i class="fa fa-flag muted" title="reviewed"></i>
-                        {% else %}
-                            <i class="fa fa-comments muted" title="accepted"></i>
-                        {% endif %}
-                        <a href="{% url 'project:task:task' project.id task.id %}">{{ task.title|default:"No title" }}</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no tasks.</p>
-                {% endfor %}
+        <div class="span9">
+            <div class="row">
+                <div class="span6">
+                    <form method="GET" action="{% url 'project:search' project.id %}">
+                        <input type="text" name="q" class="input-block-level" value="{{ query }}" placeholder="Search project.">
+                    </form>
+                </div>
+                <div class="span3 text-center">
+                    {% if user.is_authenticated %}
+                        <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                            <div class="btn-group">
+                                {% if not subscribe %}
+                                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                                {% else %}
+                                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                {% endif %}
+                                {% if is_admin %}
+                                    <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
-            <h4><i class="fa fa-clock-o"></i> Solutions</h4>
-            <div>
-                {% for solution in solutions %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ solution.time_updated|timesince }} ago.</small>
-                        {% if solution.is_completed %}
-                            <i class="fa fa-check muted" title="completed"></i>
-                        {% else %}
-                            <i class="fa fa-pencil muted" title="open"></i>
-                        {% endif %}
-                        <a href="{% url 'project:solution:solution' project.id solution.id %}">{{ solution.default_title }}</a>
+            {% for item in feed %}
+                {% if item.model_name == "comment" %}
+                    {% include "project/includes/feed_comment.html" with comment=item %}
+                {% elif item.model_name == "task" %}
+                    {% include "project/includes/feed_task.html" with task=item %}
+                {% else %}
+                    {% include "project/includes/feed_solution.html" with solution=item %}
+                {% endif %}
+            {% empty %}
+                <div class="row">
+                    <div class="span9 text-center text-info">
+                        <p>
+                            <i class="fa fa-bullhorn fa-5x"></i>
+                        </p>
+                        <p>
+                            There has been no activity on this project.
+                        </p>
                     </div>
-                {% empty %}
-                    <p class="muted">There are no solutions.</p>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="span4">
-            <h4><i class="fa fa-clock-o"></i> Comments</h4>
-            <div>
-                {% for comment in comments %}
-                    <div class="list-group-item">
-                        <small class="muted pull-right">{{ comment.time_updated|timesince }} ago.</small>
-                        <a href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }} on <em>{{ comment.commentable.default_title }}</em>.</a>
-                    </div>
-                {% empty %}
-                    <p class="muted">There are no comments.</p>
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

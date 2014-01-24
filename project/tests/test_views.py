@@ -61,9 +61,7 @@ class TestProjectViews(TestCase):
             project_id=self.project.id))
         response = self.client.get(uri)
         self.assertTrue(response.context['project'])
-        self.assertFalse(response.context['solutions'])
-        self.assertFalse(response.context['comments'])
-        self.assertFalse(response.context['tasks'])
+        self.assertFalse(response.context['feed'])
 
         tasks = mixer.cycle(5).blend('task.task', project=self.project)
         solutions = mixer.cycle(5).blend(
@@ -79,19 +77,15 @@ class TestProjectViews(TestCase):
             owner=mixer.SELECT('joltem.user'), project=self.project)
 
         response = self.client.get(uri)
-        self.assertFalse(response.context['solutions'])
-        self.assertFalse(response.context['comments'])
-        self.assertFalse(response.context['tasks'])
+        self.assertFalse(response.context['feed'])
 
-        cache.set('project:overview:%s' % self.project.id, None)
+        cache.set('project:overview:%s:limit:30' % self.project.id, None)
 
         # with self.assertNumQueries(17):
             # response = self.client.get(uri)
         response = self.client.get(uri)
 
-        self.assertTrue(response.context['solutions'])
-        self.assertTrue(response.context['comments'])
-        self.assertTrue(response.context['tasks'])
+        self.assertTrue(response.context['feed'])
 
         solution = comments[0].commentable
         self.assertContains(response, solution.default_title)

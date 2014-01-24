@@ -60,8 +60,13 @@ class ProjectContext(models.Model):
 
 class Updatable(models.Model):
 
-    """ Store updated time. """
+    """ Store updated time.
 
+    :param model_name: string that identifies the updatable type.
+    :param time_updated: time last updated.
+
+    """
+    model_name = None
     time_updated = models.DateTimeField(auto_now=True)
 
     class Meta():

@@ -2,14 +2,10 @@
 {% load filters %}
 {% block project_content %}
     <div class="clearfix">
-        <h3>{{ project.title }}</h3>
         <div class="row">
-            <div class="span8">
-                <form class="form-search" method="GET" action="">
-                    <div class="input-append">
-                        <input type="text" name="q" class="search-query span6" value="{{ query }}">
-                        <button type="submit" class="btn">Search</button>
-                    </div>
+            <div class="span12">
+                <form method="GET" action="{% url 'project:search' project.id %}">
+                    <input type="text" name="q" class="input-block-level" value="{{ query }}" placeholder="Search project.">
                 </form>
             </div>
         </div>

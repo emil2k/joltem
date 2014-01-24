@@ -1,0 +1,21 @@
+{% load markup %}
+<hr class="hidden-tablet hidden-desktop"/>
+<div class="row clearfix">
+    <img class="img-rounded pull-right hidden-tablet hidden-desktop" src="{{ solution.owner.gravatar }}?s=50" />
+    <div class="span1 text-center hidden-phone">
+        <p>
+            <img class="img-rounded" src="{{ solution.owner.gravatar }}?s=50" />
+        </p>
+    </div>
+    <div class="span6">
+        <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.title }} updated.</em></a></p>
+        {% if solution.description %}
+            <blockquote class="muted">{{ solution.description|markdown }}</blockquote>
+        {% else %}
+            <blockquote class="muted"><p>Solution has not been described yet.</p></blockquote>
+        {% endif %}
+    </div>
+    <div class="span2 text-center">
+        <small class="muted">{{ solution.time_updated|timesince }} ago.</small>
+    </div>
+</div>

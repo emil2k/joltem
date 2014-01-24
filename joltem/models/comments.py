@@ -22,6 +22,8 @@ class Comment(Owned, ProjectContext, Updatable):
 
     """ Comments in a solution review. """
 
+    model_name = "comment"
+
     comment = models.TextField(null=True, blank=True)
     time_commented = models.DateTimeField(default=timezone.now)
     # Relations

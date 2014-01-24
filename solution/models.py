@@ -30,6 +30,8 @@ class Solution(Voteable, Commentable, Updatable):
 
     """
 
+    model_name = "solution"
+
     # Optional custom title to solution
     title = models.TextField(null=True, blank=True)
     # Description of solution for all involved

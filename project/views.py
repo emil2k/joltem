@@ -181,7 +181,7 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
         kwargs['project_impact'] = self.load_project_impact()
         kwargs['project_ratio'] = self.load_project_ratio()
         # Project specific
-        overview = self.project.get_cached_overview()
+        overview = self.project.get_cached_overview(limit=30)
         kwargs.update(overview)
         kwargs['subscribe'] = int(self.project.subscriber_set.filter(
             pk=self.request.user.pk).exists())
