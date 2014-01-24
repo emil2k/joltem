@@ -61,6 +61,17 @@
                 {% else %}
                     {% include "project/includes/feed_solution.html" with solution=item %}
                 {% endif %}
+            {% empty %}
+                <div class="row">
+                    <div class="span9 text-center text-info">
+                        <p>
+                            <i class="fa fa-bullhorn fa-5x"></i>
+                        </p>
+                        <p>
+                            There has been no activity on this project.
+                        </p>
+                    </div>
+                </div>
             {% endfor %}
         </div>
     </div>
