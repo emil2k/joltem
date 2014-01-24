@@ -38,7 +38,7 @@
                 </form>
             {% endif %}
             <h3>{{ project.title }}</h3>
-            {{ project.description|markdown }}
+            {{ project.description|markdown:"tables,fenced_code" }}
             <h4>Structure</h4>
             <strong>{{ project.impact_percentage|floatformat:-2 }}%</strong> of company shares are backing impact, every {{ project.exchange_periodicity }} months <strong>{{ project.exchange_magnitude }}%</strong> of the unexchanged impact will be exchanged for shares.
         </div>
