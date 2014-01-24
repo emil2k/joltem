@@ -3,7 +3,11 @@
 <div class="row">
     <div class="offset1 span6">
         <p><i class="fa fa-tasks"></i> <a class="muted" href="{% url 'project:task:task' task.project.id task.id %}">Task <em>{{ task.title }}</em> updated.</a></p>
-        <blockquote class="muted">{{ task.description|markdown }}</blockquote>
+        {% if task.description %}
+            <blockquote class="muted">{{ task.description|markdown }}</blockquote>
+        {% else %}
+            <blockquote class="muted"><p>Task has not been described yet.</p></blockquote>
+        {% endif %}
     </div>
     <div class="span2 text-center">
         <small class="muted">{{ task.time_updated|timesince }} ago.</small>

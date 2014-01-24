@@ -9,7 +9,11 @@
     </div>
     <div class="span6">
         <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.title }} updated.</em></a></p>
-        <blockquote class="muted">{{ solution.description|markdown }}</blockquote>
+        {% if solution.description %}
+            <blockquote class="muted">{{ solution.description|markdown }}</blockquote>
+        {% else %}
+            <blockquote class="muted"><p>Solution has not been described yet.</p></blockquote>
+        {% endif %}
     </div>
     <div class="span2 text-center">
         <small class="muted">{{ solution.time_updated|timesince }} ago.</small>
