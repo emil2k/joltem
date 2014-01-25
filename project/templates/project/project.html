@@ -4,15 +4,13 @@
 {% block title %}{{ project.title }} - Overview - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
-        <div class="span4 hidden-phone text-center">
-            <br/>
+        <div class="span3 text-center">
             <h4><a href="#">Emil</a></h4>
             <p>
                 <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
             </p>
             <hr/>
-            <p>This is a little bio, about the founder.</p>
-            <ul class="nav nav-list well text-left hidden-phone">
+            <ul class="nav nav-list well text-left">
                 <li class="nav-header">Project Links</li>
                 <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
                 <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
@@ -20,42 +18,48 @@
                 <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
             </ul>
         </div>
-        <div class="span6">
-            {% if user.is_authenticated %}
-                <form method="POST" accept-charset="utf-8" enctype="multipart/form-data" class="pull-right">
-                    {% csrf_token %}
-                    <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
-                    <div class="btn-group">
-                        {% if not subscribe %}
-                            <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
-                        {% else %}
-                            <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
-                        {% endif %}
-                        {% if is_admin %}
-                            <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
-                        {% endif %}
-                    </div>
-                </form>
-            {% endif %}
-            <h3>{{ project.title }}</h3>
-            {{ project.description|markdown:"tables,fenced_code" }}
-            <h4>Structure</h4>
-            <strong>{{ project.impact_percentage|floatformat:-2 }}%</strong> of company shares are backing impact, every {{ project.exchange_periodicity }} months <strong>{{ project.exchange_magnitude }}%</strong> of the unexchanged impact will be exchanged for shares.
+        <div class="span9">
+            <div class="row">
+                <div class="span6">
+                    <h3>{{ project.title }}</h3>
+                </div>
+                <div class="span3 text-center">
+                    {% if user.is_authenticated %}
+                        <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                            <div class="btn-group">
+                                {% if not subscribe %}
+                                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                                {% else %}
+                                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                {% endif %}
+                                {% if is_admin %}
+                                    <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="span6">
+                    {{ project.description|markdown:"tables,fenced_code" }}
+                </div>
+                <div class="span3 text-center">
+                    <p><i class="fa fa-money fa-3x text-info"></i></p>
+                    <p><strong>{{ project.impact_percentage|floatformat:-2 }}%</strong> of the shares are backing <a href="{% url 'help:index' %}#impact">impact</a>.</p>
+                    <p><i class="fa fa-calendar fa-3x text-info"></i></p>
+                    <p><strong>{{ project.exchange_periodicity }} months</strong> between <a href="{% url 'help:index' %}#exchange">exchange</a> events.</p>
+                    <p><i class="fa fa-exchange fa-3x text-info"></i></p>
+                    <p><strong>{{ project.exchange_magnitude }}%</strong> exchanged at each event.</p>
+                    <p><i class="fa fa-question fa-3x text-info"></i></p>
+                    <p><a href="{% url 'help:index' %}#impact">What is impact?</a></p>
+                    <p><a href="{% url 'help:index' %}#exchange">How is impact exchanged for equity?</a></p>
+                    <p><a href="{% url 'help:index' %}#review">How is impact determined?</a></p>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="hidden-desktop hidden-tablet">
-        <hr/>
-        <img class="img-rounded pull-right" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=50" />
-        <h4><a href="#">Emil</a></h4>
-        <p>This is a little bio about the founder.</p>
-        <hr class="clearfix"/>
-        <ul class="nav nav-list well text-left">
-            <li class="nav-header">Project Links</li>
-            <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
-            <li><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
-            <li><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
-            <li><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
-        </ul>
     </div>
 {% endblock %}
 
