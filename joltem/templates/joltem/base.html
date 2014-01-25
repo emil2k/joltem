@@ -74,6 +74,10 @@
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
+                </ul>
+                <ul class="nav pull-right">
+                    <li><a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore <i class="fa fa-globe"></i></a></li>
+                    <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
                     {% if user.is_authenticated %}
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -89,7 +93,6 @@
                         <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign in</a></li>
                         <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign up</a></li>
                     {% endif %}
-                    <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
                 </ul>
             </div><!--/.nav-collapse -->
         </div>

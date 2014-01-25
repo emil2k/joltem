@@ -92,10 +92,9 @@ If your votes ratio drops below a certain threshold you are still able to earn i
 <a name="idea" class="anchor-fix"></a>
 #### Have an idea?
 
-In the *alpha* stage the only project available is the *Joltem* project itself. However, in the near future, this will be a place where anybody will be able to broadcast their idea, work openly, and attract collaborators to bring the idea to reality. 
+To begin collaborating with others simply [post your project](http://joltem.com/new/). You can either collaborate openly with your code open to the public or you can collaborate in a private environment based on invitations.
 
-If you have an idea or you are part of an existing startup that would like to work openly on our platform contact us at <support@joltem.com> with a description of the idea.
-
+If you are working openly, feel free to post an announcement about your project on our [subreddit](http://www.reddit.com/r/joltem/).
 
 ---
 
