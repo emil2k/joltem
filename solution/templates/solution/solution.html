@@ -6,7 +6,7 @@
         <div class="span8">
             <img class="img-rounded pull-right" src="{{ solution.owner.gravatar }}?s=50" />
             <h4><a href="{% url 'user' solution.owner.username %}">{{ solution.owner.first_name }}</a></h4>
-            <p><b>{{ solution.owner.impact }}</b> impact <b>{{ solution.owner.completed }}</b> solutions</p>
+            <p><b>{{ solution_owner_impact }}</b> impact <b>{{ solution_owner_completed }}</b> solutions</p>
             <hr class="clearfix"/>
         </div>
     </div>
@@ -14,8 +14,8 @@
         <div class="span2 hidden-phone">
             <h4><a href="{% url 'user' solution.owner.username %}">{{ solution.owner.first_name }}</a></h4>
             <p><img class="img-rounded" src="{{ solution.owner.gravatar }}?s=100" /></p>
-            <p><b>{{ solution.owner.impact }}</b> impact</p>
-            <p><b>{{ solution.owner.completed }}</b> solutions</p>
+            <p><b>{{ solution_owner_impact }}</b> impact</p>
+            <p><b>{{ solution_owner_completed }}</b> solutions</p>
         </div>
         <div class="span8">
             {% if solution.title %}

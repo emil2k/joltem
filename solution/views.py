@@ -13,6 +13,7 @@ from joltem.models import Comment
 from joltem.views.generic import (
     VoteableView, CommentableView, ExtraContextMixin,
 )
+from project.models import Impact
 from project.views import ProjectBaseView, ProjectMixin
 from solution.models import Solution
 from task.models import Task
@@ -85,6 +86,25 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
     template_name = "solution/solution.html"
     solution_tab = "solution"
+
+    def get_context_data(self, **kwargs):
+        """ Get data for templates.
+
+        :return dict: a context
+
+        """
+        try:
+            impact = Impact.objects.get(
+                user_id=self.solution.owner_id,
+                project_id=self.project.id
+            )
+        except Impact.DoesNotExist:
+            kwargs["solution_owner_impact"] = 0
+            kwargs["solution_owner_completed"] = 0
+        else:
+            kwargs["solution_owner_impact"] = impact.impact
+            kwargs["solution_owner_completed"] = impact.completed
+        return super(SolutionView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """ Handle POST requests on solution view.
