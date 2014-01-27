@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 
 from joltem.holders import CommentHolder
+from project.models import Impact
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
@@ -77,6 +78,17 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         kwargs["task_reject_votes"] = reject_votes_qs.order_by('time_voted')
         kwargs["task_accept_total"] = impact_total(accept_votes_qs)
         kwargs["task_reject_total"] = impact_total(reject_votes_qs)
+        try:
+            impact = Impact.objects.get(
+                user_id=self.task.author_id,
+                project_id=self.project.id
+            )
+        except Impact.DoesNotExist:
+            kwargs["task_author_impact"] = 0
+            kwargs["task_author_completed"] = 0
+        else:
+            kwargs["task_author_impact"] = impact.impact
+            kwargs["task_author_completed"] = impact.completed
         return super(TaskView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):

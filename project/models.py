@@ -239,6 +239,9 @@ class Impact(models.Model):
     class Meta:
         unique_together = ['project', 'user']
 
+    def __unicode__(self):
+        return u'%s : %s' % (self.project.title, self.user.username)
+
     def get_solutions_qs(self):
         """ Get the solutions eligible for calculating impact.
 
