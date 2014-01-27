@@ -136,7 +136,7 @@ AUTHOMATIC = {
         'consumer_key': 'na',
         'consumer_secret': 'na',
         'scope': ['email'],
-        'profile_url': 'https://plus.google.com/u/0/{username}/',
+        'profile_url': 'https://plus.google.com/u/0/{service_id}/',
     },
 
     'facebook': {
