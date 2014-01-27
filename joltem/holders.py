@@ -1,9 +1,9 @@
-""" Rare using functionality. """
+""" Template holders for Joltem app. """
 
 
 class CommentHolder:
 
-    """ Should have a docstring. """
+    """ Holder for comments. """
 
     def __init__(self, comment, user):
         self.comment = comment
