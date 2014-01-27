@@ -47,6 +47,57 @@ class ProjectModelTest(TestCase):
         self.assertTrue('completed_tasks_count' in overview)
 
 
+class ProjectCompletedCountTest(TestCase):
+
+    """ Tests related to project specific completed count. """
+
+    def setUp(self):
+        self.impact = mixer.blend('project.impact')
+        self.project = self.impact.project
+        self.user = self.impact.user
+
+    def test_completed_function(self):
+        """ Test completed count functions. """
+        s = mixer.blend('solution.solution', owner=self.user,
+                        project=self.project)
+        self.assertEqual(self.impact.get_completed(), 0)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 1)
+
+    def test_completed_function_other_project(self):
+        """ Test other projects solutions.
+
+        Solutions from other projects should not count towards completed
+        count on a particular project.
+
+        """
+        s = mixer.blend('solution.solution', owner=self.user)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 0)
+
+    def test_completed_function_other_user(self):
+        """ Test other users solutions.
+
+        Solutions from other user should not count towards completed count
+        for a particular user.
+
+        """
+        s = mixer.blend('solution', project=self.project)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 0)
+
+    def test_completed_cache(self):
+        """ Test that the completed count cache updates properly. """
+        reload = lambda i: Impact.objects.get(id=i.id)
+        s = mixer.blend('solution.solution', owner=self.user,
+                        project=self.project)
+        self.assertEqual(reload(self.impact).completed, 0)
+        s.mark_complete(impact=1)
+        self.assertEqual(reload(self.impact).completed, 1)
+        s.delete()
+        self.assertEqual(reload(self.impact).completed, 0)
+
+
 class ProjectCountsTest(TestCase):
 
     """ Tests related to calculation of various project counts. """

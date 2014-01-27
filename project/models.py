@@ -228,6 +228,7 @@ class Impact(models.Model):
     """ Stores project specific impact. """
 
     impact = models.BigIntegerField(default=0)
+    completed = models.IntegerField(default=0)
     frozen_impact = models.BigIntegerField(default=0)
 
     # Relations
@@ -273,6 +274,15 @@ class Impact(models.Model):
         for solution in solution_qs:
             impact += solution.get_impact()
         return impact
+
+    def get_completed(self):
+        """ Calculate the number of completed solutions by the user.
+
+        :return int: solution count.
+
+        """
+        return self.user.solution_set.filter(
+            project_id=self.project.id, is_completed=True).count()
 
     def get_frozen_impact(self):
         """ Calculate frozen impact.
