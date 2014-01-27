@@ -22,7 +22,7 @@ class _MetaNotifyInterface(type):
     nclasses = dict()
     _inited = False
 
-    def __new__(mcs, name, bases, params):
+    def __new__(mcs, name, bases, params): # noqa
         model = params['model']
         if isinstance(model, str):
             app_label, model_name = model.split(".")
@@ -36,7 +36,7 @@ class _MetaNotifyInterface(type):
         mcs.nclasses[(cls.ntype, cls.model)] = cls
         return cls
 
-    def get_notify(cls, notification, model):
+    def get_notify(cls, notification, model): # noqa
         """ Init Notify class by type and model.
 
         :returns: A inited notify

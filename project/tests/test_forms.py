@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from ..forms import ProjectCreateForm
 
+
 class ProjectCreateFormTest(TestCase):
 
     """ Test ProjectCreateForm. """

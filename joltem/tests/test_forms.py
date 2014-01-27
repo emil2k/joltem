@@ -6,13 +6,14 @@ from joltem.libs import mixer
 
 from ..forms import validate_username
 
+
 class ValidatorTest(TestCase):
 
     """ Test validators. """
 
     def test_validate_username_valid(self):
         """ Test valid username. """
-        user = mixer.blend('joltem.user', username='jill')
+        mixer.blend('joltem.user', username='jill')
         try:
             validate_username('jill')
         except ValidationError:

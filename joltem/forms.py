@@ -12,8 +12,8 @@ def validate_username(username):
     :param username:
 
     """
-    if username:
-        if not User.objects.filter(username=username).exists():
-            raise ValidationError('There is no user with that username.')
-    else:
+    if not username:
         raise ValidationError('Username not provided.')
+
+    if not User.objects.filter(username=username).exists():
+        raise ValidationError('There is no user with that username.')
