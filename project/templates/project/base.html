@@ -8,14 +8,14 @@
         </a>
         <ul class="dropdown-menu pull-right">
             <li class="{{ project_tab|active:"overview"}}"><a href="{% url 'project:project' project.id %}">Overview</a></li>
-            <li class="{{ project_tab|active:"dashboard"}}"><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>
-            <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.id %}">Tasks</a></li>
-            <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Solutions</a></li>
             <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.id %}">Repositories</a></li>
             {% if user.is_authenticated and is_admin %}
                 <li class="{{ project_tab|active:"settings"}}"><a href="{% url 'project:settings' project.id %}">Settings</a></li>
             {% endif %}
         </ul>
+        <li class="{{ project_tab|active:"dashboard"}}"><a href="{% url 'project:dashboard' project.id %}" title="View project dashboard."><span class="hidden-desktop">Dashboard </span><i class="fa fa-dashboard hidden-phone hidden-tablet"></i></a></li>
+        <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.id %}" title="Browse project tasks."><span class="hidden-desktop">Tasks </span></span><i class="fa fa-tasks hidden-phone hidden-tablet"></i></a></li>
+        <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.id %}" title="Browse project solutions."><span class="hidden-desktop">Solutions </span><i class="fa fa-briefcase hidden-phone hidden-tablet"></i></a></li>
     </li>
 {% endblock %}
 {% block content %}
