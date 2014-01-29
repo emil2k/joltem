@@ -96,6 +96,28 @@ class Project(Notifying):
         """
         return self.developer_set.filter(id=user_id).exists()
 
+    def is_invitee(self, user_id):
+        """ Check if the user is a invitee of the project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return self.invitee_set.filter(id=user_id).exists()
+
+    def has_access(self, user_id):
+        """ Determine if the user can access project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return not self.is_private \
+                    or self.is_invitee(user_id) \
+                    or self.is_developer(user_id) \
+                    or self.is_manager(user_id) \
+                    or self.is_admin(user_id)
+
     def __unicode__(self):
         return self.title
 

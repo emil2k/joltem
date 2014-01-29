@@ -34,15 +34,22 @@ class ProjectBaseView(RequestBaseView):
     project_tab = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        """ Init current project. """
+        """ Initiate project related variables.
 
+        After initiating variables determines if user has rights to access
+        project.
+
+        """
         super(ProjectBaseView, self).initiate_variables(request, args, kwargs)
         try:
             self.project = Project.objects.get(
                 id=self.kwargs.get("project_id"))
         except Project.DoesNotExist:
             raise Http404('Project doesn\'t exist.')
-        self.is_admin = self.project.is_admin(request.user.id)
+        else:
+            if not self.project.has_access(request.user.id):
+                raise Http404
+            self.is_admin = self.project.is_admin(request.user.id)
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
