@@ -278,6 +278,19 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
             else:
                 context['developer_form'] = form
                 return self.render_to_response(context)
+        elif 'submit_add_invitee' in request.POST \
+                or 'submit_remove_invitee' in request.POST:
+            form = ProjectGroupForm(request.POST)
+            if form.is_valid():
+                user = User.objects.get(username=form.cleaned_data['username'])
+                if 'submit_remove_invitee' in request.POST:
+                    self.project.invitee_set.remove(user)
+                else:
+                    self.project.invitee_set.add(user)
+                self.project.save()
+            else:
+                context['invitee_form'] = form
+                return self.render_to_response(context)
         return redirect(reverse('project:settings', args=[self.project.id]))
 
     def get_context_data(self, **kwargs):
@@ -292,9 +305,11 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         kwargs['admin_form'] = ProjectGroupForm()
         kwargs['manager_form'] = ProjectGroupForm()
         kwargs['developer_form'] = ProjectGroupForm()
+        kwargs['invitee_form'] = ProjectGroupForm()
         kwargs['admins'] = order(self.project.admin_set.all())
         kwargs['managers'] = order(self.project.manager_set.all())
         kwargs['developers'] = order(self.project.developer_set.all())
+        kwargs['invitees'] = order(self.project.invitee_set.all())
         return super(ProjectSettingsView, self).get_context_data(**kwargs)
 
 

@@ -54,6 +54,14 @@
                 {% include 'project/includes/add_to_group.html' with group='developer' add_form=developer_form %}
                 {% include 'project/includes/remove_from_group.html' with group='developer' members=developers %}
             </p>
+            {% if project.is_private %}
+                <p>
+                    <strong>Invitees</strong>
+                    <small class="help-inline"><i class="fa fa-info-circle"></i> able view and contribute to project.</small>
+                    {% include 'project/includes/add_to_group.html' with group='invitee' add_form=invitee_form %}
+                    {% include 'project/includes/remove_from_group.html' with group='invitee' members=invitees %}
+                </p>
+            {% endif %}
 
         </div>
     </div>
