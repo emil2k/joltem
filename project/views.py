@@ -71,6 +71,7 @@ class ProjectCreateView(RequestBaseView, CreateView):
 
         """
         project = form.save()
+        project.is_private = form.cleaned_data.get('is_private')
         project.exchange_periodicity = \
             form.cleaned_data.get('exchange_periodicity')
         project.exchange_magnitude = \
