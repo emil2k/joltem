@@ -1,13 +1,165 @@
 # coding: utf-8
 """ View related tests for task app. """
 from django_webtest import WebTest
-
+from django.core.urlresolvers import reverse
 from joltem.libs import mixer
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
-from project.tests.test_views import BaseProjectViewTest
+from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
 from task import views
 from task.models import Task
+
+
+class BaseTaskPermissionsTestCase(BaseProjectPermissionsTestCase):
+
+    """ Base test case for a task's permissions. """
+
+
+    def setUp(self):
+        super(BaseTaskPermissionsTestCase, self).setUp()
+        self.task = mixer.blend('task.task', project=self.project,
+                                is_closed=False, is_accepted=True,
+                                is_reviewed=True)
+
+
+    def assertStatusCode(self, url_name):
+        """ Assert the status code that should be received.
+
+        :param url_name: url name string to reverse.
+
+        """
+        kwargs = dict(project_id=self.project.pk, task_id=self.task.pk)
+        response = self.client.get(reverse(url_name, kwargs=kwargs))
+        self.assertEqual(response.status_code, self.expected_status_code)
+
+
+class TestTaskPermissions(BaseTaskPermissionsTestCase):
+
+    """ Test permissions to an accepted, open task. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_task(self):
+        self.assertStatusCode('project:task:task')
+
+
+class TestTaskPermissionsAnonymous(TestTaskPermissions):
+
+    login_user = False
+
+
+class TestPrivateTaskPermissions(TestTaskPermissions):
+
+    expected_status_code = 404
+    is_private = True
+
+
+class TestPrivateTaskPermissionsAnonymous(TestPrivateTaskPermissions):
+
+    login_user = False
+
+
+class TestPrivateTasksPermissionsInvitee(TestTaskPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "invitee"
+
+
+class TestPrivateTasksPermissionsAdmin(TestTaskPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "admin"
+
+
+class TestPrivateTasksPermissionsManager(TestTaskPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "manager"
+
+
+class TestPrivateTasksPermissionsDeveloper(TestTaskPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "developer"
+
+
+class TestTasksListsPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to tasks lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_my_open_tasks(self):
+        self.assertStatusCode('project:task:my_open')
+
+    def test_my_closed_tasks(self):
+        self.assertStatusCode('project:task:my_closed')
+
+    def test_my_review_tasks(self):
+        self.assertStatusCode('project:task:my_review')
+
+    def test_my_reviewed_tasks(self):
+        self.assertStatusCode('project:task:my_reviewed')
+
+    def test_all_open_tasks(self):
+        self.assertStatusCode('project:task:all_open')
+
+    def test_all_closed_tasks(self):
+        self.assertStatusCode('project:task:all_closed')
+
+
+class TestTaskListsPermissionsAnonymous(TestTasksListsPermissions):
+
+    login_user = False
+
+
+class TestPrivateTaskListsPermissions(TestTasksListsPermissions):
+
+    expected_status_code = 404
+    is_private = True
+
+
+class TestPrivateTaskListsPermissionsAnonymous(TestPrivateTaskListsPermissions):
+
+    login_user = False
+
+
+class TestPrivateTaskListsPermissionsInvitee(TestTasksListsPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "invitee"
+
+
+class TestPrivateTaskListsPermissionsAdmin(
+    TestPrivateTaskListsPermissionsInvitee):
+
+    group_name = "admin"
+
+
+class TestPrivateTaskListsPermissionsManager(
+    TestPrivateTaskListsPermissionsInvitee):
+
+    group_name = "manager"
+
+
+class TestPrivateTaskListsPermissionsDeveloper(
+    TestPrivateTaskListsPermissionsInvitee):
+
+    group_name = "developer"
 
 
 class BaseTaskViewTest(BaseProjectViewTest):
