@@ -14,5 +14,5 @@ urlpatterns = patterns(
     url(r'^new/$', login_required(views.new_repository),
         name='new_repository'),
     url(r'^(?P<repository_id>(\d)+)/$',
-        views.repository, name='repository'),
+        views.RepositoryView.as_view(), name='repository'),
 )

@@ -1,24 +1,49 @@
 """ Git views. """
 from django.conf import settings
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import TemplateView
 
 from git.models import Repository
 from project.models import Project
+from project.views import ProjectBaseView
 
 
-def repository(request, project_id, repository_id):
-    """ Render repository template.
+class RepositoryBaseView(ProjectBaseView):
 
-    :return str: A rendered template
+    """ Base view for repository related views. """
 
-    """
-    project = get_object_or_404(Project, id=project_id)
-    repo = get_object_or_404(Repository, id=repository_id)
-    context = {
-        'project': project,
-        'repository': repo
-    }
-    return render(request, 'git/repository.html', context)
+
+    def __init__(self, *args, **kwargs):
+        self.repository = None
+        super(RepositoryBaseView, self).__init__(*args, **kwargs)
+
+    def initiate_variables(self, request, *args, **kwargs):
+        """ Initiate variables for view.
+
+        Initiates the repository instance ( or throws 404 ).
+
+        Returns nothing.
+
+        """
+        super(RepositoryBaseView, self).initiate_variables(request, args, kwargs)
+        try:
+            self.repository = Repository.objects\
+                .get(id=self.kwargs.get("repository_id"))
+        except Repository.DoesNotExist:
+            raise Http404("Repository not found.")
+
+    def get_context_data(self, **kwargs):
+        """ Return context for template. """
+        kwargs["repository"] = self.repository
+        return super(RepositoryBaseView, self).get_context_data(**kwargs)
+
+
+class RepositoryView(TemplateView, RepositoryBaseView):
+
+    """ View for displaying repository's information. """
+
+    template_name = "git/repository.html"
 
 
 def repositories(request, project_id):
