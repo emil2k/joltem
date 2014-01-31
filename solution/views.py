@@ -2,7 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models import Q
-from django.http import HttpResponseNotFound
+from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, DetailView, ListView
@@ -45,8 +45,9 @@ class SolutionBaseView(ProjectBaseView):
                 .prefetch_related('vote_set__voter')\
                 .select_related('owner')\
                 .get(id=self.kwargs.get("solution_id"))
+            print self.solution
         except Solution.DoesNotExist:
-            return HttpResponseNotFound("Solution not found.")
+            raise Http404("Solution not found.")
         else:
             self.is_owner = self.solution.is_owner(self.user)
 
@@ -271,7 +272,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
                         solution_id=self.solution.id)
 
 
-class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
+class SolutionCommitsView(TemplateView, SolutionBaseView):
 
     """Shows solution's commits.
 
@@ -280,9 +281,7 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
     """
 
     template_name = 'solution/commits.html'
-    model = Solution
-    pk_url_kwarg = 'solution_id'
-    context_object_name = 'solution'
+    solution_tab = "commits"
 
     @cached_property
     def current_repo(self):
@@ -316,22 +315,18 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
 
         """
         context = super(SolutionCommitsView, self).get_context_data(**kwargs)
-
         commit_list = []
         if self.current_repo:
             pygit_repository = self.current_repo.load_pygit_object()
             if pygit_repository:
-                solution = self.object
                 try:
-                    commit_list = solution.get_commit_set(pygit_repository)
+                    commit_list = self.solution.get_commit_set(pygit_repository)
                 except KeyError:
                     pass
-
         context['commit_list'] = commit_list
         context['current_repo'] = self.current_repo
         context['project_repo_list'] = self.project_repo_list
         context['project'] = self.project
-
         return context
 
 
