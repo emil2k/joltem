@@ -80,3 +80,62 @@ class TestPrivateRepositoryPermissionDeveloper(
 
     is_private = True
     group_name = "developer"
+
+
+class TestRepositoryListPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to repository lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_active(self):
+        """ Test active repositories list. """
+        self.assertStatusCode('project:git:repositories')
+
+    def test_hidden(self):
+        """ Test hidden repositories list. """
+        self.assertStatusCode('project:git:repositories_hidden')
+
+
+class TestRepositoryListPermissionsAnonymous(TestRepositoryListPermissions):
+
+    login_user = False
+
+
+class TestPrivateRepositoryListPermissions(TestRepositoryListPermissions):
+
+    expected_status_code = 404
+    is_private = True
+
+
+class TestPrivateRepositoryListPermissionsAnonymous(
+    TestPrivateRepositoryListPermissions):
+
+    login_user = False
+
+
+class TestPrivateRepositoryListPermissionsInvitee(
+    TestPrivateRepositoryListPermissions):
+
+    expected_status_code = 200
+    group_name = "invitee"
+
+
+class TestPrivateRepositoryListPermissionsAdmin(
+    TestPrivateRepositoryListPermissionsInvitee):
+
+    group_name = "admin"
+
+
+class TestPrivateRepositoryListPermissionsAdmin(
+    TestPrivateRepositoryListPermissionsInvitee):
+
+    group_name = "manager"
+
+
+class TestPrivateRepositoryListPermissionsAdmin(
+    TestPrivateRepositoryListPermissionsInvitee):
+
+    group_name = "developer"

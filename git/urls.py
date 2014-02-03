@@ -8,8 +8,8 @@ from . import views
 
 urlpatterns = patterns(
     '',
-    url(r'^$', views.repositories, name='repositories'),
-    url(r'^hidden/$', views.repositories_hidden,
+    url(r'^$', views.ActiveRepositoriesView.as_view(), name='repositories'),
+    url(r'^hidden/$', views.HiddenRepositoriesView.as_view(),
         name='repositories_hidden'),
     url(r'^new/$', login_required(views.new_repository),
         name='new_repository'),

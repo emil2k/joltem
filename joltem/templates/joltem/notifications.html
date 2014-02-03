@@ -1,5 +1,4 @@
 {% extends 'joltem/base.html' %}
-{% load pagination_tags %}
 {% block title %}Notifications - Joltem{% endblock %}
 {% block content %}
     <form method="post">
@@ -22,23 +21,5 @@
             <p class="muted">You have no notifications.</p>
         {% endfor %}
     </form>
-
-    {% if is_paginated %}
-    <div class="pagination">
-        {% pagination paginator page_obj.number as pages %}
-
-        <ul>
-        {% for p in pages %}
-            {% if page_obj.number == p %}
-                <li class="active"><a href="?page={{ p }}">{{ p }}</a></li>
-            {% elif p == '.' %}
-                <li class="disabled"><span>...</span></li>
-            {% else %}
-                <li><a href="?page={{ p }}">{{ p }}</a></li>
-            {% endif %}
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
+    {% include 'joltem/includes/pagination.html' %}
 {% endblock %}
