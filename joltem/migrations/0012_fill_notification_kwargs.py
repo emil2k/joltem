@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 class Migration(DataMigration):
 
     depends_on = (
-        ('project', '0008_exchange'),
+        ('project', '0011_private'),
     )
 
     def forwards(self, orm):
