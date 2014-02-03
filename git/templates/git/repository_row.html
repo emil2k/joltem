@@ -7,7 +7,7 @@
             <button class="btn btn-mini" type="submit" name="repository_id" value="{{ repo.id }}">{{ action }}</button>
         </div>
     {% endif %}
-    <div class="span9">
+    <div class="span8">
         <p>
             <strong><a href="{% url 'project:git:repository' project.id repo.id %}">{{ repo.name }}</a></strong><br/>
             {% if repo.description %}
