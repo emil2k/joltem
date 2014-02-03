@@ -3,7 +3,7 @@
 {% block title %}Solutions - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
-        <div class="span2">
+        <div class="span3">
             <ul class="nav nav-list well">
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'project:solution:new' project.id %}">Create</a></li>
@@ -21,7 +21,7 @@
                 {% endif %}
             </ul>
         </div>
-        <div class="span10">
+        <div class="span9">
             {% block solutions_content %}{% endblock %}
         </div>
     </div>
