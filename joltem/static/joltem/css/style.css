@@ -62,6 +62,8 @@ body.landing .introduction {
 
 body.landing .introduction .tagline {
     color: #9BCDE8;
+    font-size: 24px;
+    line-height: 30px;
 }
 
 body.landing .introduction .social {
@@ -93,10 +95,16 @@ body.landing .introduction hr {
 }
 
 @media (max-width: 767px) {
+
     body.landing .introduction {
+        font-size: 16px;
+        line-height: 20px;
+        padding: 0 20px;
+    }
+
+    body.landing .introduction .tagline {
         font-size: 18px;
-        line-height: 22px;
-        padding: 0 10px;
+        line-height: 26px;
     }
 
     body.landing .introduction .social {
@@ -106,16 +114,16 @@ body.landing .introduction hr {
     }
 
     body.landing .introduction .btn-large {
-        width: 70px;
+        width: 50px;
         font-size: 14px;
-        line-height: 18px;
+        line-height: 16px;
     }
 
     body.landing .introduction h1 {
         color: #ffffff;
         text-transform: lowercase;
-        font-size: 70px;
-        line-height: 80px;
+        font-size: 55px;
+        line-height: 60px;
     }
 
     body.landing .introduction p {
@@ -125,7 +133,7 @@ body.landing .introduction hr {
     body.landing .introduction hr {
         border-top: 3px dashed #15455E;
         border-bottom: none;
-        margin: 20px 50px;
+        margin: 10px 30px;
     }
 }
 
