@@ -6,9 +6,197 @@ from django_webtest import WebTest
 from joltem.libs import mixer
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
-from project.tests.test_views import BaseProjectViewTest
+from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
 from solution import views
 from solution.models import Solution
+
+class BaseSolutionPermissionsTestCase(BaseProjectPermissionsTestCase):
+
+    """ Base test case for a solution's permissions.
+
+    :param is_complete: whether solution is complete.
+
+    """
+
+    is_complete = None
+
+    def setUp(self):
+        super(BaseSolutionPermissionsTestCase, self).setUp()
+        self.solution = mixer.blend('solution.solution', project=self.project)
+        if self.is_complete:
+            self.solution.mark_complete(impact=1)
+
+    def assertStatusCode(self, url_name):
+        """ Assert the status code that should be received.
+
+        :param url_name: url name string to reverse.
+
+        """
+        kwargs = dict(project_id=self.project.pk, solution_id=self.solution.pk)
+        response = self.client.get(reverse(url_name, kwargs=kwargs))
+        self.assertEqual(response.status_code, self.expected_status_code)
+
+
+class TestSolutionPermissions(BaseSolutionPermissionsTestCase):
+
+    """ Test permissions to complete solution. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+    is_complete = True
+
+    def test_solution(self):
+        """ Test solution view. """
+        self.assertStatusCode('project:solution:solution')
+
+    def test_solution_commits(self):
+        """ Test solution commits view. """
+        self.assertStatusCode('project:solution:commits')
+
+    def test_solution_review(self):
+        """ Test solution review view. """
+        self.assertStatusCode('project:solution:review')
+
+
+class TestSolutionPermissionsAnonymous(TestSolutionPermissions):
+
+    expected_status_code = 200
+    login_user = False
+    is_private = False
+
+
+class TestPrivateSolutionPermissions(TestSolutionPermissions):
+
+    expected_status_code = 404
+    login_user = True
+    is_private = True
+
+
+class TestPrivateSolutionPermissionsAnonymous(TestSolutionPermissions):
+
+    expected_status_code = 404
+    login_user = False
+    is_private = True
+
+
+class TestPrivateSolutionPermissionsInvitee(TestSolutionPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "invitee"
+
+
+class TestPrivateSolutionPermissionsAdmin(TestSolutionPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "admin"
+
+
+class TestPrivateSolutionPermissionsManager(TestSolutionPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "manager"
+
+
+class TestPrivateSolutionPermissionsDeveloper(TestSolutionPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "developer"
+
+
+class TestSolutionListsPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to solutions lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_my_complete_solutions(self):
+        """ Test permissions to my complete solution list. """
+        self.assertStatusCode('project:solution:my_complete')
+
+    def test_my_incomplete_solutions(self):
+        """ Test permissions to my incomplete solution list. """
+        self.assertStatusCode('project:solution:my_incomplete')
+
+    def test_my_review_solutions(self):
+        """ Test permissions to my review solution list. """
+        self.assertStatusCode('project:solution:my_review')
+
+    def test_my_reviewed_solutions(self):
+        """ Test permissions to my reviewed solution list. """
+        self.assertStatusCode('project:solution:my_reviewed')
+
+    def test_all_complete_solutions(self):
+        """ Test permissions to all complete solution list. """
+        self.assertStatusCode('project:solution:all_complete')
+
+    def test_all_incomplete_solutions(self):
+        """ Test permissions to all incomplete solution list. """
+        self.assertStatusCode('project:solution:all_incomplete')
+
+
+class TestSolutionListsPermissionsAnonymous(TestSolutionListsPermissions):
+
+    expected_status_code = 200
+    login_user = False
+    is_private = False
+
+
+class TestPrivateSolutionsListPermissions(TestSolutionListsPermissions):
+
+    expected_status_code = 404
+    login_user = True
+    is_private = True
+
+
+class TestPrivateSolutionsListPermissionsAnonymous(
+    TestSolutionListsPermissions):
+
+    expected_status_code = 404
+    login_user = False
+    is_private = True
+
+
+class TestPrivateSolutionsListPermissionsInvitee(TestSolutionListsPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "invitee"
+
+
+class TestPrivateSolutionsListPermissionsAdmin(TestSolutionListsPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "admin"
+
+
+class TestPrivateSolutionsListPermissionsManager(TestSolutionListsPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "manager"
+
+
+class TestPrivateSolutionsListPermissionsDeveloper(TestSolutionListsPermissions):
+
+    expected_status_code = 200
+    login_user = True
+    is_private = True
+    group_name = "developer"
 
 
 class BaseSolutionViewTest(BaseProjectViewTest):

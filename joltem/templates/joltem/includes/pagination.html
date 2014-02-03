@@ -1,0 +1,17 @@
+{% load pagination_tags %}
+{% if is_paginated %}
+    <div class="pagination">
+        {% pagination paginator page_obj.number as pages %}
+        <ul>
+        {% for p in pages %}
+            {% if page_obj.number == p %}
+                <li class="active"><a href="?page={{ p }}">{{ p }}</a></li>
+            {% elif p == '.' %}
+                <li class="disabled"><span>...</span></li>
+            {% else %}
+                <li><a href="?page={{ p }}">{{ p }}</a></li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </div>
+{% endif %}

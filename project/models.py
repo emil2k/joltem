@@ -25,6 +25,8 @@ class Project(Notifying):
     :param title: the displayed title of the project.
     :param description: a detailed description of the project, stored
         in markdown.
+    :param is_private: whether project is private, requires invitation
+        to view and contribute.
     :param total_shares: the total number of outstanding shares.
     :param impact_shares: the number of shares allocated to back impact.
     :param exchange_periodicity: the number of months between impact exchange
@@ -47,6 +49,7 @@ class Project(Notifying):
 
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
+    is_private = models.BooleanField(default=False)
     total_shares = models.BigIntegerField(default=0)
     impact_shares = models.BigIntegerField(default=0)
     exchange_periodicity = models.SmallIntegerField(default=0)
@@ -61,6 +64,8 @@ class Project(Notifying):
         settings.AUTH_USER_MODEL, related_name="manager_project_set")
     developer_set = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="developer_project_set")
+    invitee_set = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="invitee_project_set")
     subscriber_set = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name='subscriber_project_set')
 
@@ -90,6 +95,28 @@ class Project(Notifying):
 
         """
         return self.developer_set.filter(id=user_id).exists()
+
+    def is_invitee(self, user_id):
+        """ Check if the user is a invitee of the project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return self.invitee_set.filter(id=user_id).exists()
+
+    def has_access(self, user_id):
+        """ Determine if the user can access project.
+
+        :param user_id:
+        :return bool:
+
+        """
+        return not self.is_private \
+                    or self.is_invitee(user_id) \
+                    or self.is_developer(user_id) \
+                    or self.is_manager(user_id) \
+                    or self.is_admin(user_id)
 
     def __unicode__(self):
         return self.title

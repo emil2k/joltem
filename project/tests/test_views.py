@@ -37,6 +37,117 @@ class BaseProjectViewTest(TestCase):
             user=self.user, is_authenticated=True, data=data)
         return view(request, project_id=self.project.id)
 
+class BaseProjectPermissionsTestCase(TestCase):
+
+    """ Base test case for project permissions.
+
+    :param expected_status_code: status code expected for all responses.
+    :param is_private: whether the project is private.
+    :param login_user: whether to login client.
+    :param group_name: string specifying group to add the user too, i.e.
+        admin, manager, developer, or invitee.
+
+    """
+
+    expected_status_code = None
+    is_private = None
+    login_user = None
+    group_name = None
+
+    def setUp(self):
+        self.project = mixer.blend('project.project',
+                                   is_private=self.is_private)
+        if self.login_user:
+            self.user = mixer.blend('joltem.user', password='test')
+            self.client.login(username=self.user.username, password='test')
+            if self.group_name:
+                getattr(self.project, '%s_set' % self.group_name).add(self.user)
+                self.project.save()
+
+    def assertStatusCode(self, url_name, method='get'):
+        """ Assert the status code that should be received.
+
+        :param url_name: url name string to reverse.
+        :param method: str method to use, i.e. 'get', 'post', etc.
+
+        """
+        p_kwargs = dict(project_id=self.project.pk)
+        method = getattr(self.client, method)
+        response = method(reverse(url_name, kwargs=p_kwargs))
+        self.assertEqual(response.status_code, self.expected_status_code)
+
+class TestProjectPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions for regular logged in user on a public project. """
+
+    expected_status_code = 200
+    is_private = False
+    login_user = True
+
+    def test_overview(self):
+        """ Test response code from overview page. """
+        self.assertStatusCode('project:project')
+
+    def test_dashboard(self):
+        """ Test response code from dashboard page. """
+        self.assertStatusCode('project:dashboard')
+
+    def test_search(self):
+        """ Test response code from search results page. """
+        self.assertStatusCode('project:search')
+
+
+class TestProjectPermissionsAnonymous(TestProjectPermissions):
+
+    expected_status_code = 200
+    is_private = False
+    login_user = False
+
+
+class TestPrivateProjectPermissions(TestProjectPermissions):
+
+    expected_status_code = 404
+    is_private = True
+    login_user = True
+
+class TestPrivateProjectPermissionsInvitee(TestProjectPermissions):
+
+    expected_status_code = 200
+    is_private = True
+    login_user = True
+    group_name = "invitee"
+
+
+class TestPrivateProjectPermissionsAdmin(TestProjectPermissions):
+
+    expected_status_code = 200
+    is_private = True
+    login_user = True
+    group_name = "admin"
+
+
+class TestPrivateProjectPermissionsManager(TestProjectPermissions):
+
+    expected_status_code = 200
+    is_private = True
+    login_user = True
+    group_name = "manager"
+
+
+class TestPrivateProjectPermissionsDeveloper(TestProjectPermissions):
+
+    expected_status_code = 200
+    is_private = True
+    login_user = True
+    group_name = "developer"
+
+
+class TestPrivateProjectPermissionsAnonymous(TestProjectPermissions):
+
+    expected_status_code = 404
+    is_private = True
+    login_user = False
+
 
 class TestProjectViews(TestCase):
 

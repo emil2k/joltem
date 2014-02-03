@@ -19,6 +19,9 @@ class ProjectCreateForm(forms.ModelForm):
     agree = forms.BooleanField(required=False)
     exchange_periodicity = forms.IntegerField(initial=None)
     exchange_magnitude = forms.IntegerField(initial=None)
+    is_private = forms.TypedChoiceField(
+        coerce=lambda x: bool(int(x)), choices=((0, 'False'), (1, 'True')),
+        widget=forms.RadioSelect)
 
     class Meta:
         model = Project

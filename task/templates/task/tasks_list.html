@@ -1,29 +1,9 @@
 {% extends 'task/tasks_base.html' %}
-
-{% load pagination_tags %}
-
 {% block tasks_content %}
     {% for task in tasks %}
         {% include 'task/task_row.html' %}
     {% empty %}
         <p class="muted">There are no tasks.</p>
     {% endfor %}
-
-    {% if is_paginated %}
-    <div class="pagination">
-        {% pagination paginator page_obj.number as pages %}
-
-        <ul>
-        {% for p in pages %}
-            {% if page_obj.number == p %}
-                <li class="active"><a href="?page={{ p }}">{{ p }}</a></li>
-            {% elif p == '.' %}
-                <li class="disabled"><span>...</span></li>
-            {% else %}
-                <li><a href="?page={{ p }}">{{ p }}</a></li>
-            {% endif %}
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
+    {% include 'joltem/includes/pagination.html' %}
 {% endblock %}

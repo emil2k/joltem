@@ -34,15 +34,22 @@ class ProjectBaseView(RequestBaseView):
     project_tab = None
 
     def initiate_variables(self, request, *args, **kwargs):
-        """ Init current project. """
+        """ Initiate project related variables.
 
+        After initiating variables determines if user has rights to access
+        project.
+
+        """
         super(ProjectBaseView, self).initiate_variables(request, args, kwargs)
         try:
             self.project = Project.objects.get(
                 id=self.kwargs.get("project_id"))
         except Project.DoesNotExist:
             raise Http404('Project doesn\'t exist.')
-        self.is_admin = self.project.is_admin(request.user.id)
+        else:
+            if not self.project.has_access(request.user.id):
+                raise Http404
+            self.is_admin = self.project.is_admin(request.user.id)
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
@@ -71,6 +78,7 @@ class ProjectCreateView(RequestBaseView, CreateView):
 
         """
         project = form.save()
+        project.is_private = form.cleaned_data.get('is_private')
         project.exchange_periodicity = \
             form.cleaned_data.get('exchange_periodicity')
         project.exchange_magnitude = \
@@ -277,6 +285,19 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
             else:
                 context['developer_form'] = form
                 return self.render_to_response(context)
+        elif 'submit_add_invitee' in request.POST \
+                or 'submit_remove_invitee' in request.POST:
+            form = ProjectGroupForm(request.POST)
+            if form.is_valid():
+                user = User.objects.get(username=form.cleaned_data['username'])
+                if 'submit_remove_invitee' in request.POST:
+                    self.project.invitee_set.remove(user)
+                else:
+                    self.project.invitee_set.add(user)
+                self.project.save()
+            else:
+                context['invitee_form'] = form
+                return self.render_to_response(context)
         return redirect(reverse('project:settings', args=[self.project.id]))
 
     def get_context_data(self, **kwargs):
@@ -291,9 +312,11 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         kwargs['admin_form'] = ProjectGroupForm()
         kwargs['manager_form'] = ProjectGroupForm()
         kwargs['developer_form'] = ProjectGroupForm()
+        kwargs['invitee_form'] = ProjectGroupForm()
         kwargs['admins'] = order(self.project.admin_set.all())
         kwargs['managers'] = order(self.project.manager_set.all())
         kwargs['developers'] = order(self.project.developer_set.all())
+        kwargs['invitees'] = order(self.project.invitee_set.all())
         return super(ProjectSettingsView, self).get_context_data(**kwargs)
 
 
