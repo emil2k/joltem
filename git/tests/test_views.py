@@ -139,3 +139,48 @@ class TestPrivateRepositoryListPermissionsAdmin(
     TestPrivateRepositoryListPermissionsInvitee):
 
     group_name = "developer"
+
+
+class TestCreateRepositoryPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to create repository. """
+
+    expected_status_code = 404
+    login_user = True
+    is_private = False
+
+    def test_create_repository_get(self):
+        """ Test GET of create repository page. """
+        self.assertStatusCode('project:git:new_repository')
+
+    def test_create_repository_post(self):
+        """ Test POST of create repository page. """
+        self.assertStatusCode('project:git:new_repository', method='post')
+
+
+class TestCreateRepositoryPermissionsAnonymous(TestCreateRepositoryPermissions):
+
+    expected_status_code = 302
+    login_user = False
+
+
+class TestCreateRepositoryPermissionsInvitee(TestCreateRepositoryPermissions):
+
+    group_name = "invitee"
+
+
+class TestCreateRepositoryPermissionsDeveloper(TestCreateRepositoryPermissions):
+
+    group_name = "developer"
+
+
+class TestCreateRepositoryPermissionsAdmin(TestCreateRepositoryPermissions):
+
+    expected_status_code = 200
+    group_name = "admin"
+
+
+class TestCreateRepositoryPermissionsManager(
+    TestCreateRepositoryPermissionsAdmin):
+
+    group_name = "manager"

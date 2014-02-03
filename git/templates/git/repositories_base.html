@@ -6,7 +6,7 @@
         <div class="span2">
             <ul class="nav nav-list well">
                 {% if is_admin or is_manager %}
-                    <li><a href="{% url 'project:git:new_repository' project.id %}">Create</a></li>
+                    <li class="{{ repositories_tab|active:"create" }}"><a href="{% url 'project:git:new_repository' project.id %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">Repositories</li>
                 <li class="{{ repositories_tab|active:"active" }}"><a href="{% url 'project:git:repositories' project.id %}">Active</a></li>

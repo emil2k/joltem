@@ -1,12 +1,19 @@
-{% extends 'project/base.html' %}
+{% extends 'git/repositories_base.html' %}
+{% load widget_tweaks %}
 {% block title %}New Repository - Joltem{% endblock %}
-{% block project_content %}
+{% block repositories_content %}
     <form method="post">
         {% csrf_token %}
         <div class="row">
             <div class="span8">
-                <input type="text" name="name" placeholder="Name, i.e. git-server" class="input-block-level"/>
-                <textarea rows=10 type="text" name="description" placeholder="Description of repository" class="input-block-level"></textarea>
+                {% if form.name.errors %}
+                    <div class="alert alert-error">{{ form.name.errors|join:' ' }}</div>
+                {% endif %}
+                {% render_field form.name class="input-block-level" placeholder="Title of repository" %}
+                {% if form.description.errors %}
+                    <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
+                {% endif %}
+                {% render_field form.description class="input-block-level" placeholder="Description of repository" %}
                 <button class="btn btn-success" type="submit" name="action" value="create_repo">Create repository</button>
             </div>
         </div>

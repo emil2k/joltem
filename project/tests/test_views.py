@@ -64,14 +64,16 @@ class BaseProjectPermissionsTestCase(TestCase):
                 getattr(self.project, '%s_set' % self.group_name).add(self.user)
                 self.project.save()
 
-    def assertStatusCode(self, url_name):
+    def assertStatusCode(self, url_name, method='get'):
         """ Assert the status code that should be received.
 
         :param url_name: url name string to reverse.
+        :param method: str method to use, i.e. 'get', 'post', etc.
 
         """
         p_kwargs = dict(project_id=self.project.pk)
-        response = self.client.get(reverse(url_name, kwargs=p_kwargs))
+        method = getattr(self.client, method)
+        response = method(reverse(url_name, kwargs=p_kwargs))
         self.assertEqual(response.status_code, self.expected_status_code)
 
 class TestProjectPermissions(BaseProjectPermissionsTestCase):
