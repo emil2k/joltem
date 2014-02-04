@@ -207,7 +207,7 @@ class TaskViewTest(BaseTaskViewTest):
         response = self._get(views.TaskView.as_view(), task=task)
         response = response.render()
         self.assertContains(response, '<h4><a href="/user/%s/">%s</a></h4>' % (
-            task.author.username, task.author.first_name))
+            task.owner.username, task.owner.first_name))
         self.assertTrue(response.status_code, 200)
 
     def _test_task_view_action(self, action):
@@ -226,11 +226,74 @@ class TaskViewTest(BaseTaskViewTest):
 
     def test_task_view_post_close(self):
         """ Test close task. """
-        self._test_task_view_action('close')
+        url = reverse('project:task:task', kwargs=dict(
+                      project_id=self.task.project_id, task_id=self.task.pk))
+
+        # Close by owner
+        self.client.login(
+            username=self.task.owner.username, password='bill_password')
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+        Task.objects.filter(pk=task.pk).update(is_closed=False)
+
+        # Close by any user
+        user = mixer.blend('joltem.user', password='user')
+        self.client.login(username=user.username, password='user')
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+
+        # Close by manager
+        self.project.manager_set.add(user)
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+        self.project.manager_set.remove(user)
+        Task.objects.filter(pk=task.pk).update(is_closed=False)
+
+        # Close by admin
+        self.project.admin_set.add(user)
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
 
     def test_task_view_post_reopen(self):
         """ Test reopen task. """
-        self._test_task_view_action('reopen')
+        url = reverse('project:task:task', kwargs=dict(
+                      project_id=self.task.project_id, task_id=self.task.pk))
+
+        task = Task.objects.get()
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by owner
+        self.client.login(
+            username=self.task.owner.username, password='bill_password')
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by any user
+        user = mixer.blend('joltem.user', password='user')
+        self.client.login(username=user.username, password='user')
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+
+        # Reopen by manager
+        self.project.manager_set.add(user)
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+        self.project.manager_set.remove(user)
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by admin
+        self.project.admin_set.add(user)
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
 
 
 class TaskListViewTests(BaseProjectViewTest):
@@ -254,7 +317,7 @@ class TaskListViewTests(BaseProjectViewTest):
         self.assertContains(
             response,
             'by <a href="/user/%s/" class="muted">%s</a>' % (
-                task.author.username, task.author.first_name
+                task.owner.username, task.owner.first_name
             ))
 
     def test_get_my_closed_tasks(self):
@@ -310,8 +373,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
 
         task = Task.objects.get()
 
-        expected_url = TASK_URL.format(project_id=self.project.id,
-                                       task_id=task.pk)
+        expected_url = TASK_URL.format(
+            project_id=self.project.id, task_id=task.pk)
         self.assertRedirects(response, expected_url)
 
     def test_title_must_contain_printable_characters(self):
@@ -435,19 +498,42 @@ class TaskEditTest(WebTest, ViewTestMixin):
         self.app.get(self.url, user=not_owner, status=404)
 
     def test_task_is_successfully_updated(self):
+
+        # Edit by owner
         response = self.app.get(self.url, user=self.user)
 
         form = response.forms[TASK_EDIT_FORM_ID]
         form['title'] = 'new title'
         response = form.submit()
 
-        expected_url = TASK_URL.format(project_id=self.project.id,
-                                       task_id=self.task.pk)
+        expected_url = TASK_URL.format(
+            project_id=self.project.id, task_id=self.task.pk)
         self.assertRedirects(response, expected_url)
 
         task = Task.objects.get()
-
         self.assertEqual(task.title, 'new title')
+
+        # Edit by admin
+        admin = self.project.admin_set.get()
+        response = self.app.get(self.url, user=admin)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = 'admin title'
+        form.submit()
+
+        task = Task.objects.get()
+        self.assertEqual(task.title, 'admin title')
+
+        # Edit by manager
+        manager = self.project.admin_set.get()
+        response = self.app.get(self.url, user=manager)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = 'manager title'
+        form.submit()
+
+        task = Task.objects.get()
+        self.assertEqual(task.title, 'manager title')
 
     def test_title_must_contain_printable_characters(self):
         response = self.app.get(self.url, user=self.user)

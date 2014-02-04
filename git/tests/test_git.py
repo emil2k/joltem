@@ -73,7 +73,7 @@ class SolutionTestCase(RepositoryTestCase):
             self.emil.first_name, self.emil.email)
         # a suggested solution
         self.solution = mixer.blend(
-            'solution.solution', project=self.project, author=self.emil)
+            'solution.solution', project=self.project)
 
     # Custom assertions
 
@@ -173,8 +173,7 @@ class CommitSetTestCase(SolutionTestCase):
         # Create suggested solution for this solution branch and make a few
         # commits to it
         child_solution = mixer.blend(
-            'solution.solution', project=self.project, author=self.emil,
-            solution=self.solution)
+            'solution.solution', project=self.project, solution=self.solution)
         child_solution_commits = [c for c in mock_commits(
             3, self.pygit_repository, self.emil_signature,
             child_solution.get_branch_name(), [commit_oid])]

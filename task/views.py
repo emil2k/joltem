@@ -3,6 +3,7 @@
 from django.http import Http404
 from django.db.models import Sum, Q
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.functional import cached_property
 from django.core.cache import cache
 from django.views.generic import (
     TemplateView, CreateView, UpdateView, ListView,
@@ -27,14 +28,25 @@ class TaskBaseView(ProjectBaseView):
     def __init__(self, *args, **kwargs):
         super(TaskBaseView, self).__init__(*args, **kwargs)
         self.task = None
-        self.is_owner = False
 
     def initiate_variables(self, request, *args, **kwargs):
         """ Initialize task. """
 
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
-        self.is_owner = self.task.is_owner(self.user)
+
+    @cached_property
+    def is_owner(self):
+        """ Check self.user is owner of self.task.
+
+        :returns: bool
+
+        """
+        return self.task and (
+            self.task.is_owner(self.user) or
+            self.is_admin or
+            self.is_manager
+        )
 
     def get_context_data(self, **kwargs):
         """ Get data for templates.
@@ -84,11 +96,11 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
                 project_id=self.project.id
             )
         except Impact.DoesNotExist:
-            kwargs["task_author_impact"] = 0
-            kwargs["task_author_completed"] = 0
+            kwargs["task_owner_impact"] = 0
+            kwargs["task_owner_completed"] = 0
         else:
-            kwargs["task_author_impact"] = impact.impact
-            kwargs["task_author_completed"] = impact.completed
+            kwargs["task_owner_impact"] = impact.impact
+            kwargs["task_owner_completed"] = impact.completed
         return super(TaskView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -266,7 +278,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
         """
         task = form.save(commit=False)
         task.parent = self.parent_solution
-        task.author = self.user
+        task.owner = self.user
         task.save()
 
         return redirect('project:task:task', project_id=self.project.id,
@@ -324,7 +336,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
 
         """
         filters = filters or self.filters
-        qs = self.project.task_set.select_related('author')\
+        qs = self.project.task_set.select_related('owner')\
             .prefetch_related('solution_set')
 
         for k in filters:

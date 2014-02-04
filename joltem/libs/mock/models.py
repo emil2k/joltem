@@ -57,17 +57,15 @@ def get_mock_project(title):
 
 def get_mock_task(project, owner,
                   is_reviewed=False, is_accepted=False, is_closed=False,
-                  solution=None, author=None):
+                  solution=None):
     """ Generate task.
 
     :return Task:
 
     """
-    author = owner if author is None else author
     t = Task(
         title="A task by %s" % owner.username,
         owner=owner,
-        author=author,
         project=project,
         parent=solution,
         is_reviewed=is_reviewed,

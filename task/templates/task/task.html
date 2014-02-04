@@ -4,18 +4,18 @@
 {% block project_content %}
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
-            <img class="img-rounded pull-right" src="{{ task.author.gravatar }}?s=50" /></p>
-            <h4><a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a></h4>
-            <p><b>{{ task_author_impact }}</b> impact <b>{{ task_author_completed }}</b> solutions</p>
+            <img class="img-rounded pull-right" src="{{ task.owner.gravatar }}?s=50" /></p>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
+            <p><b>{{ task_owner_impact }}</b> impact <b>{{ task_owner_completed }}</b> solutions</p>
             <hr class="clearfix"/>
         </div>
     </div>
     <div class="row">
         <div class="span2 hidden-phone">
-            <h4><a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a></h4>
-            <p><img class="img-rounded" src="{{ task.author.gravatar }}?s=100" /></p>
-            <p><b>{{ task_author_impact }}</b> impact</p>
-            <p><b>{{ task_author_completed }}</b> solutions</p>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
+            <p><img class="img-rounded" src="{{ task.owner.gravatar }}?s=100" /></p>
+            <p><b>{{ task_owner_impact }}</b> impact</p>
+            <p><b>{{ task_owner_completed }}</b> solutions</p>
         </div>
         <div class="span8">
             <h4>
@@ -30,11 +30,6 @@
                     {% endif %}
                 </small>
             </h4>
-            <p class="muted">
-                {% if task.owner_id != task.author_id %}
-                    Suggested by <a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a>, administrated by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>.
-                {% endif %}
-            </p>
             {% if task.description %}
                 {{ task.description|markdown:"tables,fenced_code" }}
             {% else %}

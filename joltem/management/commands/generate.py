@@ -5,10 +5,12 @@ from django.core.management import BaseCommand
 
 class Command(BaseCommand):
 
-    """ Create initial data. """
+    """ Generate initial data. """
 
     def handle(self, *args, **kwargs):
         """ Handle command.
+
+        TODO: Support arguments ('tasks', 'solutions', 'users')
 
         :returns: False
 
@@ -38,7 +40,6 @@ class Command(BaseCommand):
             tasks = mixer.cycle(20).blend(
                 'task.task',
                 project=project,
-                author=mixer.RANDOM(*users),
                 owner=mixer.RANDOM(*users),
                 is_completed=mixer.RANDOM,
                 is_closed=mixer.RANDOM,

@@ -22,20 +22,20 @@ class TaskNotificationsTest(TestCase):
         """ Check task's followers. """
 
         task = mixer.blend('task.task', project=self.project)
-        self.assertEqual(len(task.followers), 2)
+        self.assertEqual(len(task.followers), 1)
 
         mixer.blend('comment', commentable=task)
-        self.assertEqual(len(task.followers), 3)
+        self.assertEqual(len(task.followers), 2)
 
         mixer.blend('comment', commentable=task, owner=task.owner)
-        self.assertEqual(len(task.followers), 3)
+        self.assertEqual(len(task.followers), 2)
 
         voter = mixer.blend('user')
         task.put_vote(voter, True)
-        self.assertEqual(len(task.followers), 4)
+        self.assertEqual(len(task.followers), 3)
 
-        task.put_vote(task.author, True)
-        self.assertEqual(len(task.followers), 4)
+        task.put_vote(task.owner, True)
+        self.assertEqual(len(task.followers), 3)
 
     def test_review(self):
         task = mixer.blend('task.task', project=self.project)
@@ -46,7 +46,7 @@ class TaskNotificationsTest(TestCase):
         acceptor = mixer.blend('user')
         task.mark_reviewed(acceptor, True)
 
-        notify = task.author.notification_set.last()
+        notify = task.owner.notification_set.last()
         self.assertEqual(
             notify.get_text(), 'Your task "%s" was accepted' % task.title)
         notify = voter.notification_set.last()
@@ -60,17 +60,16 @@ class TaskNotificationsTest(TestCase):
         task.put_vote(voter1, True)
 
         self.assertFalse(voter1.notification_set.all())
-        self.assertTrue(task.author.notification_set.all())
         self.assertTrue(task.owner.notification_set.all())
 
-        notify = task.author.notification_set.first()
+        notify = task.owner.notification_set.first()
         self.assertEqual("%s voted on your task \"%s\"" % (
             voter1.first_name, task.title
         ), notify.get_text())
 
         task.put_vote(voter1, False)
 
-        notify = task.author.notification_set.last()
+        notify = task.owner.notification_set.last()
         self.assertEqual("%s updated a vote on your task \"%s\"" % (
             voter1.first_name, task.title
         ), notify.get_text())
