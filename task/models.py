@@ -14,9 +14,7 @@ class Task(Commentable, Updatable):
 
     """ A task is a description of work.
 
-    The `owner` of the task is responsible for the administrating and merging
-    of the work as necessary. The `author` is the person who originally wrote
-    up the task.
+    The `owner` is the person who originally wrote up the task.
 
     After creation a task must be curated through a staging process, if
     accepted the task is opened and it is available for people to post
@@ -39,7 +37,6 @@ class Task(Commentable, Updatable):
     owner -- the user responsible for administrating the task.
     project -- the project the task belongs to.
     parent -- if task is a subtask to a solution, this is the parent solution.
-    author -- the person who initially suggested the task.
 
     """
 
@@ -75,9 +72,6 @@ class Task(Commentable, Updatable):
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
-    # user who created the task
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name="tasks_authored_set")
 
     def __unicode__(self):
         return self.title
@@ -89,9 +83,8 @@ class Task(Commentable, Updatable):
         :returns: A set of users.
 
         """
-        return set([
-            self.author, self.owner] +
-            list(self.iterate_commentators()) +
+        return set(
+            [self.owner] + list(self.iterate_commentators()) +
             [v.voter for v in self.vote_set.select_related('voter')])
 
     def get_subtask_count(
@@ -212,9 +205,6 @@ class Task(Commentable, Updatable):
 
         """
         # a suggested task
-        if is_accepted and \
-                (not self.parent or self.parent.owner_id != self.author_id):
-            self.owner = acceptor
         self.is_reviewed = True
         self.is_accepted = is_accepted
         self.time_reviewed = timezone.now()
@@ -224,7 +214,7 @@ class Task(Commentable, Updatable):
         self.notify_reviewed(acceptor, is_accepted)
 
     def notify_reviewed(self, acceptor, is_accepted):
-        """ Notify task author.
+        """ Notify task owner.
 
         If not the acceptor, that the task was either accepted or rejected.
 
@@ -239,13 +229,13 @@ class Task(Commentable, Updatable):
     def notify_created(self):
         """ Send out appropriate notifications about the task being posted. """
         if self.parent:
-            if self.parent.owner_id != self.author_id:
+            if self.parent.owner_id != self.owner_id:
                 self.notify(
                     self.parent.owner, settings.NOTIFICATION_TYPES.task_posted,
                     True, kwargs={"role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
-                if admin.id != self.author_id:
+                if admin.id != self.owner_id:
                     self.notify(
                         admin, settings.NOTIFICATION_TYPES.task_posted, True,
                         kwargs={"role": "project_admin"})
@@ -278,8 +268,6 @@ class Task(Commentable, Updatable):
             notification, **kwargs)
         kwargs['owner'] = python_serializer.serialize(
             [self.owner], fields=('username', 'first_name'))[0]
-        kwargs['author'] = python_serializer.serialize(
-            [self.author], fields=('username', 'first_name'))[0]
         return kwargs
 
 

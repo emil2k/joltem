@@ -1,5 +1,6 @@
 # coding: utf-8
 """ View related tests for task app. """
+from django.test import TestCase
 from django_webtest import WebTest
 from django.core.urlresolvers import reverse
 from joltem.libs import mixer
@@ -8,6 +9,7 @@ from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
 from task import views
 from task.models import Task
+from task.views import TaskBaseView
 
 
 class BaseTaskPermissionsTestCase(BaseProjectPermissionsTestCase):
@@ -162,6 +164,63 @@ class TestPrivateTaskListsPermissionsDeveloper(
     group_name = "developer"
 
 
+class TaskViewIsEditorTest(TestCase):
+
+    """ Test a task view's is_editor function. """
+
+    def assertIsEditorEqual(self, task, user, expected):
+        """ Assert what is_editor function returns.
+
+        :param task:
+        :param user:
+        :param expected: bool value expected
+
+        """
+        v = TaskBaseView()
+        v.task = task
+        v.project = task.project
+        v.user = user
+        self.assertEqual(v.is_editor, expected)
+
+    def test_task_owner_reviewing(self):
+        """ Task owner should be able to edit in review. """
+        task = mixer.blend('task.task', is_reviewed=False)
+        self.assertIsEditorEqual(task, task.owner, True)
+
+    def test_task_owner_reviewed(self):
+        """ Task owner should not be able to edit after review. """
+        task = mixer.blend('task.task', is_reviewed=True)
+        self.assertIsEditorEqual(task, task.owner, False)
+
+    def test_parent_solution_owner(self):
+        """ Parent solution owner should be able to edit task. """
+        solution = mixer.blend('solution.solution')
+        task = mixer.blend('task.task', is_reviewed=True, parent=solution)
+        self.assertIsEditorEqual(task, solution.owner, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, solution.owner, True)
+
+    def test_project_admin(self):
+        """ Project admin should be able to edit task. """
+        admin = mixer.blend('joltem.user')
+        task = mixer.blend('task.task', is_reviewed=True)
+        task.project.admin_set.add(admin)
+        task.project.save()
+        self.assertIsEditorEqual(task, admin, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, admin, True)
+
+    def test_project_manager(self):
+        """ Project manager should be able to edit task. """
+        manager = mixer.blend('joltem.user')
+        task = mixer.blend('task.task', is_reviewed=True)
+        task.project.manager_set.add(manager)
+        task.project.save()
+        self.assertIsEditorEqual(task, manager, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, manager, True)
+
+
 class BaseTaskViewTest(BaseProjectViewTest):
 
     """ Test case for view that requires a task. """
@@ -207,7 +266,7 @@ class TaskViewTest(BaseTaskViewTest):
         response = self._get(views.TaskView.as_view(), task=task)
         response = response.render()
         self.assertContains(response, '<h4><a href="/user/%s/">%s</a></h4>' % (
-            task.author.username, task.author.first_name))
+            task.owner.username, task.owner.first_name))
         self.assertTrue(response.status_code, 200)
 
     def _test_task_view_action(self, action):
@@ -226,11 +285,74 @@ class TaskViewTest(BaseTaskViewTest):
 
     def test_task_view_post_close(self):
         """ Test close task. """
-        self._test_task_view_action('close')
+        url = reverse('project:task:task', kwargs=dict(
+                      project_id=self.task.project_id, task_id=self.task.pk))
+
+        # Close by owner
+        self.client.login(
+            username=self.task.owner.username, password='bill_password')
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+        Task.objects.filter(pk=task.pk).update(is_closed=False)
+
+        # Close by any user
+        user = mixer.blend('joltem.user', password='user')
+        self.client.login(username=user.username, password='user')
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+
+        # Close by manager
+        self.project.manager_set.add(user)
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+        self.project.manager_set.remove(user)
+        Task.objects.filter(pk=task.pk).update(is_closed=False)
+
+        # Close by admin
+        self.project.admin_set.add(user)
+        self.client.post(url, data=dict(close=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
 
     def test_task_view_post_reopen(self):
         """ Test reopen task. """
-        self._test_task_view_action('reopen')
+        url = reverse('project:task:task', kwargs=dict(
+                      project_id=self.task.project_id, task_id=self.task.pk))
+
+        task = Task.objects.get()
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by owner
+        self.client.login(
+            username=self.task.owner.username, password='bill_password')
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by any user
+        user = mixer.blend('joltem.user', password='user')
+        self.client.login(username=user.username, password='user')
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertTrue(task.is_closed)
+
+        # Reopen by manager
+        self.project.manager_set.add(user)
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
+        self.project.manager_set.remove(user)
+        Task.objects.filter(pk=task.pk).update(is_closed=True)
+
+        # Reopen by admin
+        self.project.admin_set.add(user)
+        self.client.post(url, data=dict(reopen=1))
+        task = Task.objects.get()
+        self.assertFalse(task.is_closed)
 
 
 class TaskListViewTests(BaseProjectViewTest):
@@ -254,7 +376,7 @@ class TaskListViewTests(BaseProjectViewTest):
         self.assertContains(
             response,
             'by <a href="/user/%s/" class="muted">%s</a>' % (
-                task.author.username, task.author.first_name
+                task.owner.username, task.owner.first_name
             ))
 
     def test_get_my_closed_tasks(self):
@@ -310,8 +432,8 @@ class TaskCreateTest(WebTest, ViewTestMixin):
 
         task = Task.objects.get()
 
-        expected_url = TASK_URL.format(project_id=self.project.id,
-                                       task_id=task.pk)
+        expected_url = TASK_URL.format(
+            project_id=self.project.id, task_id=task.pk)
         self.assertRedirects(response, expected_url)
 
     def test_title_must_contain_printable_characters(self):
@@ -417,7 +539,8 @@ class TaskEditTest(WebTest, ViewTestMixin):
     def setUp(self):
         self.user = mixer.blend('joltem.user')
         self.project = mixer.blend('project.project')
-        self.task = mixer.blend('task.task', project=self.project, owner=self.user)
+        self.task = mixer.blend('task.task', project=self.project,
+                                owner=self.user)
 
         self.url = TASK_EDIT_URL.format(
             project_id=self.project.id,
@@ -435,19 +558,44 @@ class TaskEditTest(WebTest, ViewTestMixin):
         self.app.get(self.url, user=not_owner, status=404)
 
     def test_task_is_successfully_updated(self):
+
+        # Edit by owner
         response = self.app.get(self.url, user=self.user)
 
         form = response.forms[TASK_EDIT_FORM_ID]
         form['title'] = 'new title'
         response = form.submit()
 
-        expected_url = TASK_URL.format(project_id=self.project.id,
-                                       task_id=self.task.pk)
+        expected_url = TASK_URL.format(
+            project_id=self.project.id, task_id=self.task.pk)
         self.assertRedirects(response, expected_url)
 
         task = Task.objects.get()
-
         self.assertEqual(task.title, 'new title')
+
+        (admin, manager) = mixer.cycle(2).blend('joltem.user')
+        self.project.admin_set.add(admin)
+        self.project.manager_set.add(manager)
+
+        # Edit by admin
+        response = self.app.get(self.url, user=admin)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = 'admin title'
+        form.submit()
+
+        task = Task.objects.get()
+        self.assertEqual(task.title, 'admin title')
+
+        # Edit by manager
+        response = self.app.get(self.url, user=manager)
+
+        form = response.forms[TASK_EDIT_FORM_ID]
+        form['title'] = 'manager title'
+        form.submit()
+
+        task = Task.objects.get()
+        self.assertEqual(task.title, 'manager title')
 
     def test_title_must_contain_printable_characters(self):
         response = self.app.get(self.url, user=self.user)

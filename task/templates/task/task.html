@@ -4,18 +4,18 @@
 {% block project_content %}
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
-            <img class="img-rounded pull-right" src="{{ task.author.gravatar }}?s=50" /></p>
-            <h4><a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a></h4>
-            <p><b>{{ task_author_impact }}</b> impact <b>{{ task_author_completed }}</b> solutions</p>
+            <img class="img-rounded pull-right" src="{{ task.owner.gravatar }}?s=50" /></p>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
+            <p><b>{{ task_owner_impact }}</b> impact <b>{{ task_owner_completed }}</b> solutions</p>
             <hr class="clearfix"/>
         </div>
     </div>
     <div class="row">
         <div class="span2 hidden-phone">
-            <h4><a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a></h4>
-            <p><img class="img-rounded" src="{{ task.author.gravatar }}?s=100" /></p>
-            <p><b>{{ task_author_impact }}</b> impact</p>
-            <p><b>{{ task_author_completed }}</b> solutions</p>
+            <h4><a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a></h4>
+            <p><img class="img-rounded" src="{{ task.owner.gravatar }}?s=100" /></p>
+            <p><b>{{ task_owner_impact }}</b> impact</p>
+            <p><b>{{ task_owner_completed }}</b> solutions</p>
         </div>
         <div class="span8">
             <h4>
@@ -30,11 +30,6 @@
                     {% endif %}
                 </small>
             </h4>
-            <p class="muted">
-                {% if task.owner_id != task.author_id %}
-                    Suggested by <a href="{% url 'user' task.author.username %}">{{ task.author.first_name }}</a>, administrated by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>.
-                {% endif %}
-            </p>
             {% if task.description %}
                 {{ task.description|markdown:"tables,fenced_code" }}
             {% else %}
@@ -47,14 +42,14 @@
                         {% if task.is_accepted and not task.is_closed %}
                             <a class="btn btn-success" href="{% url 'project:task:solve' project.id task.id %}">solve</a>
                         {% endif %}
-                        {% if is_owner %}
+                        {% if is_editor %}
                             {% if not task.is_closed %}
                                 <button class="btn" type="submit" name="close" value="1">close</button>
                             {% else %}
                                 <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                             {% endif %}
                         {% endif %}
-                        {% if is_owner %}
+                        {% if is_editor %}
                             <a class="btn" href="{% url 'project:task:edit' project.id task.id %}">edit</a>
                         {% endif %}
                     </div>

@@ -188,7 +188,7 @@ class Project(Notifying):
         """
         solutions = self.solution_set.select_related('owner', 'task')\
             .order_by('-time_updated')[:limit]
-        tasks = self.task_set.select_related('author')\
+        tasks = self.task_set.select_related('owner')\
             .order_by('-time_updated')[:limit]
         comments = self.comment_set.select_related('owner').prefetch_related(
             'commentable', 'commentable_type').order_by(

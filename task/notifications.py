@@ -27,7 +27,7 @@ class CommentAdded(_NotifyInterface):
                 owner_id=user_id).order_by("-time_commented")
         )
         prefix = ''
-        if notifying.owner_id == user_id or notifying.author_id == user_id:
+        if notifying.owner_id == user_id:
             prefix = 'your '
         return "%s commented on %stask \"%s\"" % (
             list_string_join(first_names), prefix, notifying.title)
@@ -46,16 +46,16 @@ class TaskPosted(_NotifyInterface):
         :returns: Text about task posted.
 
         """
-        author_name = self.notification.kwargs['author']['fields']['first_name'] # noqa
+        owner_name = self.notification.kwargs['owner']['fields']['first_name'] # noqa
         if notifying is None:
             notifying = self.notification.notifying
 
         if self.notification.kwargs["role"] == "parent_solution":
             return "%s posted a task on your solution \"%s\"" % (
-                author_name, notifying.parent.default_title)
+                owner_name, notifying.parent.default_title)
 
         if self.notification.kwargs["role"] == "project_admin":
-            return "%s posted a task" % author_name
+            return "%s posted a task" % owner_name
 
 
 class TaskAccepted(_NotifyInterface):
@@ -73,9 +73,8 @@ class TaskAccepted(_NotifyInterface):
         """
         user_id = self.notification.user_id
         owner_id = self.notification.kwargs['owner']['pk']
-        author_id = self.notification.kwargs['author']['pk']
         title = self.notification.kwargs['notifying']['fields']['title'] # noqa
-        if owner_id == user_id or author_id == user_id:
+        if owner_id == user_id:
             return "Your task \"%s\" was accepted" % title
         return "Task \"%s\" was accepted" % title
 
@@ -95,9 +94,8 @@ class TaskRejected(_NotifyInterface):
         """
         user_id = self.notification.user_id
         owner_id = self.notification.kwargs['owner']['pk']
-        author_id = self.notification.kwargs['author']['pk']
         title = self.notification.kwargs['notifying']['fields']['title'] # noqa
-        if owner_id == user_id or author_id == user_id:
+        if owner_id == user_id:
             return "Your task \"%s\" was rejected" % title
         return "Task \"%s\" was rejected" % title
 
@@ -118,10 +116,9 @@ class VoteAdded(_NotifyInterface):
         if notifying is None:
             notifying = self.notification.notifying
         owner_id = self.notification.kwargs['owner']['pk']
-        author_id = self.notification.kwargs['author']['pk']
         user_id = self.notification.user_id
         prefix = ''
-        if owner_id == user_id or author_id == user_id:
+        if owner_id == user_id:
             prefix = 'your '
 
         votes = notifying.vote_set.select_related('voter').exclude(
@@ -147,10 +144,9 @@ class VoteUpdated(_NotifyInterface):
 
         """
         owner_id = self.notification.kwargs['owner']['pk']
-        author_id = self.notification.kwargs['author']['pk']
         user_id = self.notification.user_id
         prefix = ''
-        if owner_id == user_id or author_id == user_id:
+        if owner_id == user_id:
             prefix = 'your '
         title = self.notification.kwargs['notifying']['fields']['title']
         return "%s updated a vote on %stask \"%s\"" % (
