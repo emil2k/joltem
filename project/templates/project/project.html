@@ -5,11 +5,13 @@
 {% block project_content %}
     <div class="row">
         <div class="span3 text-center">
-            <h4><a href="#">Emil</a></h4>
-            <p>
-                <img class="img-rounded" src="https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470?s=100">
-            </p>
-            <hr/>
+            {% for founder in founders %}
+                <h4><a href="{% url 'user' founder.username %}">{{ founder.first_name }}</a></h4>
+                <p>
+                    <img class="img-rounded" src="{{ founder.gravatar }}?s=100">
+                </p>
+                <hr/>
+            {% endfor %}
             <ul class="nav nav-list well text-left">
                 <li class="nav-header">Project Links</li>
                 <li><a href="{% url 'project:dashboard' project.id %}">Dashboard</a></li>

@@ -77,26 +77,28 @@ class ProjectCreateView(RequestBaseView, CreateView):
         :return:
 
         """
-        project = form.save()
+        project = form.save(commit=False)
         project.is_private = form.cleaned_data.get('is_private')
         project.exchange_periodicity = \
             form.cleaned_data.get('exchange_periodicity')
         project.exchange_magnitude = \
             form.cleaned_data.get('exchange_magnitude')
+        # Initialize ownership
         project.total_shares = 1000000
         ownership = form.cleaned_data.get('ownership')
         owner_shares = project.total_shares / 100 * ownership
         project.impact_shares = project.total_shares - owner_shares
-        project.admin_set.add(self.user)
         project.save()
-
         owner_equity = Equity(
             shares=owner_shares,
             user=self.user,
             project=project
         )
         owner_equity.save()
-
+        # Initiate groups
+        project.admin_set.add(self.user)
+        project.subscriber_set.add(self.user)
+        project.founder_set.add(self.user)
         return redirect(reverse('project:project', args=[project.id]))
 
 
@@ -116,6 +118,8 @@ class ProjectView(TemplateView, ProjectBaseView, BaseFormView):
         """
         kwargs['subscribe'] = int(self.project.subscriber_set.filter(
             pk=self.request.user.pk).exists())
+        kwargs['founders'] = self.project.founder_set.all()\
+            .order_by('first_name')
         return super(ProjectView, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
