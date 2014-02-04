@@ -92,7 +92,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         kwargs["task_reject_total"] = impact_total(reject_votes_qs)
         try:
             impact = Impact.objects.get(
-                user_id=self.task.author_id,
+                user_id=self.task.owner_id,
                 project_id=self.project.id
             )
         except Impact.DoesNotExist:

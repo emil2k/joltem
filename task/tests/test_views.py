@@ -480,7 +480,8 @@ class TaskEditTest(WebTest, ViewTestMixin):
     def setUp(self):
         self.user = mixer.blend('joltem.user')
         self.project = mixer.blend('project.project')
-        self.task = mixer.blend('task.task', project=self.project, owner=self.user)
+        self.task = mixer.blend('task.task', project=self.project,
+                                owner=self.user)
 
         self.url = TASK_EDIT_URL.format(
             project_id=self.project.id,
@@ -513,8 +514,11 @@ class TaskEditTest(WebTest, ViewTestMixin):
         task = Task.objects.get()
         self.assertEqual(task.title, 'new title')
 
+        (admin, manager) = mixer.cycle(2).blend('joltem.user')
+        self.project.admin_set.add(admin)
+        self.project.manager_set.add(manager)
+
         # Edit by admin
-        admin = self.project.admin_set.get()
         response = self.app.get(self.url, user=admin)
 
         form = response.forms[TASK_EDIT_FORM_ID]
@@ -525,7 +529,6 @@ class TaskEditTest(WebTest, ViewTestMixin):
         self.assertEqual(task.title, 'admin title')
 
         # Edit by manager
-        manager = self.project.admin_set.get()
         response = self.app.get(self.url, user=manager)
 
         form = response.forms[TASK_EDIT_FORM_ID]
