@@ -1,5 +1,6 @@
 # coding: utf-8
 """ View related tests for task app. """
+from django.test import TestCase
 from django_webtest import WebTest
 from django.core.urlresolvers import reverse
 from joltem.libs import mixer
@@ -8,6 +9,7 @@ from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
 from task import views
 from task.models import Task
+from task.views import TaskBaseView
 
 
 class BaseTaskPermissionsTestCase(BaseProjectPermissionsTestCase):
@@ -160,6 +162,63 @@ class TestPrivateTaskListsPermissionsDeveloper(
     TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "developer"
+
+
+class TaskViewIsEditorTest(TestCase):
+
+    """ Test a task view's is_editor function. """
+
+    def assertIsEditorEqual(self, task, user, expected):
+        """ Assert what is_editor function returns.
+
+        :param task:
+        :param user:
+        :param expected: bool value expected
+
+        """
+        v = TaskBaseView()
+        v.task = task
+        v.project = task.project
+        v.user = user
+        self.assertEqual(v.is_editor, expected)
+
+    def test_task_owner_reviewing(self):
+        """ Task owner should be able to edit in review. """
+        task = mixer.blend('task.task', is_reviewed=False)
+        self.assertIsEditorEqual(task, task.owner, True)
+
+    def test_task_owner_reviewed(self):
+        """ Task owner should not be able to edit after review. """
+        task = mixer.blend('task.task', is_reviewed=True)
+        self.assertIsEditorEqual(task, task.owner, False)
+
+    def test_parent_solution_owner(self):
+        """ Parent solution owner should be able to edit task. """
+        solution = mixer.blend('solution.solution')
+        task = mixer.blend('task.task', is_reviewed=True, parent=solution)
+        self.assertIsEditorEqual(task, solution.owner, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, solution.owner, True)
+
+    def test_project_admin(self):
+        """ Project admin should be able to edit task. """
+        admin = mixer.blend('joltem.user')
+        task = mixer.blend('task.task', is_reviewed=True)
+        task.project.admin_set.add(admin)
+        task.project.save()
+        self.assertIsEditorEqual(task, admin, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, admin, True)
+
+    def test_project_manager(self):
+        """ Project manager should be able to edit task. """
+        manager = mixer.blend('joltem.user')
+        task = mixer.blend('task.task', is_reviewed=True)
+        task.project.manager_set.add(manager)
+        task.project.save()
+        self.assertIsEditorEqual(task, manager, True)
+        task.is_reviewed = False
+        self.assertIsEditorEqual(task, manager, True)
 
 
 class BaseTaskViewTest(BaseProjectViewTest):

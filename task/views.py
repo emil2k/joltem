@@ -36,17 +36,21 @@ class TaskBaseView(ProjectBaseView):
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
 
     @cached_property
-    def is_owner(self):
-        """ Check self.user is owner of self.task.
+    def is_editor(self):
+        """ Determines whether user can edit task.
+
+        Depends on the state of the task. While in review the person who
+        wrote the task, the `owner`, can edit the task. After review is
+        complete only an admin, manager, or if it is a subtask to a
+        solution, the owner of that solution may edit the task.
 
         :returns: bool
 
         """
-        return self.task and (
-            self.task.is_owner(self.user) or
-            self.is_admin or
-            self.is_manager
-        )
+        return self.is_admin or self.is_manager \
+            or (not self.task.is_reviewed and self.task.is_owner(self.user)) \
+            or (self.task.parent is not None
+                and self.task.parent.is_owner(self.user))
 
     def get_context_data(self, **kwargs):
         """ Get data for templates.
@@ -55,7 +59,6 @@ class TaskBaseView(ProjectBaseView):
 
         """
         kwargs["task"] = self.task
-        kwargs["is_owner"] = self.is_owner
         kwargs["comments"] = CommentHolder.get_comments(
             self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by(
@@ -82,6 +85,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         :return dict: a context
 
         """
+        kwargs["is_editor"] = self.is_editor
         accept_votes_qs = self.task.vote_set.filter(is_accepted=True)
         reject_votes_qs = self.task.vote_set.filter(is_accepted=False)
         impact_total = lambda qs: qs.aggregate(
@@ -125,7 +129,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
                 task_id=self.task.id)
 
         # Close task
-        if self.is_owner and request.POST.get('close'):
+        if self.is_editor and request.POST.get('close'):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
@@ -134,7 +138,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
                 task_id=self.task.id)
 
         # Reopen task
-        if self.is_owner and request.POST.get('reopen'):
+        if self.is_editor and request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
             self.task.save()
@@ -182,15 +186,13 @@ class TaskEditView(TaskBaseView, UpdateView):
     template_name = 'task/task_edit.html'
 
     def get_object(self):
-        """ Check user is owner for the task.
+        """ Check user is editor of the task.
 
         :return Task:
 
         """
-
-        if self.is_owner:
+        if self.is_editor:
             return self.task
-
         raise Http404
 
     def get_success_url(self):
