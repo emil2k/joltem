@@ -60,17 +60,23 @@ class Project(Notifying):
     # Relations
 
     admin_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="admin_project_set")
+        settings.AUTH_USER_MODEL, related_name="admin_project_set",
+        blank=True)
     manager_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="manager_project_set")
+        settings.AUTH_USER_MODEL, related_name="manager_project_set",
+        blank=True)
     developer_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="developer_project_set")
+        settings.AUTH_USER_MODEL, related_name="developer_project_set",
+        blank=True)
     invitee_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="invitee_project_set")
+        settings.AUTH_USER_MODEL, related_name="invitee_project_set",
+        blank=True)
     subscriber_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name='subscriber_project_set')
+        settings.AUTH_USER_MODEL, related_name='subscriber_project_set',
+        blank=True)
     founder_set = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name='founder_project_set')
+        settings.AUTH_USER_MODEL, related_name='founder_project_set',
+        blank=True)
 
     def is_admin(self, user_id):
         """ Check if the user is an admin of the project.

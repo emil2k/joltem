@@ -10,7 +10,7 @@ def initialize_data():
 
     """
     description = "This is a platform to openly collaborate with others to " \
-                  "build and launch a startup. We have rethinked the way " \
+                  "build and launch a startup. We have rethought the way " \
                   "companies are formed based on the idea that an openly " \
                   "developed startup has major advantages over its closed " \
                   "counterparts."
@@ -25,12 +25,15 @@ def initialize_data():
                         is_superuser=True, is_staff=True,
                         password='123')
     project.admin_set.add(admin)
-    project.save()
+    project.subscriber_set.add(admin)
+    project.founder_set.add(admin)
     first_names = ('Becky', 'Bob', 'Ian', 'Jill', 'Kate', 'Will')
-    mixer.cycle(6).blend('joltem.user',
+    users = mixer.cycle(6).blend('joltem.user',
                          first_name=(first_name for first_name in first_names),
                          username=mixer.MIX.first_name(lambda x: x.lower()),
                          password='123')
+    project.subscriber_set.add(*users)
+    project.save()
     mixer.blend('project.equity', user=admin, project=project,
                 shares=150000)
 
