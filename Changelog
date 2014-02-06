@@ -1,3 +1,16 @@
+2014-02-06  emil
+    * Version 1.1.0
+    * Opened up platform for other projects.
+    * Added option of private projects.
+    * Added initial equity tracking.
+    * Activity feed replaced dashboard.
+    * Switched to displaying project specific impact and completed solutions.
+    * Gave admins and managers ability to edit tasks, removed task authors.
+    * Improved interface for editing project groups, i.e. admins or managers.
+    * Incorporated subreddit for exploring projects.
+    * Layout fixed for iPhone.
+    * Help section text altered.
+
 2014-01-08  emil
     * Version 1.0.0
     * Task and solution counts.
