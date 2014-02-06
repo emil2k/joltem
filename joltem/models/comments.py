@@ -39,7 +39,7 @@ class Comment(Owned, ProjectContext, Updatable):
         app_label = "joltem"
 
     def __unicode__(self):
-        return str(self.comment)
+        return u'Comment by %s' % self.owner
 
     def get_comment_url(self):
         """ Get anchor link to this comment.
