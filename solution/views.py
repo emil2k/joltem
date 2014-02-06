@@ -2,7 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models import Q
-from django.http import HttpResponseNotFound
+from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
 from django.views.generic import TemplateView, DetailView, ListView
@@ -13,6 +13,7 @@ from joltem.models import Comment
 from joltem.views.generic import (
     VoteableView, CommentableView, ExtraContextMixin,
 )
+from project.models import Impact
 from project.views import ProjectBaseView, ProjectMixin
 from solution.models import Solution
 from task.models import Task
@@ -44,8 +45,9 @@ class SolutionBaseView(ProjectBaseView):
                 .prefetch_related('vote_set__voter')\
                 .select_related('owner')\
                 .get(id=self.kwargs.get("solution_id"))
+            print self.solution
         except Solution.DoesNotExist:
-            return HttpResponseNotFound("Solution not found.")
+            raise Http404("Solution not found.")
         else:
             self.is_owner = self.solution.is_owner(self.user)
 
@@ -85,6 +87,25 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
 
     template_name = "solution/solution.html"
     solution_tab = "solution"
+
+    def get_context_data(self, **kwargs):
+        """ Get data for templates.
+
+        :return dict: a context
+
+        """
+        try:
+            impact = Impact.objects.get(
+                user_id=self.solution.owner_id,
+                project_id=self.project.id
+            )
+        except Impact.DoesNotExist:
+            kwargs["solution_owner_impact"] = 0
+            kwargs["solution_owner_completed"] = 0
+        else:
+            kwargs["solution_owner_impact"] = impact.impact
+            kwargs["solution_owner_completed"] = impact.completed
+        return super(SolutionView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """ Handle POST requests on solution view.
@@ -126,7 +147,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
                 self.solution.mark_open()
 
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
 
         return super(SolutionView, self).post(request, *args, **kwargs)
@@ -134,7 +155,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
     def get_vote_redirect(self):
         """ Return url to redirect to after vote. """
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
     def get_commentable(self):
@@ -144,7 +165,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
     def get_comment_redirect(self):
         """ Return url to redirect to after comment. """
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
@@ -165,7 +186,7 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         """
         if not self.is_owner or self.solution.is_closed:
             return redirect('project:solution:solution',
-                            project_name=self.project,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         return super(SolutionEditView, self).get(request, *args, **kwargs)
 
@@ -180,13 +201,13 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         """
         if not self.is_owner or self.solution.is_closed:
             return redirect('project:solution:solution',
-                            project_name=self.project,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         self.solution.title = request.POST.get('title')
         self.solution.description = request.POST.get('description')
         self.solution.save()
         return redirect('project:solution:solution',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
@@ -214,7 +235,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
             compensation_value = int(request.POST.get('compensation_value'))
             self.solution.change_evaluation(compensation_value)
             return redirect('project:solution:review',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.solution.id)
         return super(SolutionReviewView, self).post(request, *args, **kwargs)
 
@@ -237,7 +258,7 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
     def get_vote_redirect(self):
         """ Return url to redirect to after vote. """
         return redirect('project:solution:review',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
     def get_commentable(self):
@@ -247,11 +268,11 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
     def get_comment_redirect(self):
         """ Return url to redirect to after comment. """
         return redirect('project:solution:review',
-                        project_name=self.project.name,
+                        project_id=self.project.id,
                         solution_id=self.solution.id)
 
 
-class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
+class SolutionCommitsView(TemplateView, SolutionBaseView):
 
     """Shows solution's commits.
 
@@ -260,9 +281,7 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
     """
 
     template_name = 'solution/commits.html'
-    model = Solution
-    pk_url_kwarg = 'solution_id'
-    context_object_name = 'solution'
+    solution_tab = "commits"
 
     @cached_property
     def current_repo(self):
@@ -296,22 +315,18 @@ class SolutionCommitsView(ProjectMixin, ExtraContextMixin, DetailView):
 
         """
         context = super(SolutionCommitsView, self).get_context_data(**kwargs)
-
         commit_list = []
         if self.current_repo:
             pygit_repository = self.current_repo.load_pygit_object()
             if pygit_repository:
-                solution = self.object
                 try:
-                    commit_list = solution.get_commit_set(pygit_repository)
+                    commit_list = self.solution.get_commit_set(pygit_repository)
                 except KeyError:
                     pass
-
         context['commit_list'] = commit_list
         context['current_repo'] = self.current_repo
         context['project_repo_list'] = self.project_repo_list
         context['project'] = self.project
-
         return context
 
 
@@ -355,13 +370,13 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                 (self.parent_task.is_closed or
                  not self.parent_task.is_accepted):
             return redirect('project:task:task',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             task_id=self.parent_task.id)
         if self.parent_solution and \
                 (self.parent_solution.is_completed or
                  self.parent_solution.is_closed):
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=self.parent_solution.id)
 
         title = request.POST.get('title')
@@ -389,28 +404,28 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
             )
             solution.save()
             return redirect('project:solution:solution',
-                            project_name=self.project.name,
+                            project_id=self.project.id,
                             solution_id=solution.id)
 
 
-class SolutionListMeta(type):
+class SolutionBaseListMeta(type):
 
     """ Build views hierarchy. """
 
     solutions_tabs = []
 
     def __new__(mcs, name, bases, params):
-        cls = super(SolutionListMeta, mcs).__new__(mcs, name, bases, params)
+        cls = super(SolutionBaseListMeta, mcs).__new__(mcs, name, bases, params)
         if cls.solutions_tab:
             mcs.solutions_tabs.append((cls.solutions_tab, cls))
         return cls
 
 
-class SolutionListMixin(ProjectMixin, ListView):
+class SolutionBaseListView(ListView, ProjectBaseView):
 
     """ View mixin for solution's list. """
 
-    __metaclass__ = SolutionListMeta
+    __metaclass__ = SolutionBaseListMeta
 
     context_object_name = 'solutions'
     paginate_by = 10
@@ -432,11 +447,11 @@ class SolutionListMixin(ProjectMixin, ListView):
         if not kwargs["solutions_tabs"]:
             kwargs["solutions_tabs"] = {
                 n: self.get_queryset(**c.filters).count()
-                for n, c in SolutionListMixin.solutions_tabs
+                for n, c in SolutionBaseListView.solutions_tabs
             }
             cache.set("%s:solutions_tabs" % self.project.pk,
                       kwargs["solutions_tabs"])
-        return super(SolutionListMixin, self).get_context_data(**kwargs)
+        return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
     def get_queryset(self, **filters):
         """ Filter solutions by current project.
@@ -458,7 +473,7 @@ class SolutionListMixin(ProjectMixin, ListView):
         return qs.order_by('-time_posted')
 
 
-class AllIncompleteSolutionsView(SolutionListMixin):
+class AllIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of all incomplete solutions. """
 
@@ -466,7 +481,7 @@ class AllIncompleteSolutionsView(SolutionListMixin):
     filters = {'is_completed': False, 'is_closed': False}
 
 
-class AllCompleteSolutionsView(SolutionListMixin):
+class AllCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of complete solutions. """
 
@@ -474,7 +489,7 @@ class AllCompleteSolutionsView(SolutionListMixin):
     filters = {'is_completed': True, 'is_closed': False}
 
 
-class MyIncompleteSolutionsView(SolutionListMixin):
+class MyIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your incomplete solutions. """
 
@@ -484,7 +499,7 @@ class MyIncompleteSolutionsView(SolutionListMixin):
         'owner': lambda s: s.request.user}
 
 
-class MyCompleteSolutionsView(SolutionListMixin):
+class MyCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your complete solutions. """
 
@@ -494,7 +509,7 @@ class MyCompleteSolutionsView(SolutionListMixin):
         'owner': lambda s: s.request.user}
 
 
-class MyReviewSolutionsView(SolutionListMixin):
+class MyReviewSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of solutions to review. """
 
@@ -505,7 +520,7 @@ class MyReviewSolutionsView(SolutionListMixin):
         'vote_set__voter__ne': lambda s: s.request.user}
 
 
-class MyReviewedSolutionsView(SolutionListMixin):
+class MyReviewedSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of reviewed solutions. """
 

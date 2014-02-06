@@ -42,15 +42,13 @@ def get_mock_user(username, **extra_fields):
         '%s_password' % username, **extra_fields)
 
 
-def get_mock_project(name, title=None):
+def get_mock_project(title):
     """ Generate project.
 
     :return Project:
 
     """
-    title = "Project : %s" % name if not title else title
     p = Project(
-        name=name,
         title=title
     )
     p.save()
@@ -59,17 +57,15 @@ def get_mock_project(name, title=None):
 
 def get_mock_task(project, owner,
                   is_reviewed=False, is_accepted=False, is_closed=False,
-                  solution=None, author=None):
+                  solution=None):
     """ Generate task.
 
     :return Task:
 
     """
-    author = owner if author is None else author
     t = Task(
         title="A task by %s" % owner.username,
         owner=owner,
-        author=author,
         project=project,
         parent=solution,
         is_reviewed=is_reviewed,

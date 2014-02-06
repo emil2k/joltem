@@ -116,9 +116,17 @@ class GitProcessProtocol(SubprocessProtocol):
     implements(IProcessTransport)
 
     def __init__(self, protocol, avatar, repository):
+        """ Initiate a git process protocol.
+
+        :param protocol: a process protocol
+        :param avatar: an instance of GatewayUser
+        :param repository: an instance of a Repository model
+        :return:
+
+        """
         SubprocessProtocol.__init__(self, protocol)
         self.avatar = avatar
-        self.repository = repository  # repository model instance
+        self.repository = repository
         self.process_transport = None
 
     def wrap_process_transport(self, transport):
@@ -132,14 +140,18 @@ class GitProcessProtocol(SubprocessProtocol):
         self.process_transport = transport
 
     def has_read_permission(self):
-        """ Check for the avatar has permission to read.
+        """ Check that the avatar has permission to read.
 
-        :returns: Bool
+        An avatar could represent a project deployment or a user key,
+        this handles both cases.
+
+        :returns bool:
 
         """
-        if self.avatar.project:
+        if self.avatar.project:  # deployment key
             return self.repository.project == self.avatar.project
-        return True
+        elif self.avatar.user:  # user key
+            return self.repository.project.has_access(self.avatar.user.id)
 
     @staticmethod
     def log(data, system, newline=False):

@@ -74,11 +74,14 @@
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     {% block nav %}{% endblock %}
+                </ul>
+                <ul class="nav pull-right">
+                    <li><a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore <i class="fa fa-globe"></i></a></li>
                     <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
                     {% if user.is_authenticated %}
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                Hello, {{ user.first_name }} <b class="caret"></b>
+                                Hello, {{ user.first_name }} <b class="fa fa-caret-down"></b>
                             </a>
                             <ul class="dropdown-menu pull-right">
                                 <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
@@ -101,7 +104,7 @@
         <div class="anonymous">
             <a href="#" class="hide-anonymous" onclick="$('.anonymous').toggle(); return false;"><i class="fa fa-times"></i></a>
             <h3>an open incubator.</h3>
-            <p class="tagline">openly collaborate to build and launch a business <i class="fa fa-rocket"></i></p>
+            <p class="tagline">openly collaborate to build and launch a startup <i class="fa fa-rocket"></i></p>
             <p>
                 <a class="btn" href="{% url 'sign_in' %}"><b>sign in</b></a>
                 <a class="btn" href="{% url 'help:index' %}"><b>more info</b></a>
@@ -133,7 +136,7 @@
             </h4>
             <small class="muted">
                 <p>2013 &copy; Joltem</p>
-                <p><i class="fa fa-beer"></i> 1.0.0</p>
+                <p><i class="fa fa-beer"></i> 1.1.0</p>
             </small>
         </div>
     </div>

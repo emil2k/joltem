@@ -22,7 +22,7 @@
                 <p>
                     {{ solution.default_title }}
                     by <a href="{% url 'user' solution.owner.username %}">{{ solution.owner.first_name }}</a>
-                    <a href="http://joltem.com/{% url 'project:solution:solution' project.name solution.id %}">Click it! »</a>
+                    <a href="http://joltem.com/{% url 'project:solution:solution' project.id solution.id %}">Click it! »</a>
                 </p>
                 {% endfor %}
                 {% endif %}
@@ -33,7 +33,7 @@
                 <p>
                     {{ task.title }}
                     by <a href="{% url 'user' task.owner.username %}">{{ task.owner.first_name }}</a>
-                    <a href="http://joltem.com/{% url 'project:task:task' project.name task.id %}">Click it! »</a>
+                    <a href="http://joltem.com/{% url 'project:task:task' project.id task.id %}">Click it! »</a>
                 </p>
                 {% endfor %}
                 {% endif %}

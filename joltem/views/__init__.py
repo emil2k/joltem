@@ -11,30 +11,51 @@ from joltem.views.generic import RequestBaseView
 from project.models import Project
 
 
-class HomeView(TemplateView):
+class HomeView(RequestBaseView, TemplateView):
 
-    """ View to serve up homepage. """
+    """ View to serve up homepage.
 
-    template_name = 'joltem/landing.html'
+    If user is authenticated renders homepage with list of project
+    that the user is following, otherwise renders landing page.
 
-    def get(self, request, *args, **kwargs):
-        """ Handle GET request.
+    """
+    def get_context_data(self, **kwargs):
+        """ Return context data.
 
-        If user is authenticated redirect to project dashboard.
-        Otherwise redirect to sign in while closed alpha.
+        Depends on authentication state
 
-        :param request:
-        :param args:
         :param kwargs:
-        :return:
+        :return dict: context data for template.
 
         """
-        if request.user.is_authenticated():
-            # Currently there is only one project so just redirect to it
-            project = Project.objects.get()
-            return redirect('project:project', project_name=project.name)
+        class ProjectHolder():
+
+            """ Holder for a watched project. """
+
+            def __init__(self, project):
+                self.project = project
+                self.overview = project.get_cached_overview()
+
+        if self.user.is_authenticated():
+            kwargs['watching'] = \
+                [ ProjectHolder(project)
+                  for project in self.user.subscriber_project_set.all() ]
+            return super(HomeView, self).get_context_data(**kwargs)
         else:
-            return self.render_to_response(context={})
+            return {}  # empty context
+
+    def get_template_names(self):
+        """ Return template name.
+
+        Depends on authentication state of the user.
+
+        :return str: template name
+
+        """
+        if self.user.is_authenticated():
+            return 'joltem/home.html'
+        else:
+            return 'joltem/landing.html'
 
 
 class UserView(DetailView):

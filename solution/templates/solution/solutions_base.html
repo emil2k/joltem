@@ -3,25 +3,25 @@
 {% block title %}Solutions - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
-        <div class="span2">
+        <div class="span3">
             <ul class="nav nav-list well">
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'project:solution:new' project.name %}">Create</a></li>
+                    <li><a href="{% url 'project:solution:new' project.id %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">All</li>
-                <li class="{{ solutions_tab|active:"all_incomplete" }}"><a href="{% url 'project:solution:all_incomplete' project.name %}">Incomplete<span class="{{ solutions_tabs.all_incomplete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_incomplete }}</span></a></li>
-                <li class="{{ solutions_tab|active:"all_complete" }}"><a href="{% url 'project:solution:all_complete' project.name %}">Complete<span class="{{ solutions_tabs.all_complete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_complete }}</span></a></li>
+                <li class="{{ solutions_tab|active:"all_incomplete" }}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Incomplete<span class="{{ solutions_tabs.all_incomplete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_incomplete }}</span></a></li>
+                <li class="{{ solutions_tab|active:"all_complete" }}"><a href="{% url 'project:solution:all_complete' project.id %}">Complete<span class="{{ solutions_tabs.all_complete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_complete }}</span></a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-header">My</li>
-                    <li class="{{ solutions_tab|active:"my_incomplete" }}"><a href="{% url 'project:solution:my_incomplete' project.name %}">Incomplete<span class="{{ solutions_tabs.my_incomplete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_incomplete }}</span></a></li>
-                    <li class="{{ solutions_tab|active:"my_complete" }}"><a href="{% url 'project:solution:my_complete' project.name %}">Complete<span class="{{ solutions_tabs.my_complete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_complete }}</span></a></li>
+                    <li class="{{ solutions_tab|active:"my_incomplete" }}"><a href="{% url 'project:solution:my_incomplete' project.id %}">Incomplete<span class="{{ solutions_tabs.my_incomplete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_incomplete }}</span></a></li>
+                    <li class="{{ solutions_tab|active:"my_complete" }}"><a href="{% url 'project:solution:my_complete' project.id %}">Complete<span class="{{ solutions_tabs.my_complete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_complete }}</span></a></li>
                     <li class="nav-header">Review</li>
-                    <li class="{{ solutions_tab|active:"my_review" }}"><a href="{% url 'project:solution:my_review' project.name %}">Review<span class="{{ solutions_tabs.my_review|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_review }}</span></a></li>
-                    <li class="{{ solutions_tab|active:"my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.name %}">Reviewed<span class="{{ solutions_tabs.my_reviewed|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_reviewed }}</span></a></li>
+                    <li class="{{ solutions_tab|active:"my_review" }}"><a href="{% url 'project:solution:my_review' project.id %}">Review<span class="{{ solutions_tabs.my_review|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_review }}</span></a></li>
+                    <li class="{{ solutions_tab|active:"my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.id %}">Reviewed<span class="{{ solutions_tabs.my_reviewed|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.my_reviewed }}</span></a></li>
                 {% endif %}
             </ul>
         </div>
-        <div class="span10">
+        <div class="span9">
             {% block solutions_content %}{% endblock %}
         </div>
     </div>

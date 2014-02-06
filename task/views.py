@@ -3,6 +3,7 @@
 from django.http import Http404
 from django.db.models import Sum, Q
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.functional import cached_property
 from django.core.cache import cache
 from django.views.generic import (
     TemplateView, CreateView, UpdateView, ListView,
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 
 from joltem.holders import CommentHolder
+from project.models import Impact
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
 from project.views import ProjectBaseView
@@ -26,14 +28,29 @@ class TaskBaseView(ProjectBaseView):
     def __init__(self, *args, **kwargs):
         super(TaskBaseView, self).__init__(*args, **kwargs)
         self.task = None
-        self.is_owner = False
 
     def initiate_variables(self, request, *args, **kwargs):
         """ Initialize task. """
 
         super(TaskBaseView, self).initiate_variables(request, args, kwargs)
         self.task = get_object_or_404(Task, id=self.kwargs.get("task_id"))
-        self.is_owner = self.task.is_owner(self.user)
+
+    @cached_property
+    def is_editor(self):
+        """ Determines whether user can edit task.
+
+        Depends on the state of the task. While in review the person who
+        wrote the task, the `owner`, can edit the task. After review is
+        complete only an admin, manager, or if it is a subtask to a
+        solution, the owner of that solution may edit the task.
+
+        :returns: bool
+
+        """
+        return self.is_admin or self.is_manager \
+            or (not self.task.is_reviewed and self.task.is_owner(self.user)) \
+            or (self.task.parent is not None
+                and self.task.parent.is_owner(self.user))
 
     def get_context_data(self, **kwargs):
         """ Get data for templates.
@@ -42,7 +59,6 @@ class TaskBaseView(ProjectBaseView):
 
         """
         kwargs["task"] = self.task
-        kwargs["is_owner"] = self.is_owner
         kwargs["comments"] = CommentHolder.get_comments(
             self.task.comment_set.all().order_by('time_commented'), self.user)
         kwargs["solutions"] = self.task.solution_set.all().order_by(
@@ -69,6 +85,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         :return dict: a context
 
         """
+        kwargs["is_editor"] = self.is_editor
         accept_votes_qs = self.task.vote_set.filter(is_accepted=True)
         reject_votes_qs = self.task.vote_set.filter(is_accepted=False)
         impact_total = lambda qs: qs.aggregate(
@@ -77,6 +94,17 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         kwargs["task_reject_votes"] = reject_votes_qs.order_by('time_voted')
         kwargs["task_accept_total"] = impact_total(accept_votes_qs)
         kwargs["task_reject_total"] = impact_total(reject_votes_qs)
+        try:
+            impact = Impact.objects.get(
+                user_id=self.task.owner_id,
+                project_id=self.project.id
+            )
+        except Impact.DoesNotExist:
+            kwargs["task_owner_impact"] = 0
+            kwargs["task_owner_completed"] = 0
+        else:
+            kwargs["task_owner_impact"] = impact.impact
+            kwargs["task_owner_completed"] = impact.completed
         return super(TaskView, self).get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -90,32 +118,32 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
         if request.POST.get('accept'):
             self.task.put_vote(self.user, True)
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Vote to reject task
         if request.POST.get('reject'):
             self.task.put_vote(self.user, False)
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Close task
-        if self.is_owner and request.POST.get('close'):
+        if self.is_editor and request.POST.get('close'):
             self.task.is_closed = True
             self.task.time_closed = timezone.now()
             self.task.save()
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # Reopen task
-        if self.is_owner and request.POST.get('reopen'):
+        if self.is_editor and request.POST.get('reopen'):
             self.task.is_closed = False
             self.task.time_closed = None
             self.task.save()
             return redirect(
-                'project:task:task', project_name=self.project.name,
+                'project:task:task', project_id=self.project.id,
                 task_id=self.task.id)
 
         # to process commenting
@@ -128,7 +156,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         """
         return redirect(
-            'project:task:task', project_name=self.project.name,
+            'project:task:task', project_id=self.project.id,
             task_id=self.task.id)
 
     def get_commentable(self):
@@ -146,7 +174,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         """
         return redirect(
-            'project:task:task', project_name=self.project.name,
+            'project:task:task', project_id=self.project.id,
             task_id=self.task.id)
 
 
@@ -158,15 +186,13 @@ class TaskEditView(TaskBaseView, UpdateView):
     template_name = 'task/task_edit.html'
 
     def get_object(self):
-        """ Check user is owner for the task.
+        """ Check user is editor of the task.
 
         :return Task:
 
         """
-
-        if self.is_owner:
+        if self.is_editor:
             return self.task
-
         raise Http404
 
     def get_success_url(self):
@@ -179,7 +205,7 @@ class TaskEditView(TaskBaseView, UpdateView):
         return reverse(
             'project:task:task',
             kwargs={
-                'project_name': self.project.name,
+                'project_id': self.project.id,
                 'task_id': self.task.id
             }
         )
@@ -213,7 +239,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
             if self.parent_solution.is_completed:
                 return redirect(
                     'project:solution:solution',
-                    project_name=self.project.name,
+                    project_id=self.project.id,
                     solution_id=self.parent_solution.id,
                 )
 
@@ -254,10 +280,10 @@ class TaskCreateView(ProjectBaseView, CreateView):
         """
         task = form.save(commit=False)
         task.parent = self.parent_solution
-        task.author = self.user
+        task.owner = self.user
         task.save()
 
-        return redirect('project:task:task', project_name=self.project.name,
+        return redirect('project:task:task', project_id=self.project.id,
                         task_id=task.id)
 
 
@@ -312,7 +338,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
 
         """
         filters = filters or self.filters
-        qs = self.project.task_set.select_related('author')\
+        qs = self.project.task_set.select_related('owner')\
             .prefetch_related('solution_set')
 
         for k in filters:

@@ -1,6 +1,6 @@
-<div class="{{ offset }} span9">
+<div class="{{ offset }} span8">
     <p>
-        <a href="{% url 'project:task:task' project.name task.id %}">{{ task.title }}</a></br/>
+        <a href="{% url 'project:task:task' project.id task.id %}">{{ task.title }}</a></br/>
         <small class="muted">
             {% if task.priority == task.LOW_PRIORITY %}
                 <i class="fa fa-circle-o" title="low priority"></i>
@@ -9,7 +9,7 @@
             {% else %}
                 <i class="fa fa-asterisk" title="high priority"></i>
             {% endif %}
-            by <a href="{% url 'user' task.author.username %}" class="muted">{{ task.author.first_name }}</a> on {{ task.time_posted|date }}
+            by <a href="{% url 'user' task.owner.username %}" class="muted">{{ task.owner.first_name }}</a> on {{ task.time_posted|date }}
             {% if task.is_closed %}
                 <span class="hidden-phone">/ <span class="text-info">Closed on {{ task.time_closed|date }}</span></span>
             {% endif %}

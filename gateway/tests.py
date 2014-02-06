@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from gateway.libs.git.protocol import (
-    BaseBufferedSplitter, PacketLineSplitter, GitReceivePackProcessProtocol)
+    BaseBufferedSplitter, PacketLineSplitter, GitReceivePackProcessProtocol, GitProcessProtocol)
 from gateway.libs.git.utils import *
 from gateway.libs.terminal.utils import *
 from git.models import Authentication
@@ -164,6 +164,15 @@ class MockGitReceivePackProcessProtocol(GitReceivePackProcessProtocol):
         self.repository = repository
 
 
+class MockGitProcessProtocol(GitProcessProtocol):
+
+    """ Mock general git process protocol for testing read permission. """
+
+    def __init__(self, authentication, repository):
+        self.avatar = authentication
+        self.repository = repository
+
+
 class TestReadPermissions(__DjangoTestCase):
 
     """ Base class for testing read permissions. """
@@ -173,11 +182,63 @@ class TestReadPermissions(__DjangoTestCase):
         repository2 = mixer.blend('git.repository')
         authentication = mixer.blend(
             'git.authentication', project=repository1.project)
-        pp1 = MockGitReceivePackProcessProtocol(authentication, repository1)
+        pp1 = MockGitProcessProtocol(authentication, repository1)
         self.assertTrue(pp1.has_read_permission())
 
-        pp2 = MockGitReceivePackProcessProtocol(authentication, repository2)
+        pp2 = MockGitProcessProtocol(authentication, repository2)
         self.assertFalse(pp2.has_read_permission())
+
+class TestPrivateProjectReadPermissions(__DjangoTestCase):
+
+    """ Test read permissions of a private project. """
+
+    def setUp(self):
+        self.project = mixer.blend('project.project', is_private=True)
+        self.repository = mixer.blend('git.repository', project=self.project)
+
+    def assertReadPermission(self, user, expected):
+        """ Assert whether or not user has read permissions on the repository.
+
+        :param user:
+        :param expected:
+
+        """
+        pp = MockGitProcessProtocol(
+            mixer.blend('git.authentication', user=user), self.repository)
+        self.assertEqual(expected, pp.has_read_permission())
+
+    def test_uninvited(self):
+        """ Test that an uninvited can't read repositories. """
+        uninvited = mixer.blend('joltem.user')
+        self.assertReadPermission(uninvited, False)
+
+    def test_invited(self):
+        """ Test that an invited user can read repositories. """
+        invited = mixer.blend('joltem.user')
+        self.project.invitee_set.add(invited)
+        self.project.save()
+        self.assertReadPermission(invited, True)
+
+    def test_admin(self):
+        """ Test that an admin can read repositories. """
+        admin = mixer.blend('joltem.user')
+        self.project.admin_set.add(admin)
+        self.project.save()
+        self.assertReadPermission(admin, True)
+
+    def test_manager(self):
+        """ Test that a manager can read repositories. """
+        manager = mixer.blend('joltem.user')
+        self.project.manager_set.add(manager)
+        self.project.save()
+        self.assertReadPermission(manager, True)
+
+    def test_developer(self):
+        """ Test that a developer can read repositories. """
+        developer = mixer.blend('joltem.user')
+        self.project.developer_set.add(developer)
+        self.project.save()
+        self.assertReadPermission(developer, True)
 
 
 class TestPushPermissions(__DjangoTestCase):

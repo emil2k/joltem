@@ -78,6 +78,7 @@ def update_project_impact_from_voteables(sender, **kwargs):
             user_id=voteable.owner_id
         )
         project_impact.impact = project_impact.get_impact()
+        project_impact.completed = project_impact.get_completed()
         project_impact.frozen_impact = project_impact.get_frozen_impact()
         project_impact.save()
 

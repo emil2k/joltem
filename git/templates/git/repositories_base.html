@@ -3,17 +3,17 @@
 {% block title %}Repositories - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
-        <div class="span2">
+        <div class="span3">
             <ul class="nav nav-list well">
                 {% if is_admin or is_manager %}
-                    <li><a href="{% url 'project:git:new_repository' project.name %}">Create</a></li>
+                    <li class="{{ repositories_tab|active:"create" }}"><a href="{% url 'project:git:new_repository' project.id %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">Repositories</li>
-                <li class="{{ repositories_tab|active:"active" }}"><a href="{% url 'project:git:repositories' project.name %}">Active</a></li>
-                <li class="{{ repositories_tab|active:"hidden" }}"><a href="{% url 'project:git:repositories_hidden' project.name %}">Hidden</a></li>
+                <li class="{{ repositories_tab|active:"active" }}"><a href="{% url 'project:git:repositories' project.id %}">Active</a></li>
+                <li class="{{ repositories_tab|active:"hidden" }}"><a href="{% url 'project:git:repositories_hidden' project.id %}">Hidden</a></li>
             </ul>
         </div>
-        <div class="span10">
+        <div class="span9">
             {% block repositories_content %}{% endblock %}
         </div>
     </div>

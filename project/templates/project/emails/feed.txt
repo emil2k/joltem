@@ -10,12 +10,12 @@
 
 {% if solutions %}Solution's updates:
 {% for solution in solutions %}
-    - {{ solution.default_title }} (http://joltem.com/{% url 'project:solution:solution' project.name solution.id %} by {{ solution.owner.first_name }}
+    - {{ solution.default_title }} (http://joltem.com/{% url 'project:solution:solution' project.id solution.id %} by {{ solution.owner.first_name }}
 {% endfor %}{% endif %}
 
 {% if tasks %}Task's updates:
 {% for task in tasks %}
-    - {{ task.title }} (http://joltem.com/{% url 'project:task:task' project.name task.id %} by {{ task.owner.first_name }}
+    - {{ task.title }} (http://joltem.com/{% url 'project:task:task' project.id task.id %} by {{ task.owner.first_name }}
 {% endfor %}{% endif %}
 
 {% endblock %}

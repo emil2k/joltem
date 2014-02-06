@@ -2,51 +2,174 @@ from django.test.testcases import TestCase
 from django.utils import timezone
 from datetime import timedelta
 from joltem.libs import mixer
+from django.conf import settings
 from joltem.models import User
 from joltem.tests.test_notifications import NotificationTestCase
 
-from ..models import (
-    Project, Ratio, Impact, NOTIFICATION_TYPE_FROZEN_RATIO,
-    NOTIFICATION_TYPE_UNFROZEN_RATIO)
+from ..models import Project, Ratio, Impact
 
 
 class ProjectModelTest(TestCase):
 
-    """ Tests for the Project model. """
+    """ Tests for the project model. """
 
     def setUp(self):
         self.project = mixer.blend(Project)
 
-    def test_get_overview(self):
-        """ Test get_overview. """
+    def test_feed_order(self):
+        """ Test that the feed is ordered properly. """
+        old = mixer.blend('task.task', project=self.project,
+                           time_updated=timezone.now() - timedelta(days=7))
+        new = mixer.blend('solution.solution', project=self.project,
+                           time_updated=timezone.now())
+        self.assertEqual(self.project.get_feed(),
+                         [new, old])
 
+    def test_feed_includes(self):
+        """ Test that the feed includes comments, tasks, and solutions. """
         tasks = mixer.cycle(4).blend(
             'task.task', project=self.project, is_reviewed=mixer.RANDOM)
-
         solutions = mixer.cycle(4).blend(
             'solution.solution', task=(t for t in tasks),
             project=mixer.MIX.task.project, is_completed=mixer.RANDOM)
-
-        comments = mixer.cycle(4).blend(
+        mixer.cycle(4).blend(
             'joltem.comment', commentable=(s for s in solutions),
             owner=mixer.SELECT('joltem.user'), project=self.project)
+        self.assertEqual(len(self.project.get_feed(limit=20)), 12)
 
+    def test_get_overview(self):
+        """ Test that overview returns all the necessary components. """
         overview = self.project.get_overview()
-        self.assertEqual(set(tasks), set(overview.get('tasks')))
-        self.assertEqual(set(solutions), set(overview.get('solutions')))
-        self.assertEqual(set(comments), set(overview.get('comments')))
-        self.assertEqual(
-            overview['completed_solutions_count'],
-            self.project.solution_set.filter(is_completed=True).count(),
-        )
-        self.assertEqual(
-            overview['completed_tasks_count'],
-            self.project.task_set.filter(
-                is_closed=True, is_accepted=True).count(),
-        )
+        self.assertTrue('feed' in overview)
+        self.assertTrue('completed_solutions_count' in overview)
+        self.assertTrue('open_solutions_count' in overview)
+        self.assertTrue('open_tasks_count' in overview)
+        self.assertTrue('completed_tasks_count' in overview)
 
-        tasks = list(overview.get('tasks'))
-        self.assertTrue(tasks[0].time_updated > tasks[-1].time_updated)
+
+class ProjectCompletedCountTest(TestCase):
+
+    """ Tests related to project specific completed count. """
+
+    def setUp(self):
+        self.impact = mixer.blend('project.impact')
+        self.project = self.impact.project
+        self.user = self.impact.user
+
+    def test_completed_function(self):
+        """ Test completed count functions. """
+        s = mixer.blend('solution.solution', owner=self.user,
+                        project=self.project)
+        self.assertEqual(self.impact.get_completed(), 0)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 1)
+
+    def test_completed_function_other_project(self):
+        """ Test other projects solutions.
+
+        Solutions from other projects should not count towards completed
+        count on a particular project.
+
+        """
+        s = mixer.blend('solution.solution', owner=self.user)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 0)
+
+    def test_completed_function_other_user(self):
+        """ Test other users solutions.
+
+        Solutions from other user should not count towards completed count
+        for a particular user.
+
+        """
+        s = mixer.blend('solution', project=self.project)
+        s.mark_complete(impact=1)
+        self.assertEqual(self.impact.get_completed(), 0)
+
+    def test_completed_cache(self):
+        """ Test that the completed count cache updates properly. """
+        reload = lambda i: Impact.objects.get(id=i.id)
+        s = mixer.blend('solution.solution', owner=self.user,
+                        project=self.project)
+        self.assertEqual(reload(self.impact).completed, 0)
+        s.mark_complete(impact=1)
+        self.assertEqual(reload(self.impact).completed, 1)
+        s.delete()
+        self.assertEqual(reload(self.impact).completed, 0)
+
+
+class ProjectCountsTest(TestCase):
+
+    """ Tests related to calculation of various project counts. """
+
+    def setUp(self):
+        self.project = mixer.blend(Project)
+
+    def test_open_solutions_count(self):
+        """ Test open solutions count. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False, is_closed=False)
+        self.assertEqual(self.project.get_open_solutions_count(), 1)
+
+    def test_open_solutions_count_closed(self):
+        """ Test open solutions does not count closed solutions. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False, is_closed=True)
+        self.assertEqual(self.project.get_open_solutions_count(), 0)
+
+    def test_open_solutions_count_completed(self):
+        """ Test open solutions does not count completed solutions. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=True, is_closed=False)
+        self.assertEqual(self.project.get_open_solutions_count(), 0)
+
+    def test_completed_solutions_count(self):
+        """ Test completed solutions count. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=True)
+        self.assertEqual(self.project.get_completed_solutions_count(), 1)
+
+    def test_completed_solutions_count_incomplete(self):
+        """ Test completed solutions does not count incomplete. """
+        mixer.blend('solution.solution', project=self.project,
+                    is_completed=False)
+        self.assertEqual(self.project.get_completed_solutions_count(), 0)
+
+    def test_open_tasks_count(self):
+        """ Test open tasks count. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=True)
+        self.assertEqual(self.project.get_open_tasks_count(), 1)
+
+    def test_open_tasks_count_rejected(self):
+        """ Test open tasks count does not count rejected tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=False)
+        self.assertEqual(self.project.get_open_tasks_count(), 0)
+
+    def test_open_tasks_count_closed(self):
+        """ Test open tasks count does not count closed tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=True)
+        self.assertEqual(self.project.get_open_tasks_count(), 0)
+
+    def test_completed_tasks_count(self):
+        """ Test completed tasks count. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=True)
+        self.assertEqual(self.project.get_completed_tasks_count(), 1)
+
+    def test_completed_tasks_count_rejected(self):
+        """ Test completed tasks count does not count rejected tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=True, is_accepted=False)
+        self.assertEqual(self.project.get_completed_tasks_count(), 0)
+
+    def test_completed_tasks_count_open(self):
+        """ Test completed tasks count does not count open tasks. """
+        mixer.blend('task.task', project=self.project,
+                    is_closed=False, is_accepted=True)
+        self.assertEqual(self.project.get_completed_tasks_count(), 0)
 
 
 class ProjectNotificationTest(NotificationTestCase):
@@ -64,15 +187,15 @@ class ProjectNotificationTest(NotificationTestCase):
     def test_get_notification_url(self):
         """ Test project notification url. """
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.frozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_url(n),
-                         '/apple/')
+                         '/%d/' % self.project.id)
 
     def test_get_notification_text_frozen_ratio(self):
         """ Test notification text for frozen by ratio."""
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_FROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.frozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_text(n),
                          self.FROZEN_TEXT)
@@ -80,7 +203,7 @@ class ProjectNotificationTest(NotificationTestCase):
     def test_get_notification_text_unfrozen_ratio(self):
         """ Test notification text for unfrozen by ratio."""
         n = mixer.blend('joltem.notification',
-                        type=NOTIFICATION_TYPE_UNFROZEN_RATIO,
+                        type=settings.NOTIFICATION_TYPES.unfrozen_ratio,
                         notifying=self.project)
         self.assertEqual(self.project.get_notification_text(n),
                          self.UNFROZEN_TEXT)
@@ -94,11 +217,11 @@ class ProjectNotificationTest(NotificationTestCase):
         u = mixer.blend('joltem.user')
         self.project.notify_frozen_ratio(u)
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.frozen_ratio,
             self.FROZEN_TEXT)
         self.project.notify_frozen_ratio(u)  # test that it updates
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_FROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.frozen_ratio,
             self.FROZEN_TEXT)  # implies only one received
 
     def test_notify_unfrozen_ratio(self):
@@ -110,11 +233,11 @@ class ProjectNotificationTest(NotificationTestCase):
         u = mixer.blend('joltem.user')
         self.project.notify_unfrozen_ratio(u)
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.unfrozen_ratio,
             self.UNFROZEN_TEXT)
         self.project.notify_unfrozen_ratio(u)  # test that it updates
         self.assertNotificationReceived(
-            u, self.project, NOTIFICATION_TYPE_UNFROZEN_RATIO,
+            u, self.project, settings.NOTIFICATION_TYPES.unfrozen_ratio,
             self.UNFROZEN_TEXT)  # implies only one received
 
 

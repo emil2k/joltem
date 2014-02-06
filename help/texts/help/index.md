@@ -1,31 +1,18 @@
 <a name="what" class="anchor-fix"></a>
 ### What is this?
 
-This is a platform to openly collaborate with others to build and launch a business. We have rethinked the way companies are formed based on the idea that an openly developed business has major advantages over its closed counterparts.
+At *Joltem* ( short for “jolt them” ) our goal is to create a place that allows programmers to spontaneously come together and work on the best startup ideas. 
 
-##### Building a team
+We provide a platform that allows you to easily solicit collaboration on a for-profit side project.
 
-In order to pursue most ideas you are going need a partner or two. On our platform you can post your idea, share the idea with anybody willing to listen, and begin collaborating on it immediately. 
+<a name="idea" class="anchor-fix"></a>
+#### Want to collaborate on an idea?
 
-If others find the idea interesting they can join you in making it a reality, in return they [receive an ownership stake](#impact) in the company. Essentially you allow people to invest in your company with their work.
+To begin collaborating with others simply [post your project][1] then invite others to join you.
 
-##### Raising investment
+You can either collaborate openly with your project visible to the public or you can collaborate in a private environment based on invitations.
 
-Most of the money raised by early stage startups goes to hiring a team. This is a risky proposition for venture capitalists so they either must take a large stake in the company or close the door on a lot of projects.
-
-However, if  you build your team openly and they are compensated with ownership raising capital can either be postponed or avoided completely. Best of all you won’t need anyone's permission to pursue your idea.
-
-More so, we believe having ownership concentrated amongst the people directly working on the product gives you the best chance to succeed and if you manage to prove something raising capital will be a lot cheaper.
-
-##### Hiring people
-
-Once your company reaches a certain scale or if you simply have some task that needs specialized expertise you are going to need to hire people. 
-
-The conventional way of hiring people is an extremely difficult process to navigate, especially for a young startup. Individuals with impressive resumes are mostly employed in comfortable positions, so most of the time you are left to sort a stack of questionable resumes hoping to find a diamond in the rough.
-
-In an open company hiring is completely natural, you can freely broadcast ( job boards, freelance sites, etc. ) work that you want done on and the amount you are willing to pay. Anyone who is willing and capable may complete the work, without either of you wasting time reading a resume. If the company grows you can refer back and attempt to hire the best contributors as employees
-
-Furthermore, with an open model you have a better chance of attracting the most talented people. If they believe in your organization and find your vision compelling, they might be willing to contribute in their spare time to specific tasks they may find interesting.
+If you are working openly, feel free to post an announcement about your project on our [subreddit][2].
 
 ---
 
@@ -34,7 +21,7 @@ Furthermore, with an open model you have a better chance of attracting the most 
 
 To track each user's continuous contribution to a project we use a metric called **impact**. 
 
-Overtime accumulated **impact** will be [exchanged for equity](#exchange) in the company. The value of impact is backed by the work of the contributors and is determined through the [review and bargain process](#review).
+Overtime accumulated **impact** will be [exchanged for equity][3] in the company. The value of impact is backed by the work of the contributors and is determined through the [review and bargain process][4].
 
 <a name="exchange" class="anchor-fix"></a>
 #### How is impact exchanged for equity?
@@ -51,13 +38,13 @@ At any point the company’s board, which is initially just the founders, can de
 <a name="review" class="anchor-fix"></a>
 #### How does the review and bargain process work?
 
-The review & bargain process is used for determing the value of each contribution. It is also meant to be a mechanism to promptly surface potential conflicts so that they may be resolved. 
+The review & bargain process is used for determine the value of each contribution. It is also meant to be a mechanism to promptly surface and resolve internal conflicts. 
 
-After a contributor completes a solution they determine a fair amount for their contribution and they submit it along with the solution for review by the other contributors.
+After a contributor completes a solution they determine a fair evaluation for their contribution and submit it along with their solution for review.
 
 The other contributors determine whether the solution is satisfactory and whether the evaluation for the work is fair. If the evaluation is determined to be unreasonable by the other contributors, a bargaining process follows to determine the value of the contribution.
 
-As long as people want to keep working with each other, the bargaining process will allow them to resolve any compensation and quality control issues. 
+As long as people want to keep working with each other, the bargaining process should allow them to resolve any compensation and quality control issues. 
 
 ---
 
@@ -66,43 +53,31 @@ As long as people want to keep working with each other, the bargaining process w
 
 A **task** is a description of work, while a **solution** represents work or an intent to execute some work.
 
-Tasks are proposed and curated through a process similar to [Python’s PEP system](http://en.wikipedia.org/wiki/Python_Enhancement_Proposal#Development), once approved solutions are solicited publicly using an open allocation model.
+Tasks are proposed and curated through a process similar to [Python’s PEP system][5], once approved solutions are solicited publicly using an open allocation model.
 
 Each task may receive multiple solutions by anyone who is willing to contribute. Each solution may contain its own set of tasks, allowing for recursive delegation of work.
 
-Each solutions is designated a branch name in each repository of the project and only the initiator of the solution has push access to that particular branch. 
+Each solutions is designated a branch name in each repository of the project and only the initiator of the solution has push access to that particular branch. This allows everyone to work on a single repository, unlike the popular fork & pull model.
 
-As solutions are completed, the initiator of the parent task has the responsibility of merging in the work into the branch that initiated the task. This is similar to concepts in parallel computing where tasks are performed by individual components then later reduced into a cohesive solution.
-
-On completion of a solution, a peer review is initiated to evaluate the completed work.
+On completion of a solution, a peer review is initiated to evaluate the completed work. An administrator or the initiator of the parent task has the responsibility of merging in the work.
 
 <a name="ratio" class="anchor-fix"></a>
 #### What is the votes ratio?
 
 The **votes ratio** is meant to couple reviewing with earning of impact. 
 
-Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational](http://joltem.com/joltem/task/45/) task and the [current live solution](http://joltem.com/joltem/solution/48/).
+Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational][6] task and the [current live solution][7].
 
-If your votes ratio drops below a certain threshold you are still able to earn impact, however the impact you earn will be withheld until the votes ratio is raised back up again.
-
----
-
-<a name="idea" class="anchor-fix"></a>
-#### Have an idea?
-
-In the *alpha* stage the only project available is the *Joltem* project itself. However, in the near future, this will be a place where anybody will be able to broadcast their idea, work openly, and attract collaborators to bring the idea to reality. 
-
-If you have an idea or you are part of an existing startup that would like to work openly on our platform contact us at <support@joltem.com> with a description of the idea.
-
+If your votes ratio drops below a certain threshold you are still able to earn impact, however it will be withheld until the votes ratio is raised back up again.
 
 ---
 
 <a name="company" class="anchor-fix"></a>
-#### How is the company structured?
+#### How is Joltem structured?
 
 The *Joltem* project itself is a proof of concept, an open company. 
 
-The company will be structured with *85%* of company's equity backing impact, the other *15%* is reserved for [Emil Davtyan](http://joltem.com/user/emil/) the founder and angel investor of the company.
+The company will be structured with *85%* of company's equity backing impact, the other *15%* is reserved for [Emil Davtyan][8] the founder and angel investor of the company.
 
 Annually on the anniversary of the public release of the site *25%* of non-exchanged impact will be available to exchange for equity.
 
@@ -115,34 +90,44 @@ You can follow our work without signing up, but if you want to contribute code o
 To contribute code :
 
 1. Sign up.
-2. Add a SSH key in *Account > Keys*, so you can clone the repository.
+2. Add a SSH key in *Account \> Keys*, so you can clone the repository.
 3. Clone the repository.
-4. Read the `README.md` document, on how to setup the code for local development ( we use [Vagrant](http://www.vagrantup.com) ).
+4. Read the `README.md` document, on how to setup the code for local development ( we use [Vagrant][9] ).
 5. Post a solution to one of the open tasks.
 6. Rinse and repeat.
 
-If you experience a problem contact the development team at <dev@joltem.com> and someone will respond promptly.
+If you experience a problem contact the development team at [dev@joltem.com][10] and someone will respond promptly.
 
 ---
 
 <a name="press" class="anchor-fix"></a>
-#### We like the press.
-
-Writing a story about us?
+#### Writing about us?
 
 We will be happy to answer your questions, provide media, and talk your ear off about why what we are doing is important.
 
-<press@joltem.com>
+[press@joltem.com][11]
 
 
 
 <a name="support" class="anchor-fix"></a>
-#### We listen & help.
+#### Anything else?
 
-If you have other questions or suggestions.
+If you have any other questions or suggestions.
 
-<support@joltem.com>
-
-
+[support@joltem.com][12]
 
 
+
+
+[1]:	http://joltem.com/new/
+[2]:	http://www.reddit.com/r/joltem/
+[3]:	#exchange
+[4]:	#review
+[5]:	http://en.wikipedia.org/wiki/Python_Enhancement_Proposal#Development
+[6]:	http://joltem.com/joltem/task/45/
+[7]:	http://joltem.com/joltem/solution/48/
+[8]:	http://joltem.com/user/emil/
+[9]:	http://www.vagrantup.com
+[10]:	mailto:dev@joltem.com
+[11]:	mailto:press@joltem.com
+[12]:	mailto:support@joltem.com

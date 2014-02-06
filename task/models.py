@@ -2,24 +2,19 @@
 
 from django.db import models
 from django.utils import timezone
+from django.core import serializers
 from django.conf import settings
 from django.core.cache import cache
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
 
-NOTIFICATION_TYPE_TASK_POSTED = "task_posted"
-NOTIFICATION_TYPE_TASK_ACCEPTED = "task_accepted"
-NOTIFICATION_TYPE_TASK_REJECTED = "task_rejected"
-
 
 class Task(Commentable, Updatable):
 
     """ A task is a description of work.
 
-    The `owner` of the task is responsible for the administrating and merging
-    of the work as necessary. The `author` is the person who originally wrote
-    up the task.
+    The `owner` is the person who originally wrote up the task.
 
     After creation a task must be curated through a staging process, if
     accepted the task is opened and it is available for people to post
@@ -42,7 +37,6 @@ class Task(Commentable, Updatable):
     owner -- the user responsible for administrating the task.
     project -- the project the task belongs to.
     parent -- if task is a subtask to a solution, this is the parent solution.
-    author -- the person who initially suggested the task.
 
     """
 
@@ -59,6 +53,9 @@ class Task(Commentable, Updatable):
         choices=PRIORITY_CHOICES,
         default=NORMAL_PRIORITY,
     )
+
+    model_name = "task"
+
     title = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
 
@@ -75,12 +72,20 @@ class Task(Commentable, Updatable):
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
-    # user who created the task
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name="tasks_authored_set")
 
     def __unicode__(self):
         return self.title
+
+    @property
+    def followers(self):
+        """ Get users for notify.
+
+        :returns: A set of users.
+
+        """
+        return set(
+            [self.owner] + list(self.iterate_commentators()) +
+            [v.voter for v in self.vote_set.select_related('voter')])
 
     def get_subtask_count(
             self, solution_is_completed=False, solution_is_closed=False,
@@ -148,17 +153,26 @@ class Task(Commentable, Updatable):
         is_accepted -- whether the voter accepts the task as ready.
 
         """
-        try:
-            vote = Vote.objects.all().get(voter=voter, task=self)
-        except Vote.DoesNotExist:
-            vote = Vote(
-                task=self,
-                voter=voter
-            )
+        vote, create = Vote.objects.get_or_create(
+            voter=voter, task=self, defaults={
+                'voter_impact': voter.impact
+            })
         vote.voter_impact = voter.impact
         vote.is_accepted = is_accepted
         vote.time_voted = timezone.now()
         vote.save()
+
+        ntype = settings.NOTIFICATION_TYPES.vote_added if create else settings.NOTIFICATION_TYPES.vote_updated # noqa
+        for user in self.followers:
+            if user == vote.voter:
+                continue
+
+            self.notify(user, ntype, create, kwargs={
+                "voter_first_name": vote.voter.first_name,
+                "type": "task",
+                "title": self.title,
+            })
+
         self.determine_acceptance(vote)
 
     def determine_acceptance(self, vote):
@@ -191,9 +205,6 @@ class Task(Commentable, Updatable):
 
         """
         # a suggested task
-        if is_accepted and \
-                (not self.parent or self.parent.owner_id != self.author_id):
-            self.owner = acceptor
         self.is_reviewed = True
         self.is_accepted = is_accepted
         self.time_reviewed = timezone.now()
@@ -203,31 +214,31 @@ class Task(Commentable, Updatable):
         self.notify_reviewed(acceptor, is_accepted)
 
     def notify_reviewed(self, acceptor, is_accepted):
-        """ Notify task author.
+        """ Notify task owner.
 
         If not the acceptor, that the task was either accepted or rejected.
 
         """
-        ntype = NOTIFICATION_TYPE_TASK_ACCEPTED if is_accepted\
-            else NOTIFICATION_TYPE_TASK_REJECTED
-        if self.owner_id != self.author_id:  # suggested task accepted
-            self.notify(self.author, ntype, True)
-        elif acceptor.id != self.author_id:
-            self.notify(self.author, ntype, True)
+        ntype = settings.NOTIFICATION_TYPES.task_accepted if is_accepted\
+            else settings.NOTIFICATION_TYPES.task_rejected
+
+        listeners = self.followers - set([acceptor])
+        for user in listeners:
+            self.notify(user, ntype, True)
 
     def notify_created(self):
         """ Send out appropriate notifications about the task being posted. """
         if self.parent:
-            if self.parent.owner_id != self.author_id:
+            if self.parent.owner_id != self.owner_id:
                 self.notify(
-                    self.parent.owner, NOTIFICATION_TYPE_TASK_POSTED, True,
-                    kwargs={"role": "parent_solution"})
+                    self.parent.owner, settings.NOTIFICATION_TYPES.task_posted,
+                    True, kwargs={"role": "parent_solution"})
         else:
             for admin in self.project.admin_set.all():
-                if admin.id != self.author_id:
+                if admin.id != self.owner_id:
                     self.notify(
-                        admin, NOTIFICATION_TYPE_TASK_POSTED, True, kwargs={
-                            "role": "project_admin"})
+                        admin, settings.NOTIFICATION_TYPES.task_posted, True,
+                        kwargs={"role": "project_admin"})
 
     def default_title(self):
         """ Just prevent conflict with solutions.
@@ -237,38 +248,6 @@ class Task(Commentable, Updatable):
         """
         return self.title
 
-    def get_notification_text(self, notification):
-        """ Prepare text for notification.
-
-        :return str:
-
-        """
-        from joltem.utils import list_string_join
-        from joltem.models.comments import NOTIFICATION_TYPE_COMMENT_ADDED
-
-        if NOTIFICATION_TYPE_COMMENT_ADDED == notification.type:
-            first_names = self.get_commentator_first_names(
-                queryset=self.comment_set.select_related('owner').exclude(
-                    owner=notification.user).order_by("-time_commented")
-            )
-            return "%s commented on task \"%s\"" % (
-                list_string_join(first_names), self.title)
-
-        elif NOTIFICATION_TYPE_TASK_POSTED == notification.type:
-            if notification.kwargs["role"] == "parent_solution":
-                return "%s posted a task on your solution \"%s\"" % (
-                    self.author.first_name, self.parent.default_title)
-            elif notification.kwargs["role"] == "project_admin":
-                return "%s posted a task" % self.author.first_name
-
-        elif NOTIFICATION_TYPE_TASK_ACCEPTED == notification.type:
-            return "Your task \"%s\" was accepted" % self.title
-
-        elif NOTIFICATION_TYPE_TASK_REJECTED == notification.type:
-            return "Your task \"%s\" was not accepted" % self.title
-
-        return "Task updated : %s" % self.title
-
     def get_notification_url(self, url):
         """ Get notification URL.
 
@@ -276,7 +255,20 @@ class Task(Commentable, Updatable):
 
         """
         from django.core.urlresolvers import reverse
-        return reverse("project:task:task", args=[self.project.name, self.id])
+        return reverse("project:task:task", args=[self.project.id, self.id])
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        kwargs = super(Task, self).get_notification_kwargs(
+            notification, **kwargs)
+        kwargs['owner'] = python_serializer.serialize(
+            [self.owner], fields=('username', 'first_name'))[0]
+        return kwargs
 
 
 class Vote(models.Model):

@@ -1,0 +1,79 @@
+{% extends 'project/base.html' %}
+{% load filters %}
+{% block title %}{{ project.title }} - Dashboard - Joltem{% endblock %}
+{% block project_content %}
+    {% if project_ratio and project_ratio.is_frozen %}
+        <div class="alert">
+            <strong><i class="fa fa-warning"></i> Your votes ratio is low ( <a href="#" title="show / hide details" onclick="$('#votes-ratio-details').toggle(); return false;">{{ project_ratio.votes_ratio|floatformat:2 }}</a>
+                <span id='votes-ratio-details' style="display:none;">
+                    <i class="fa fa-gears"></i>
+                    {{ project_ratio.votes_out }} out /
+                    {{ project_ratio.votes_in }} in
+                </span>
+            )</strong>
+            <a href="{% url 'project:solution:my_review' project.id %}">review solutions</a> from other contributors to raise it.
+            You are still able to earn impact but it will be withheld until the vote ratio is raised
+            {% if project_impact %}
+                , currently <strong>{{ project_impact.frozen_impact }}</strong> has been withheld
+            {% endif %}.
+            <a href="{% url 'help:index' %}#ratio">What is the votes ratio?</a>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="span3 text-center">
+            {% include "project/includes/dashboard-panel.html" with count=open_tasks_count desc="Open Tasks" icon="tasks" urlname="project:task:all_open" %}
+            {% include "project/includes/dashboard-panel.html" with count=completed_tasks_count desc="Closed Tasks" icon="archive" status="success" urlname="project:task:all_closed" %}
+            {% include "project/includes/dashboard-panel.html" with count=open_solutions_count desc="Open Solutions" icon="briefcase" urlname="project:solution:all_incomplete" %}
+            {% include "project/includes/dashboard-panel.html" with count=completed_solutions_count desc="Completed Solutions" icon="check" status="success" urlname="project:solution:all_complete" %}
+        </div>
+        <div class="span9">
+            <div class="row">
+                <div class="span6">
+                    <form method="GET" action="{% url 'project:search' project.id %}">
+                        <input type="text" name="q" class="input-block-level" value="{{ query }}" placeholder="Search project.">
+                    </form>
+                </div>
+                <div class="span3 text-center">
+                    {% if user.is_authenticated %}
+                        <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
+                            <div class="btn-group">
+                                {% if not subscribe %}
+                                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                                {% else %}
+                                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                {% endif %}
+                                {% if is_admin %}
+                                    <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% for item in feed %}
+                {% if item.model_name == "comment" %}
+                    {% include "project/includes/feed_comment.html" with comment=item %}
+                {% elif item.model_name == "task" %}
+                    {% include "project/includes/feed_task.html" with task=item %}
+                {% else %}
+                    {% include "project/includes/feed_solution.html" with solution=item %}
+                {% endif %}
+            {% empty %}
+                <div class="row">
+                    <div class="span9 text-center text-info">
+                        <p>
+                            <i class="fa fa-bullhorn fa-5x"></i>
+                        </p>
+                        <p>
+                            There has been no activity on this project.
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+

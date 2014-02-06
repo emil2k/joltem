@@ -1,10 +1,26 @@
 {% extends 'joltem/base.html' %}
 {% load filters %}
-{% block title %}{{ project.title }}{% endblock %}
+{% block title %}{{ project.title }} - Joltem{% endblock %}
 {% block nav %}
-    <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.name %}">Tasks</a></li>
-    <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.name %}">Solutions</a></li>
-    <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.name %}">Repositories</a></li>
+    <li class="dropdown">
+        <a class="dropdown-toggle hidden-phone hidden-tablet" data-toggle="dropdown" href="#">
+            {{ project.title }} <b class="fa fa-caret-down"></b>
+        </a>
+        <ul class="dropdown-menu pull-right hidden-phone hidden-tablet">
+            <li class="{{ project_tab|active:"overview"}}"><a href="{% url 'project:project' project.id %}">Overview</a></li>
+            {% if user.is_authenticated and is_admin %}
+                <li class="{{ project_tab|active:"settings"}}"><a href="{% url 'project:settings' project.id %}">Settings</a></li>
+            {% endif %}
+        </ul>
+        <li class="{{ project_tab|active:"overview"}} hidden-desktop"><a href="{% url 'project:project' project.id %}">Joltem</a></li>
+        <li class="{{ project_tab|active:"dashboard"}}"><a href="{% url 'project:dashboard' project.id %}" title="View project dashboard."><span class="hidden-desktop">Dashboard </span><i class="fa fa-dashboard hidden-phone hidden-tablet"></i></a></li>
+        <li class="{{ project_tab|active:"tasks"}}"><a href="{% url 'project:task:all_open' project.id %}" title="Browse project tasks."><span class="hidden-desktop">Tasks </span></span><i class="fa fa-tasks hidden-phone hidden-tablet"></i></a></li>
+        <li class="{{ project_tab|active:"solutions"}}"><a href="{% url 'project:solution:all_incomplete' project.id %}" title="Browse project solutions."><span class="hidden-desktop">Solutions </span><i class="fa fa-briefcase hidden-phone hidden-tablet"></i></a></li>
+        <li class="{{ project_tab|active:"repositories"}}"><a href="{% url 'project:git:repositories' project.id %}" title="Browse project repositories."><span class="hidden-desktop">Repositories </span><i class="fa fa-code-fork hidden-phone hidden-tablet"></i></a></li>
+        {% if user.is_authenticated and is_admin %}
+            <li class="{{ project_tab|active:"settings"}} hidden-desktop"><a href="{% url 'project:settings' project.id %}">Settings</a></li>
+        {% endif %}
+    </li>
 {% endblock %}
 {% block content %}
     {% block project_content %}{% endblock %}

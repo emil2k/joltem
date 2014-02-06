@@ -1,0 +1,37 @@
+{% extends 'joltem/base.html' %}
+{% block title %}Projects - Joltem{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="span3">
+            <ul class="nav nav-list well">
+                <li class="nav-header">Projects</li>
+                <li><a href="{% url 'new' %}">Create</a></li>
+                <li><a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore <i class="fa fa-globe"></i></a></li>
+                <li class="nav-header"></li>
+            </ul>
+        </div>
+        <div class="span9">
+            {% for watched in watching %}
+                <p>
+                    <a href="{% url 'project:dashboard' watched.project.id %}"><h4>{{ watched.project.title }}</h4></a>
+                    <span class="muted">
+                        <i class="fa fa-tasks"></i> {{ watched.overview.open_tasks_count }}
+                        <i class="fa fa-archive"></i> {{ watched.overview.completed_tasks_count }}
+                        <i class="fa fa-briefcase"></i> {{ watched.overview.open_solutions_count }}
+                        <i class="fa fa-check"></i> {{ watched.overview.completed_solutions_count }}
+                    </span>
+                </p>
+            {% empty %}
+                <div class="text-center text-info">
+                    <p>
+                        <i class="fa fa-eye-slash fa-5x"></i>
+                    </p>
+                    <p>
+                        You are not watching any projects.<br/>
+                        <a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore projects on our subreddit</a>.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

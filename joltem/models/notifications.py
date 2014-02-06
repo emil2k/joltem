@@ -1,23 +1,22 @@
 """ Joltem notification support. """
-
+import jsonfield
 import logging
-
-from django.db import models
-from django.db.models.query import QuerySet
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
-from model_utils.managers import PassThroughManager
-from django.utils import timezone
+from django.core import serializers
+from django.core.exceptions import ImproperlyConfigured
+from django.db import models
+from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, post_delete
+from django.utils import timezone
+from model_utils.managers import PassThroughManager
 
+from joltem.notifications import get_notify
 from joltem.receivers import (
     update_notification_count, immediately_senf_email_about_notification)
-
 from joltem.tasks import send_immediately_to_user
 
-import json
 
 logger = logging.getLogger('django')
 
@@ -51,7 +50,7 @@ class Notification(models.Model):
     type = models.CharField(max_length=200, null=True, blank=True)
     # pass to the notifying class to determine
     # url and text of notification
-    json_kwargs = models.CharField(max_length=200, null=True, blank=True)
+    kwargs = jsonfield.JSONField(null=True, blank=True)
     # whether the notification has been clicked or marked cleared
     is_cleared = models.BooleanField(default=False)
     time_notified = models.DateTimeField(default=timezone.now)
@@ -69,24 +68,6 @@ class Notification(models.Model):
     def __unicode__(self):
         return u"%s%s [%s]" % (
             self.type, self.is_cleared and '-' or '+', self.user.username)
-
-    @property
-    def kwargs(self):
-        """ TODO: change to JSON field.
-
-        :return return:
-
-        """
-        return json.loads(self.json_kwargs)
-
-    @kwargs.setter
-    def kwargs(self, kwargs):
-        """ TODO: change to JSON field.
-
-        :return return:
-
-        """
-        self.json_kwargs = json.dumps(kwargs)
 
     def mark_cleared(self):
         """ Mark notification as cleared.
@@ -132,15 +113,13 @@ class Notifying(models.Model):
             type or create a new notification.
         :param kwargs: extra options to pass for rending the notification.
 
+        :returns: A created/updated notification
+
         """
         if kwargs is None:
             kwargs = {}
 
-        if not update:
-            # Just create a new notification
-            self.create_notification(user, ntype, kwargs)
-
-        else:
+        if update:
             # Attempt to update the latest notifications instead of creating
             # a new one
             notifying_type = ContentType.objects.get_for_model(self)
@@ -153,24 +132,35 @@ class Notifying(models.Model):
 
             if notifications.count() > 0:
                 # update latest notification
-                self.update_notification(notifications[0])
+                return self.update_notification(notifications[0])
 
-            else:
-                self.create_notification(user, ntype, kwargs)
+        # Just create a new notification
+        return self.create_notification(user, ntype, kwargs)
 
     @staticmethod
     def update_notification(notification):
-        """ Update notification. """
+        """ Update notification.
+
+        :returns: A updated notification.
+
+        """
 
         notification.is_cleared = False
         notification.time_cleared = None
         notification.time_notified = timezone.now()
         notification.save()
 
+        return notification
+
     def create_notification(self, user, ntype, kwargs=None):
-        """ Create notification. Why Im exists?.  """
+        """ Create notification.
+
+        :returns: A created notification.
+
+        """
         if kwargs is None:
             kwargs = {}
+
         # todo add kwargs
         notification = Notification(
             user=user,
@@ -178,9 +168,12 @@ class Notifying(models.Model):
             time_notified=timezone.now(),
             is_cleared=False,
             notifying=self,
-            kwargs=kwargs
         )
+        notification.kwargs = self.get_notification_kwargs(
+            notification, **kwargs)
         notification.save()
+
+        return notification
 
     def delete_notifications(self, user, ntype):
         """ Delete all notifications of this type from this notifying to this user. """ # noqa
@@ -192,15 +185,17 @@ class Notifying(models.Model):
             notifying_id=self.id
         ).delete()
 
-    @staticmethod
-    def get_notification_text(notification):
-        """ Get notification text for a given notification. """
+    def get_notification_text(self, notification=None):
+        """ Get notification text for a given notification.
 
-        raise ImproperlyConfigured(
-            "Extending class must implement get notification text.")
+        :returns: A notification text
+
+        """
+        notify = get_notify(notification, self)
+        return notify.get_text(self)
 
     @staticmethod
-    def get_notification_url(notification):
+    def get_notification_url(notification=None):
         """ Get notification url for a given notification.
 
         Implementation should use reverse and should not hard code urls.
@@ -208,6 +203,29 @@ class Notifying(models.Model):
         """
         raise ImproperlyConfigured(
             "Extending class must implement get notification url.")
+
+    @property
+    def followers(self): # noqa
+        """ Get users for notify.
+
+        :returns: A set of users.
+
+        """
+        return set()
+
+    def get_notification_kwargs(self, notification=None, **kwargs):
+        """ Precache notification kwargs.
+
+        :returns: Kwargs dictionary
+
+        """
+        python_serializer = serializers.python.Serializer()
+        default = {
+            'notifying': python_serializer.serialize([self])[0],
+            'url': self.get_notification_url(notification),
+        }
+        default.update(**kwargs)
+        return default
 
 
 post_save.connect(update_notification_count, sender=Notification)
