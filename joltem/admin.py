@@ -4,7 +4,6 @@ from django.contrib import admin
 
 import project.models
 import task.models
-import solution.models
 
 from .models import User, Vote, Comment, Notification
 
@@ -15,5 +14,4 @@ admin.site.register(Notification)
 admin.site.register(project.models.Project)
 admin.site.register(project.models.Equity)
 admin.site.register(project.models.Impact)
-admin.site.register(solution.models.Solution)
 admin.site.register(task.models.Task)
