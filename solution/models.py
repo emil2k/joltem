@@ -40,6 +40,9 @@ class Solution(Voteable, Commentable, Updatable):
     is_completed = models.BooleanField(default=False)
     # Alternative to deletion of solution, to keep all relationships intact
     is_closed = models.BooleanField(default=False)
+    # Whether solution was marked archived
+    is_archived = models.BooleanField(default=False)
+
     # NOTE : No parenthesis on timezone.now
     # because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
