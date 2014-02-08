@@ -37,6 +37,7 @@ class BaseProjectViewTest(TestCase):
             user=self.user, is_authenticated=True, data=data)
         return view(request, project_id=self.project.id)
 
+
 class BaseProjectPermissionsTestCase(TestCase):
 
     """ Base test case for project permissions.
@@ -61,7 +62,8 @@ class BaseProjectPermissionsTestCase(TestCase):
             self.user = mixer.blend('joltem.user', password='test')
             self.client.login(username=self.user.username, password='test')
             if self.group_name:
-                getattr(self.project, '%s_set' % self.group_name).add(self.user)
+                getattr(self.project, '%s_set' %
+                        self.group_name).add(self.user)
                 self.project.save()
 
     def assertStatusCode(self, url_name, method='get'):
@@ -75,6 +77,7 @@ class BaseProjectPermissionsTestCase(TestCase):
         method = getattr(self.client, method)
         response = method(reverse(url_name, kwargs=p_kwargs))
         self.assertEqual(response.status_code, self.expected_status_code)
+
 
 class TestProjectPermissions(BaseProjectPermissionsTestCase):
 
@@ -109,6 +112,7 @@ class TestPrivateProjectPermissions(TestProjectPermissions):
     expected_status_code = 404
     is_private = True
     login_user = True
+
 
 class TestPrivateProjectPermissionsInvitee(TestProjectPermissions):
 

@@ -10,6 +10,7 @@ from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissions
 from solution import views
 from solution.models import Solution
 
+
 class BaseSolutionPermissionsTestCase(BaseProjectPermissionsTestCase):
 
     """ Base test case for a solution's permissions.
@@ -160,7 +161,7 @@ class TestPrivateSolutionsListPermissions(TestSolutionListsPermissions):
 
 
 class TestPrivateSolutionsListPermissionsAnonymous(
-    TestSolutionListsPermissions):
+        TestSolutionListsPermissions):
 
     expected_status_code = 404
     login_user = False

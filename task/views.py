@@ -37,7 +37,7 @@ class TaskBaseView(ProjectBaseView):
 
     @cached_property
     def is_editor(self):
-        """ Determines whether user can edit task.
+        """ Determine whether user can edit task.
 
         Depends on the state of the task. While in review the person who
         wrote the task, the `owner`, can edit the task. After review is

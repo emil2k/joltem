@@ -122,10 +122,10 @@ class Project(Notifying):
 
         """
         return not self.is_private \
-                    or self.is_invitee(user_id) \
-                    or self.is_developer(user_id) \
-                    or self.is_manager(user_id) \
-                    or self.is_admin(user_id)
+            or self.is_invitee(user_id) \
+            or self.is_developer(user_id) \
+            or self.is_manager(user_id) \
+            or self.is_admin(user_id)
 
     def __unicode__(self):
         return self.title
@@ -193,7 +193,7 @@ class Project(Notifying):
         comments = self.comment_set.select_related('owner').prefetch_related(
             'commentable', 'commentable_type').order_by(
             '-time_updated')[:limit]
-        return sorted(list(comments)+list(solutions)+list(tasks),
+        return sorted(list(comments) + list(solutions) + list(tasks),
                       key=operator.attrgetter('time_updated'),
                       reverse=True)[:limit]
 

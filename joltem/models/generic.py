@@ -66,6 +66,7 @@ class Updatable(models.Model):
     :param time_updated: time last updated.
 
     """
+
     model_name = None
     time_updated = models.DateTimeField(auto_now=True)
 

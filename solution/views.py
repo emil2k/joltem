@@ -5,16 +5,14 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, DetailView, ListView
+from django.views.generic import TemplateView, ListView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
 from joltem.models import Comment
-from joltem.views.generic import (
-    VoteableView, CommentableView, ExtraContextMixin,
-)
+from joltem.views.generic import VoteableView, CommentableView
 from project.models import Impact
-from project.views import ProjectBaseView, ProjectMixin
+from project.views import ProjectBaseView
 from solution.models import Solution
 from task.models import Task
 

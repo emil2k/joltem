@@ -41,10 +41,12 @@ class RepositoryActionForm(forms.Form):
     repository_id = forms.IntegerField()
 
     def clean_repository_id(self):
-        """ Check that repository matches a repository. """
+        """ Check that repository matches a repository.
+
+        :returns: A repository's ID.
+
+        """
         repository_id = int(self.cleaned_data.get('repository_id'))
-        try:
-            self.repository = Repository.objects.get(id=repository_id)
-        except Repository.DoesNotExist:
-            raise ValidationError("Repository does not exist.")
-        return repository_id
+        if Repository.objects.exists(id=repository_id):
+            return repository_id
+        raise ValidationError("Repository does not exist.")

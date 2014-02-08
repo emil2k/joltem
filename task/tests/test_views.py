@@ -16,13 +16,11 @@ class BaseTaskPermissionsTestCase(BaseProjectPermissionsTestCase):
 
     """ Base test case for a task's permissions. """
 
-
     def setUp(self):
         super(BaseTaskPermissionsTestCase, self).setUp()
         self.task = mixer.blend('task.task', project=self.project,
                                 is_closed=False, is_accepted=True,
                                 is_reviewed=True)
-
 
     def assertStatusCode(self, url_name):
         """ Assert the status code that should be received.
@@ -147,19 +145,19 @@ class TestPrivateTaskListsPermissionsInvitee(TestTasksListsPermissions):
 
 
 class TestPrivateTaskListsPermissionsAdmin(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "admin"
 
 
 class TestPrivateTaskListsPermissionsManager(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "manager"
 
 
 class TestPrivateTaskListsPermissionsDeveloper(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "developer"
 
@@ -573,7 +571,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         task = Task.objects.get()
         self.assertEqual(task.title, 'new title')
 
-        (admin, manager) = mixer.cycle(2).blend('joltem.user')
+        admin, manager = mixer.cycle(2).blend('joltem.user') # noqa
         self.project.admin_set.add(admin)
         self.project.manager_set.add(manager)
 

@@ -19,9 +19,9 @@ class ProjectModelTest(TestCase):
     def test_feed_order(self):
         """ Test that the feed is ordered properly. """
         old = mixer.blend('task.task', project=self.project,
-                           time_updated=timezone.now() - timedelta(days=7))
+                          time_updated=timezone.now() - timedelta(days=7))
         new = mixer.blend('solution.solution', project=self.project,
-                           time_updated=timezone.now())
+                          time_updated=timezone.now())
         self.assertEqual(self.project.get_feed(),
                          [new, old])
 
@@ -88,14 +88,14 @@ class ProjectCompletedCountTest(TestCase):
 
     def test_completed_cache(self):
         """ Test that the completed count cache updates properly. """
-        reload = lambda i: Impact.objects.get(id=i.id)
+        _reload = lambda i: Impact.objects.get(id=i.id)
         s = mixer.blend('solution.solution', owner=self.user,
                         project=self.project)
-        self.assertEqual(reload(self.impact).completed, 0)
+        self.assertEqual(_reload(self.impact).completed, 0)
         s.mark_complete(impact=1)
-        self.assertEqual(reload(self.impact).completed, 1)
+        self.assertEqual(_reload(self.impact).completed, 1)
         s.delete()
-        self.assertEqual(reload(self.impact).completed, 0)
+        self.assertEqual(_reload(self.impact).completed, 0)
 
 
 class ProjectCountsTest(TestCase):
