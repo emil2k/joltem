@@ -14,6 +14,7 @@ AUTH_USER_MODEL = 'joltem.User'
 AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
+SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
@@ -70,16 +71,17 @@ SECRET_KEY = 'imsosecret'
 # Define notification types
 NOTIFICATION_TYPES = lambda s: setattr(NOTIFICATION_TYPES, s, s)
 NOTIFICATION_TYPES('comment_added')
-NOTIFICATION_TYPES('vote_added')
-NOTIFICATION_TYPES('vote_updated')
+NOTIFICATION_TYPES('frozen_ratio')
+NOTIFICATION_TYPES('solution_archived')
+NOTIFICATION_TYPES('solution_evaluation_changed')
 NOTIFICATION_TYPES('solution_marked_complete')
 NOTIFICATION_TYPES('solution_posted')
-NOTIFICATION_TYPES('solution_evaluation_changed')
-NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_accepted')
+NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_rejected')
-NOTIFICATION_TYPES('frozen_ratio')
 NOTIFICATION_TYPES('unfrozen_ratio')
+NOTIFICATION_TYPES('vote_added')
+NOTIFICATION_TYPES('vote_updated')
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',
@@ -112,6 +114,11 @@ CELERYBEAT_SCHEDULE = {
     'activity-feed': {
         'task': 'project.tasks.prepare_activity_feeds',
         'schedule': timedelta(hours=24),
+        'args': (),
+    },
+    'archive-solution': {
+        'task': 'solution.tasks.archive_solutions',
+        'schedule': timedelta(hours=2),
         'args': (),
     }
 }

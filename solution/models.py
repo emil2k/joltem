@@ -179,6 +179,13 @@ class Solution(Voteable, Commentable, Updatable):
         self.time_closed = None
         self.save()
 
+    def mark_archived(self):
+        """ Mark the solution archived. """
+        self.is_archived = True
+        self.save()
+        self.notify(
+            self.owner, settings.NOTIFICATION_TYPES.solution_archived, False)
+
     def notify_evaluation_changed(self):
         """ Send out notifications about the evaluation changing.
 

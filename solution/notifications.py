@@ -152,3 +152,19 @@ class SolutionPosted(_NotifyInterface):
                    (owner_name, notifying.solution.default_title)
         elif self.notification.kwargs["role"] == "project_admin":
             return "%s posted a solution" % owner_name
+
+
+class SolutionArchived(_NotifyInterface):
+
+    """ Notify about solution was marked archive."""
+
+    ntype = settings.NOTIFICATION_TYPES.solution_archived
+    model = 'solution.solution'
+
+    def get_text(self, notifying=None, user=None):
+        """ Get text for current notification.
+
+        :returns: A text
+
+        """
+        return "Solution \"%s\" was archived" % notifying.default_title
