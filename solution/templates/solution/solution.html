@@ -53,7 +53,9 @@
                     </div>
                 </form>
             {% endif %}
-            {% if solution.is_completed %}
+            {% if solution.is_archived %}
+                <div class="alert alert-info"><b>This solution was archived</b></div>
+            {% elif solution.is_completed %}
                 <div class="alert alert-info">
                     <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
                 </div>
@@ -131,21 +133,23 @@
         {% endfor %}
     </form>
     <hr/>
-    {% include "joltem/commenting.html" %}
-    {% if user.is_authenticated %}
-        {% if is_owner %}
-            <div class="alert alert-info">
-                <p>Checkout this solution's branch :</p>
-                <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-                <p>Then push to this solutions designated remote solution branch :</p>
-                <pre>git push -u origin s/{{ solution.id }}</pre>
-            </div>
-        {% else %}
-            <div class="alert alert-info">
-                <p>Checkout this solution's branch :</p>
-                <pre>git fetch origin</pre>
-                <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
-            </div>
+    {% if not solution.is_archived %}
+        {% include "joltem/commenting.html" %}
+        {% if user.is_authenticated %}
+            {% if is_owner %}
+                <div class="alert alert-info">
+                    <p>Checkout this solution's branch :</p>
+                    <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+                    <p>Then push to this solutions designated remote solution branch :</p>
+                    <pre>git push -u origin s/{{ solution.id }}</pre>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>Checkout this solution's branch :</p>
+                    <pre>git fetch origin</pre>
+                    <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
+                </div>
+            {% endif %}
         {% endif %}
     {% endif %}
 {% endblock %}

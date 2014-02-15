@@ -115,6 +115,11 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
         Returns a HTTP response.
 
         """
+        if self.solution.is_archived:
+            return redirect(
+                'project:solution:solution', project_id=self.project.id,
+                solution_id=self.solution.id)
+
         if self.solution.is_owner(self.user) and not (
             'comment' in request.POST
             or 'comment_id' in request.POST
@@ -198,7 +203,8 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         Returns HTTP response.
 
         """
-        if not self.is_owner or self.solution.is_closed:
+        if not self.is_owner or self.solution.is_closed \
+                or self.solution.is_archived:
             return redirect('project:solution:solution',
                             project_id=self.project.id,
                             solution_id=self.solution.id)
@@ -230,6 +236,11 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
         :return: HTTP response
 
         """
+        if self.solution.is_archived:
+            return redirect(
+                'project:solution:review', project_id=self.project.id,
+                solution_id=self.solution.id)
+
         if self.is_owner and request.POST.get('change_value'):
             compensation_value = int(request.POST.get('compensation_value'))
             self.solution.change_evaluation(compensation_value)
