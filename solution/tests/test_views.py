@@ -504,6 +504,14 @@ class SolutionViewTest(BaseSolutionViewTest):
         self.assertEqual(response.status_code, 302)
 
     def test_solution_comment_post(self):
+        self.solution.is_archived = True
+        self.solution.save()
+        self.assertFalse(self.solution.comment_set.all())
+        self._post(views.SolutionView.as_view(), {'comment': 'comment'})
+        self.assertFalse(self.solution.comment_set.all())
+
+        self.solution.is_archived = False
+        self.solution.save()
         self._post(views.SolutionView.as_view(), {'comment': 'comment'})
         comments = self.solution.comment_set.all()
         self.assertTrue(comments.count())
@@ -545,6 +553,16 @@ class SolutionEditView(BaseSolutionViewTest):
             'description': 'new description'
         })
         self.assertTrue(response.status_code, 302)
+        reloaded = models.load_model(self.solution)
+        self.assertEqual(reloaded.title, 'new title')
+        self.assertEqual(reloaded.description, 'new description')
+
+        reloaded.is_archived = True
+        reloaded.save()
+        response = self._post(views.SolutionEditView.as_view(), {
+            'title': 'another new title',
+            'description': 'another new description'
+        })
         reloaded = models.load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
@@ -594,6 +612,15 @@ class SolutionReviewViewTest(TestCase):
         """ Test simple GET of solution review view. """
         response = self.client.get(self.path)
         self.assertEqual(response.status_code, 200)
+
+    def test_solution_is_archived_review_view_get(self):
+        solution = mixer.blend('solution.solution', is_archived=True)
+        path = reverse('project:solution:review', args=[
+            solution.project_id,
+            solution.pk
+        ])
+        response = self.client.get(path)
+        self.assertNotContains(response, '<form method="post">')
 
     def test_solution_negative_vote_no_comment(self):
         """ Test a negative review vote with no comment.

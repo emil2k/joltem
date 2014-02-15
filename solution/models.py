@@ -40,6 +40,9 @@ class Solution(Voteable, Commentable, Updatable):
     is_completed = models.BooleanField(default=False)
     # Alternative to deletion of solution, to keep all relationships intact
     is_closed = models.BooleanField(default=False)
+    # Whether solution was marked archived
+    is_archived = models.BooleanField(default=False)
+
     # NOTE : No parenthesis on timezone.now
     # because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
@@ -175,6 +178,13 @@ class Solution(Voteable, Commentable, Updatable):
         self.is_closed = False
         self.time_closed = None
         self.save()
+
+    def mark_archived(self):
+        """ Mark the solution archived. """
+        self.is_archived = True
+        self.save()
+        self.notify(
+            self.owner, settings.NOTIFICATION_TYPES.solution_archived, False)
 
     def notify_evaluation_changed(self):
         """ Send out notifications about the evaluation changing.
