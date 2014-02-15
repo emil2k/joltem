@@ -28,7 +28,7 @@
             {% else %}
                 <p class="muted">Solution has not been described yet.</p>
             {% endif %}
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and not solution.is_archived %}
                 <form method="post">
                     {% csrf_token %}
                     <div class="btn-group">
