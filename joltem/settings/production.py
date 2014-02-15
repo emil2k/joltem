@@ -15,6 +15,7 @@ AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
 SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
+SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
@@ -118,7 +119,12 @@ CELERYBEAT_SCHEDULE = {
     },
     'archive-solution': {
         'task': 'solution.tasks.archive_solutions',
-        'schedule': timedelta(hours=2),
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+    'review-solution': {
+        'task': 'solution.tasks.review_solutions',
+        'schedule': timedelta(hours=4),
         'args': (),
     }
 }
