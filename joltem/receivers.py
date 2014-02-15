@@ -71,6 +71,7 @@ def update_project_metrics_from_comment(sender, **kwargs):
 def update_project_impact_from_voteables(sender, **kwargs):
     """ Update project specific impact due to vote on voteable. """
     from project.models import Impact  # avoid circular import
+
     voteable = kwargs.get('instance')
     if voteable:
         (project_impact, _) = Impact.objects.get_or_create(
