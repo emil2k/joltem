@@ -55,9 +55,10 @@
             {% endif %}
             {% if solution.is_archived %}
                 <div class="alert alert-info"><b>This solution was archived</b></div>
-            {% elif solution.is_completed %}
+            {% endif %}
+            {% if solution.is_completed %}
                 <div class="alert alert-info">
-                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% endif %}.
                 </div>
             {% endif %}
             {% if solution.task %}
