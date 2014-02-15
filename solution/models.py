@@ -58,7 +58,12 @@ class Solution(Voteable, Commentable, Updatable):
     objects = PassThroughManager.for_queryset_class(SolutionQuerySet)()
 
     def __unicode__(self):
-        return str(self.id)
+        return "%s %s" % (
+            self.pk, '/'.join(filter(None, [
+                self.is_completed and 'cmp',
+                self.is_closed and 'cls',
+                self.is_archived and 'arc',
+            ])))
 
     @property
     def followers(self):
