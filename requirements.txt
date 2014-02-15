@@ -36,4 +36,4 @@ coverage
 django-nose
 django-webtest==1.7.5
 ipdb
-mixer>=2.1.0
+mixer>=2.3.0
