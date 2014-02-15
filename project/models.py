@@ -3,14 +3,12 @@
 import operator
 from django.db import models
 from django.utils import timezone
-from django.db.models.signals import post_save, post_delete
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from joltem.models import Notifying
 
-from project import receivers
 from solution.models import Solution
 
 import logging
@@ -254,11 +252,6 @@ class Project(Notifying):
         return reverse('project:project', args=[self.id])
 
 
-post_save.connect(receivers.update_project_impact_from_project, sender=Project)
-post_delete.connect(
-    receivers.update_project_impact_from_project, sender=Project)
-
-
 class Impact(models.Model):
 
     """ Stores project specific impact. """
@@ -354,11 +347,6 @@ class Impact(models.Model):
             if solution_impact:
                 frozen_impact += solution_impact
             return frozen_impact
-
-post_save.connect(
-    receivers.update_user_metrics_from_project_impact, sender=Impact)
-post_delete.connect(
-    receivers.update_user_metrics_from_project_impact, sender=Impact)
 
 
 class Ratio(models.Model):
@@ -588,11 +576,6 @@ class Ratio(models.Model):
             return Ratio.INFINITY
         else:
             return None
-
-post_save.connect(
-    receivers.update_project_impact_from_project_ratio, sender=Ratio)
-post_delete.connect(
-    receivers.update_project_impact_from_project_ratio, sender=Ratio)
 
 
 class Equity(models.Model):
