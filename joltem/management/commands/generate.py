@@ -23,20 +23,20 @@ class Command(BaseCommand):
         with mixer.ctx(loglevel='DEBUG'):
 
             root = mixer.guard(username='root').blend(
-                User, is_superuser=True, first_name='John',
-                last_name='Konor', is_staff=True, password='root')
+                User, is_superuser=True, first_name='Root',
+                last_name='Chack', is_staff=True, password='root')
 
             manager = mixer.guard(username='manager').blend(
-                User, first_name='Marilyn', last_name='Monroe',
+                User, first_name='Manager', last_name='Marilyn',
                 password='manager')
 
             developer = mixer.guard(username='developer').blend(
-                User, first_name='Abraham', last_name='Lincoln',
+                User, first_name='Developer', last_name='Abraham',
                 password='developer')
 
             mixer.guard(username='user').blend(
-                User, username='user', first_name='James',
-                last_name='Bond', password='user')
+                User, username='user', first_name='User',
+                last_name='James', password='user')
 
             project = mixer.guard(title='Joltem').blend('project.project')
             project.admin_set = [root]
