@@ -8,6 +8,6 @@ from .models import Solution
 
 class _SolutionAdmin(admin.ModelAdmin):
 
-    list_display = 'default_title', 'is_completed', 'is_closed'
+    list_display = 'default_title', 'is_completed', 'is_closed', 'is_archived'
 
 admin.site.register(Solution, _SolutionAdmin)

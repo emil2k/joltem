@@ -182,7 +182,8 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         Returns HTTP response.
 
         """
-        if not self.is_owner or self.solution.is_closed:
+        if not self.is_owner or self.solution.is_closed \
+                or self.solution.is_archived:
             return redirect('project:solution:solution',
                             project_id=self.project.id,
                             solution_id=self.solution.id)

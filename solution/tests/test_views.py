@@ -549,6 +549,16 @@ class SolutionEditView(BaseSolutionViewTest):
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
 
+        self.solution.is_archived = True
+        self.solution.save()
+        response = self._post(views.SolutionEditView.as_view(), {
+            'title': 'another new title',
+            'description': 'another new description'
+        })
+        reloaded = models.load_model(self.solution)
+        self.assertEqual(reloaded.title, 'new title')
+        self.assertEqual(reloaded.description, 'new description')
+
 
 class SolutionReviewViewOwnerTest(TestCase):
 
