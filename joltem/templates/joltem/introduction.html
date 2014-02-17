@@ -5,7 +5,7 @@
 {% block content %}
     <div class="row">
         <div class="span12 text-center">
-            <h2>Welcome to the team. Let's get started.</h2>
+            <h2>Welcome, let's get started.</h2>
         </div>
     </div>
     <hr/>
@@ -27,11 +27,11 @@
             <hr class="hidden-desktop hidden-tablet"/>
         </div>
         <div class="span4 text-center">
-            <a href="{% url 'project:task:all_open' '1' %}">
-                <i class="fa fa-tasks fa-5x"></i><br/>
-                <h3>Browse Open Tasks</h3>
+            <a href="{% url 'new' %}">
+                <i class="fa fa-flash fa-5x"></i><br/>
+                <h3>Create a Project</h3>
             </a>
-            <p>To find something to contribute.</p>
+            <p>To begin collaborating with others.</p>
         </div>
     </div>
 {% endblock %}
