@@ -1,6 +1,6 @@
 {% extends 'joltem/base.html' %}
 {% block title %}Joltem - Openly collaborate to build and launch a startup.{% endblock %}
-{% block description %}A platform that helps people spontaneously come together and work on the best startup ideas.{% endblock %}
+{% block description %}A platform that allows developers to spontaneously come together and work on the best for-profit side projects.{% endblock %}
 {% block body_class %}landing{% endblock %}
 {% block message %}{% endblock %}
 {% block content %}
@@ -10,11 +10,9 @@
             openly collaborate to build and launch a startup <i class="fa fa-rocket"></i>
         </h3>
         <hr/>
+        <p>A platform that allows developers to spontaneously come together and work on the best for-profit side projects.</p>
         <p>
-            We are openly building a platform that helps people spontaneously come together and work on the best startup ideas.
-        </p>
-        <p>
-            <a class="btn btn-large" href="{% url 'project:project' '1' %}"><b>enter</b></a>
+            <a class="btn btn-large" href="{% url 'sign_in' %}"><b>sign in</b></a>
             <a class="btn btn-large" href="{% url 'help:index' %}"><b>more<span class="hidden-phone"> info</span></b></a>
         </p>
         <p>
