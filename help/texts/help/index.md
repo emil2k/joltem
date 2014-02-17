@@ -3,7 +3,7 @@
 
 At *Joltem* ( short for “jolt them” ) our goal is to create a place that allows programmers to spontaneously come together and work on the best startup ideas. 
 
-We provide a platform that allows you to easily solicit collaboration on a for-profit side project.
+We provide a platform that allows you to openly solicit collaboration on a for-profit side project. The project seeks to be a solution to [the broken startup process](http://joltem.tumblr.com/post/76435540928/the-broken-startup-process).
 
 <a name="idea" class="anchor-fix"></a>
 #### Want to collaborate on an idea?
