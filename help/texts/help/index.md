@@ -124,8 +124,8 @@ If you have any other questions or suggestions.
 [3]:	#exchange
 [4]:	#review
 [5]:	http://en.wikipedia.org/wiki/Python_Enhancement_Proposal#Development
-[6]:	http://joltem.com/joltem/task/45/
-[7]:	http://joltem.com/joltem/solution/48/
+[6]:	http://joltem.com/1/task/45/
+[7]:	http://joltem.com/1/solution/48/
 [8]:	http://joltem.com/user/emil/
 [9]:	http://www.vagrantup.com
 [10]:	mailto:dev@joltem.com
