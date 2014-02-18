@@ -704,6 +704,7 @@ class SolutionListsCaching(TestCase):
         v.get_queryset()
         self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
 
+
 SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'
 SOLUTION_COMMITS_REPO_URL = '/{project_id}/solution/{solution_id}/commits/repository/{repo_id}/'
 

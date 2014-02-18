@@ -427,13 +427,17 @@ class SolutionBaseListMeta(type):
     def __new__(mcs, name, bases, params):
         cls = super(SolutionBaseListMeta, mcs).__new__(mcs, name, bases, params)
         if cls.solutions_tab:
-            mcs.solutions_tabs.append((cls.solutions_tab, cls))
+            mcs.solutions_tabs.append(cls)
         return cls
 
 
 class SolutionBaseListView(ListView, ProjectBaseView):
 
-    """ View mixin for solution's list. """
+    """ View mixin for solution's list.
+
+    :param is_personal: whether list depends on user.
+
+    """
 
     __metaclass__ = SolutionBaseListMeta
 
@@ -442,33 +446,41 @@ class SolutionBaseListView(ListView, ProjectBaseView):
     project_tab = 'solutions'
     solutions_tab = None
     template_name = 'solution/solutions_list.html'
+    is_personal = False
 
-    @property
-    def solutions_tab_counts(self):
+    def get_solutions_tab_counts(self, is_personal=False):
         """ Get the counts for each solution list.
 
+        :param is_personal: filter views by is_personal attribute
         :return dict: name => count
 
         """
-        return { n: self.get_queryset(**c.filters).count()
-                 for n, c in SolutionBaseListView.solutions_tabs }
+        return { cls.solutions_tab: self.get_queryset(**cls.filters).count()
+                 for cls in SolutionBaseListView.solutions_tabs
+                 if cls.is_personal == is_personal }
 
-    @property
-    def cached_solutions_tab_counts(self):
+    def get_cached_solutions_tab_counts(self, is_personal=False):
         """ Get the cached counts, if cached, otherwise query and set.
 
+        :param is_personal: filter views by is_personal attribute
         :return dict: name => count
 
         """
-        value = cache.get(self.solutions_tab_counts_cache_key)
+        key = self.personal_solutions_tab_counts_cache_key if is_personal \
+            else self.solutions_tab_counts_cache_key
+        value = cache.get(key)
         if not value:
             value = self.solutions_tab_counts
-            cache.set(self.solutions_tab_counts_cache_key, value)
+            cache.set(key, value)
         return value
 
     @cached_property
     def solutions_tab_counts_cache_key(self):
         return "%s:solutions_tabs" % self.project.pk
+
+    @cached_property
+    def personal_solutions_tab_counts_cache_key(self):
+        return "%s:%s:solutions_tabs" % (self.project.pk, self.user.pk)
 
     def get_context_data(self, **kwargs):
         """ Get context data for templates.
@@ -479,7 +491,9 @@ class SolutionBaseListView(ListView, ProjectBaseView):
         kwargs['project'] = self.project
         kwargs['project_tab'] = self.project_tab
         kwargs['solutions_tab'] = self.solutions_tab
-        kwargs["solutions_tabs"] = self.cached_solutions_tab_counts
+        kwargs["solutions_tabs"] = self.get_solutions_tab_counts()
+        kwargs["personal_solutions_tabs"] = \
+            self.get_solutions_tab_counts(is_personal=True)
         return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
     def get_queryset(self, **filters):
@@ -523,6 +537,7 @@ class MyIncompleteSolutionsView(SolutionBaseListView):
     """ View for viewing a list of your incomplete solutions. """
 
     solutions_tab = 'my_incomplete'
+    is_personal = True
     filters = {
         'is_completed': False, 'is_closed': False,
         'owner': lambda s: s.request.user}
@@ -533,6 +548,7 @@ class MyCompleteSolutionsView(SolutionBaseListView):
     """ View for viewing a list of your complete solutions. """
 
     solutions_tab = 'my_complete'
+    is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
         'owner': lambda s: s.request.user}
@@ -543,6 +559,7 @@ class MyReviewSolutionsView(SolutionBaseListView):
     """ View for viewing a list of solutions to review. """
 
     solutions_tab = 'my_review'
+    is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
         'owner__ne': lambda s: s.request.user,
@@ -554,4 +571,5 @@ class MyReviewedSolutionsView(SolutionBaseListView):
     """ View for viewing a list of reviewed solutions. """
 
     solutions_tab = 'my_reviewed'
+    is_personal = True
     filters = {'vote_set__voter': lambda s: s.request.user}
