@@ -337,7 +337,7 @@ class TaskBaseListView(ListView, ProjectBaseView):
         :return QuerySet:
 
         """
-        filters = filters or self.filters
+        filters = filters or self.filters.copy()
         qs = self.project.task_set.select_related('owner')\
             .prefetch_related('solution_set')
 

@@ -353,6 +353,23 @@ class TaskViewTest(BaseTaskViewTest):
         self.assertFalse(task.is_closed)
 
 
+class TaskListsCaching(TestCase):
+
+    """ Test caching in TaskBaseListView its children. """
+
+    def test_review_filter_remains_callable(self):
+        """ Test that filter remains callable after getting queryset. """
+        bill = mixer.blend('joltem.user', username='bill')
+        v = views.MyReviewTasksView()
+        v.project = mixer.blend('project.project')
+        v.user = bill
+        self.assertEqual(
+            type(v.filters['vote__voter__ne']).__name__, 'function')
+        v.get_queryset()
+        self.assertEqual(
+            type(v.filters['vote__voter__ne']).__name__, 'function')
+
+
 class TaskListViewTests(BaseProjectViewTest):
 
     def _test_get_task_list(self, view):
