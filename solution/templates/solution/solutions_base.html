@@ -9,15 +9,15 @@
                     <li><a href="{% url 'project:solution:new' project.id %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">All</li>
-                <li class="{{ solutions_tab|active:"all_incomplete" }}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Incomplete<span class="{{ solutions_tabs.all_incomplete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_incomplete }}</span></a></li>
-                <li class="{{ solutions_tab|active:"all_complete" }}"><a href="{% url 'project:solution:all_complete' project.id %}">Complete<span class="{{ solutions_tabs.all_complete|is_true:"badge-info" }} badge pull-right">{{ solutions_tabs.all_complete }}</span></a></li>
+                <li class="{{ tab|active:"solutions_all_incomplete" }}"><a href="{% url 'project:solution:all_incomplete' project.id %}">Incomplete<span class="{{ tabs.solutions_all_incomplete|is_true:"badge-info" }} badge pull-right">{{ tabs.solutions_all_incomplete }}</span></a></li>
+                <li class="{{ tab|active:"solutions_all_complete" }}"><a href="{% url 'project:solution:all_complete' project.id %}">Complete<span class="{{ tabs.solutions_all_complete|is_true:"badge-info" }} badge pull-right">{{ tabs.solutions_all_complete }}</span></a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-header">My</li>
-                    <li class="{{ solutions_tab|active:"my_incomplete" }}"><a href="{% url 'project:solution:my_incomplete' project.id %}">Incomplete<span class="{{ personal_solutions_tabs.my_incomplete|is_true:"badge-info" }} badge pull-right">{{ personal_solutions_tabs.my_incomplete }}</span></a></li>
-                    <li class="{{ solutions_tab|active:"my_complete" }}"><a href="{% url 'project:solution:my_complete' project.id %}">Complete<span class="{{ personal_solutions_tabs.my_complete|is_true:"badge-info" }} badge pull-right">{{ personal_solutions_tabs.my_complete }}</span></a></li>
+                    <li class="{{ tab|active:"solutions_my_incomplete" }}"><a href="{% url 'project:solution:my_incomplete' project.id %}">Incomplete<span class="{{ personal_tabs.solutions_my_incomplete|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.solutions_my_incomplete }}</span></a></li>
+                    <li class="{{ tab|active:"solutions_my_complete" }}"><a href="{% url 'project:solution:my_complete' project.id %}">Complete<span class="{{ personal_tabs.solutions_my_complete|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.solutions_my_complete }}</span></a></li>
                     <li class="nav-header">Review</li>
-                    <li class="{{ solutions_tab|active:"my_review" }}"><a href="{% url 'project:solution:my_review' project.id %}">Review<span class="{{ personal_solutions_tabs.my_review|is_true:"badge-info" }} badge pull-right">{{ personal_solutions_tabs.my_review }}</span></a></li>
-                    <li class="{{ solutions_tab|active:"my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.id %}">Reviewed<span class="{{ personal_solutions_tabs.my_reviewed|is_true:"badge-info" }} badge pull-right">{{ personal_solutions_tabs.my_reviewed }}</span></a></li>
+                    <li class="{{ tab|active:"solutions_my_review" }}"><a href="{% url 'project:solution:my_review' project.id %}">Review<span class="{{ personal_tabs.solutions_my_review|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.solutions_my_review }}</span></a></li>
+                    <li class="{{ tab|active:"solutions_my_reviewed" }}"><a href="{% url 'project:solution:my_reviewed' project.id %}">Reviewed<span class="{{ personal_tabs.solutions_my_reviewed|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.solutions_my_reviewed }}</span></a></li>
                 {% endif %}
             </ul>
         </div>

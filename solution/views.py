@@ -12,7 +12,7 @@ from joltem.holders import CommentHolder
 from joltem.models import Comment
 from joltem.views.generic import VoteableView, CommentableView
 from project.models import Impact
-from project.views import ProjectBaseView
+from project.views import ProjectBaseView, ProjectBaseListView
 from solution.models import Solution
 from task.models import Task
 
@@ -418,109 +418,31 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                             solution_id=solution.id)
 
 
-class SolutionBaseListMeta(type):
+class SolutionBaseListView(ProjectBaseListView):
 
-    """ Build views hierarchy. """
-
-    solutions_tabs = []
-
-    def __new__(mcs, name, bases, params):
-        cls = super(SolutionBaseListMeta, mcs).__new__(mcs, name, bases, params)
-        if cls.solutions_tab:
-            mcs.solutions_tabs.append(cls)
-        return cls
-
-
-class SolutionBaseListView(ListView, ProjectBaseView):
-
-    """ View mixin for solution's list.
-
-    :param is_personal: whether list depends on user.
-
-    """
-
-    __metaclass__ = SolutionBaseListMeta
+    """ View mixin for solution's list. """
 
     context_object_name = 'solutions'
-    paginate_by = 10
     project_tab = 'solutions'
-    solutions_tab = None
     template_name = 'solution/solutions_list.html'
-    is_personal = False
+    order_by = ('-time_posted',)
 
-    def get_solutions_tab_counts(self, is_personal=False):
-        """ Get the counts for each solution list.
-
-        :param is_personal: filter views by is_personal attribute
-        :return dict: name => count
-
-        """
-        return { cls.solutions_tab: self.get_queryset(**cls.filters).count()
-                 for cls in SolutionBaseListView.solutions_tabs
-                 if cls.is_personal == is_personal }
-
-    def get_cached_solutions_tab_counts(self, is_personal=False):
-        """ Get the cached counts, if cached, otherwise query and set.
-
-        :param is_personal: filter views by is_personal attribute
-        :return dict: name => count
-
-        """
-        key = self.personal_solutions_tab_counts_cache_key if is_personal \
-            else self.solutions_tab_counts_cache_key
-        value = cache.get(key)
-        if not value:
-            value = self.solutions_tab_counts
-            cache.set(key, value)
-        return value
-
-    @cached_property
-    def solutions_tab_counts_cache_key(self):
-        return "%s:solutions_tabs" % self.project.pk
-
-    @cached_property
-    def personal_solutions_tab_counts_cache_key(self):
-        return "%s:%s:solutions_tabs" % (self.project.pk, self.user.pk)
-
-    def get_context_data(self, **kwargs):
-        """ Get context data for templates.
-
-        :return dict:
-
-        """
-        kwargs['project'] = self.project
-        kwargs['project_tab'] = self.project_tab
-        kwargs['solutions_tab'] = self.solutions_tab
-        kwargs["solutions_tabs"] = self.get_solutions_tab_counts()
-        kwargs["personal_solutions_tabs"] = \
-            self.get_solutions_tab_counts(is_personal=True)
-        return super(SolutionBaseListView, self).get_context_data(**kwargs)
-
-    def get_queryset(self, **filters):
-        """ Filter solutions by current project.
+    @classmethod
+    def _get_raw_queryset(cls, project):
+        """ Unfiltered queryset, with optimizations.
 
         :return QuerySet:
 
         """
-        filters = filters or self.filters.copy()
-        qs = self.project.solution_set.select_related('task', 'owner')\
+        return project.solution_set.select_related('task', 'owner')\
             .prefetch_related('vote_set')
-        for k in filters:
-            if callable(filters[k]):
-                filters[k] = filters[k](self)
-            if k.endswith('__ne'):
-                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
-            else:
-                qs = qs.filter(**{k: filters[k]})
-
-        return qs.order_by('-time_posted')
 
 
 class AllIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of all incomplete solutions. """
 
-    solutions_tab = 'all_incomplete'
+    tab = 'solutions_all_incomplete'
     filters = {'is_completed': False, 'is_closed': False}
 
 
@@ -528,7 +450,7 @@ class AllCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of complete solutions. """
 
-    solutions_tab = 'all_complete'
+    tab = 'solutions_all_complete'
     filters = {'is_completed': True, 'is_closed': False}
 
 
@@ -536,7 +458,7 @@ class MyIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your incomplete solutions. """
 
-    solutions_tab = 'my_incomplete'
+    tab = 'solutions_my_incomplete'
     is_personal = True
     filters = {
         'is_completed': False, 'is_closed': False,
@@ -547,7 +469,7 @@ class MyCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your complete solutions. """
 
-    solutions_tab = 'my_complete'
+    tab = 'solutions_my_complete'
     is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
@@ -558,7 +480,7 @@ class MyReviewSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of solutions to review. """
 
-    solutions_tab = 'my_review'
+    tab = 'solutions_my_review'
     is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
@@ -570,6 +492,6 @@ class MyReviewedSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of reviewed solutions. """
 
-    solutions_tab = 'my_reviewed'
+    tab = 'solutions_my_reviewed'
     is_personal = True
     filters = {'vote_set__voter': lambda s: s.request.user}
