@@ -443,6 +443,33 @@ class SolutionBaseListView(ListView, ProjectBaseView):
     solutions_tab = None
     template_name = 'solution/solutions_list.html'
 
+    @property
+    def solutions_tab_counts(self):
+        """ Get the counts for each solution list.
+
+        :return dict: name => count
+
+        """
+        return { n: self.get_queryset(**c.filters).count()
+                 for n, c in SolutionBaseListView.solutions_tabs }
+
+    @property
+    def cached_solutions_tab_counts(self):
+        """ Get the cached counts, if cached, otherwise query and set.
+
+        :return dict: name => count
+
+        """
+        value = cache.get(self.solutions_tab_counts_cache_key)
+        if not value:
+            value = self.solutions_tab_counts
+            cache.set(self.solutions_tab_counts_cache_key, value)
+        return value
+
+    @cached_property
+    def solutions_tab_counts_cache_key(self):
+        return "%s:solutions_tabs" % self.project.pk
+
     def get_context_data(self, **kwargs):
         """ Get context data for templates.
 
@@ -452,15 +479,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
         kwargs['project'] = self.project
         kwargs['project_tab'] = self.project_tab
         kwargs['solutions_tab'] = self.solutions_tab
-        kwargs["solutions_tabs"] = cache.get("%s:solutions_tabs"
-                                             % self.project.pk)
-        if not kwargs["solutions_tabs"]:
-            kwargs["solutions_tabs"] = {
-                n: self.get_queryset(**c.filters).count()
-                for n, c in SolutionBaseListView.solutions_tabs
-            }
-            cache.set("%s:solutions_tabs" % self.project.pk,
-                      kwargs["solutions_tabs"])
+        kwargs["solutions_tabs"] = self.cached_solutions_tab_counts
         return super(SolutionBaseListView, self).get_context_data(**kwargs)
 
     def get_queryset(self, **filters):
