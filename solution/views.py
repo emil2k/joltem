@@ -469,7 +469,7 @@ class SolutionBaseListView(ListView, ProjectBaseView):
         :return QuerySet:
 
         """
-        filters = filters or self.filters
+        filters = filters or self.filters.copy()
         qs = self.project.solution_set.select_related('task', 'owner')\
             .prefetch_related('vote_set')
         for k in filters:

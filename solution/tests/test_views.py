@@ -677,6 +677,33 @@ class SolutionCreateView(BaseSolutionViewTest):
         self.assertTrue(response.status_code, 302)
 
 
+class SolutionListsCaching(TestCase):
+
+    """ Test caching in SolutionBaseListView its children. """
+
+    def test_review_filter_caching(self):
+        """ Test that filter is not being cached. """
+        bill = mixer.blend('joltem.user', username='bill')
+        jill = mixer.blend('joltem.user', username='jill')
+        v = views.MyReviewSolutionsView()
+        v.request = type("MockRequest", (object, ), dict(user=bill))
+        self.assertEqual(v.filters['owner__ne'](v).username, 'bill')
+        self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'bill')
+        v.request.user = jill
+        self.assertEqual(v.filters['owner__ne'](v).username, 'jill')
+        self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'jill')
+
+
+    def test_review_filter_remains_callable(self):
+        """ Test that filter remains callable after getting queryset. """
+        bill = mixer.blend('joltem.user', username='bill')
+        v = views.MyReviewSolutionsView()
+        v.project = mixer.blend('project.project')
+        v.request = type("MockRequest", (object, ), dict(user=bill))
+        self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
+        v.get_queryset()
+        self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
+
 SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'
 SOLUTION_COMMITS_REPO_URL = '/{project_id}/solution/{solution_id}/commits/repository/{repo_id}/'
 
