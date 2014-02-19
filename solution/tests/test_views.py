@@ -115,9 +115,26 @@ class TestPrivateSolutionPermissionsDeveloper(TestSolutionPermissions):
     group_name = "developer"
 
 
-class TestSolutionListsPermissions(BaseProjectPermissionsTestCase):
+class TestGlobalSolutionListsPermissions(BaseProjectPermissionsTestCase):
 
-    """ Test permissions to solutions lists. """
+    """ Test permissions to global solutions lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_all_complete_solutions(self):
+        """ Test permissions to all complete solution list. """
+        self.assertStatusCode('project:solution:all_complete')
+
+    def test_all_incomplete_solutions(self):
+        """ Test permissions to all incomplete solution list. """
+        self.assertStatusCode('project:solution:all_incomplete')
+
+
+class TestPersonalSolutionListsPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to personal solutions lists. """
 
     expected_status_code = 200
     login_user = True
@@ -139,18 +156,25 @@ class TestSolutionListsPermissions(BaseProjectPermissionsTestCase):
         """ Test permissions to my reviewed solution list. """
         self.assertStatusCode('project:solution:my_reviewed')
 
-    def test_all_complete_solutions(self):
-        """ Test permissions to all complete solution list. """
-        self.assertStatusCode('project:solution:all_complete')
 
-    def test_all_incomplete_solutions(self):
-        """ Test permissions to all incomplete solution list. """
-        self.assertStatusCode('project:solution:all_incomplete')
+class TestSolutionListsPermissions(TestGlobalSolutionListsPermissions,
+                                   TestPersonalSolutionListsPermissions):
+
+    """ Test permissions to solutions lists. """
 
 
-class TestSolutionListsPermissionsAnonymous(TestSolutionListsPermissions):
+class TestGlobalSolutionListsPermissionsAnonymous(
+    TestGlobalSolutionListsPermissions):
 
     expected_status_code = 200
+    login_user = False
+    is_private = False
+
+
+class TestPersonalSolutionListsPermissionsAnonymous(
+    TestPersonalSolutionListsPermissions):
+
+    expected_status_code = 302
     login_user = False
     is_private = False
 
@@ -162,10 +186,18 @@ class TestPrivateSolutionsListPermissions(TestSolutionListsPermissions):
     is_private = True
 
 
-class TestPrivateSolutionsListPermissionsAnonymous(
-        TestSolutionListsPermissions):
+class TestGlobalPrivateSolutionsListPermissionsAnonymous(
+        TestGlobalSolutionListsPermissions):
 
     expected_status_code = 404
+    login_user = False
+    is_private = True
+
+
+class TestPersonalPrivateSolutionsListPermissionsAnonymous(
+        TestPersonalSolutionListsPermissions):
+
+    expected_status_code = 302
     login_user = False
     is_private = True
 
