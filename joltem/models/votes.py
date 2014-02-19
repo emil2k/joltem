@@ -44,9 +44,6 @@ class Vote(models.Model):
 post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
 
-post_save.connect(receivers.update_project_metrics_from_vote, sender=Vote)
-post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
-
 VOTEABLE_THRESHOLD = 50  # int between 0-100
 
 

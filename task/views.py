@@ -1,13 +1,11 @@
 """ Task related views. """
 
 from django.http import Http404
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.core.cache import cache
 from django.views.generic import (
-    TemplateView, CreateView, UpdateView, ListView,
-)
+    TemplateView, CreateView, UpdateView, )
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
