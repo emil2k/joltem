@@ -1,4 +1,6 @@
 """ View related tests for solution app. """
+from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django_webtest import WebTest
@@ -681,15 +683,35 @@ class SolutionListsCaching(TestCase):
 
     """ Test caching in SolutionBaseListView its children. """
 
+    def setUp(self):
+        """ Imports to properly setup lists meta class. """
+        from task import views as task_views
+        from solution import views as solution_views
+        self.project = mixer.blend('project.project')
+
+
+    def mock_view(self, view, user):
+        """ Prepare a mock view instance, with a mock request and user.
+
+        :param view:
+        :param user:
+        :return: a view instance
+
+        """
+        v = view()
+        v.project = self.project
+        v.request = type("MockRequest", (object, ), dict(user=user))
+        v.user = user
+        return v
+
     def test_review_filter_caching(self):
         """ Test that filter is not being cached. """
         bill = mixer.blend('joltem.user', username='bill')
         jill = mixer.blend('joltem.user', username='jill')
-        v = views.MyReviewSolutionsView()
-        v.request = type("MockRequest", (object, ), dict(user=bill))
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
         self.assertEqual(v.filters['owner__ne'](v).username, 'bill')
         self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'bill')
-        v.request.user = jill
+        v = self.mock_view(views.MyReviewSolutionsView, jill)
         self.assertEqual(v.filters['owner__ne'](v).username, 'jill')
         self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'jill')
 
@@ -697,9 +719,7 @@ class SolutionListsCaching(TestCase):
     def test_review_filter_remains_callable(self):
         """ Test that filter remains callable after getting queryset. """
         bill = mixer.blend('joltem.user', username='bill')
-        v = views.MyReviewSolutionsView()
-        v.project = mixer.blend('project.project')
-        v.request = type("MockRequest", (object, ), dict(user=bill))
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
         self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
         v.get_queryset()
         self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
@@ -708,18 +728,29 @@ class SolutionListsCaching(TestCase):
     def test_review_count(self):
         """ Test solutions to review count. """
         bill = mixer.blend('joltem.user', username='bill')
-        project = mixer.blend('project.project')
-        v = views.MyReviewSolutionsView()
-        v.project = project
-        v.request = type("MockRequest", (object, ), dict(user=bill))
-        v.user = bill
-        s = mixer.blend('solution.solution', project=project)
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
+        s = mixer.blend('solution.solution', project=self.project)
         s.mark_complete(1)
         self.assertEqual(v.get_tab_counts(is_personal=True)\
                              .get('solutions_my_review'), 1)
         s.put_vote(bill, True)
         self.assertEqual(v.get_tab_counts(is_personal=True)\
                              .get('solutions_my_review'), 0)
+
+
+    def test_review_anonymous(self):
+        """ Test access as anonymous user.
+
+        Global lists should be accessible even as anonymous user.
+
+        """
+        v = self.mock_view(views.AllCompleteSolutionsView,
+                           AnonymousUser())
+        cache.delete(v.tab_counts_cache_key)
+        kwargs = dict(project_id=self.project.pk)
+        response = self.client.get(
+            reverse('project:solution:all_complete', kwargs=kwargs))
+        self.assertEqual(response.status_code, 200)
 
 
 SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'

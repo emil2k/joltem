@@ -157,8 +157,9 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         ProjectBaseView.get_context_data(self, **kwargs)
         kwargs[u'tab'] = self.tab
         kwargs[u'tabs'] = self.get_cached_tab_counts()
-        kwargs[u'personal_tabs'] = \
-            self.get_cached_tab_counts(is_personal=True)
+        if self.user.is_authenticated():
+            kwargs[u'personal_tabs'] = \
+                self.get_cached_tab_counts(is_personal=True)
         return super(ProjectBaseListView, self).get_context_data(**kwargs)
 
     @classmethod
