@@ -71,7 +71,6 @@ SECRET_KEY = 'imsosecret'
 # Define notification types
 NOTIFICATION_TYPES = lambda s: setattr(NOTIFICATION_TYPES, s, s)
 NOTIFICATION_TYPES('comment_added')
-NOTIFICATION_TYPES('frozen_ratio')
 NOTIFICATION_TYPES('solution_archived')
 NOTIFICATION_TYPES('solution_evaluation_changed')
 NOTIFICATION_TYPES('solution_marked_complete')
@@ -79,7 +78,6 @@ NOTIFICATION_TYPES('solution_posted')
 NOTIFICATION_TYPES('task_accepted')
 NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_rejected')
-NOTIFICATION_TYPES('unfrozen_ratio')
 NOTIFICATION_TYPES('vote_added')
 NOTIFICATION_TYPES('vote_updated')
 

@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
 from south.v2 import DataMigration
-from django.db import models
-from project.models import Ratio
+
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        """ Initialize vote ratio metrics.
+        """ Deprecated, votes ratio was removed.
+
+        Used to initialize vote ratio metrics, by calling update
+        on Ratio model.
 
         :param orm:
         :return:
 
         """
-        for project in orm.Project.objects.all():
-            for user in orm['joltem.User'].objects.all():
-                Ratio.update(project.id, user.id)
+        pass
 
     def backwards(self, orm):
         """ Pass.

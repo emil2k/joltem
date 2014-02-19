@@ -14,7 +14,7 @@ from haystack.query import SearchQuerySet
 
 from .forms import (ProjectSettingsForm, ProjectSubscribeForm,
                     ProjectCreateForm, ProjectGroupForm)
-from .models import Project, Impact, Ratio, Equity
+from .models import Project, Equity
 from account.forms import SSHKeyForm
 from joltem.models import User
 from joltem.views.generic import RequestBaseView
@@ -297,29 +297,6 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
     form_class = ProjectSubscribeForm
     project_tab = "dashboard"
 
-    def load_project_impact(self):
-        """ Load the user's project impact.
-
-        :return Impact: defaults to None if DoesNotExist
-
-        """
-        try:
-            return Impact.objects.get(
-                project_id=self.project.id, user_id=self.user.id)
-        except Impact.DoesNotExist:
-            return None
-
-    def load_project_ratio(self):
-        """ Load the user's project ratio.
-
-        :return Ratio: defaults to None if DoesNotExist
-
-        """
-        try:
-            return Ratio.objects.get(
-                project_id=self.project.id, user_id=self.user.id)
-        except Ratio.DoesNotExist:
-            return None
 
     def get_context_data(self, **kwargs):
         """ Get context for templates.
@@ -332,9 +309,6 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
         :return dict: A context
 
         """
-        # User specific
-        kwargs['project_impact'] = self.load_project_impact()
-        kwargs['project_ratio'] = self.load_project_ratio()
         # Project specific
         overview = self.project.get_cached_overview(limit=30)
         kwargs.update(overview)
