@@ -21,16 +21,20 @@ urlpatterns = patterns(
         'commits'),
 
     url(r'^review/my/$',
-        views.MyReviewSolutionsView.as_view(), name='my_review'),
+        login_required(views.MyReviewSolutionsView.as_view()),
+        name='my_review'),
 
     url(r'^reviewed/my/$',
-        views.MyReviewedSolutionsView.as_view(), name='my_reviewed'),
+        login_required(views.MyReviewedSolutionsView.as_view()),
+        name='my_reviewed'),
 
     url(r'^incomplete/my/$',
-        views.MyIncompleteSolutionsView.as_view(), name='my_incomplete'),
+        login_required(views.MyIncompleteSolutionsView.as_view()),
+        name='my_incomplete'),
 
     url(r'^complete/my/$',
-        views.MyCompleteSolutionsView.as_view(), name='my_complete'),
+        login_required(views.MyCompleteSolutionsView.as_view()),
+        name='my_complete'),
 
     url(r'^incomplete/$',
         views.AllIncompleteSolutionsView.as_view(), name='all_incomplete'),
