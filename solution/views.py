@@ -452,6 +452,7 @@ class AllCompleteSolutionsView(SolutionBaseListView):
 
     tab = 'solutions_all_complete'
     filters = {'is_completed': True, 'is_closed': False}
+    order_by = ('-time_completed',)
 
 
 class MyIncompleteSolutionsView(SolutionBaseListView):
@@ -474,6 +475,7 @@ class MyCompleteSolutionsView(SolutionBaseListView):
     filters = {
         'is_completed': True, 'is_closed': False,
         'owner': lambda s: s.request.user}
+    order_by = ('-time_completed',)
 
 
 class MyReviewSolutionsView(SolutionBaseListView):
@@ -486,6 +488,7 @@ class MyReviewSolutionsView(SolutionBaseListView):
         'is_completed': True, 'is_closed': False,
         'owner__ne': lambda s: s.request.user,
         'vote_set__voter__ne': lambda s: s.request.user}
+    order_by = ('-time_completed',)
 
 
 class MyReviewedSolutionsView(SolutionBaseListView):
@@ -495,3 +498,4 @@ class MyReviewedSolutionsView(SolutionBaseListView):
     tab = 'solutions_my_reviewed'
     is_personal = True
     filters = {'vote_set__voter': lambda s: s.request.user}
+    order_by = ('-time_completed',)

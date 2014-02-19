@@ -319,6 +319,7 @@ class AllClosedTasksView(TaskBaseListView):
 
     tab = "tasks_all_closed"
     filters = {'is_accepted': True, 'is_closed': True}
+    order_by = ('-time_closed', )
 
 
 class MyOpenTasksView(TaskBaseListView):
@@ -339,6 +340,7 @@ class MyClosedTasksView(TaskBaseListView):
     is_personal = True
     filters = {
         'is_accepted': True, 'is_closed': True, 'owner': lambda s: s.user}
+    order_by = ('-time_closed', )
 
 
 class MyReviewTasksView(TaskBaseListView):
