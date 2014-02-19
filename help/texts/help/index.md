@@ -46,6 +46,12 @@ The other contributors determine whether the solution is satisfactory and whethe
 
 As long as people want to keep working with each other, the bargaining process should allow them to resolve any compensation and quality control issues. 
 
+##### Time frames
+
+- *Seven days after completion*, if ther are no votes, the contributor is simply awarded the demanded impact. This allows a person, especially in the early stages, to work alone and earn impact. 
+
+- *Thirty days after completion*, the solution is archived. Archived solutions cannot be commented or voted on, and in general cannot be edited in any way. 
+
 ---
 
 <a name="task-solutions" class="anchor-fix"></a>
@@ -60,15 +66,6 @@ Each task may receive multiple solutions by anyone who is willing to contribute.
 Each solutions is designated a branch name in each repository of the project and only the initiator of the solution has push access to that particular branch. This allows everyone to work on a single repository, unlike the popular fork & pull model.
 
 On completion of a solution, a peer review is initiated to evaluate the completed work. An administrator or the initiator of the parent task has the responsibility of merging in the work.
-
-<a name="ratio" class="anchor-fix"></a>
-#### What is the votes ratio?
-
-The **votes ratio** is meant to couple reviewing with earning of impact. 
-
-Roughly speaking it is a simple ratio of the *number of votes you have cast on other people’s solutions* over the *number you have received on your solutions* in the project with a few caps and modifications. For more detailed description of the rational behind this look at the [Voter Rational][6] task and the [current live solution][7].
-
-If your votes ratio drops below a certain threshold you are still able to earn impact, however it will be withheld until the votes ratio is raised back up again.
 
 ---
 
