@@ -1,3 +1,10 @@
+2014-02-19  emil
+    * Archiving of solutions after 30 days.
+    * Removed vote ratio and freezing of impact.
+    * Fixed solution & task list problems.
+
+-- on master
+
 2014-02-06  emil
     * Version 1.1.0
     * Opened up platform for other projects.
