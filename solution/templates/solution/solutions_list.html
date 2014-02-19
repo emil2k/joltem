@@ -3,7 +3,14 @@
     {% for solution in solutions %}
         {% include "solution/solution_row.html" %}
     {% empty %}
-        <p class="muted">No solutions.</p>
+        <div class="text-center text-info">
+            <p>
+                <i class="fa fa-briefcase fa-5x"></i>
+            </p>
+            <p>
+                There are no solutions.
+            </p>
+        </div>
     {% endfor %}
     {% include 'joltem/includes/pagination.html'%}
 {% endblock %}
