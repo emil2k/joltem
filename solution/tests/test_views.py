@@ -705,6 +705,23 @@ class SolutionListsCaching(TestCase):
         self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
 
 
+    def test_review_count(self):
+        """ Test solutions to review count. """
+        bill = mixer.blend('joltem.user', username='bill')
+        project = mixer.blend('project.project')
+        v = views.MyReviewSolutionsView()
+        v.project = project
+        v.request = type("MockRequest", (object, ), dict(user=bill))
+        v.user = bill
+        s = mixer.blend('solution.solution', project=project)
+        s.mark_complete(1)
+        self.assertEqual(v.get_tab_counts(is_personal=True)\
+                             .get('solutions_my_review'), 1)
+        s.put_vote(bill, True)
+        self.assertEqual(v.get_tab_counts(is_personal=True)\
+                             .get('solutions_my_review'), 0)
+
+
 SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'
 SOLUTION_COMMITS_REPO_URL = '/{project_id}/solution/{solution_id}/commits/repository/{repo_id}/'
 
