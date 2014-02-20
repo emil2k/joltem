@@ -8,11 +8,23 @@
         </p>
     </div>
     <div class="span6">
-        <p><i class="fa fa-briefcase"></i> <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">Solution <em>{{ solution.default_title }}</em> updated.</a></p>
-        {% if solution.description %}
-            <blockquote class="muted">{{ solution.description|markdown:"tables,fenced_code" }}</blockquote>
-        {% else %}
-            <blockquote class="muted"><p>Solution has not been described yet.</p></blockquote>
+        <p>
+            <i class="fa fa-briefcase"></i>
+            <a class="muted" href="{% url 'project:solution:solution' solution.project.id solution.id %}">{{ solution.default_title }}</a>
+            {% if solution.is_closed %}
+                <span class="label label-info">closed</span>
+            {% elif solution.is_archived %}
+                <span class="label label-info">archived</span>
+            {% elif solution.is_completed %}
+                <span class="label label-warning">review</span>
+            {% endif %}
+        </p>
+        {% if not solution.is_closed and not solution.is_archived %}
+            {% if solution.description %}
+                <blockquote class="muted">{{ solution.description|markdown:"tables,fenced_code" }}</blockquote>
+            {% else %}
+                <blockquote class="muted"><p>Solution has not been described yet.</p></blockquote>
+            {% endif %}
         {% endif %}
     </div>
     <div class="span2 text-center">
