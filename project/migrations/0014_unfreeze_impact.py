@@ -6,6 +6,10 @@ from django.db import models
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ('solution', '0005_auto__add_field_solution_is_archived'),
+    )
+
     def forwards(self, orm):
         """ Update impact, to unfreeze any frozen impact.
 
