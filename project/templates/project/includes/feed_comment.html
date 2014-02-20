@@ -18,7 +18,7 @@
                 solution <em>{{ comment.commentable.title }}</em>
             {% endif %}
         </a></p>
-        <blockquote class="muted">{{ comment.comment|markdown:"tables,fenced_code" }}</blockquote>
+        <div class="muted feed-description">{{ comment.comment|markdown:"tables,fenced_code" }}</div>
     </div>
     <div class="span2 text-center">
         <small class="muted">{{ comment.time_updated|timesince }} ago.</small>

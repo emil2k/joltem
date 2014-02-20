@@ -16,9 +16,9 @@
         {% if not task.is_closed %}
             {% if not task.is_reviewed or task.is_accepted %}
                 {% if task.description %}
-                    <blockquote class="muted">{{ task.description|markdown:"tables,fenced_code" }}</blockquote>
+                    <div class="muted feed-description">{{ task.description|markdown:"tables,fenced_code" }}</div>
                 {% else %}
-                    <blockquote class="muted"><p>Task has not been described yet.</p></blockquote>
+                    <div class="muted feed-description"><p>Task has not been described yet.</p></div>
                 {% endif %}
             {% endif %}
         {% endif %}

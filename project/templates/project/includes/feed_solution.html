@@ -21,9 +21,9 @@
         </p>
         {% if not solution.is_closed and not solution.is_archived %}
             {% if solution.description %}
-                <blockquote class="muted">{{ solution.description|markdown:"tables,fenced_code" }}</blockquote>
+                <div class="muted feed-description">{{ solution.description|markdown:"tables,fenced_code" }}</div>
             {% else %}
-                <blockquote class="muted"><p>Solution has not been described yet.</p></blockquote>
+                <div class="muted feed-description"><p>Solution has not been described yet.</p></div>
             {% endif %}
         {% endif %}
     </div>
