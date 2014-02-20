@@ -16,7 +16,7 @@
             {% elif solution.is_archived %}
                 <span class="label label-info">archived</span>
             {% elif solution.is_completed %}
-                <span class="label label-warning">review</span>
+                <span class="label label-success">completed</span>
             {% endif %}
         </p>
         {% if not solution.is_closed and not solution.is_archived %}
