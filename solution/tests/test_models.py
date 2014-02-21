@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from joltem.libs import mixer, load_model
+from joltem.libs import mixer
 from solution.models import Solution
 
 
@@ -71,6 +71,18 @@ class SolutionModelTest(TestCase):
         mixer.blend('solution', project=self.project)
         self.assertFalse(cache.get('%s:solutions_tabs' % self.project.pk))
 
+    def test_add_comment(self):
+        solution = mixer.blend(Solution)
+        updated_at = solution.time_updated
+        solution.add_comment(mixer.blend('joltem.user'), 'test')
+        self.assertEqual(solution.time_updated, updated_at)
+
+    def test_add_vote(self):
+        solution = mixer.blend(Solution)
+        updated_at = solution.time_updated
+        solution.add_vote(mixer.blend('joltem.user'), True)
+        self.assertEqual(solution.time_updated, updated_at)
+
 
 class SolutionImpactDefaultingTest(TestCase):
 
@@ -81,7 +93,7 @@ class SolutionImpactDefaultingTest(TestCase):
         self.solution.mark_complete(1)
 
     @property
-    def _expired(self):
+    def _expired(self): # noqa
         """ Return and expired time, at which point impact should default. """
         return timezone.now() - timezone.timedelta(
             seconds=settings.SOLUTION_REVIEW_PERIOD_SECONDS + 1)
