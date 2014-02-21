@@ -56,7 +56,7 @@ def update_notification_count(sender, **kwargs):
     user.save()
 
 
-def immediately_senf_email_about_notification(sender, created=False,
+def immediately_send_email_about_notification(sender, created=False,
                                               instance=None, **kwargs):
     """ Send email about new notification to user.
 

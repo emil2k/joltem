@@ -20,7 +20,7 @@ post_delete.connect(update_project_impact_from_voteables, sender=Comment)
 post_save.connect(update_notification_count, sender=Notification)
 
 post_save.connect(
-    immediately_senf_email_about_notification, sender=Notification)
+    immediately_send_email_about_notification, sender=Notification)
 
 post_delete.connect(update_notification_count, sender=Notification)
 
