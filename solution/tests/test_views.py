@@ -546,11 +546,27 @@ class SolutionViewTest(BaseSolutionViewTest):
 
         self.solution.is_archived = False
         self.solution.save()
+        updated_at = self.solution.time_updated
         self._post(views.SolutionView.as_view(), {'comment': 'comment'})
         comments = self.solution.comment_set.all()
         self.assertTrue(comments.count())
         comment = comments[0]
         self.assertEqual(comment.owner, self.solution.owner)
+
+        # Should not update time when comment has posted
+        solution = models.load_model(self.solution)
+        self.assertEqual(solution.time_updated, updated_at)
+
+    def test_solution_vote_post(self):
+        solution = mixer.blend(Solution)
+        updated_at = solution.time_updated
+        self._post(views.SolutionView.as_view(), {
+            'voteable_vote': 1, 'voteable_id': solution.pk,
+            'voteable_type': 1})
+
+        # Should not update time when comment has posted
+        solution = models.load_model(solution)
+        self.assertEqual(solution.time_updated, updated_at)
 
     def test_solution_comment_edit_delete(self):
         comment = mixer.blend('joltem.comment',

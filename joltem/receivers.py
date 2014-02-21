@@ -1,6 +1,7 @@
 """ Receivers for updating related models when signals fire. """
 
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_save
 
 
 def update_solution_metrics_from_comment(sender, **kwargs):
@@ -14,11 +15,13 @@ def update_solution_metrics_from_comment(sender, **kwargs):
     solution_type = ContentType.objects.get_for_model(Solution)
     # todo check that comment is part of the commentable comment_set and not
     # outside of it
-    if comment and comment.commentable \
+    if comment and comment.commentable_id \
             and comment.commentable_type_id == solution_type.id:
         solution = comment.commentable
         solution.acceptance = solution.get_acceptance()
-        solution.save()
+        Solution.objects.filter(pk=solution.pk).update(
+            acceptance=solution.acceptance)
+        post_save.send(Solution, instance=solution)
 
 
 def update_voteable_metrics_from_vote(sender, **kwargs):
@@ -27,7 +30,9 @@ def update_voteable_metrics_from_vote(sender, **kwargs):
     if vote and vote.voteable:
         voteable = vote.voteable
         voteable.acceptance = voteable.get_acceptance()
-        voteable.save()
+        type(voteable).objects.filter(pk=voteable.pk).update(
+            acceptance=voteable.acceptance)
+        post_save.send(type(voteable), instance=voteable)
 
 
 def update_project_impact_from_voteables(sender, **kwargs):
