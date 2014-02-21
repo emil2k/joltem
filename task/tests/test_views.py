@@ -136,14 +136,14 @@ class TestTasksListsPermissions(TestPersonalTasksListsPermissions,
 
 
 class TestPersonalTaskListsPermissionsAnonymous(
-    TestPersonalTasksListsPermissions):
+        TestPersonalTasksListsPermissions):
 
     login_user = False
     expected_status_code = 302
 
 
 class TestGlobalTaskListsPermissionsAnonymous(
-    TestGlobalTasksListsPermissions):
+        TestGlobalTasksListsPermissions):
 
     login_user = False
     expected_status_code = 200
@@ -156,18 +156,20 @@ class TestPrivateTaskListsPermissions(TestTasksListsPermissions):
 
 
 class TestGlobalPrivateTaskListsPermissionsAnonymous(
-    TestGlobalTasksListsPermissions):
+        TestGlobalTasksListsPermissions):
 
     expected_status_code = 404
     is_private = True
     login_user = False
 
+
 class TestPersonalPrivateTaskListsPermissionsAnonymous(
-    TestPersonalTasksListsPermissions):
+        TestPersonalTasksListsPermissions):
 
     expected_status_code = 302
     is_private = True
     login_user = False
+
 
 class TestPrivateTaskListsPermissionsInvitee(TestTasksListsPermissions):
 
@@ -576,7 +578,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         task = Task.objects.get()
         self.assertEqual(task.title, 'new title')
 
-        admin, manager = mixer.cycle(2).blend('joltem.user') # noqa
+        admin, manager = mixer.cycle(2).blend('joltem.user')  # noqa
         self.project.admin_set.add(admin)
         self.project.manager_set.add(manager)
 

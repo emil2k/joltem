@@ -1,11 +1,9 @@
 """ Solution related views. """
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView
 
 from git.models import Repository
 from joltem.holders import CommentHolder

@@ -95,6 +95,7 @@ class ProjectBaseListMeta(type):
             mcs.tabs.append(cls)
         return cls
 
+
 class ProjectBaseListView(ProjectBaseView, ListView):
 
     """ Parent class for project-context lists.
@@ -121,9 +122,9 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :return dict: name => count
 
         """
-        return { cls.tab: cls._get_queryset(self, **cls.filters).count()
-                 for cls in ProjectBaseListView.tabs
-                 if cls.is_personal == is_personal }
+        return {cls.tab: cls._get_queryset(self, **cls.filters).count() # noqa
+                for cls in ProjectBaseListView.tabs
+                if cls.is_personal == is_personal}
 
     def get_cached_tab_counts(self, is_personal=False):
         """ Get the cached counts, if cached, otherwise query and set.
@@ -142,10 +143,20 @@ class ProjectBaseListView(ProjectBaseView, ListView):
 
     @cached_property
     def tab_counts_cache_key(self):
+        """ Make tabs cache key from project ID.
+
+        :returns: Key's string
+
+        """
         return "%s:tabs" % self.project.pk
 
     @cached_property
     def personal_tab_counts_cache_key(self):
+        """ Make tabs cache key from project ID and current user ID.
+
+        :returns: Key's string
+
+        """
         return "%s:%s:tabs" % (self.project.pk, self.user.pk)
 
     def get_context_data(self, **kwargs):
@@ -203,7 +214,7 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :return QuerySet:
 
         """
-        return self.__class__._get_queryset(self, **filters)
+        return self.__class__._get_queryset(self, **filters) # noqa
 
 
 class ProjectCreateView(RequestBaseView, CreateView):
@@ -297,7 +308,6 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
     form_class = ProjectSubscribeForm
     project_tab = "dashboard"
 
-
     def get_context_data(self, **kwargs):
         """ Get context for templates.
 
@@ -364,7 +374,7 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         context['form'] = ProjectSettingsForm(instance=self.project)
         return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs): # noqa
         """ Update the project.
 
         :returns: A Response

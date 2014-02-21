@@ -164,7 +164,7 @@ class TestSolutionListsPermissions(TestGlobalSolutionListsPermissions,
 
 
 class TestGlobalSolutionListsPermissionsAnonymous(
-    TestGlobalSolutionListsPermissions):
+        TestGlobalSolutionListsPermissions):
 
     expected_status_code = 200
     login_user = False
@@ -172,7 +172,7 @@ class TestGlobalSolutionListsPermissionsAnonymous(
 
 
 class TestPersonalSolutionListsPermissionsAnonymous(
-    TestPersonalSolutionListsPermissions):
+        TestPersonalSolutionListsPermissions):
 
     expected_status_code = 302
     login_user = False
@@ -717,10 +717,7 @@ class SolutionListsCaching(TestCase):
 
     def setUp(self):
         """ Imports to properly setup lists meta class. """
-        from task import views as task_views
-        from solution import views as solution_views
         self.project = mixer.blend('project.project')
-
 
     def mock_view(self, view, user):
         """ Prepare a mock view instance, with a mock request and user.
@@ -747,7 +744,6 @@ class SolutionListsCaching(TestCase):
         self.assertEqual(v.filters['owner__ne'](v).username, 'jill')
         self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'jill')
 
-
     def test_review_filter_remains_callable(self):
         """ Test that filter remains callable after getting queryset. """
         bill = mixer.blend('joltem.user', username='bill')
@@ -756,19 +752,17 @@ class SolutionListsCaching(TestCase):
         v.get_queryset()
         self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
 
-
     def test_review_count(self):
         """ Test solutions to review count. """
         bill = mixer.blend('joltem.user', username='bill')
         v = self.mock_view(views.MyReviewSolutionsView, bill)
         s = mixer.blend('solution.solution', project=self.project)
         s.mark_complete(1)
-        self.assertEqual(v.get_tab_counts(is_personal=True)\
-                             .get('solutions_my_review'), 1)
+        self.assertEqual(v.get_tab_counts(is_personal=True)
+                         .get('solutions_my_review'), 1)
         s.put_vote(bill, True)
-        self.assertEqual(v.get_tab_counts(is_personal=True)\
-                             .get('solutions_my_review'), 0)
-
+        self.assertEqual(v.get_tab_counts(is_personal=True)
+                         .get('solutions_my_review'), 0)
 
     def test_review_anonymous(self):
         """ Test access as anonymous user.

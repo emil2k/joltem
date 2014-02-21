@@ -52,11 +52,13 @@ static: $(ENV)
 	@mkdir -p $(CURDIR)/static
 	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
-.PHONY: test
+.PHONY: test t
 # target: test - Run project's tests
 TEST ?=
 test: $(ENV)
 	$(ENV)/bin/python manage.py test $(TEST) --settings=joltem.settings.test -x
+
+t: test
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem
