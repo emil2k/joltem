@@ -1,9 +1,9 @@
 """ Project related receivers for handling signals. """
 
 
-def update_user_metrics_from_project_impact(sender, **kwargs):
+def update_user_metrics_from_project_impact(sender, instance=None, **kwargs):
     """ Update user metrics from project impact. """
-    project_impact = kwargs.get('instance')
+    project_impact = instance
     if project_impact:
         project_impact.user.update().save()
 

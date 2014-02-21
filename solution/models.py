@@ -58,7 +58,12 @@ class Solution(Voteable, Commentable, Updatable):
     objects = PassThroughManager.for_queryset_class(SolutionQuerySet)()
 
     def __unicode__(self):
-        return str(self.id)
+        return "%s %s" % (
+            self.pk, '/'.join(filter(None, [
+                self.is_completed and 'cmp',
+                self.is_closed and 'cls',
+                self.is_archived and 'arc',
+            ])))
 
     @property
     def followers(self):
@@ -77,15 +82,6 @@ class Solution(Voteable, Commentable, Updatable):
             self.notify_created()
         cache.delete('%s:solutions_tabs' % self.project_id)
 
-    def is_vote_valid(self, vote):
-        """ Return whether vote should count.
-
-        Don't count a rejection vote, if the person did not provide
-        a comment in the solution review.
-
-        """
-        return vote.is_accepted or self.has_commented(vote.voter_id)
-
     @property
     def default_title(self):
         """ Return a title for the solution.
@@ -97,6 +93,42 @@ class Solution(Voteable, Commentable, Updatable):
             return self.title
         else:
             return self.task.title
+
+    def get_impact(self):
+        """ Calculate impact, analogous to value of contribution.
+
+        Overrides Voteables base implementation to add the defaulting of
+        impact. If there are no valid votes after SOLUTION_REVIEW_PERIOD_SECONDS
+        seconds passed award contributor demanded impact.
+
+        :return int: value of contribution
+
+        """
+        calculated_impact = super(Solution, self).get_impact()
+        frontier = timezone.now() - timezone.timedelta(
+                       seconds=settings.SOLUTION_REVIEW_PERIOD_SECONDS)
+        if self.time_completed < frontier and self.valid_vote_count == 0:
+            return self.impact  # demanded impact
+        return calculated_impact
+
+    def is_vote_valid(self, vote):
+        """ Return whether vote should count.
+
+        Don't count a rejection vote, if the person did not provide
+        a comment in the solution review.
+
+        """
+        return vote.is_accepted or self.has_commented(vote.voter_id)
+
+    @property
+    def valid_vote_count(self):
+        """ Return count of valid votes.
+
+        :return int: count of valid votes.
+
+        """
+        return len([vote for vote in self.vote_set.all()
+                    if self.is_vote_valid(vote)])
 
     def get_subtask_count(
             self, solution_is_completed=False, solution_is_closed=False,
