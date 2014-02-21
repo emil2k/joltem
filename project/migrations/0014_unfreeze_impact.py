@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
+import datetime
+from south.db import db
 from south.v2 import DataMigration
-
+from django.db import models
 
 class Migration(DataMigration):
 
-    def forwards(self, orm):
-        """ Deprecated, votes ratio was removed.
+    depends_on = (
+        ('solution', '0005_auto__add_field_solution_is_archived'),
+    )
 
-        Used to initialize vote ratio metrics, by calling update
-        on Ratio model.
+    def forwards(self, orm):
+        """ Update impact, to unfreeze any frozen impact.
 
         :param orm:
-        :return:
 
         """
-        pass
+        from project.models import Impact
+        for impact in Impact.objects.all():
+            impact.impact = impact.get_impact()
+            impact.save()
 
     def backwards(self, orm):
-        """ Pass.
-
-        :param orm:
-        :return:
-
-        """
         pass
 
     models = {
@@ -69,9 +68,16 @@ class Migration(DataMigration):
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
+        u'project.equity': {
+            'Meta': {'object_name': 'Equity'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
+            'shares': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'equity_set'", 'to': u"orm['joltem.User']"})
+        },
         u'project.impact': {
             'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Impact'},
-            'frozen_impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            'completed': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'impact': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
             'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
@@ -79,24 +85,21 @@ class Migration(DataMigration):
         },
         u'project.project': {
             'Meta': {'object_name': 'Project'},
-            'admin_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'admin_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
+            'admin_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'admin_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
+            'date_last_exchange': ('django.db.models.fields.DateField', [], {'default': 'datetime.datetime.now'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'developer_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
+            'developer_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'developer_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
+            'exchange_magnitude': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
+            'exchange_periodicity': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
+            'founder_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'founder_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'manager_project_set'", 'symmetrical': 'False', 'to': u"orm['joltem.User']"}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'})
-        },
-        u'project.ratio': {
-            'Meta': {'unique_together': "(['project', 'user'],)", 'object_name': 'Ratio'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_frozen': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['project.Project']"}),
-            'time_frozen': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'vote_ratio_set'", 'to': u"orm['joltem.User']"}),
-            'votes_in': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'votes_out': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'votes_ratio': ('django.db.models.fields.FloatField', [], {'null': 'True'})
+            'impact_shares': ('django.db.models.fields.BigIntegerField', [], {'default': '0'}),
+            'invitee_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'invitee_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
+            'is_private': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'manager_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'manager_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
+            'subscriber_set': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'subscriber_project_set'", 'blank': 'True', 'to': u"orm['joltem.User']"}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'total_shares': ('django.db.models.fields.BigIntegerField', [], {'default': '0'})
         }
     }
 

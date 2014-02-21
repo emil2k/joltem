@@ -1,3 +1,11 @@
+2014-02-19  emil
+    * Defaulting to demanded impact on solutions after 7 days.
+    * Archiving of solutions after 30 days.
+    * Removed vote ratio and freezing of impact.
+    * Fixed solution & task list problems.
+
+-- on master
+
 2014-02-06  emil
     * Version 1.1.0
     * Opened up platform for other projects.
@@ -58,7 +66,6 @@
     * Version 0.4.4
     * Fix bug when solution owner cannot comment own solutions
     * Fix error raises when project not found
-
 
 2013-11-21  klen
 

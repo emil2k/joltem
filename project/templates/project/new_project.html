@@ -98,13 +98,12 @@
                 <div class="row">
                     <div class="span1 text-center text-warning">
                         <p>
-                            <i class="fa fa-warning fa-3x"></i><br/>
-                            {% render_field form.agree %}
+                            <i class="fa fa-warning fa-3x"></i>
                         </p>
                     </div>
                     <div class="span7">
                         <label class="text-warning" for="id_agree">
-                            <strong>I understand</strong> that initial ownership parameters, impact exchange parameters, and whether the project is private cannot be changed after project creation.
+                            <span class="pull-right">{% render_field form.agree %}</span> <strong>I understand</strong> that initial ownership and impact exchange parameters <b>cannot</b> be changed after project creation. The ability to change whether a project is private <b>cannot be changed <em>at the moment</em></b>, but will be added at a later time.
                         </label>
                         {% if form.agree.errors %}
                             <div class="alert alert-error">{{ form.agree.errors|join:' ' }}</div>

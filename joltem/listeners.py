@@ -10,10 +10,6 @@ post_save.connect(update_solution_metrics_from_comment, sender=Comment)
 
 post_delete.connect(update_solution_metrics_from_comment, sender=Comment)
 
-post_save.connect(update_project_metrics_from_comment, sender=Comment)
-
-post_delete.connect(update_project_metrics_from_comment, sender=Comment)
-
 post_save.connect(update_project_impact_from_voteables, sender=Comment)
 
 post_delete.connect(update_project_impact_from_voteables, sender=Comment)
@@ -33,6 +29,3 @@ post_delete.connect(update_notification_count, sender=Notification)
 # ---------------
 post_save.connect(update_voteable_metrics_from_vote, sender=Vote)
 post_delete.connect(update_voteable_metrics_from_vote, sender=Vote)
-
-post_save.connect(update_project_metrics_from_vote, sender=Vote)
-post_delete.connect(update_project_metrics_from_vote, sender=Vote)

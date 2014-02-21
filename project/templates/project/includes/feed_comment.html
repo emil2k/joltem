@@ -1,14 +1,16 @@
 {% load markup %}
 <hr class="hidden-tablet hidden-desktop"/>
-<div class="row clearfix">
-    <img class="img-rounded pull-right hidden-tablet hidden-desktop" src="{{ comment.owner.gravatar }}?s=50" />
+<div class="row">
     <div class="span1 text-center hidden-phone">
         <p>
             <img class="img-rounded" src="{{ comment.owner.gravatar }}?s=50" />
         </p>
     </div>
     <div class="span6">
-        <p><i class="fa fa-comment"></i> <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }}
+        <p class="clearfix">
+            <img class="img-rounded pull-right hidden-tablet hidden-desktop" src="{{ comment.owner.gravatar }}?s=50" />
+            <i class="fa fa-comment"></i>
+            <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }}
             commented on
             {% if comment.commentable.model_name == "task" %}
                 task <em>{{ comment.commentable.title }}</em>
@@ -16,7 +18,7 @@
                 solution <em>{{ comment.commentable.title }}</em>
             {% endif %}
         </a></p>
-        <blockquote class="muted">{{ comment.comment|markdown:"tables,fenced_code" }}</blockquote>
+        <div class="muted feed-description">{{ comment.comment|markdown:"tables,fenced_code" }}</div>
     </div>
     <div class="span2 text-center">
         <small class="muted">{{ comment.time_updated|timesince }} ago.</small>

@@ -53,12 +53,9 @@
                     </div>
                 </form>
             {% endif %}
-            {% if solution.is_archived %}
-                <div class="alert alert-info"><b>This solution was archived</b></div>
-            {% endif %}
             {% if solution.is_completed %}
                 <div class="alert alert-info">
-                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% endif %}.
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
                 </div>
             {% endif %}
             {% if solution.task %}
@@ -133,8 +130,8 @@
             </div>
         {% endfor %}
     </form>
-    <hr/>
     {% if not solution.is_archived %}
+        <hr/>
         {% include "joltem/commenting.html" %}
         {% if user.is_authenticated %}
             {% if is_owner %}

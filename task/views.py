@@ -1,13 +1,11 @@
 """ Task related views. """
 
 from django.http import Http404
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.core.cache import cache
 from django.views.generic import (
-    TemplateView, CreateView, UpdateView, ListView,
-)
+    TemplateView, CreateView, UpdateView, )
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
@@ -15,7 +13,7 @@ from joltem.holders import CommentHolder
 from project.models import Impact
 from solution.models import Solution
 from joltem.views.generic import VoteableView, CommentableView
-from project.views import ProjectBaseView
+from project.views import ProjectBaseView, ProjectBaseListView
 
 from .models import Task, Vote
 from .forms import TaskCreateForm, TaskEditForm
@@ -287,76 +285,31 @@ class TaskCreateView(ProjectBaseView, CreateView):
                         task_id=task.id)
 
 
-class TaskBaseListMeta(type):
-
-    """ Build views hierarchy. """
-
-    tasks_tabs = []
-
-    def __new__(mcs, name, bases, params):
-        cls = super(TaskBaseListMeta, mcs).__new__(mcs, name, bases, params)
-        if cls.tasks_tab:
-            mcs.tasks_tabs.append((cls.tasks_tab, cls))
-        return cls
-
-
-class TaskBaseListView(ListView, ProjectBaseView):
+class TaskBaseListView(ProjectBaseListView):
 
     """ Base view for displaying lists of tasks. """
 
-    __metaclass__ = TaskBaseListMeta
-
     context_object_name = 'tasks'
-    filters = {}
-    paginate_by = 10
     project_tab = "tasks"
-    tasks_tab = None
     template_name = 'task/tasks_list.html'
+    order_by = ('-priority', '-time_posted')
 
-    def get_context_data(self, **kwargs):
-        """ Get template's context.
-
-        :return dict:
-
-        """
-        kwargs["tasks_tabs"] = cache.get("%s:tasks_tabs" % self.project.pk)
-        kwargs["tasks_tab"] = self.tasks_tab
-
-        if not kwargs["tasks_tabs"]:
-            kwargs["tasks_tabs"] = {
-                n: self.get_queryset(**c.filters).count()
-                for n, c in TaskBaseListView.tasks_tabs
-            }
-            cache.set("%s:tasks_tabs" % self.project.pk, kwargs["tasks_tabs"])
-
-        return super(TaskBaseListView, self).get_context_data(**kwargs)
-
-    def get_queryset(self, **filters):
-        """ Filter tasks by current project.
+    @classmethod
+    def _get_raw_queryset(cls, project):
+        """ Unfiltered queryset, with optimizations.
 
         :return QuerySet:
 
         """
-        filters = filters or self.filters
-        qs = self.project.task_set.select_related('owner')\
+        return project.task_set.select_related('owner')\
             .prefetch_related('solution_set')
-
-        for k in filters:
-            if callable(filters[k]):
-                filters[k] = filters[k](self)
-            if k.endswith('__ne'):
-                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
-            else:
-                qs = qs.filter(**{k: filters[k]})
-
-        return qs.order_by('-priority', '-time_posted')
 
 
 class AllOpenTasksView(TaskBaseListView):
 
     """ List all opened tasks. """
 
-    tasks_tab = "all_open"
+    tab = "tasks_all_open"
     filters = {'is_accepted': True, 'is_closed': False}
 
 
@@ -364,15 +317,17 @@ class AllClosedTasksView(TaskBaseListView):
 
     """ List all closed tasks. """
 
-    tasks_tab = "all_closed"
+    tab = "tasks_all_closed"
     filters = {'is_accepted': True, 'is_closed': True}
+    order_by = ('-time_closed', )
 
 
 class MyOpenTasksView(TaskBaseListView):
 
     """ List opened tasks. """
 
-    tasks_tab = "my_open"
+    tab = "tasks_my_open"
+    is_personal = True
     filters = {
         'is_accepted': True, 'is_closed': False, 'owner': lambda s: s.user}
 
@@ -381,16 +336,19 @@ class MyClosedTasksView(TaskBaseListView):
 
     """ List closed tasks. """
 
-    tasks_tab = "my_closed"
+    tab = "tasks_my_closed"
+    is_personal = True
     filters = {
         'is_accepted': True, 'is_closed': True, 'owner': lambda s: s.user}
+    order_by = ('-time_closed', )
 
 
 class MyReviewTasksView(TaskBaseListView):
 
     """ List of tasks the user should review. """
 
-    tasks_tab = "my_review"
+    tab = "tasks_my_review"
+    is_personal = True
     filters = {'is_reviewed': False, 'is_closed': False,
                'vote__voter__ne': lambda s: s.user}
 
@@ -399,5 +357,6 @@ class MyReviewedTasksView(TaskBaseListView):
 
     """ List of tasks the user has reviewed. """
 
-    tasks_tab = "my_reviewed"
+    tab = "tasks_my_reviewed"
+    is_personal = True
     filters = {'vote__voter': lambda s: s.user}
