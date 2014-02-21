@@ -44,7 +44,7 @@
                         {% endif %}
                         {% if is_editor %}
                             {% if not task.is_closed %}
-                                <button class="btn" type="submit" name="close" value="1">close</button>
+                                <button class="btn" type="submit" name="close" value="1" onclick="return confirm('Are you sure you want to close the task?\nPeople won\'t be able to post solutions to the task.');">close</button>
                             {% else %}
                                 <button class="btn" type="submit" name="reopen" value="1">reopen</button>
                             {% endif %}

@@ -44,7 +44,7 @@
                         {% else %}
                             {% if is_owner %}
                                 <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
-                                <button class="btn" type="submit" name="close" value="1">close</button>
+                                <button class="btn" type="submit" name="close" value="1"  onclick="return confirm('Are you sure you want to close the solution?\nThis means you are not going to complete the solution.');">close</button>
                             {% else %}
                                 <a class="btn btn-success" href="{% url 'project:solution:new' project.id solution.id %}">suggest solution</a>
                             {% endif %}
