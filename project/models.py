@@ -222,26 +222,6 @@ class Project(Notifying):
             cache.set(key, overview)
         return overview
 
-    def notify_frozen_ratio(self, user):
-        """ Notify user that impact has been frozen.
-
-        Due to low votes ratio.
-
-        :param user: the user to notify
-
-        """
-        self.notify(user, settings.NOTIFICATION_TYPES.frozen_ratio, True)
-
-    def notify_unfrozen_ratio(self, user):
-        """ Notify user that impact has been unfrozen.
-
-        Due to raising of votes ratio above the acceptable threshold.
-
-        :param user: the user to notify
-
-        """
-        self.notify(user, settings.NOTIFICATION_TYPES.unfrozen_ratio, True)
-
     def get_notification_url(self, notification):
         """ Return the notification url.
 
