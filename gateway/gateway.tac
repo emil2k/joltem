@@ -10,6 +10,7 @@ GATEWAY_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 MAIN_DIRECTORY = os.path.split(GATEWAY_DIRECTORY)[0]
 os.chdir(GATEWAY_DIRECTORY)  # all files to open contained here
 sys.path.append(MAIN_DIRECTORY)  # importing project modules should be done from here
+
 # Continue imports
 from twisted.cred.portal import Portal
 

@@ -9,7 +9,6 @@ from zope.interface import implements
 
 from ..utils import SubprocessProtocol, BaseBufferedSplitter
 from .utils import get_report, FLUSH_PACKET_LINE, get_packet_line_size
-from solution.models import Solution
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -432,6 +431,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         :return bool: whether user has push permissions.
 
         """
+        from solution.models import Solution
+
         parts = reference.split('/')
         project = self.repository.project
 

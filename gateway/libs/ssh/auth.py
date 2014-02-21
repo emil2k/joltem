@@ -10,7 +10,6 @@ from twisted.python.failure import Failure
 from zope.interface import implements  # noqa
 
 from gateway.libs.ssh.session import GatewaySession
-from git.models import Authentication, BadKeyError
 
 
 class GatewayUser(ConchUser):
@@ -70,6 +69,8 @@ class GatewayCredentialChecker(object):
         :return : Status
 
         """
+        from git.models import Authentication, BadKeyError
+
         log.msg("Request avatar id for %s." % credentials.username,
                 system="auth")
 
