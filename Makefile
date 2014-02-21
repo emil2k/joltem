@@ -145,6 +145,11 @@ build: clean static
 	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
 	@cp $(CURDIR)/deploy/debian/uwsgi.ini $(CURDIR)/build$(PREFIX)/uwsgi.ini
 
+.PHONY: gateway
+gateway:
+	sudo $(ENV)/bin/twistd --nodaemon -y $(CURDIR)/gateway/gateway.tac
+
+
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
 	$(ENV)/bin/pip install -M -r requirements.txt -i http://pypi.joltem.com/simple
