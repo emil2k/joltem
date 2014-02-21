@@ -387,6 +387,13 @@ class TaskViewTest(BaseTaskViewTest):
         task = Task.objects.get()
         self.assertFalse(task.is_closed)
 
+    def test_task_post_comment(self):
+        self._post(views.TaskView.as_view(), {'comment': 'comment'})
+        comments = self.task.comment_set.all()
+        self.assertTrue(comments)
+        _task = models.load_model(self.task)
+        self.assertEqual(_task.time_updated, self.task.time_updated)
+
 
 class TaskListsCaching(TestCase):
 
