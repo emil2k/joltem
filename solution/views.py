@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
+from django.utils.timezone import now
 from django.views.generic import TemplateView
 
 from git.models import Repository
@@ -102,6 +103,19 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             kwargs["solution_owner_impact"] = impact.impact
             kwargs["solution_owner_completed"] = impact.completed
         return super(SolutionView, self).get_context_data(**kwargs)
+
+    def get(self, request, *args, **kwargs):
+        """ Clear user's notifications.
+
+        :returns: A solution's page
+
+        """
+        if not self.user.is_anonymous():
+            self.user.notification_set.filter(
+                notifying_id=self.solution.pk,
+                notifying_type=ContentType.objects.get_for_model(Solution),
+            ).update(is_cleared=True, time_cleared=now())
+        return super(SolutionView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """ Handle POST requests on solution view.
