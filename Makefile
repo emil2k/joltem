@@ -149,6 +149,11 @@ build: clean static
 gateway:
 	sudo $(ENV)/bin/twistd --nodaemon -y $(CURDIR)/gateway/gateway.tac
 
+.PHONY: newrelic
+NEW_RELIC_CONFIG_FILE=$(CURDIR)/../configuration/newrelic.ini
+newrelic:
+	$(ENV)/bin/newrelic-admin validate-config $(NEW_RELIC_CONFIG_FILE)
+
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
