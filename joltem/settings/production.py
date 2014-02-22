@@ -43,6 +43,7 @@ INSTALLED_APPS += (
     'project',
     'solution',
     'task',
+    'gateway',
     'git',
     'help',
     'account',
