@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
+from django.utils.timezone import now
 from django.views.generic import TemplateView
 
 from git.models import Repository
@@ -113,7 +114,7 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             self.user.notification_set.filter(
                 notifying_id=self.solution.pk,
                 notifying_type=ContentType.objects.get_for_model(Solution),
-            ).update(is_cleared=True)
+            ).update(is_cleared=True, time_cleared=now())
         return super(SolutionView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):

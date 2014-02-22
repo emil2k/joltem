@@ -24,3 +24,4 @@ class SolutionTestNotifications(TestCase):
         self.client.get(path)
 
         self.assertFalse(manager.notification_set.filter(is_cleared=False))
+        self.assertTrue(all([n.time_cleared for n in manager.notification_set.all()]))

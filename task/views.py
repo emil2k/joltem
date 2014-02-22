@@ -114,7 +114,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             self.user.notification_set.filter(
                 notifying_id=self.task.pk,
                 notifying_type=ContentType.objects.get_for_model(Task),
-            ).update(is_cleared=True)
+            ).update(is_cleared=True, time_cleared=timezone.now())
         return super(TaskView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
