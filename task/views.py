@@ -1,22 +1,21 @@
 """ Task related views. """
-
-from django.http import Http404
+from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.db.models import Sum
+from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views.generic import (
     TemplateView, CreateView, UpdateView, )
-from django.utils import timezone
-from django.core.urlresolvers import reverse
 
-from joltem.holders import CommentHolder
-from project.models import Impact
-from solution.models import Solution
-from joltem.views.generic import VoteableView, CommentableView
-from project.views import ProjectBaseView, ProjectBaseListView
-
-from .models import Task, Vote
 from .forms import TaskCreateForm, TaskEditForm
+from .models import Task, Vote
+from joltem.holders import CommentHolder
+from joltem.views.generic import VoteableView, CommentableView
+from project.models import Impact
+from project.views import ProjectBaseView, ProjectBaseListView
+from solution.models import Solution
 
 
 class TaskBaseView(ProjectBaseView):
@@ -104,6 +103,19 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
             kwargs["task_owner_impact"] = impact.impact
             kwargs["task_owner_completed"] = impact.completed
         return super(TaskView, self).get_context_data(**kwargs)
+
+    def get(self, request, *args, **kwargs):
+        """ Clear user's notifications.
+
+        :returns: A task's page
+
+        """
+        if not self.user.is_anonymous():
+            self.user.notification_set.filter(
+                notifying_id=self.task.pk,
+                notifying_type=ContentType.objects.get_for_model(Task),
+            ).update(is_cleared=True)
+        return super(TaskView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """ Parse post data.

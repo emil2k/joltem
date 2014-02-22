@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.urlresolvers import reverse
 from joltem.libs import mixer
 
 
@@ -93,3 +94,21 @@ class TaskNotificationsTest(TestCase):
         task.put_vote(voter3, False)
         self.assertEqual(notify.get_text(), '%s, %s, and %s voted on task "%s"' % (
             voter3.first_name, voter4.first_name, voter2.first_name, task.title))
+
+    def test_clear_notifications(self):
+        manager = mixer.blend(
+            'joltem.user', username='manager', password='manager')
+        task = mixer.blend(
+            'task.task', owner=manager, project=self.project)
+
+        user = mixer.blend('joltem.user')
+        task.add_comment(user, 'comment')
+
+        self.assertTrue(manager.notification_set.all())
+        self.assertFalse(manager.notification_set.filter(is_cleared=True))
+
+        self.client.login(username='manager', password='manager')
+        path = reverse('project:task:task', args=[task.project_id, task.id])
+        self.client.get(path)
+
+        self.assertFalse(manager.notification_set.filter(is_cleared=False))
