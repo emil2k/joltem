@@ -27,8 +27,8 @@ class NewRelicTransferEvent(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return u'%d in / %d out (bytes) in %d microseconds.' % (
-            self.bytes_in, self.bytes_out, self.duration
+        return u'%d in / %d out (bytes) at %d Bps.' % (
+            self.bytes_in, self.bytes_out, self.bit_rate
         )
 
     @classmethod
