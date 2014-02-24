@@ -47,6 +47,7 @@ INSTALLED_APPS += (
     'git',
     'help',
     'account',
+    'new_relic',
 )
 
 DATABASES = {

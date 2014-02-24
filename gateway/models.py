@@ -1,6 +1,6 @@
 """ Models related to Gateway app. """
 
-from joltem.libs.newrelic import NewRelicTransferEvent
+from new_relic.models import NewRelicTransferEvent
 
 
 class GitUploadPackEvent(NewRelicTransferEvent):
