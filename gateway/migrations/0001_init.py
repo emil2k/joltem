@@ -12,6 +12,7 @@ class Migration(SchemaMigration):
         db.create_table(u'gateway_gituploadpackevent', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('time_posted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('duration', self.gf('django.db.models.fields.BigIntegerField')()),
             ('bytes_in', self.gf('django.db.models.fields.BigIntegerField')()),
             ('bytes_out', self.gf('django.db.models.fields.BigIntegerField')()),
         ))
@@ -21,6 +22,7 @@ class Migration(SchemaMigration):
         db.create_table(u'gateway_gitreceivepackevent', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('time_posted', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('duration', self.gf('django.db.models.fields.BigIntegerField')()),
             ('bytes_in', self.gf('django.db.models.fields.BigIntegerField')()),
             ('bytes_out', self.gf('django.db.models.fields.BigIntegerField')()),
         ))
@@ -40,6 +42,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'GitReceivePackEvent'},
             'bytes_in': ('django.db.models.fields.BigIntegerField', [], {}),
             'bytes_out': ('django.db.models.fields.BigIntegerField', [], {}),
+            'duration': ('django.db.models.fields.BigIntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
         },
@@ -47,6 +50,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'GitUploadPackEvent'},
             'bytes_in': ('django.db.models.fields.BigIntegerField', [], {}),
             'bytes_out': ('django.db.models.fields.BigIntegerField', [], {}),
+            'duration': ('django.db.models.fields.BigIntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
         }
