@@ -4,6 +4,8 @@
     * Removed vote ratio and freezing of impact.
     * Fixed solution & task list problems.
     * Improvements to activity feed.
+    * New Relic integration for application, servers, nginx, postgresql,
+      redis, and a custom plug in to monitor git server.
 
 -- on master
 
