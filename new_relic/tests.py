@@ -18,6 +18,16 @@ class MockTransferEvent(NewRelicTransferEvent):
         app_label = 'new_relic'
 
 
+class MockTransferUploadEvent(NewRelicTransferEvent):
+
+    """ A mock upload transfer event to test the abstract report class. """
+
+    metric_name_transfer_type = 'Upload'
+
+    class Meta:
+        app_label = 'new_relic'
+
+
 class TransferEventTest(TestCase):
 
     """ Test New Relic transfer events. """
@@ -83,12 +93,6 @@ class TransferEventTest(TestCase):
             )
         )
 
-class MockTransferUploadEvent(MockTransferEvent):
-
-    """ A mock upload transfer event to test the abstract report class. """
-
-    metric_name_transfer_type = 'Upload'
-
 
 class MockReport(NewRelicReport):
 
@@ -105,11 +109,19 @@ class MockReport(NewRelicReport):
         app_label = 'new_relic'
 
 
-class MockReportBoth(MockReport):
+class MockReportBoth(NewRelicReport):
 
     """ A mock report to test the abstract class. """
 
+    AGENT_HOST = 'stage.joltem.local'
+
+    component_name = "Git Server"
+    component_guid = "com.joltem.git"
+
     event_classes = (MockTransferEvent, MockTransferUploadEvent)
+
+    class Meta:
+        app_label = 'new_relic'
 
 
 class ReportTest(TestCase):
@@ -149,3 +161,17 @@ class ReportTest(TestCase):
         mixer.blend(MockReport, status_code=424, duration=90)
         self.assertEqual(MockReport.get_duration(),
                          settings.NEW_RELIC_REPORT_DURATION)
+
+    def test_flush_old(self):
+        """ Test flushing old entries. """
+        NOW = timezone.now()
+        NEW = NOW + timezone.timedelta(seconds=1)
+        OLD = NOW - timezone.timedelta(seconds=1)
+        mixer.cycle(5).blend(MockTransferEvent,
+                             time_posted=mixer.sequence(OLD, NOW, NEW))
+        mixer.cycle(5).blend(MockTransferUploadEvent,
+                             time_posted=mixer.sequence(OLD, NOW, NEW))
+        r = MockReportBoth(duration=30, time_reported=NOW)
+        r.flush_old()
+        self.assertEqual(MockTransferEvent.objects.count(), 1)
+        self.assertEqual(MockTransferUploadEvent.objects.count(), 1)

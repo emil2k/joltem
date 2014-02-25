@@ -94,8 +94,17 @@ class NewRelicReport(models.Model):
         self.status_code = response.status_code
         if self.status_code == requests.codes.ok:
             self.is_recorded = True
-            # todo flush old entries
+            self.flush_old()
         self.save()
+
+    def flush_old(self):
+        """ Deleted all records older then time_reported.
+
+        There is no reason to keep records after a successful report.
+
+        """
+        for cls in self.event_classes:
+            cls.objects.filter(time_posted__lte=self.time_reported).delete()
 
     @classmethod
     def get_agent(cls):
