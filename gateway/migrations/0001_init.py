@@ -28,6 +28,16 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'gateway', ['GitReceivePackEvent'])
 
+        # Adding model 'GitReport'
+        db.create_table(u'gateway_gitreport', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('time_reported', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('duration', self.gf('django.db.models.fields.IntegerField')()),
+            ('is_recorded', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('status_code', self.gf('django.db.models.fields.IntegerField')()),
+        ))
+        db.send_create_signal(u'gateway', ['GitReport'])
+
 
     def backwards(self, orm):
         # Deleting model 'GitUploadPackEvent'
@@ -35,6 +45,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'GitReceivePackEvent'
         db.delete_table(u'gateway_gitreceivepackevent')
+
+        # Deleting model 'GitReport'
+        db.delete_table(u'gateway_gitreport')
 
 
     models = {
@@ -45,6 +58,14 @@ class Migration(SchemaMigration):
             'duration': ('django.db.models.fields.BigIntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'time_posted': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
+        },
+        u'gateway.gitreport': {
+            'Meta': {'object_name': 'GitReport'},
+            'duration': ('django.db.models.fields.IntegerField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_recorded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'status_code': ('django.db.models.fields.IntegerField', [], {}),
+            'time_reported': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'})
         },
         u'gateway.gituploadpackevent': {
             'Meta': {'object_name': 'GitUploadPackEvent'},

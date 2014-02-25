@@ -122,9 +122,9 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=4),
         'args': (),
     },
-    'review-solution': {
-        'task': 'solution.tasks.review_solutions',
-        'schedule': timedelta(hours=4),
+    'send-new-relic-report-gateway': {
+        'task': 'gateway.tasks.send_new_relic_report',
+        'schedule': timedelta(seconds=NEW_RELIC_REPORT_DURATION),
         'args': (),
     }
 }

@@ -4,6 +4,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+import json, requests
+
 
 class NewRelicReport(models.Model):
 
@@ -15,13 +17,12 @@ class NewRelicReport(models.Model):
         meaning status code was 200
     :status_code: the status code of the response, keep for record if failed.
 
-    :param component_name: A name (<=32 characters) that uniquely identifies
-        the monitored entity and appears as the display name for this agent.
-        Note: Metric names are case sensitive.
     :param component_guid: A "reverse domain name" styled identifier; for
         example, com.newrelic.mysql. This is a unique identity defined in the
         plugin's user interface, which ties the agent data to the
         corresponding plugin user interface in New Relic.
+    :param event_classes: The classes of New Relic events to compile into
+        report.
 
     """
 
@@ -36,7 +37,6 @@ class NewRelicReport(models.Model):
     # Component related
 
     component_guid = None
-
     event_classes = ()
 
     class Meta():
@@ -52,6 +52,50 @@ class NewRelicReport(models.Model):
             agent=self.get_agent(),
             components=[self.get_component(self.AGENT_HOST)]
         )
+
+    @classmethod
+    def get_duration(cls):
+        """ Get duration of next report.
+
+        Looks for previous reports, in sequence, that it can retry.
+
+        :param cls:
+        :return int: duration in seconds of next report.
+
+        """
+        duration = settings.NEW_RELIC_REPORT_DURATION
+        try:
+           r = cls.objects.order_by('-time_reported').get()
+        except cls.DoesNotExist:
+            pass
+        else:
+            if not r.is_recorded and r.status_code >= 500:
+                duration += r.duration
+        return duration
+
+    def send_report(self):
+        """ Attempt to send report to New Relic. """
+        url = 'http://platform-api.newrelic.com/platform/v1/metrics'
+        headers = {
+            'X-License-Key': settings.NEW_RELIC_LICENSE_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        self.process_response(
+            requests.post(
+                url, data=json.dumps(self.get_report()), headers=headers))
+
+    def process_response(self, response):
+        """ Process response from sending report.
+
+        :param response: `Response` instance
+
+        """
+        self.status_code = response.status_code
+        if self.status_code == requests.codes.ok:
+            self.is_recorded = True
+            # todo flush old entries
+        self.save()
 
     @classmethod
     def get_agent(cls):

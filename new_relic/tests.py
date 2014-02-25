@@ -1,5 +1,6 @@
 """ New Relic related tests. """
 
+from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 
@@ -120,7 +121,7 @@ class ReportTest(TestCase):
         mixer.cycle(3).blend(MockTransferEvent)
         mixer.cycle(3).blend(MockTransferUploadEvent)
         report = MockReportBoth(duration=30)
-        self.assertEqual(len(report.get_metrics().items()), 6)
+        self.assertEqual(len(report.get_metrics().items()), 8)
 
     def test_metrics_frontier(self):
         """ Test whether abides by time frontier set by duration. """
@@ -132,3 +133,19 @@ class ReportTest(TestCase):
         count = lambda x : x['count']
         for k, v in report.get_metrics().items():
             self.assertEqual(count(v), 3)
+
+    def test_duration_5XX(self):
+        """ Test getting duration for next report after a 5XX. """
+        self.assertEqual(MockReport.get_duration(),
+                         settings.NEW_RELIC_REPORT_DURATION)
+        mixer.blend(MockReport, status_code=537, duration=90)
+        self.assertEqual(MockReport.get_duration(),
+                         settings.NEW_RELIC_REPORT_DURATION+90)
+
+    def test_duration_4XX(self):
+        """ Test getting duration for next report after a 4XX. """
+        self.assertEqual(MockReport.get_duration(),
+                         settings.NEW_RELIC_REPORT_DURATION)
+        mixer.blend(MockReport, status_code=424, duration=90)
+        self.assertEqual(MockReport.get_duration(),
+                         settings.NEW_RELIC_REPORT_DURATION)
