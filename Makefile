@@ -28,7 +28,7 @@ lint: $(ENV)
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.jenkins --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,account
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.jenkins --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,account,new_relic
 
 .PHONY: run
 # target: run - Run Django development server
@@ -87,6 +87,10 @@ test_help: $(ENV) help
 .PHONY: test_account
 test_account: $(ENV) account
 	make test TEST=account
+
+.PHONY: test_new_relic
+test_new_relic: $(ENV) new_relic
+	make test TEST=new_relic
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
