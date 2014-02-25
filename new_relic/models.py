@@ -1,7 +1,99 @@
 """ Classed related to custom New Relic solution. """
 
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
+
+
+class NewRelicReport(models.Model):
+
+    """ Generate and keeps track of reports sent to New Relic.
+
+    :param time_reported: when the report was sent.
+    :param duration: in seconds, what span the report covered.
+    :is_recorded: whether the report was successful, recorded at New Relic.
+        meaning status code was 200
+    :status_code: the status code of the response, keep for record if failed.
+
+    :param component_name: A name (<=32 characters) that uniquely identifies
+        the monitored entity and appears as the display name for this agent.
+        Note: Metric names are case sensitive.
+    :param component_guid: A "reverse domain name" styled identifier; for
+        example, com.newrelic.mysql. This is a unique identity defined in the
+        plugin's user interface, which ties the agent data to the
+        corresponding plugin user interface in New Relic.
+
+    """
+
+    AGENT_HOST = settings.GATEWAY_HOST
+    AGENT_VERSION = '0.1.0'
+
+    time_reported = models.DateTimeField(default=timezone.now)
+    duration = models.IntegerField(null=False, blank=False)
+    is_recorded = models.BooleanField(default=False)
+    status_code = models.IntegerField(null=False, blank=False)
+
+    # Component related
+
+    component_guid = None
+
+    event_classes = ()
+
+    class Meta():
+        abstract = True
+
+    def get_report(self):
+        """ Compile the `report` hash for the report.
+
+        :return dict:
+
+        """
+        return dict(
+            agent=self.get_agent(),
+            components=[self.get_component(self.AGENT_HOST)]
+        )
+
+    @classmethod
+    def get_agent(cls):
+        """ Compile the `agent` hash for the report.
+
+        :return dict:
+
+        """
+        return dict(
+            host=cls.AGENT_HOST,
+            version=cls.AGENT_VERSION
+        )
+
+    def get_component(self, host):
+        """ Compile the `component` hash for the report.
+
+        :param host: agent host
+        :return dict:
+
+        """
+        return dict(
+            name=host,
+            guid=self.component_guid,
+            duration=self.duration,
+            metrics=self.get_metrics(),
+        )
+
+    def get_metrics(self):
+        """ Compile teh `metrics` hash for the report.
+
+        Combine the metrics from all the event classes in the hash.
+
+        :return dict: metric names => metrics
+
+        """
+        metrics = {}
+        frontier = self.time_reported \
+                   - timezone.timedelta(seconds=self.duration)
+        for e in self.event_classes:
+            metrics.update(e.get_metrics(e.objects.filter(
+                time_posted__gte=frontier)))
+        return metrics
 
 
 class NewRelicTransferEvent(models.Model):
@@ -16,12 +108,21 @@ class NewRelicTransferEvent(models.Model):
     :param bytes_in:
     :param bytes_out:
 
+    According to New Relic metric naming convention :
+    https://docs.newrelic.com/docs/plugin-dev/metric-naming-reference
+
+    :param metric_name_prefix:
+    :param metric_name_transfer_type:
+
     """
 
     time_posted = models.DateTimeField(default=timezone.now)
     duration = models.BigIntegerField(null=False, blank=False)
     bytes_in = models.BigIntegerField(null=False, blank=False)
     bytes_out = models.BigIntegerField(null=False, blank=False)
+
+    metric_name_prefix = 'Component'
+    metric_name_transfer_type = None
 
     class Meta():
         abstract = True
@@ -30,6 +131,21 @@ class NewRelicTransferEvent(models.Model):
         return u'%d in / %d out (bytes) at %d Bps.' % (
             self.bytes_in, self.bytes_out, self.bit_rate
         )
+
+    @classmethod
+    def get_metrics(cls, qs):
+        """ Compiles the `metric` hash that can be placed in a report.
+
+        :return qs: queryset over which to compile metrics.
+        :return dict: metric names => metrics
+
+        """
+        return {
+            cls.metric_name_bytes_in(): cls.get_bytes_in_metrics(qs),
+            cls.metric_name_bytes_out(): cls.get_bytes_out_metrics(qs),
+            cls.metric_name_bytes_total(): cls.get_bytes_total_metrics(qs),
+            cls.metric_name_bit_rate(): cls.get_bit_rate_metrics(qs),
+        }
 
     @classmethod
     def get_bytes_in_metrics(cls, qs):
@@ -42,6 +158,15 @@ class NewRelicTransferEvent(models.Model):
         return cls._get_metrics(qs, lambda e: e.bytes_in)
 
     @classmethod
+    def metric_name_bytes_in(cls):
+        """ Metric name for bytes in.
+
+        :return str:
+
+        """
+        return cls._get_metric_name("Bytes In", "bytes")
+
+    @classmethod
     def get_bytes_out_metrics(cls, qs):
         """ Returns bytes out metrics for reporting to New Relic.
 
@@ -50,6 +175,15 @@ class NewRelicTransferEvent(models.Model):
 
         """
         return cls._get_metrics(qs, lambda e: e.bytes_out)
+
+    @classmethod
+    def metric_name_bytes_out(cls):
+        """ Metric name for bytes out.
+
+        :return str:
+
+        """
+        return cls._get_metric_name("Bytes Out", "bytes")
 
     @property
     def bit_rate(self):
@@ -73,6 +207,49 @@ class NewRelicTransferEvent(models.Model):
         """
         return cls._get_metrics(qs, lambda e: e.bit_rate)
 
+    @classmethod
+    def metric_name_bit_rate(cls):
+        """ Metric name for bit rate.
+
+        :return str:
+
+        """
+        return cls._get_metric_name("Bit Rate", "bytes/second")
+
+    @classmethod
+    def get_bytes_total_metrics(cls, qs):
+        """ Returns bytes total metrics for reporting to New Relic.
+
+        :param qs: queryset of transfer events.
+        :return dict:
+
+        """
+        return cls._get_metrics(qs, lambda e: e.bytes_in + e.bytes_out)
+
+    @classmethod
+    def metric_name_bytes_total(cls):
+        """ Metric name for bytes total.
+
+        :return str:
+
+        """
+        return cls._get_metric_name("Bytes Total", "bytes")
+
+    @classmethod
+    def _get_metric_name(cls, label, units):
+        """ Get metric name for reporting to New Relic.
+
+        :param label: an identifier of the metric
+        :param units: the units for the metric. i.e. bytes/second
+        :return str: metric name
+
+        """
+        return "%s/%s/%s[%s]" % (
+            cls.metric_name_prefix,
+            cls.metric_name_transfer_type,
+            label,
+            units
+        )
 
     @classmethod
     def _get_metrics(cls, qs, map):

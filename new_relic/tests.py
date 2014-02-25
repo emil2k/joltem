@@ -1,20 +1,25 @@
 """ New Relic related tests. """
 
 from django.test import TestCase
+from django.utils import timezone
 
 from joltem.libs import mixer, load_model
-from .models import NewRelicTransferEvent
+from .models import NewRelicTransferEvent, NewRelicReport
 
 
 class MockTransferEvent(NewRelicTransferEvent):
 
     """ A mock transfer event to test the abstract class. """
 
+    metric_name_transfer_type = 'Receive'
+
     class Meta:
         app_label = 'new_relic'
 
 
 class TransferEventTest(TestCase):
+
+    """ Test New Relic transfer events. """
 
     def test_mock(self):
         """ Test that mock transfer object works. """
@@ -27,6 +32,21 @@ class TransferEventTest(TestCase):
         e = mixer.blend(MockTransferEvent, bytes_in=5244906, bytes_out=176,
                     duration=254372)
         self.assertEqual(e.bit_rate, 20619730)
+
+    def test_metric_name(self):
+        """ Test metric names. """
+        self.assertEqual(
+            MockTransferEvent.metric_name_bit_rate(),
+            "Component/Receive/Bit Rate[bytes/second]")
+        self.assertEqual(
+            MockTransferEvent.metric_name_bytes_total(),
+            "Component/Receive/Bytes Total[bytes]")
+        self.assertEqual(
+            MockTransferEvent.metric_name_bytes_in(),
+            "Component/Receive/Bytes In[bytes]")
+        self.assertEqual(
+            MockTransferEvent.metric_name_bytes_out(),
+            "Component/Receive/Bytes Out[bytes]")
 
     def test_metrics(self):
         """ Test calculation of metrics.
@@ -61,3 +81,54 @@ class TransferEventTest(TestCase):
                 sum_of_squares=49+64+100*100
             )
         )
+
+class MockTransferUploadEvent(MockTransferEvent):
+
+    """ A mock upload transfer event to test the abstract report class. """
+
+    metric_name_transfer_type = 'Upload'
+
+
+class MockReport(NewRelicReport):
+
+    """ A mock report to test the abstract class. """
+
+    AGENT_HOST = 'stage.joltem.local'
+
+    component_name = "Git Server"
+    component_guid = "com.joltem.git"
+
+    event_classes = (MockTransferEvent, )
+
+    class Meta:
+        app_label = 'new_relic'
+
+
+class MockReportBoth(MockReport):
+
+    """ A mock report to test the abstract class. """
+
+    event_classes = (MockTransferEvent, MockTransferUploadEvent)
+
+
+class ReportTest(TestCase):
+
+    """ Test New Relic report. """
+
+    def test_metrics_combining(self):
+        """ Test whether metrics combining properly into one hash. """
+        mixer.cycle(3).blend(MockTransferEvent)
+        mixer.cycle(3).blend(MockTransferUploadEvent)
+        report = MockReportBoth(duration=30)
+        self.assertEqual(len(report.get_metrics().items()), 6)
+
+    def test_metrics_frontier(self):
+        """ Test whether abides by time frontier set by duration. """
+        NOW = timezone.now()
+        OLD = NOW - timezone.timedelta(seconds=31)
+        mixer.cycle(3).blend(MockTransferEvent, time_posted=NOW)
+        mixer.cycle(3).blend(MockTransferEvent, time_posted=OLD)
+        report = MockReport(duration=30)
+        count = lambda x : x['count']
+        for k, v in report.get_metrics().items():
+            self.assertEqual(count(v), 3)
