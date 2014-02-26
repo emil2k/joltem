@@ -21,6 +21,7 @@ def archive_solution(solution):
     """ Make a solution is archived. """
     solution.mark_archived()
 
+
 @app.task(ignore_result=True)
 def review_solutions():
     """ Check solutions with no votes, for defaulting impact.

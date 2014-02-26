@@ -1,10 +1,9 @@
 """ Classed related to custom New Relic solution. """
-
-from django.db import models
+import json
+import requests
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
-
-import json, requests
 
 
 class NewRelicReport(models.Model):
@@ -65,7 +64,7 @@ class NewRelicReport(models.Model):
         """
         duration = settings.NEW_RELIC_REPORT_DURATION
         try:
-           r = cls.objects.order_by('-time_reported').get()
+            r = cls.objects.order_by('-time_reported').get()
         except cls.DoesNotExist:
             pass
         else:
@@ -141,8 +140,8 @@ class NewRelicReport(models.Model):
 
         """
         metrics = {}
-        frontier = self.time_reported \
-                   - timezone.timedelta(seconds=self.duration)
+        frontier = self.time_reported - timezone.timedelta(
+            seconds=self.duration)
         for e in self.event_classes:
             metrics.update(e.get_metrics(e.objects.filter(
                 time_posted__gte=frontier)))
@@ -187,7 +186,7 @@ class NewRelicTransferEvent(models.Model):
 
     @classmethod
     def get_metrics(cls, qs):
-        """ Compiles the `metric` hash that can be placed in a report.
+        """ Compile the `metric` hash that can be placed in a report.
 
         :return qs: queryset over which to compile metrics.
         :return dict: metric names => metrics
@@ -202,7 +201,7 @@ class NewRelicTransferEvent(models.Model):
 
     @classmethod
     def get_bytes_in_metrics(cls, qs):
-        """ Returns bytes in metrics for reporting to New Relic.
+        """ Return bytes in metrics for reporting to New Relic.
 
         :param qs: queryset of transfer events.
         :return dict:
@@ -221,7 +220,7 @@ class NewRelicTransferEvent(models.Model):
 
     @classmethod
     def get_bytes_out_metrics(cls, qs):
-        """ Returns bytes out metrics for reporting to New Relic.
+        """ Return bytes out metrics for reporting to New Relic.
 
         :param qs: queryset of transfer events.
         :return dict:
@@ -245,12 +244,12 @@ class NewRelicTransferEvent(models.Model):
         :return int: Bps
 
         """
-        bytes = self.bytes_in + self.bytes_out
-        return int(bytes*1000000/float(self.duration))
+        b = self.bytes_in + self.bytes_out
+        return int(b * 1000000 / float(self.duration))
 
     @classmethod
     def get_bit_rate_metrics(cls, qs):
-        """ Returns bit rate metrics for reporting to New Relic.
+        """ Return bit rate metrics for reporting to New Relic.
 
         Bit rate is expressed in Bps ( bytes per second ).
 
@@ -271,7 +270,7 @@ class NewRelicTransferEvent(models.Model):
 
     @classmethod
     def get_bytes_total_metrics(cls, qs):
-        """ Returns bytes total metrics for reporting to New Relic.
+        """ Return bytes total metrics for reporting to New Relic.
 
         :param qs: queryset of transfer events.
         :return dict:
@@ -305,8 +304,8 @@ class NewRelicTransferEvent(models.Model):
         )
 
     @classmethod
-    def _get_metrics(cls, qs, map):
-        """ Returns metrics for reporting to New Relic.
+    def _get_metrics(cls, qs, fmap):
+        """ Return metrics for reporting to New Relic.
 
         :param qs: queryset of transfer events.
         :param map: function to map event to value.
@@ -321,7 +320,7 @@ class NewRelicTransferEvent(models.Model):
             sum_of_squares=0
         )
         for e in qs:
-            value = map(e)
+            value = fmap(e)
             metrics['total'] += value
             metrics['count'] += 1
             if value < metrics['min'] or metrics['min'] is None:

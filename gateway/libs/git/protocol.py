@@ -12,6 +12,7 @@ from ..utils import SubprocessProtocol, BaseBufferedSplitter
 from .utils import get_report, FLUSH_PACKET_LINE, get_packet_line_size
 from ...models import GitReceivePackEvent, GitUploadPackEvent
 
+
 class PacketLineSplitter(BaseBufferedSplitter):
 
     r""" Packet line format is used by gits transfer protocol.
@@ -195,7 +196,7 @@ class GitProcessProtocol(SubprocessProtocol):
 
         """
         self._time_end = timezone.now()
-        delta = abs(self._time_start-self._time_end)
+        delta = abs(self._time_start - self._time_end)
         record = self._new_relic_event_cls(
             time_posted=self._time_end,
             duration=delta.microseconds,

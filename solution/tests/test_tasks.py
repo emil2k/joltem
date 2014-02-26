@@ -55,8 +55,8 @@ class SolutionTasksTest(TestCase):
                              sender=Solution)
         s = mixer.blend('solution.solution', task=mixer.RANDOM, impact=1,
                         is_completed=True, time_completed=expired)
-        post_save.connect(receivers.update_project_impact_from_voteables,
-                             sender=Solution)
+        post_save.connect(
+            receivers.update_project_impact_from_voteables, sender=Solution)
         self.assertEqual(load_model(s.owner).impact, 0)
         review_solutions.delay()
         self.assertEqual(load_model(s.owner).impact, 1)

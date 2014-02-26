@@ -106,7 +106,7 @@ class Solution(Voteable, Commentable, Updatable):
         """
         calculated_impact = super(Solution, self).get_impact()
         frontier = timezone.now() - timezone.timedelta(
-                       seconds=settings.SOLUTION_REVIEW_PERIOD_SECONDS)
+            seconds=settings.SOLUTION_REVIEW_PERIOD_SECONDS)
         if self.time_completed < frontier and self.valid_vote_count == 0:
             return self.impact  # demanded impact
         return calculated_impact

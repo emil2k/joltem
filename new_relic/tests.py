@@ -1,11 +1,10 @@
 """ New Relic related tests. """
-
 from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 
-from joltem.libs import mixer, load_model
 from .models import NewRelicTransferEvent, NewRelicReport
+from joltem.libs import mixer, load_model
 
 
 class MockTransferEvent(NewRelicTransferEvent):
@@ -35,13 +34,13 @@ class TransferEventTest(TestCase):
     def test_mock(self):
         """ Test that mock transfer object works. """
         e = mixer.blend(MockTransferEvent, bytes_in=100, bytes_out=100,
-                    duration=100000)
+                        duration=100000)
         self.assertEqual(load_model(e).__class__.__name__, 'MockTransferEvent')
 
     def test_bit_rate(self):
         """ Test Bps calculation. """
         e = mixer.blend(MockTransferEvent, bytes_in=5244906, bytes_out=176,
-                    duration=254372)
+                        duration=254372)
         self.assertEqual(e.bit_rate, 20619730)
 
     def test_metric_name(self):
@@ -68,28 +67,28 @@ class TransferEventTest(TestCase):
         cls = MockTransferEvent
         mixer.cycle(3).blend(
             cls,
-            bytes_in=mixer.sequence(5,1,4000*4000),
-            bytes_out=mixer.sequence(7,8,100),
-            duration=mixer.sequence(8,9,5000)
+            bytes_in=mixer.sequence(5, 1, 4000 * 4000),
+            bytes_out=mixer.sequence(7, 8, 100),
+            duration=mixer.sequence(8, 9, 5000)
         )
         self.assertDictEqual(
             cls.get_bytes_in_metrics(cls.objects.all()),
             dict(
-                total=4000*4000+6,
+                total=4000 * 4000 + 6,
                 count=3,
                 min=1,
-                max=4000*4000,
-                sum_of_squares=25+1+pow(4000*4000,2)
+                max=4000 * 4000,
+                sum_of_squares=25 + 1 + pow(4000 * 4000, 2)
             )
         )
         self.assertDictEqual(
             cls.get_bytes_out_metrics(cls.objects.all()),
             dict(
-                total=7+8+100,
+                total=7 + 8 + 100,
                 count=3,
                 min=7,
                 max=100,
-                sum_of_squares=49+64+100*100
+                sum_of_squares=49 + 64 + 100 * 100
             )
         )
 
@@ -142,8 +141,8 @@ class ReportTest(TestCase):
         mixer.cycle(3).blend(MockTransferEvent, time_posted=NOW)
         mixer.cycle(3).blend(MockTransferEvent, time_posted=OLD)
         report = MockReport(duration=30)
-        count = lambda x : x['count']
-        for k, v in report.get_metrics().items():
+        count = lambda x: x['count']
+        for _, v in report.get_metrics().items():
             self.assertEqual(count(v), 3)
 
     def test_duration_5XX(self):
@@ -152,7 +151,7 @@ class ReportTest(TestCase):
                          settings.NEW_RELIC_REPORT_DURATION)
         mixer.blend(MockReport, status_code=537, duration=90)
         self.assertEqual(MockReport.get_duration(),
-                         settings.NEW_RELIC_REPORT_DURATION+90)
+                         settings.NEW_RELIC_REPORT_DURATION + 90)
 
     def test_duration_4XX(self):
         """ Test getting duration for next report after a 4XX. """
