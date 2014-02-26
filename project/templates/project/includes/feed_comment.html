@@ -10,13 +10,7 @@
         <p class="clearfix">
             <img class="img-rounded pull-right hidden-tablet hidden-desktop" src="{{ comment.owner.gravatar }}?s=50" />
             <i class="fa fa-comment"></i>
-            <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }}
-            commented on
-            {% if comment.commentable.model_name == "task" %}
-                task <em>{{ comment.commentable.title }}</em>
-            {% else %}
-                solution <em>{{ comment.commentable.title }}</em>
-            {% endif %}
+            <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }} commented on {% if comment.commentable.model_name == "task" %}task <em>{{ comment.commentable.title }}</em>{% else %}solution <em>{{ comment.commentable.default_title }}</em>{% endif %}
         </a></p>
         <div class="muted feed-description">{{ comment.comment|markdown:"tables,fenced_code" }}</div>
     </div>
