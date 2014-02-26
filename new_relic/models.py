@@ -308,7 +308,7 @@ class NewRelicTransferEvent(models.Model):
         """ Return metrics for reporting to New Relic.
 
         :param qs: queryset of transfer events.
-        :param map: function to map event to value.
+        :param fmap: function to map event to value.
         :return dict:
 
         """

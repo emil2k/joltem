@@ -10,7 +10,6 @@ from zope.interface import implements
 
 from ..utils import SubprocessProtocol, BaseBufferedSplitter
 from .utils import get_report, FLUSH_PACKET_LINE, get_packet_line_size
-from ...models import GitReceivePackEvent, GitUploadPackEvent
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -116,7 +115,6 @@ class GitProcessProtocol(SubprocessProtocol):
     :param _bytes_out: keeps track of the bytes transferred out during process.
     :param _time_start: datetime when process started.
     :param _time_end: datetime when process ended.
-    :param _new_relic_event_cls: model to use for recording transfer event.
 
     """
 
@@ -124,7 +122,6 @@ class GitProcessProtocol(SubprocessProtocol):
     _bytes_out = 0
     _time_start = None
     _time_end = None
-    _new_relic_event_cls = GitUploadPackEvent
 
     implements(IProcessTransport)
 
@@ -195,9 +192,10 @@ class GitProcessProtocol(SubprocessProtocol):
         Record in database.
 
         """
+        from gateway.models import GitUploadPackEvent
         self._time_end = timezone.now()
         delta = abs(self._time_start - self._time_end)
-        record = self._new_relic_event_cls(
+        record = GitUploadPackEvent(
             time_posted=self._time_end,
             duration=delta.microseconds,
             bytes_in=self._bytes_in,
@@ -376,8 +374,6 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
     OK_PUSH_SEPARATELY = 'ok, push separately'
     PERMISSION_DENIED = 'permission denied'
 
-    _new_relic_event_cls = GitReceivePackEvent
-
     def __init__(self, protocol, avatar, repository):
         GitProcessProtocol.__init__(self, protocol, avatar, repository)
         self._splitter = PacketLineSplitter(
@@ -389,6 +385,24 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         # list of push statuses of each reference in order received,
         # (reference, has_permission)
         self._command_statuses = []
+
+    def _end_record(self):
+        """ End recording of New Relic transfer event.
+
+        Record in database.
+
+        """
+        from gateway.models import GitReceivePackEvent
+        self._time_end = timezone.now()
+        delta = abs(self._time_start - self._time_end)
+        record = GitReceivePackEvent(
+            time_posted=self._time_end,
+            duration=delta.microseconds,
+            bytes_in=self._bytes_in,
+            bytes_out=self._bytes_out
+        )
+        record.save()
+        self.log("record transfer event : %s" % record, "new relic")
 
     def flush(self):
         """ Flush input buffers into process. """

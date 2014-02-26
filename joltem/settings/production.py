@@ -19,6 +19,10 @@ SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
 
+# New relic default settings
+NEW_RELIC_LICENSE_KEY = 'not secret'
+NEW_RELIC_REPORT_DURATION = 30
+
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'joltem.wsgi.application'
 
