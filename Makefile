@@ -142,7 +142,7 @@ build: clean static
 	@mkdir -p $(CURDIR)/build$(PREFIX)/run
 	@touch $(CURDIR)/build$(PREFIX)/run/.placeholder
 	@mkdir -p $(CURDIR)/build$(PREFIX)/build
-	@cp -r account gateway git help joltem project solution task static Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/build/.
+	@cp -r account gateway git help joltem new_relic project solution static task Changelog Makefile manage.py requirements.txt wsgi.py $(CURDIR)/build$(PREFIX)/build/.
 	@mkdir -p $(CURDIR)/build/etc/supervisor/conf.d
 	@cp $(CURDIR)/deploy/debian/supervisor.ini $(CURDIR)/build/etc/supervisor/conf.d/joltem.conf
 	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
