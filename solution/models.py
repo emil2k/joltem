@@ -27,6 +27,8 @@ class Solution(Voteable, Commentable, Updatable):
     is_closed -- indicates that work on the solution has ceased,
         without a completion, solution may be deprecated, inactive,
         etc.
+    is_archived -- indicates the solution cannot be edited anymore,
+        meaning it is closed for voting and commenting.
 
     """
 
