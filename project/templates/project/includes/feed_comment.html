@@ -1,4 +1,4 @@
-{% load markup %}
+{% load django_markdown %}
 <hr class="hidden-tablet hidden-desktop"/>
 <div class="row">
     <div class="span1 text-center hidden-phone">
@@ -12,7 +12,7 @@
             <i class="fa fa-comment"></i>
             <a class="muted" href="{{ comment.get_comment_url }}">{{ comment.owner.first_name }} commented on {% if comment.commentable.model_name == "task" %}task <em>{{ comment.commentable.title }}</em>{% else %}solution <em>{{ comment.commentable.default_title }}</em>{% endif %}
         </a></p>
-        <div class="muted feed-description">{{ comment.comment|markdown:"tables,fenced_code" }}</div>
+        <div class="muted feed-description">{{ comment.comment|markdown }}</div>
     </div>
     <div class="span2 text-center">
         <small class="muted">{{ comment.time_updated|timesince }} ago.</small>

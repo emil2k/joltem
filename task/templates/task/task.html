@@ -1,5 +1,5 @@
 {% extends 'project/base.html' %}
-{% load markup %}
+{% load django_markdown %}
 {% block title %}{{ task.title }} - Joltem{% endblock %}
 {% block project_content %}
     <div class="row hidden-desktop hidden-tablet">
@@ -31,7 +31,7 @@
                 </small>
             </h4>
             {% if task.description %}
-                {{ task.description|markdown:"tables,fenced_code" }}
+                {{ task.description|markdown }}
             {% else %}
                 <p class="muted">Task has not been described yet.</p>
             {% endif %}

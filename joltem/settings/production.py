@@ -35,9 +35,6 @@ LANGUAGE_CODE = 'en-us'
 MIDDLEWARE_CLASSES += 'django.middleware.csrf.CsrfViewMiddleware',
 INSTALLED_APPS += (
 
-    # Contrib
-    'markup_deprecated',
-
     # Vendors
     'mathfilters',
     'south',
@@ -88,6 +85,10 @@ NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_rejected')
 NOTIFICATION_TYPES('vote_added')
 NOTIFICATION_TYPES('vote_updated')
+
+# Markdown support
+INSTALLED_APPS += 'django_markdown',
+MARKDOWN_EXTENSIONS = 'extra', 'codehilite'
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',

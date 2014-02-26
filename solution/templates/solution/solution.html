@@ -1,5 +1,5 @@
 {% extends 'solution/base.html' %}
-{% load markup %}
+{% load django_markdown %}
 {% load filters %}
 {% block solution_content %}
     <div class="row hidden-desktop hidden-tablet">
@@ -24,7 +24,7 @@
                 <h4>{{ solution.task.title }} <span class="muted">by {{ solution.owner.first_name }}</span></h4>
             {% endif %}
             {% if solution.description %}
-                {{ solution.description|markdown:"tables,fenced_code" }}
+                {{ solution.description|markdown }}
             {% else %}
                 <p class="muted">Solution has not been described yet.</p>
             {% endif %}

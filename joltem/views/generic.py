@@ -8,7 +8,7 @@ from django.core import context_processors
 from django.http import (HttpResponse, HttpResponseNotFound,
                          HttpResponseForbidden)
 from django.template import RequestContext
-from markup_deprecated.templatetags.markup import markdown
+from django_markdown.utils import markdown
 
 from solution.models import Solution
 from joltem.models import Comment, Vote
@@ -158,8 +158,7 @@ class CommentableView(RequestBaseView):
                     comment.comment = comment_edit
                     comment.save()
                     # For jeditable return data to display
-                    return HttpResponse(
-                        markdown(comment.comment, arg='tables,fenced_code'))
+                    return HttpResponse(markdown(comment.comment))
         # Post a comment
         comment_text = request.POST.get('comment')
         if comment_text is not None:
