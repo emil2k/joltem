@@ -203,7 +203,7 @@ class TestProjectViews(TestCase):
         self.assertTrue(response.context['feed'])
 
         solution = comments[0].commentable
-        self.assertContains(response, solution.default_title)
+        self.assertContains(response, "%s commented on solution <em>%s</em>" % (comments[0].owner.first_name, solution.default_title))
 
 
 class TestProjectSettingsView(TestCase):
