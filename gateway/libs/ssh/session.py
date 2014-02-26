@@ -12,7 +12,6 @@ from twisted.internet import reactor
 
 from django.conf import settings
 from django.db import close_old_connections
-from git.models import Repository
 from gateway.libs.terminal.protocol import GatewayTerminalProtocol
 from gateway.libs.git.protocol import (
     GitProcessProtocol, GitReceivePackProcessProtocol)
@@ -78,6 +77,8 @@ class GatewaySessionInterface():
         command = shlex.split(command_string)
         process = command[0]
         if process == "git-upload-pack" or process == "git-receive-pack":
+            from git.models import Repository
+
             try:
                 repository_id = parse_repository_id(command[1])
                 repository = Repository.objects.get(id=repository_id)

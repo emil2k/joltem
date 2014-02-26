@@ -1,4 +1,6 @@
 """ View related tests for solution app. """
+from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django_webtest import WebTest
@@ -9,6 +11,7 @@ from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
 from solution import views
 from solution.models import Solution
+
 
 class BaseSolutionPermissionsTestCase(BaseProjectPermissionsTestCase):
 
@@ -112,9 +115,26 @@ class TestPrivateSolutionPermissionsDeveloper(TestSolutionPermissions):
     group_name = "developer"
 
 
-class TestSolutionListsPermissions(BaseProjectPermissionsTestCase):
+class TestGlobalSolutionListsPermissions(BaseProjectPermissionsTestCase):
 
-    """ Test permissions to solutions lists. """
+    """ Test permissions to global solutions lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_all_complete_solutions(self):
+        """ Test permissions to all complete solution list. """
+        self.assertStatusCode('project:solution:all_complete')
+
+    def test_all_incomplete_solutions(self):
+        """ Test permissions to all incomplete solution list. """
+        self.assertStatusCode('project:solution:all_incomplete')
+
+
+class TestPersonalSolutionListsPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to personal solutions lists. """
 
     expected_status_code = 200
     login_user = True
@@ -136,18 +156,25 @@ class TestSolutionListsPermissions(BaseProjectPermissionsTestCase):
         """ Test permissions to my reviewed solution list. """
         self.assertStatusCode('project:solution:my_reviewed')
 
-    def test_all_complete_solutions(self):
-        """ Test permissions to all complete solution list. """
-        self.assertStatusCode('project:solution:all_complete')
 
-    def test_all_incomplete_solutions(self):
-        """ Test permissions to all incomplete solution list. """
-        self.assertStatusCode('project:solution:all_incomplete')
+class TestSolutionListsPermissions(TestGlobalSolutionListsPermissions,
+                                   TestPersonalSolutionListsPermissions):
+
+    """ Test permissions to solutions lists. """
 
 
-class TestSolutionListsPermissionsAnonymous(TestSolutionListsPermissions):
+class TestGlobalSolutionListsPermissionsAnonymous(
+        TestGlobalSolutionListsPermissions):
 
     expected_status_code = 200
+    login_user = False
+    is_private = False
+
+
+class TestPersonalSolutionListsPermissionsAnonymous(
+        TestPersonalSolutionListsPermissions):
+
+    expected_status_code = 302
     login_user = False
     is_private = False
 
@@ -159,10 +186,18 @@ class TestPrivateSolutionsListPermissions(TestSolutionListsPermissions):
     is_private = True
 
 
-class TestPrivateSolutionsListPermissionsAnonymous(
-    TestSolutionListsPermissions):
+class TestGlobalPrivateSolutionsListPermissionsAnonymous(
+        TestGlobalSolutionListsPermissions):
 
     expected_status_code = 404
+    login_user = False
+    is_private = True
+
+
+class TestPersonalPrivateSolutionsListPermissionsAnonymous(
+        TestPersonalSolutionListsPermissions):
+
+    expected_status_code = 302
     login_user = False
     is_private = True
 
@@ -503,11 +538,35 @@ class SolutionViewTest(BaseSolutionViewTest):
         self.assertEqual(response.status_code, 302)
 
     def test_solution_comment_post(self):
+        self.solution.is_archived = True
+        self.solution.save()
+        self.assertFalse(self.solution.comment_set.all())
+        self._post(views.SolutionView.as_view(), {'comment': 'comment'})
+        self.assertFalse(self.solution.comment_set.all())
+
+        self.solution.is_archived = False
+        self.solution.save()
+        updated_at = self.solution.time_updated
         self._post(views.SolutionView.as_view(), {'comment': 'comment'})
         comments = self.solution.comment_set.all()
         self.assertTrue(comments.count())
         comment = comments[0]
         self.assertEqual(comment.owner, self.solution.owner)
+
+        # Should not update time when comment has posted
+        solution = models.load_model(self.solution)
+        self.assertEqual(solution.time_updated, updated_at)
+
+    def test_solution_vote_post(self):
+        solution = mixer.blend(Solution)
+        updated_at = solution.time_updated
+        self._post(views.SolutionView.as_view(), {
+            'voteable_vote': 1, 'voteable_id': solution.pk,
+            'voteable_type': 1})
+
+        # Should not update time when comment has posted
+        solution = models.load_model(solution)
+        self.assertEqual(solution.time_updated, updated_at)
 
     def test_solution_comment_edit_delete(self):
         comment = mixer.blend('joltem.comment',
@@ -544,6 +603,16 @@ class SolutionEditView(BaseSolutionViewTest):
             'description': 'new description'
         })
         self.assertTrue(response.status_code, 302)
+        reloaded = models.load_model(self.solution)
+        self.assertEqual(reloaded.title, 'new title')
+        self.assertEqual(reloaded.description, 'new description')
+
+        reloaded.is_archived = True
+        reloaded.save()
+        response = self._post(views.SolutionEditView.as_view(), {
+            'title': 'another new title',
+            'description': 'another new description'
+        })
         reloaded = models.load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
@@ -593,6 +662,15 @@ class SolutionReviewViewTest(TestCase):
         """ Test simple GET of solution review view. """
         response = self.client.get(self.path)
         self.assertEqual(response.status_code, 200)
+
+    def test_solution_is_archived_review_view_get(self):
+        solution = mixer.blend('solution.solution', is_archived=True)
+        path = reverse('project:solution:review', args=[
+            solution.project_id,
+            solution.pk
+        ])
+        response = self.client.get(path)
+        self.assertNotContains(response, '<form method="post">')
 
     def test_solution_negative_vote_no_comment(self):
         """ Test a negative review vote with no comment.
@@ -647,6 +725,74 @@ class SolutionCreateView(BaseSolutionViewTest):
         """
         response = self._post(views.SolutionCreateView.as_view(), {})
         self.assertTrue(response.status_code, 302)
+
+
+class SolutionListsCaching(TestCase):
+
+    """ Test caching in SolutionBaseListView its children. """
+
+    def setUp(self):
+        """ Imports to properly setup lists meta class. """
+        self.project = mixer.blend('project.project')
+
+    def mock_view(self, view, user):
+        """ Prepare a mock view instance, with a mock request and user.
+
+        :param view:
+        :param user:
+        :return: a view instance
+
+        """
+        v = view()
+        v.project = self.project
+        v.request = type("MockRequest", (object, ), dict(user=user))
+        v.user = user
+        return v
+
+    def test_review_filter_caching(self):
+        """ Test that filter is not being cached. """
+        bill = mixer.blend('joltem.user', username='bill')
+        jill = mixer.blend('joltem.user', username='jill')
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
+        self.assertEqual(v.filters['owner__ne'](v).username, 'bill')
+        self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'bill')
+        v = self.mock_view(views.MyReviewSolutionsView, jill)
+        self.assertEqual(v.filters['owner__ne'](v).username, 'jill')
+        self.assertEqual(v.filters['vote_set__voter__ne'](v).username, 'jill')
+
+    def test_review_filter_remains_callable(self):
+        """ Test that filter remains callable after getting queryset. """
+        bill = mixer.blend('joltem.user', username='bill')
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
+        self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
+        v.get_queryset()
+        self.assertEqual(type(v.filters['owner__ne']).__name__, 'function')
+
+    def test_review_count(self):
+        """ Test solutions to review count. """
+        bill = mixer.blend('joltem.user', username='bill')
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
+        s = mixer.blend('solution.solution', project=self.project)
+        s.mark_complete(1)
+        self.assertEqual(v.get_tab_counts(is_personal=True)
+                         .get('solutions_my_review'), 1)
+        s.put_vote(bill, True)
+        self.assertEqual(v.get_tab_counts(is_personal=True)
+                         .get('solutions_my_review'), 0)
+
+    def test_review_anonymous(self):
+        """ Test access as anonymous user.
+
+        Global lists should be accessible even as anonymous user.
+
+        """
+        v = self.mock_view(views.AllCompleteSolutionsView,
+                           AnonymousUser())
+        cache.delete(v.tab_counts_cache_key)
+        kwargs = dict(project_id=self.project.pk)
+        response = self.client.get(
+            reverse('project:solution:all_complete', kwargs=kwargs))
+        self.assertEqual(response.status_code, 200)
 
 
 SOLUTION_COMMITS_URL = '/{project_id}/solution/{solution_id}/commits/'

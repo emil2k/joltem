@@ -1,16 +1,20 @@
 # coding: utf-8
+
 """ Project's views. """
+from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, CreateView, DeleteView
+from django.views.generic import TemplateView, CreateView, DeleteView, ListView
 from django.views.generic.edit import BaseFormView
 from haystack.query import SearchQuerySet
 
 from .forms import (ProjectSettingsForm, ProjectSubscribeForm,
                     ProjectCreateForm, ProjectGroupForm)
-from .models import Project, Impact, Ratio, Equity
+from .models import Project, Equity
 from account.forms import SSHKeyForm
 from joltem.models import User
 from joltem.views.generic import RequestBaseView
@@ -73,10 +77,144 @@ class ProjectBaseView(RequestBaseView):
         :return dict:
 
         """
-        kwargs["project"] = self.project
-        kwargs["is_admin"] = self.is_admin
-        kwargs["project_tab"] = self.project_tab
+        kwargs[u'project'] = self.project
+        kwargs[u'is_admin'] = self.is_admin
+        kwargs[u'project_tab'] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
+
+
+class ProjectBaseListMeta(type):
+
+    """ Build views hierarchy. """
+
+    tabs = []
+
+    def __new__(mcs, name, bases, params):
+        cls = super(ProjectBaseListMeta, mcs).__new__(mcs, name, bases, params)
+        if cls.tab:
+            mcs.tabs.append(cls)
+        return cls
+
+
+class ProjectBaseListView(ProjectBaseView, ListView):
+
+    """ Parent class for project-context lists.
+
+    For example lists of tasks & solutions.
+
+    :param is_personal: whether list depends on user.
+    :param order_by: list of fields to order list by
+
+    """
+
+    __metaclass__ = ProjectBaseListMeta
+
+    filters = {}
+    paginate_by = 10
+    tab = None
+    is_personal = False
+    order_by = ()
+
+    def get_tab_counts(self, is_personal=False):
+        """ Get the counts for each list.
+
+        :param is_personal: filter views by is_personal attribute
+        :return dict: name => count
+
+        """
+        return {cls.tab: cls._get_queryset(self, **cls.filters).count() # noqa
+                for cls in ProjectBaseListView.tabs
+                if cls.is_personal == is_personal}
+
+    def get_cached_tab_counts(self, is_personal=False):
+        """ Get the cached counts, if cached, otherwise query and set.
+
+        :param is_personal: filter views by is_personal attribute
+        :return dict: name => count
+
+        """
+        key = self.personal_tab_counts_cache_key if is_personal \
+            else self.tab_counts_cache_key
+        value = cache.get(key)
+        if not value:
+            value = self.get_tab_counts(is_personal)
+            cache.set(key, value)
+        return value
+
+    @cached_property
+    def tab_counts_cache_key(self):
+        """ Make tabs cache key from project ID.
+
+        :returns: Key's string
+
+        """
+        return "%s:tabs" % self.project.pk
+
+    @cached_property
+    def personal_tab_counts_cache_key(self):
+        """ Make tabs cache key from project ID and current user ID.
+
+        :returns: Key's string
+
+        """
+        return "%s:%s:tabs" % (self.project.pk, self.user.pk)
+
+    def get_context_data(self, **kwargs):
+        """ Get context data for templates.
+
+        :return dict:
+
+        """
+        ProjectBaseView.get_context_data(self, **kwargs)
+        kwargs[u'tab'] = self.tab
+        kwargs[u'tabs'] = self.get_cached_tab_counts()
+        if self.user.is_authenticated():
+            kwargs[u'personal_tabs'] = \
+                self.get_cached_tab_counts(is_personal=True)
+        return super(ProjectBaseListView, self).get_context_data(**kwargs)
+
+    @classmethod
+    def _get_raw_queryset(cls, project):
+        """ Provide unfiltered queryset, must configure for optimizations.
+
+        :param project: the project in context.
+        :return QuerySet:
+
+        """
+        raise ImproperlyConfigured("Unfiltered queryset not defined.")
+
+    @classmethod
+    def _get_queryset(cls, context, **filters):
+        """ Prepare queryset for a given view in the project.
+
+        General, used to calculate counts and produce lists.
+
+        :param context: an instance of a ProjectBaseView, needs
+            `project` and `user` attributes.
+        :param view:
+        :return:
+
+        """
+        filters = filters or cls.filters.copy()
+        qs = cls._get_raw_queryset(context.project)
+        for k in filters:
+            if callable(filters[k]):
+                filters[k] = filters[k](context)
+            if k.endswith('__ne'):
+                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
+            else:
+                qs = qs.filter(**{k: filters[k]})
+        return qs.order_by(*cls.order_by)
+
+    def get_queryset(self, **filters):
+        """ Return queryset for the extending class.
+
+        Used by ListView to list items.
+
+        :return QuerySet:
+
+        """
+        return self.__class__._get_queryset(self, **filters) # noqa
 
 
 class ProjectCreateView(RequestBaseView, CreateView):
@@ -170,30 +308,6 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
     form_class = ProjectSubscribeForm
     project_tab = "dashboard"
 
-    def load_project_impact(self):
-        """ Load the user's project impact.
-
-        :return Impact: defaults to None if DoesNotExist
-
-        """
-        try:
-            return Impact.objects.get(
-                project_id=self.project.id, user_id=self.user.id)
-        except Impact.DoesNotExist:
-            return None
-
-    def load_project_ratio(self):
-        """ Load the user's project ratio.
-
-        :return Ratio: defaults to None if DoesNotExist
-
-        """
-        try:
-            return Ratio.objects.get(
-                project_id=self.project.id, user_id=self.user.id)
-        except Ratio.DoesNotExist:
-            return None
-
     def get_context_data(self, **kwargs):
         """ Get context for templates.
 
@@ -205,9 +319,6 @@ class ProjectDashboardView(TemplateView, ProjectBaseView, BaseFormView):
         :return dict: A context
 
         """
-        # User specific
-        kwargs['project_impact'] = self.load_project_impact()
-        kwargs['project_ratio'] = self.load_project_ratio()
         # Project specific
         overview = self.project.get_cached_overview(limit=30)
         kwargs.update(overview)
@@ -263,7 +374,7 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         context['form'] = ProjectSettingsForm(instance=self.project)
         return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs): # noqa
         """ Update the project.
 
         :returns: A Response

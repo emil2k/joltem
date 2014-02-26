@@ -15,10 +15,11 @@
                 <p>
                     <a href="{% url 'project:dashboard' watched.project.id %}"><h4>{{ watched.project.title }}</h4></a>
                     <span class="muted">
-                        <i class="fa fa-tasks"></i> {{ watched.overview.open_tasks_count }}
-                        <i class="fa fa-archive"></i> {{ watched.overview.completed_tasks_count }}
-                        <i class="fa fa-briefcase"></i> {{ watched.overview.open_solutions_count }}
-                        <i class="fa fa-check"></i> {{ watched.overview.completed_solutions_count }}
+                        <i class="fa fa-tasks"></i> <a href="{% url 'project:task:all_open' watched.project.id %}">{{ watched.overview.open_tasks_count }}</a>
+                        <i class="fa fa-archive"></i> <a href="{% url 'project:task:all_closed' watched.project.id %}">{{ watched.overview.completed_tasks_count }}</a>
+                        <i class="fa fa-briefcase"></i> <a href="{% url 'project:solution:all_incomplete' watched.project.id %}">{{ watched.overview.open_solutions_count }}</a>
+                        <i class="fa fa-check"></i> <a href="{% url 'project:solution:all_complete' watched.project.id %}">{{ watched.overview.completed_solutions_count }}
+</a>
                     </span>
                 </p>
             {% empty %}

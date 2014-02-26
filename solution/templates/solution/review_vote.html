@@ -1,18 +1,17 @@
 {% load filters %}
-{% if user.is_authenticated %}
-    <form method="post">
-        {% csrf_token %}
-        <p>
-            <input type="hidden" name="voteable_id" value="{{ solution.id }}" />
-            <input type="hidden" name="voteable_type" value="solution" />
-            <div class="btn-group">
-                <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
-                    <i data-toggle="tooltip" title="Accept" class="impact_vote fa fa-check"></i>
-                </button>
-                <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
-                    <i data-toggle="tooltip" title="Reject" class="impact_vote fa fa-times"></i>
-                </button>
-            </div>
-        </p>
-    </form>
-{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <p>
+        <input type="hidden" name="voteable_id" value="{{ solution.id }}" />
+        <input type="hidden" name="voteable_type" value="solution" />
+        <div class="btn-group">
+            <button class="btn {{ vote.is_accepted|is_true:"btn-success" }}" type="submit" name="voteable_vote" value="1" {{ vote.is_accepted|is_true:"disabled" }}>
+                <i data-toggle="tooltip" title="Accept" class="impact_vote fa fa-check"></i>
+            </button>
+            <button class="btn {{ vote.is_rejected|is_true:"btn-danger" }}" type="submit" name="voteable_vote" value="0" {{ vote.is_rejected|is_true:"disabled" }}>
+                <i data-toggle="tooltip" title="Reject" class="impact_vote fa fa-times"></i>
+            </button>
+        </div>
+    </p>
+</form>

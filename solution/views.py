@@ -1,20 +1,17 @@
 """ Solution related views. """
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.functional import cached_property
-from django.views.generic import TemplateView, DetailView, ListView
+from django.utils.timezone import now
+from django.views.generic import TemplateView
 
 from git.models import Repository
 from joltem.holders import CommentHolder
 from joltem.models import Comment
-from joltem.views.generic import (
-    VoteableView, CommentableView, ExtraContextMixin,
-)
+from joltem.views.generic import VoteableView, CommentableView
 from project.models import Impact
-from project.views import ProjectBaseView, ProjectMixin
+from project.views import ProjectBaseView, ProjectBaseListView
 from solution.models import Solution
 from task.models import Task
 
@@ -107,6 +104,19 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
             kwargs["solution_owner_completed"] = impact.completed
         return super(SolutionView, self).get_context_data(**kwargs)
 
+    def get(self, request, *args, **kwargs):
+        """ Clear user's notifications.
+
+        :returns: A solution's page
+
+        """
+        if not self.user.is_anonymous():
+            self.user.notification_set.filter(
+                notifying_id=self.solution.pk,
+                notifying_type=ContentType.objects.get_for_model(Solution),
+            ).update(is_cleared=True, time_cleared=now())
+        return super(SolutionView, self).get(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         """ Handle POST requests on solution view.
 
@@ -117,6 +127,11 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
         Returns a HTTP response.
 
         """
+        if self.solution.is_archived:
+            return redirect(
+                'project:solution:solution', project_id=self.project.id,
+                solution_id=self.solution.id)
+
         if self.solution.is_owner(self.user) and not (
             'comment' in request.POST
             or 'comment_id' in request.POST
@@ -184,7 +199,8 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         Returns HTTP response.
 
         """
-        if not self.is_owner or self.solution.is_closed:
+        if not self.is_owner or self.solution.is_closed \
+                or self.solution.is_archived:
             return redirect('project:solution:solution',
                             project_id=self.project.id,
                             solution_id=self.solution.id)
@@ -199,7 +215,8 @@ class SolutionEditView(TemplateView, SolutionBaseView):
         Returns HTTP response.
 
         """
-        if not self.is_owner or self.solution.is_closed:
+        if not self.is_owner or self.solution.is_closed \
+                or self.solution.is_archived:
             return redirect('project:solution:solution',
                             project_id=self.project.id,
                             solution_id=self.solution.id)
@@ -231,6 +248,11 @@ class SolutionReviewView(VoteableView, CommentableView, TemplateView,
         :return: HTTP response
 
         """
+        if self.solution.is_archived:
+            return redirect(
+                'project:solution:review', project_id=self.project.id,
+                solution_id=self.solution.id)
+
         if self.is_owner and request.POST.get('change_value'):
             compensation_value = int(request.POST.get('compensation_value'))
             self.solution.change_evaluation(compensation_value)
@@ -408,76 +430,31 @@ class SolutionCreateView(TemplateView, ProjectBaseView):
                             solution_id=solution.id)
 
 
-class SolutionBaseListMeta(type):
-
-    """ Build views hierarchy. """
-
-    solutions_tabs = []
-
-    def __new__(mcs, name, bases, params):
-        cls = super(SolutionBaseListMeta, mcs).__new__(mcs, name, bases, params)
-        if cls.solutions_tab:
-            mcs.solutions_tabs.append((cls.solutions_tab, cls))
-        return cls
-
-
-class SolutionBaseListView(ListView, ProjectBaseView):
+class SolutionBaseListView(ProjectBaseListView):
 
     """ View mixin for solution's list. """
 
-    __metaclass__ = SolutionBaseListMeta
-
     context_object_name = 'solutions'
-    paginate_by = 10
     project_tab = 'solutions'
-    solutions_tab = None
     template_name = 'solution/solutions_list.html'
+    order_by = ('-time_posted',)
 
-    def get_context_data(self, **kwargs):
-        """ Get context data for templates.
-
-        :return dict:
-
-        """
-        kwargs['project'] = self.project
-        kwargs['project_tab'] = self.project_tab
-        kwargs['solutions_tab'] = self.solutions_tab
-        kwargs["solutions_tabs"] = cache.get("%s:solutions_tabs"
-                                             % self.project.pk)
-        if not kwargs["solutions_tabs"]:
-            kwargs["solutions_tabs"] = {
-                n: self.get_queryset(**c.filters).count()
-                for n, c in SolutionBaseListView.solutions_tabs
-            }
-            cache.set("%s:solutions_tabs" % self.project.pk,
-                      kwargs["solutions_tabs"])
-        return super(SolutionBaseListView, self).get_context_data(**kwargs)
-
-    def get_queryset(self, **filters):
-        """ Filter solutions by current project.
+    @classmethod
+    def _get_raw_queryset(cls, project):
+        """ Unfiltered queryset, with optimizations.
 
         :return QuerySet:
 
         """
-        filters = filters or self.filters
-        qs = self.project.solution_set.select_related('task', 'owner')\
+        return project.solution_set.select_related('task', 'owner')\
             .prefetch_related('vote_set')
-        for k in filters:
-            if callable(filters[k]):
-                filters[k] = filters[k](self)
-            if k.endswith('__ne'):
-                qs = qs.filter(~Q(**{k[:-4]: filters[k]}))
-            else:
-                qs = qs.filter(**{k: filters[k]})
-
-        return qs.order_by('-time_posted')
 
 
 class AllIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of all incomplete solutions. """
 
-    solutions_tab = 'all_incomplete'
+    tab = 'solutions_all_incomplete'
     filters = {'is_completed': False, 'is_closed': False}
 
 
@@ -485,15 +462,17 @@ class AllCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of complete solutions. """
 
-    solutions_tab = 'all_complete'
+    tab = 'solutions_all_complete'
     filters = {'is_completed': True, 'is_closed': False}
+    order_by = ('-time_completed',)
 
 
 class MyIncompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your incomplete solutions. """
 
-    solutions_tab = 'my_incomplete'
+    tab = 'solutions_my_incomplete'
+    is_personal = True
     filters = {
         'is_completed': False, 'is_closed': False,
         'owner': lambda s: s.request.user}
@@ -503,26 +482,32 @@ class MyCompleteSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of your complete solutions. """
 
-    solutions_tab = 'my_complete'
+    tab = 'solutions_my_complete'
+    is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
         'owner': lambda s: s.request.user}
+    order_by = ('-time_completed',)
 
 
 class MyReviewSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of solutions to review. """
 
-    solutions_tab = 'my_review'
+    tab = 'solutions_my_review'
+    is_personal = True
     filters = {
         'is_completed': True, 'is_closed': False,
         'owner__ne': lambda s: s.request.user,
         'vote_set__voter__ne': lambda s: s.request.user}
+    order_by = ('-time_completed',)
 
 
 class MyReviewedSolutionsView(SolutionBaseListView):
 
     """ View for viewing a list of reviewed solutions. """
 
-    solutions_tab = 'my_reviewed'
+    tab = 'solutions_my_reviewed'
+    is_personal = True
     filters = {'vote_set__voter': lambda s: s.request.user}
+    order_by = ('-time_completed',)

@@ -1,6 +1,7 @@
 """ Receivers for updating related models when signals fire. """
 
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_save
 
 
 def update_solution_metrics_from_comment(sender, **kwargs):
@@ -14,11 +15,13 @@ def update_solution_metrics_from_comment(sender, **kwargs):
     solution_type = ContentType.objects.get_for_model(Solution)
     # todo check that comment is part of the commentable comment_set and not
     # outside of it
-    if comment and comment.commentable \
+    if comment and comment.commentable_id \
             and comment.commentable_type_id == solution_type.id:
         solution = comment.commentable
         solution.acceptance = solution.get_acceptance()
-        solution.save()
+        Solution.objects.filter(pk=solution.pk).update(
+            acceptance=solution.acceptance)
+        post_save.send(Solution, instance=solution)
 
 
 def update_voteable_metrics_from_vote(sender, **kwargs):
@@ -27,50 +30,15 @@ def update_voteable_metrics_from_vote(sender, **kwargs):
     if vote and vote.voteable:
         voteable = vote.voteable
         voteable.acceptance = voteable.get_acceptance()
-        voteable.save()
-
-
-def update_project_metrics_from_vote(sender, **kwargs):
-    """ Update project specific vote ratio due to vote.
-
-    :param sender: class of the sender
-    :param kwargs:
-
-    """
-    from solution.models import Solution  # avoid circular import
-    from project.models import Ratio
-    solution_type = ContentType.objects.get_for_model(Solution)
-    vote = kwargs.get('instance')
-    if vote and vote.voteable and vote.voteable_type_id == solution_type.id:
-        solution = vote.voteable
-        Ratio.update(solution.project_id, solution.owner_id)
-        Ratio.update(solution.project_id, vote.voter_id)
-
-
-def update_project_metrics_from_comment(sender, **kwargs):
-    """ Update project specific vote ratio due to comment.
-
-    For updating votes ratio metric when a comment is added, making
-    the vote valid.
-
-    :param sender: class of the Sender
-    :param kwargs:
-
-    """
-    from solution.models import Solution  # avoid circular import
-    from project.models import Ratio
-    solution_type = ContentType.objects.get_for_model(Solution)
-    comment = kwargs.get('instance')
-    if comment and comment.commentable and \
-            comment.commentable_type_id == solution_type.id:
-        solution = comment.commentable
-        Ratio.update(solution.project_id, solution.owner_id)
-        Ratio.update(solution.project_id, comment.owner_id)
+        type(voteable).objects.filter(pk=voteable.pk).update(
+            acceptance=voteable.acceptance)
+        post_save.send(type(voteable), instance=voteable)
 
 
 def update_project_impact_from_voteables(sender, **kwargs):
     """ Update project specific impact due to vote on voteable. """
     from project.models import Impact  # avoid circular import
+
     voteable = kwargs.get('instance')
     if voteable:
         (project_impact, _) = Impact.objects.get_or_create(
@@ -79,7 +47,6 @@ def update_project_impact_from_voteables(sender, **kwargs):
         )
         project_impact.impact = project_impact.get_impact()
         project_impact.completed = project_impact.get_completed()
-        project_impact.frozen_impact = project_impact.get_frozen_impact()
         project_impact.save()
 
 
@@ -94,7 +61,7 @@ def update_notification_count(sender, **kwargs):
     user.save()
 
 
-def immediately_senf_email_about_notification(sender, created=False,
+def immediately_send_email_about_notification(sender, created=False,
                                               instance=None, **kwargs):
     """ Send email about new notification to user.
 

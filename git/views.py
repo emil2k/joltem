@@ -1,11 +1,11 @@
 """ Git views. """
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.views.generic import TemplateView, ListView, CreateView
-from git.forms import RepositoryActionForm, RepositoryCreateForm
 
+from git.forms import RepositoryActionForm, RepositoryCreateForm
 from git.models import Repository
 from project.views import ProjectBaseView
 
@@ -13,7 +13,6 @@ from project.views import ProjectBaseView
 class RepositoryBaseView(ProjectBaseView):
 
     """ Base view for repository related views. """
-
 
     def __init__(self, *args, **kwargs):
         self.repository = None
@@ -27,7 +26,8 @@ class RepositoryBaseView(ProjectBaseView):
         Returns nothing.
 
         """
-        super(RepositoryBaseView, self).initiate_variables(request, args, kwargs)
+        super(RepositoryBaseView, self).initiate_variables(
+            request, args, kwargs)
         try:
             self.repository = Repository.objects\
                 .get(id=self.kwargs.get("repository_id"))
@@ -95,7 +95,11 @@ class RepositoryBaseListView(ListView, ProjectBaseView):
             .order_by('name')
 
     def post(self, request, *args, **kwargs):
-        """ Process toggling of repository hidden state. """
+        """ Process toggling of repository hidden state.
+
+        :returns: HttpResponseRedirect
+
+        """
         form = RepositoryActionForm(request.POST)
         if form.is_valid() and (self.is_admin or self.is_manager):
             repository_id = form.cleaned_data['repository_id']
@@ -122,12 +126,16 @@ class RepositoryBaseListView(ListView, ProjectBaseView):
 
 class ActiveRepositoriesView(RepositoryBaseListView):
 
+    """ View active repositories. """
+
     repositories_tab = "active"
     hidden_state = False
     toggle_redirect = "project:git:repositories"
 
 
 class HiddenRepositoriesView(RepositoryBaseListView):
+
+    """ View hidden repositories. """
 
     repositories_tab = "hidden"
     hidden_state = True

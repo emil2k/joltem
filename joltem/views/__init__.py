@@ -8,7 +8,6 @@ from django.views.generic import (
 
 from joltem.models import Notification, Comment, User
 from joltem.views.generic import RequestBaseView
-from project.models import Project
 
 
 class HomeView(RequestBaseView, TemplateView):
@@ -19,6 +18,7 @@ class HomeView(RequestBaseView, TemplateView):
     that the user is following, otherwise renders landing page.
 
     """
+
     def get_context_data(self, **kwargs):
         """ Return context data.
 
@@ -38,8 +38,8 @@ class HomeView(RequestBaseView, TemplateView):
 
         if self.user.is_authenticated():
             kwargs['watching'] = \
-                [ ProjectHolder(project)
-                  for project in self.user.subscriber_project_set.all() ]
+                [ProjectHolder(project)
+                 for project in self.user.subscriber_project_set.all()]
             return super(HomeView, self).get_context_data(**kwargs)
         else:
             return {}  # empty context

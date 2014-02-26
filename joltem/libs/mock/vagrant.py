@@ -28,10 +28,11 @@ def initialize_data():
     project.subscriber_set.add(admin)
     project.founder_set.add(admin)
     first_names = ('Becky', 'Bob', 'Ian', 'Jill', 'Kate', 'Will')
-    users = mixer.cycle(6).blend('joltem.user',
-                         first_name=(first_name for first_name in first_names),
-                         username=mixer.MIX.first_name(lambda x: x.lower()),
-                         password='123')
+    users = mixer.cycle(6).blend(
+        'joltem.user',
+        first_name=(first_name for first_name in first_names),
+        username=mixer.MIX.first_name(lambda x: x.lower()),
+        password='123')
     project.subscriber_set.add(*users)
     project.save()
     mixer.blend('project.equity', user=admin, project=project,

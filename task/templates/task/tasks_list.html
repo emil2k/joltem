@@ -3,7 +3,14 @@
     {% for task in tasks %}
         {% include 'task/task_row.html' %}
     {% empty %}
-        <p class="muted">There are no tasks.</p>
+        <div class="text-center text-info">
+            <p>
+                <i class="fa fa-tasks fa-5x"></i>
+            </p>
+            <p>
+                There are no tasks.
+            </p>
+        </div>
     {% endfor %}
     {% include 'joltem/includes/pagination.html' %}
 {% endblock %}

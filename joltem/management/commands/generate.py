@@ -17,47 +17,59 @@ class Command(BaseCommand):
         """
 
         from joltem.libs import mixer
-        from project.models import Project
         from joltem.models import User
-
-        if Project.objects.count():
-            return False
+        from task.models import Task
 
         with mixer.ctx(loglevel='DEBUG'):
 
-            root = mixer.blend(
-                User, username='root', is_superuser=True,
-                first_name='John', last_name='Konor',
-                is_staff=True, password='root')
+            root = mixer.guard(username='root').blend(
+                User, is_superuser=True, first_name='Root',
+                last_name='Chack', is_staff=True, password='root')
 
-            project = mixer.blend(Project, name='Joltem', title='Joltem')
+            manager = mixer.guard(username='manager').blend(
+                User, first_name='Manager', last_name='Marilyn',
+                password='manager')
+
+            developer = mixer.guard(username='developer').blend(
+                User, first_name='Developer', last_name='Abraham',
+                password='developer')
+
+            mixer.guard(username='user').blend(
+                User, username='user', first_name='User',
+                last_name='James', password='user')
+
+            project = mixer.guard(title='Joltem').blend('project.project')
             project.admin_set = [root]
+            project.manager_set = [manager]
+            project.developer_set = [developer]
 
-            mixer.blend('git.repository', project=project)
+            mixer.guard(project=project).blend('git.repository')
 
-            users = mixer.cycle(5).blend(User)
+            if not Task.objects.exists():
 
-            tasks = mixer.cycle(20).blend(
-                'task.task',
-                project=project,
-                owner=mixer.RANDOM(*users),
-                is_completed=mixer.RANDOM,
-                is_closed=mixer.RANDOM,
-            )
+                users = mixer.cycle(5).blend(User)
 
-            solutions = mixer.cycle(10).blend(
-                'solution.solution',
-                project=project,
-                owner=mixer.RANDOM(*users),
-                is_completed=mixer.RANDOM,
-                is_closed=mixer.RANDOM,
-                task=mixer.SELECT,
-            )
+                tasks = mixer.cycle(20).blend(
+                    'task.task',
+                    project=project,
+                    owner=mixer.RANDOM(*users),
+                    is_completed=mixer.RANDOM,
+                    is_closed=mixer.RANDOM,
+                )
 
-            mixer.cycle(15).blend(
-                'joltem.comment',
-                owner=mixer.RANDOM(*users),
-                comment=mixer.RANDOM,
-                project=project,
-                commentable=mixer.RANDOM(*(tasks + solutions))
-            )
+                solutions = mixer.cycle(10).blend(
+                    'solution.solution',
+                    project=project,
+                    owner=mixer.RANDOM(*users),
+                    is_completed=mixer.RANDOM,
+                    is_closed=mixer.RANDOM,
+                    task=mixer.SELECT,
+                )
+
+                mixer.cycle(15).blend(
+                    'joltem.comment',
+                    owner=mixer.RANDOM(*users),
+                    comment=mixer.RANDOM,
+                    project=project,
+                    commentable=mixer.RANDOM(*(tasks + solutions))
+                )

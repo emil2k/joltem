@@ -9,15 +9,15 @@
                     <li><a href="{% url 'project:task:new' project.id %}">Create</a></li>
                 {% endif %}
                 <li class="nav-header">All</li>
-                <li class="{{ tasks_tab|active:"all_open" }}"><a href="{% url 'project:task:all_open' project.id %}">Open<span class="{{ tasks_tabs.all_open|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.all_open }}</span></a></li>
-                <li class="{{ tasks_tab|active:"all_closed" }}"><a href="{% url 'project:task:all_closed' project.id %}">Closed<span class="{{ tasks_tabs.all_closed|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.all_closed }}</span></a></li>
+                <li class="{{ tab|active:"tasks_all_open" }}"><a href="{% url 'project:task:all_open' project.id %}">Open<span class="{{ tabs.tasks_all_open|is_true:"badge-info" }} badge pull-right">{{ tabs.tasks_all_open }}</span></a></li>
+                <li class="{{ tab|active:"tasks_all_closed" }}"><a href="{% url 'project:task:all_closed' project.id %}">Closed<span class="{{ tabs.tasks_all_closed|is_true:"badge-info" }} badge pull-right">{{ tabs.tasks_all_closed }}</span></a></li>
                 {% if user.is_authenticated %}
                     <li class="nav-header">My</li>
-                    <li class="{{ tasks_tab|active:"my_open" }}"><a href="{% url 'project:task:my_open' project.id %}">Open<span class="{{ tasks_tabs.my_open|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_open }}</span></a></li>
-                    <li class="{{ tasks_tab|active:"my_closed" }}"><a href="{% url 'project:task:my_closed' project.id %}">Closed<span class="{{ tasks_tabs.my_closed|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_closed }}</span></a></li>
+                    <li class="{{ tab|active:"tasks_my_open" }}"><a href="{% url 'project:task:my_open' project.id %}">Open<span class="{{ personal_tabs.tasks_my_open|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.tasks_my_open }}</span></a></li>
+                    <li class="{{ tab|active:"tasks_my_closed" }}"><a href="{% url 'project:task:my_closed' project.id %}">Closed<span class="{{ personal_tabs.tasks_my_closed|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.tasks_my_closed }}</span></a></li>
                     <li class="nav-header">Review</li>
-                    <li class="{{ tasks_tab|active:"my_review" }}"><a href="{% url 'project:task:my_review' project.id %}">Review<span class="{{ tasks_tabs.my_review|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_review }}</span></a></li>
-                    <li class="{{ tasks_tab|active:"my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.id %}">Reviewed<span class="{{ tasks_tabs.my_reviewed|is_true:"badge-info" }} badge pull-right">{{ tasks_tabs.my_reviewed }}</span></a></li>
+                    <li class="{{ tab|active:"tasks_my_review" }}"><a href="{% url 'project:task:my_review' project.id %}">Review<span class="{{ personal_tabs.tasks_my_review|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.tasks_my_review }}</span></a></li>
+                    <li class="{{ tab|active:"tasks_my_reviewed" }}"><a href="{% url 'project:task:my_reviewed' project.id %}">Reviewed<span class="{{ personal_tabs.tasks_my_reviewed|is_true:"badge-info" }} badge pull-right">{{ personal_tabs.tasks_my_reviewed }}</span></a></li>
                 {% endif %}
             </ul>
         </div>

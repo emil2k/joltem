@@ -10,9 +10,9 @@ from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 
-from joltem.views.generic import ValidUserMixin, ExtraContextMixin
 from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
 from .models import User, OAuth
+from joltem.views.generic import ValidUserMixin, ExtraContextMixin
 
 
 authomatic = Authomatic(
@@ -21,7 +21,7 @@ authomatic = Authomatic(
 
 
 def authomatic_login(request, provider):
-    """ OAuth login.
+    """ Support sign in with OAuth.
 
     :return HttpResponse:
 
@@ -46,6 +46,7 @@ def authomatic_login(request, provider):
 
     if result.user:
 
+        # TODO: Are we really needed to update a users on every login?
         result.user.update()
 
         if not result.user.id:

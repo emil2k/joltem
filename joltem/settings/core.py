@@ -35,6 +35,10 @@ STATIC_ROOT = op.join(PROJECT_ROOT, 'static')
 MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
 
+# New Relic settings
+NEW_RELIC_LICENSE_KEY = 'notasecret'
+NEW_RELIC_REPORT_DURATION = 30
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

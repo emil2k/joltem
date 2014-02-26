@@ -36,7 +36,7 @@
         </div>
         <div class="row">
             <div class="span12 text-center">
-                {% if user.is_authenticated and not is_owner %}
+                {% if user.is_authenticated and not is_owner and not solution.is_archived %}
                     {% include "solution/review_vote.html" %}
                 {% endif %}
             </div>
@@ -57,7 +57,7 @@
             </div>
         {% endif %}
     {% endif %}
-    {% if user.is_authenticated and is_owner and not solution.is_closed %}
+    {% if user.is_authenticated and is_owner and not solution.is_closed and not solution.is_archived %}
         <hr/>
         <div id="compensation-q" class="alert alert-info">
             <strong>You requested an impact of {{ solution.impact }}</strong> for this solution.
@@ -70,6 +70,8 @@
             <p><button class="btn btn-info" type="submit" name="change_value" value="1">change</button></p>
         </form>
     {% endif %}
-    <hr/>
-    {% include "joltem/commenting.html" %}
+    {% if not solution.is_archived %}
+        <hr/>
+        {% include "joltem/commenting.html" %}
+    {% endif %}
 {% endblock %}

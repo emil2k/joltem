@@ -168,7 +168,7 @@ class MockGitProcessProtocol(GitProcessProtocol):
 
     """ Mock general git process protocol for testing read permission. """
 
-    def __init__(self, authentication, repository):
+    def __init__(self, authentication, repository): # noqa
         self.avatar = authentication
         self.repository = repository
 
@@ -187,6 +187,7 @@ class TestReadPermissions(__DjangoTestCase):
 
         pp2 = MockGitProcessProtocol(authentication, repository2)
         self.assertFalse(pp2.has_read_permission())
+
 
 class TestPrivateProjectReadPermissions(__DjangoTestCase):
 

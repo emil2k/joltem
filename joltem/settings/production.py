@@ -14,8 +14,14 @@ AUTH_USER_MODEL = 'joltem.User'
 AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
+SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
+SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
+
+# New relic default settings
+NEW_RELIC_LICENSE_KEY = 'not secret'
+NEW_RELIC_REPORT_DURATION = 30
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'joltem.wsgi.application'
@@ -41,9 +47,11 @@ INSTALLED_APPS += (
     'project',
     'solution',
     'task',
+    'gateway',
     'git',
     'help',
     'account',
+    'new_relic',
 )
 
 DATABASES = {
@@ -70,16 +78,15 @@ SECRET_KEY = 'imsosecret'
 # Define notification types
 NOTIFICATION_TYPES = lambda s: setattr(NOTIFICATION_TYPES, s, s)
 NOTIFICATION_TYPES('comment_added')
-NOTIFICATION_TYPES('vote_added')
-NOTIFICATION_TYPES('vote_updated')
+NOTIFICATION_TYPES('solution_archived')
+NOTIFICATION_TYPES('solution_evaluation_changed')
 NOTIFICATION_TYPES('solution_marked_complete')
 NOTIFICATION_TYPES('solution_posted')
-NOTIFICATION_TYPES('solution_evaluation_changed')
-NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_accepted')
+NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_rejected')
-NOTIFICATION_TYPES('frozen_ratio')
-NOTIFICATION_TYPES('unfrozen_ratio')
+NOTIFICATION_TYPES('vote_added')
+NOTIFICATION_TYPES('vote_updated')
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',
@@ -112,6 +119,16 @@ CELERYBEAT_SCHEDULE = {
     'activity-feed': {
         'task': 'project.tasks.prepare_activity_feeds',
         'schedule': timedelta(hours=24),
+        'args': (),
+    },
+    'archive-solution': {
+        'task': 'solution.tasks.archive_solutions',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+    'send-new-relic-report-gateway': {
+        'task': 'gateway.tasks.send_new_relic_report',
+        'schedule': timedelta(seconds=NEW_RELIC_REPORT_DURATION),
         'args': (),
     }
 }

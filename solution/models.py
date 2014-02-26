@@ -27,6 +27,8 @@ class Solution(Voteable, Commentable, Updatable):
     is_closed -- indicates that work on the solution has ceased,
         without a completion, solution may be deprecated, inactive,
         etc.
+    is_archived -- indicates the solution cannot be edited anymore,
+        meaning it is closed for voting and commenting.
 
     """
 
@@ -40,6 +42,9 @@ class Solution(Voteable, Commentable, Updatable):
     is_completed = models.BooleanField(default=False)
     # Alternative to deletion of solution, to keep all relationships intact
     is_closed = models.BooleanField(default=False)
+    # Whether solution was marked archived
+    is_archived = models.BooleanField(default=False)
+
     # NOTE : No parenthesis on timezone.now
     # because I'm passing the function not the current value
     time_posted = models.DateTimeField(default=timezone.now)
@@ -55,7 +60,12 @@ class Solution(Voteable, Commentable, Updatable):
     objects = PassThroughManager.for_queryset_class(SolutionQuerySet)()
 
     def __unicode__(self):
-        return str(self.id)
+        return "%s %s" % (
+            self.pk, '/'.join(filter(None, [
+                self.is_completed and 'cmp',
+                self.is_closed and 'cls',
+                self.is_archived and 'arc',
+            ])))
 
     @property
     def followers(self):
@@ -74,15 +84,6 @@ class Solution(Voteable, Commentable, Updatable):
             self.notify_created()
         cache.delete('%s:solutions_tabs' % self.project_id)
 
-    def is_vote_valid(self, vote):
-        """ Return whether vote should count.
-
-        Don't count a rejection vote, if the person did not provide
-        a comment in the solution review.
-
-        """
-        return vote.is_accepted or self.has_commented(vote.voter_id)
-
     @property
     def default_title(self):
         """ Return a title for the solution.
@@ -94,6 +95,42 @@ class Solution(Voteable, Commentable, Updatable):
             return self.title
         else:
             return self.task.title
+
+    def get_impact(self):
+        """ Calculate impact, analogous to value of contribution.
+
+        Overrides Voteables base implementation to add the defaulting of
+        impact. If there are no valid votes after SOLUTION_REVIEW_PERIOD_SECONDS
+        seconds passed award contributor demanded impact.
+
+        :return int: value of contribution
+
+        """
+        calculated_impact = super(Solution, self).get_impact()
+        frontier = timezone.now() - timezone.timedelta(
+            seconds=settings.SOLUTION_REVIEW_PERIOD_SECONDS)
+        if self.time_completed < frontier and self.valid_vote_count == 0:
+            return self.impact  # demanded impact
+        return calculated_impact
+
+    def is_vote_valid(self, vote):
+        """ Return whether vote should count.
+
+        Don't count a rejection vote, if the person did not provide
+        a comment in the solution review.
+
+        """
+        return vote.is_accepted or self.has_commented(vote.voter_id)
+
+    @property
+    def valid_vote_count(self):
+        """ Return count of valid votes.
+
+        :return int: count of valid votes.
+
+        """
+        return len([vote for vote in self.vote_set.all()
+                    if self.is_vote_valid(vote)])
 
     def get_subtask_count(
             self, solution_is_completed=False, solution_is_closed=False,
@@ -175,6 +212,13 @@ class Solution(Voteable, Commentable, Updatable):
         self.is_closed = False
         self.time_closed = None
         self.save()
+
+    def mark_archived(self):
+        """ Mark the solution archived. """
+        self.is_archived = True
+        self.save()
+        self.notify(
+            self.owner, settings.NOTIFICATION_TYPES.solution_archived, False)
 
     def notify_evaluation_changed(self):
         """ Send out notifications about the evaluation changing.

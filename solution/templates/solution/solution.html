@@ -28,7 +28,7 @@
             {% else %}
                 <p class="muted">Solution has not been described yet.</p>
             {% endif %}
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and not solution.is_archived %}
                 <form method="post">
                     {% csrf_token %}
                     <div class="btn-group">
@@ -44,7 +44,7 @@
                         {% else %}
                             {% if is_owner %}
                                 <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
-                                <button class="btn" type="submit" name="close" value="1">close</button>
+                                <button class="btn" type="submit" name="close" value="1"  onclick="return confirm('Are you sure you want to close the solution?\nThis means you are not going to complete the solution.');">close</button>
                             {% else %}
                                 <a class="btn btn-success" href="{% url 'project:solution:new' project.id solution.id %}">suggest solution</a>
                             {% endif %}
@@ -55,7 +55,7 @@
             {% endif %}
             {% if solution.is_completed %}
                 <div class="alert alert-info">
-                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not is_owner %}, please review it{% endif %}.
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
                 </div>
             {% endif %}
             {% if solution.task %}
@@ -130,22 +130,24 @@
             </div>
         {% endfor %}
     </form>
-    <hr/>
-    {% include "joltem/commenting.html" %}
-    {% if user.is_authenticated %}
-        {% if is_owner %}
-            <div class="alert alert-info">
-                <p>Checkout this solution's branch :</p>
-                <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
-                <p>Then push to this solutions designated remote solution branch :</p>
-                <pre>git push -u origin s/{{ solution.id }}</pre>
-            </div>
-        {% else %}
-            <div class="alert alert-info">
-                <p>Checkout this solution's branch :</p>
-                <pre>git fetch origin</pre>
-                <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
-            </div>
+    {% if not solution.is_archived %}
+        <hr/>
+        {% include "joltem/commenting.html" %}
+        {% if user.is_authenticated %}
+            {% if is_owner %}
+                <div class="alert alert-info">
+                    <p>Checkout this solution's branch :</p>
+                    <pre>git checkout -b s/{{ solution.id }} <i class="text-warning">[branch or sha to checkout]</i></pre>
+                    <p>Then push to this solutions designated remote solution branch :</p>
+                    <pre>git push -u origin s/{{ solution.id }}</pre>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>Checkout this solution's branch :</p>
+                    <pre>git fetch origin</pre>
+                    <pre>git checkout -b s/{{ solution.id }} origin/s/{{ solution.id }}</pre>
+                </div>
+            {% endif %}
         {% endif %}
     {% endif %}
 {% endblock %}

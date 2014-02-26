@@ -50,7 +50,7 @@ class TestPrivateRepositoryPermissions(TestRepositoryPermissions):
 
 
 class TestPrivateRepositoryPermissionsAnonymous(
-    TestPrivateRepositoryPermissions):
+        TestPrivateRepositoryPermissions):
 
     login_user = False
 
@@ -62,21 +62,21 @@ class TestPrivateRepositoryPermissionInvitee(TestRepositoryPermissions):
 
 
 class TestPrivateRepositoryPermissionAdmin(
-    TestPrivateRepositoryPermissionInvitee):
+        TestPrivateRepositoryPermissionInvitee):
 
     is_private = True
     group_name = "admin"
 
 
 class TestPrivateRepositoryPermissionManager(
-    TestPrivateRepositoryPermissionInvitee):
+        TestPrivateRepositoryPermissionInvitee):
 
     is_private = True
     group_name = "manager"
 
 
 class TestPrivateRepositoryPermissionDeveloper(
-    TestPrivateRepositoryPermissionInvitee):
+        TestPrivateRepositoryPermissionInvitee):
 
     is_private = True
     group_name = "developer"
@@ -111,32 +111,32 @@ class TestPrivateRepositoryListPermissions(TestRepositoryListPermissions):
 
 
 class TestPrivateRepositoryListPermissionsAnonymous(
-    TestPrivateRepositoryListPermissions):
+        TestPrivateRepositoryListPermissions):
 
     login_user = False
 
 
 class TestPrivateRepositoryListPermissionsInvitee(
-    TestPrivateRepositoryListPermissions):
+        TestPrivateRepositoryListPermissions):
 
     expected_status_code = 200
     group_name = "invitee"
 
 
 class TestPrivateRepositoryListPermissionsAdmin(
-    TestPrivateRepositoryListPermissionsInvitee):
+        TestPrivateRepositoryListPermissionsInvitee):
 
     group_name = "admin"
 
 
-class TestPrivateRepositoryListPermissionsAdmin(
-    TestPrivateRepositoryListPermissionsInvitee):
+class TestPrivateRepositoryListPermissionsManager(
+        TestPrivateRepositoryListPermissionsInvitee):
 
     group_name = "manager"
 
 
-class TestPrivateRepositoryListPermissionsAdmin(
-    TestPrivateRepositoryListPermissionsInvitee):
+class TestPrivateRepositoryListPermissionsDeveloper(
+        TestPrivateRepositoryListPermissionsInvitee):
 
     group_name = "developer"
 
@@ -181,6 +181,6 @@ class TestCreateRepositoryPermissionsAdmin(TestCreateRepositoryPermissions):
 
 
 class TestCreateRepositoryPermissionsManager(
-    TestCreateRepositoryPermissionsAdmin):
+        TestCreateRepositoryPermissionsAdmin):
 
     group_name = "manager"

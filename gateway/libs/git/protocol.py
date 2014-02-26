@@ -1,5 +1,6 @@
 """ Git protocol. """
 import shlex
+from django.utils import timezone
 from twisted.internet.error import ProcessDone
 from twisted.internet.interfaces import IProcessTransport
 from twisted.internet.protocol import ProcessProtocol
@@ -9,7 +10,6 @@ from zope.interface import implements
 
 from ..utils import SubprocessProtocol, BaseBufferedSplitter
 from .utils import get_report, FLUSH_PACKET_LINE, get_packet_line_size
-from solution.models import Solution
 
 
 class PacketLineSplitter(BaseBufferedSplitter):
@@ -111,7 +111,17 @@ class GitProcessProtocol(SubprocessProtocol):
     Essentially creates a middleware that intercepts all communication
     between a git client and server.
 
+    :param _bytes_in: keeps track of the bytes transferred in during process.
+    :param _bytes_out: keeps track of the bytes transferred out during process.
+    :param _time_start: datetime when process started.
+    :param _time_end: datetime when process ended.
+
     """
+
+    _bytes_in = 0
+    _bytes_out = 0
+    _time_start = None
+    _time_end = None
 
     implements(IProcessTransport)
 
@@ -128,6 +138,7 @@ class GitProcessProtocol(SubprocessProtocol):
         self.avatar = avatar
         self.repository = repository
         self.process_transport = None
+        self._start_record()
 
     def wrap_process_transport(self, transport):
         """ Wrap the process transport to the git process.
@@ -169,6 +180,48 @@ class GitProcessProtocol(SubprocessProtocol):
             "large data : %d bytes" % len(data)
         log.msg(output, system=system)
 
+    # New Relic related
+
+    def _start_record(self):
+        """ Start recording of New Relic transfer event. """
+        self._time_start = timezone.now()
+
+    def _end_record(self):
+        """ End recording of New Relic transfer event.
+
+        Record in database.
+
+        """
+        from gateway.models import GitUploadPackEvent
+        self._time_end = timezone.now()
+        delta = abs(self._time_start - self._time_end)
+        record = GitUploadPackEvent(
+            time_posted=self._time_end,
+            duration=delta.microseconds,
+            bytes_in=self._bytes_in,
+            bytes_out=self._bytes_out
+        )
+        record.save()
+        self.log("record transfer event : %s" % record, "new relic")
+
+    def _record_bytes_in(self, data):
+        """ Record data transferred in.
+
+        :param data:
+        :return:
+
+        """
+        self._bytes_in += len(data)
+
+    def _record_bytes_out(self, data):
+        """ Record data transferred out.
+
+        :param data:
+        :return:
+
+        """
+        self._bytes_out += len(data)
+
     @staticmethod
     def eof_received():
         """ For receiving end of file requests, from the SSH connection. """
@@ -185,6 +238,7 @@ class GitProcessProtocol(SubprocessProtocol):
         """
         self.log(data, "gateway - fd %d" % childFD, True)
         SubprocessProtocol.childDataReceived(self, childFD, data)
+        self._record_bytes_out(data)
 
     def outReceived(self, data):
         """ Logging. """
@@ -208,6 +262,7 @@ class GitProcessProtocol(SubprocessProtocol):
         # Signal to the other end that the process has ended through
         # the underlying SSHSessionProcessProtocol
         self.protocol.processEnded(reason)
+        self._end_record()
 
     def processExited(self, reason):
         """ Logging, git process exit.
@@ -277,6 +332,7 @@ class GitProcessProtocol(SubprocessProtocol):
         """
         self.log(data, "client - fd %d" % childFD, True)
         self.process_transport.writeToChild(childFD, data)
+        self._record_bytes_in(data)
 
     def loseConnection(self):
         """ Close stdin, stderr and stdout. """
@@ -330,6 +386,24 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         # (reference, has_permission)
         self._command_statuses = []
 
+    def _end_record(self):
+        """ End recording of New Relic transfer event.
+
+        Record in database.
+
+        """
+        from gateway.models import GitReceivePackEvent
+        self._time_end = timezone.now()
+        delta = abs(self._time_start - self._time_end)
+        record = GitReceivePackEvent(
+            time_posted=self._time_end,
+            duration=delta.microseconds,
+            bytes_in=self._bytes_in,
+            bytes_out=self._bytes_out
+        )
+        record.save()
+        self.log("record transfer event : %s" % record, "new relic")
+
     def flush(self):
         """ Flush input buffers into process. """
         self.log(self._buffer, "client - flush", True)
@@ -366,6 +440,7 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         else:
             self.log(data, "client - written", True)
             self.process_transport.write(data)
+        self._record_bytes_in(data)
 
     # Receivers
 
@@ -432,6 +507,8 @@ class GitReceivePackProcessProtocol(GitProcessProtocol):
         :return bool: whether user has push permissions.
 
         """
+        from solution.models import Solution
+
         parts = reference.split('/')
         project = self.repository.project
 

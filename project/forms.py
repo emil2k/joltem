@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .models import Project
 from joltem.forms import validate_username
 
+
 class ProjectCreateForm(forms.ModelForm):
 
     """ Form for creating new project.
@@ -45,9 +46,8 @@ class ProjectCreateForm(forms.ModelForm):
         if bool(self.cleaned_data.get('agree')):
             return True
         else:
-            raise ValidationError("You should check that you understand.",
-                                  code='invalid')
-
+            raise ValidationError(
+                "You should check that you understand.", code='invalid')
 
     def clean_ownership(self):
         """ Enforce limits on ownership stake.

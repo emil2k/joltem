@@ -16,13 +16,11 @@ class BaseTaskPermissionsTestCase(BaseProjectPermissionsTestCase):
 
     """ Base test case for a task's permissions. """
 
-
     def setUp(self):
         super(BaseTaskPermissionsTestCase, self).setUp()
         self.task = mixer.blend('task.task', project=self.project,
                                 is_closed=False, is_accepted=True,
                                 is_reviewed=True)
-
 
     def assertStatusCode(self, url_name):
         """ Assert the status code that should be received.
@@ -95,9 +93,24 @@ class TestPrivateTasksPermissionsDeveloper(TestTaskPermissions):
     group_name = "developer"
 
 
-class TestTasksListsPermissions(BaseProjectPermissionsTestCase):
+class TestGlobalTasksListsPermissions(BaseProjectPermissionsTestCase):
 
-    """ Test permissions to tasks lists. """
+    """ Test permissions to global tasks lists. """
+
+    expected_status_code = 200
+    login_user = True
+    is_private = False
+
+    def test_all_open_tasks(self):
+        self.assertStatusCode('project:task:all_open')
+
+    def test_all_closed_tasks(self):
+        self.assertStatusCode('project:task:all_closed')
+
+
+class TestPersonalTasksListsPermissions(BaseProjectPermissionsTestCase):
+
+    """ Test permissions to personal tasks lists. """
 
     expected_status_code = 200
     login_user = True
@@ -115,16 +128,25 @@ class TestTasksListsPermissions(BaseProjectPermissionsTestCase):
     def test_my_reviewed_tasks(self):
         self.assertStatusCode('project:task:my_reviewed')
 
-    def test_all_open_tasks(self):
-        self.assertStatusCode('project:task:all_open')
 
-    def test_all_closed_tasks(self):
-        self.assertStatusCode('project:task:all_closed')
+class TestTasksListsPermissions(TestPersonalTasksListsPermissions,
+                                TestGlobalTasksListsPermissions):
+
+    """ Test permissions to tasks lists. """
 
 
-class TestTaskListsPermissionsAnonymous(TestTasksListsPermissions):
+class TestPersonalTaskListsPermissionsAnonymous(
+        TestPersonalTasksListsPermissions):
 
     login_user = False
+    expected_status_code = 302
+
+
+class TestGlobalTaskListsPermissionsAnonymous(
+        TestGlobalTasksListsPermissions):
+
+    login_user = False
+    expected_status_code = 200
 
 
 class TestPrivateTaskListsPermissions(TestTasksListsPermissions):
@@ -133,8 +155,19 @@ class TestPrivateTaskListsPermissions(TestTasksListsPermissions):
     is_private = True
 
 
-class TestPrivateTaskListsPermissionsAnonymous(TestPrivateTaskListsPermissions):
+class TestGlobalPrivateTaskListsPermissionsAnonymous(
+        TestGlobalTasksListsPermissions):
 
+    expected_status_code = 404
+    is_private = True
+    login_user = False
+
+
+class TestPersonalPrivateTaskListsPermissionsAnonymous(
+        TestPersonalTasksListsPermissions):
+
+    expected_status_code = 302
+    is_private = True
     login_user = False
 
 
@@ -147,19 +180,19 @@ class TestPrivateTaskListsPermissionsInvitee(TestTasksListsPermissions):
 
 
 class TestPrivateTaskListsPermissionsAdmin(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "admin"
 
 
 class TestPrivateTaskListsPermissionsManager(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "manager"
 
 
 class TestPrivateTaskListsPermissionsDeveloper(
-    TestPrivateTaskListsPermissionsInvitee):
+        TestPrivateTaskListsPermissionsInvitee):
 
     group_name = "developer"
 
@@ -354,50 +387,29 @@ class TaskViewTest(BaseTaskViewTest):
         task = Task.objects.get()
         self.assertFalse(task.is_closed)
 
+    def test_task_post_comment(self):
+        self._post(views.TaskView.as_view(), {'comment': 'comment'})
+        comments = self.task.comment_set.all()
+        self.assertTrue(comments)
+        _task = models.load_model(self.task)
+        self.assertEqual(_task.time_updated, self.task.time_updated)
 
-class TaskListViewTests(BaseProjectViewTest):
 
-    def _test_get_task_list(self, view):
-        """ Test generator for GET on a task list
+class TaskListsCaching(TestCase):
 
-        :param view: list view to test.
+    """ Test caching in TaskBaseListView its children. """
 
-        """
-        response = self._get(view)
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_my_open_tasks(self):
-        """ Test simple GET of my open tasks view. """
-        task = mixer.blend(
-            'task.task', project=self.project, owner=self.user,
-            is_accepted=True)
-        response = self._get(views.MyOpenTasksView.as_view())
-        response = response.render()
-        self.assertContains(
-            response,
-            'by <a href="/user/%s/" class="muted">%s</a>' % (
-                task.owner.username, task.owner.first_name
-            ))
-
-    def test_get_my_closed_tasks(self):
-        """ Test simple GET of my closed tasks view. """
-        self._test_get_task_list(views.MyClosedTasksView.as_view())
-
-    def test_get_my_review_tasks(self):
-        """ Test simple GET of my tasks to review view. """
-        self._test_get_task_list(views.MyReviewTasksView.as_view())
-
-    def test_get_my_reviewed_tasks(self):
-        """ Test simple GET of my reviewed tasks view. """
-        self._test_get_task_list(views.MyReviewedTasksView.as_view())
-
-    def test_get_all_open_tasks(self):
-        """ Test simple GET of all open tasks view. """
-        self._test_get_task_list(views.AllOpenTasksView.as_view())
-
-    def test_get_all_closed_tasks(self):
-        """ Test simple GET of all closed tasks view. """
-        self._test_get_task_list(views.AllClosedTasksView.as_view())
+    def test_review_filter_remains_callable(self):
+        """ Test that filter remains callable after getting queryset. """
+        bill = mixer.blend('joltem.user', username='bill')
+        v = views.MyReviewTasksView()
+        v.project = mixer.blend('project.project')
+        v.user = bill
+        self.assertEqual(
+            type(v.filters['vote__voter__ne']).__name__, 'function')
+        v.get_queryset()
+        self.assertEqual(
+            type(v.filters['vote__voter__ne']).__name__, 'function')
 
 
 TASK_URL = '/{project_id}/task/{task_id}/'
@@ -573,7 +585,7 @@ class TaskEditTest(WebTest, ViewTestMixin):
         task = Task.objects.get()
         self.assertEqual(task.title, 'new title')
 
-        (admin, manager) = mixer.cycle(2).blend('joltem.user')
+        admin, manager = mixer.cycle(2).blend('joltem.user')  # noqa
         self.project.admin_set.add(admin)
         self.project.manager_set.add(manager)
 

@@ -4,12 +4,10 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.generic import ContentType
-from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
-from joltem import receivers
-from joltem.models.notifications import Notifying
-from joltem.models.generic import Owned, ProjectContext
+from .notifications import Notifying
+from .generic import Owned, ProjectContext
 
 
 # Votes related
@@ -41,11 +39,6 @@ class Vote(models.Model):
         """ Return boolean of whether a rejection voted. """
         return not self.is_accepted
 
-post_save.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
-post_delete.connect(receivers.update_voteable_metrics_from_vote, sender=Vote)
-
-post_save.connect(receivers.update_project_metrics_from_vote, sender=Vote)
-post_delete.connect(receivers.update_project_metrics_from_vote, sender=Vote)
 
 VOTEABLE_THRESHOLD = 50  # int between 0-100
 

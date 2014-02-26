@@ -1,4 +1,5 @@
 """ Joltem notification support. """
+
 import jsonfield
 import logging
 from django.conf import settings
@@ -8,14 +9,11 @@ from django.core import serializers
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.db.models.query import QuerySet
-from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 from model_utils.managers import PassThroughManager
 
-from joltem.notifications import get_notify
-from joltem.receivers import (
-    update_notification_count, immediately_senf_email_about_notification)
-from joltem.tasks import send_immediately_to_user
+from ..notifications import get_notify
+from ..tasks import send_immediately_to_user
 
 
 logger = logging.getLogger('django')
@@ -226,9 +224,3 @@ class Notifying(models.Model):
         }
         default.update(**kwargs)
         return default
-
-
-post_save.connect(update_notification_count, sender=Notification)
-post_save.connect(
-    immediately_senf_email_about_notification, sender=Notification)
-post_delete.connect(update_notification_count, sender=Notification)

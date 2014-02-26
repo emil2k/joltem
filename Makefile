@@ -28,7 +28,7 @@ lint: $(ENV)
 
 ci:
 	$(ENV)/bin/pip install coverage
-	$(ENV)/bin/python manage.py test --settings=joltem.settings.jenkins --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,account
+	$(ENV)/bin/python manage.py test --settings=joltem.settings.jenkins --with-coverage --with-xunit --cover-xml --cover-package=joltem,task,solution,project,git,help,gateway,account,new_relic
 
 .PHONY: run
 # target: run - Run Django development server
@@ -52,11 +52,13 @@ static: $(ENV)
 	@mkdir -p $(CURDIR)/static
 	$(ENV)/bin/python $(CURDIR)/manage.py collectstatic --settings=$(SETTINGS) --noinput -c
 
-.PHONY: test
+.PHONY: test t
 # target: test - Run project's tests
 TEST ?=
 test: $(ENV)
 	$(ENV)/bin/python manage.py test $(TEST) --settings=joltem.settings.test -x
+
+t: test
 
 .PHONY: test_joltem
 test_joltem: $(ENV) joltem
@@ -85,6 +87,10 @@ test_help: $(ENV) help
 .PHONY: test_account
 test_account: $(ENV) account
 	make test TEST=account
+
+.PHONY: test_new_relic
+test_new_relic: $(ENV) new_relic
+	make test TEST=new_relic
 
 .PHONY: test_gateway
 test_gateway: $(ENV) gateway
@@ -142,6 +148,16 @@ build: clean static
 	@mkdir -p $(CURDIR)/build/etc/nginx/sites-enabled
 	@cp $(CURDIR)/deploy/debian/nginx.conf $(CURDIR)/build/etc/nginx/sites-enabled/joltem.conf
 	@cp $(CURDIR)/deploy/debian/uwsgi.ini $(CURDIR)/build$(PREFIX)/uwsgi.ini
+
+.PHONY: gateway
+gateway:
+	sudo $(ENV)/bin/twistd --nodaemon -y $(CURDIR)/gateway/gateway.tac
+
+.PHONY: newrelic
+NEW_RELIC_CONFIG_FILE=$(CURDIR)/../configuration/newrelic.ini
+newrelic:
+	$(ENV)/bin/newrelic-admin validate-config $(NEW_RELIC_CONFIG_FILE)
+
 
 $(ENV): requirements.txt
 	[ -d $(ENV) ] || virtualenv --no-site-packages $(ENV)
