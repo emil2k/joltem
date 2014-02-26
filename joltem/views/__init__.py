@@ -78,10 +78,10 @@ class UserView(DetailView):
         """
         ctx = super(UserView, self).get_context_data(**kwargs)
         user = self.object
-        comments = Paginator(user.comment_set.all(), 10)
+        comments = Paginator(user.comment_set.order_by('-time_commented'), 10)
         solutions = Paginator(user.solution_set.filter(
             Q(is_completed=True) | Q(is_completed=False, is_closed=False)
-        ).order_by('is_completed'), 10)
+        ).order_by('is_completed', '-time_updated'), 10)
         cpage = comments.page(int(self.request.GET.get('cpage', 1)))
         spage = solutions.page(int(self.request.GET.get('spage', 1)))
         ctx.update(dict(cpage=cpage, spage=spage))
