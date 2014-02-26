@@ -63,13 +63,9 @@ class NewRelicReport(models.Model):
 
         """
         duration = settings.NEW_RELIC_REPORT_DURATION
-        try:
-            r = cls.objects.order_by('-time_reported').get()
-        except cls.DoesNotExist:
-            pass
-        else:
-            if not r.is_recorded and r.status_code >= 500:
-                duration += r.duration
+        r = cls.objects.order_by('-time_reported').first()
+        if r and not r.is_recorded and r.status_code >= 500:
+            duration += r.duration
         return duration
 
     def send_report(self):
