@@ -329,3 +329,52 @@ class NewRelicTransferEvent(models.Model):
                 metrics['max'] = value
             metrics['sum_of_squares'] += pow(value, 2)
         return metrics
+
+
+if settings.ENVIRONMENT_NAME == 'test':
+
+    class MockTransferEvent(NewRelicTransferEvent):
+
+        """ A mock transfer event to test the abstract class. """
+
+        metric_name_transfer_type = 'Receive'
+
+        class Meta:
+            app_label = 'new_relic'
+
+    class MockTransferUploadEvent(NewRelicTransferEvent):
+
+        """ A mock upload transfer event to test the abstract report class. """
+
+        metric_name_transfer_type = 'Upload'
+
+        class Meta:
+            app_label = 'new_relic'
+
+    class MockReport(NewRelicReport):
+
+        """ A mock report to test the abstract class. """
+
+        AGENT_HOST = 'stage.joltem.local'
+
+        component_name = "Git Server"
+        component_guid = "com.joltem.git"
+
+        event_classes = (MockTransferEvent, )
+
+        class Meta:
+            app_label = 'new_relic'
+
+    class MockReportBoth(NewRelicReport):
+
+        """ A mock report to test the abstract class. """
+
+        AGENT_HOST = 'stage.joltem.local'
+
+        component_name = "Git Server"
+        component_guid = "com.joltem.git"
+
+        event_classes = (MockTransferEvent, MockTransferUploadEvent)
+
+        class Meta:
+            app_label = 'new_relic'

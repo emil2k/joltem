@@ -3,28 +3,9 @@ from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 
-from .models import NewRelicTransferEvent, NewRelicReport
+from .models import (
+    MockTransferEvent, MockTransferUploadEvent, MockReportBoth, MockReport)
 from joltem.libs import mixer, load_model
-
-
-class MockTransferEvent(NewRelicTransferEvent):
-
-    """ A mock transfer event to test the abstract class. """
-
-    metric_name_transfer_type = 'Receive'
-
-    class Meta:
-        app_label = 'new_relic'
-
-
-class MockTransferUploadEvent(NewRelicTransferEvent):
-
-    """ A mock upload transfer event to test the abstract report class. """
-
-    metric_name_transfer_type = 'Upload'
-
-    class Meta:
-        app_label = 'new_relic'
 
 
 class TransferEventTest(TestCase):
@@ -91,36 +72,6 @@ class TransferEventTest(TestCase):
                 sum_of_squares=49 + 64 + 100 * 100
             )
         )
-
-
-class MockReport(NewRelicReport):
-
-    """ A mock report to test the abstract class. """
-
-    AGENT_HOST = 'stage.joltem.local'
-
-    component_name = "Git Server"
-    component_guid = "com.joltem.git"
-
-    event_classes = (MockTransferEvent, )
-
-    class Meta:
-        app_label = 'new_relic'
-
-
-class MockReportBoth(NewRelicReport):
-
-    """ A mock report to test the abstract class. """
-
-    AGENT_HOST = 'stage.joltem.local'
-
-    component_name = "Git Server"
-    component_guid = "com.joltem.git"
-
-    event_classes = (MockTransferEvent, MockTransferUploadEvent)
-
-    class Meta:
-        app_label = 'new_relic'
 
 
 class ReportTest(TestCase):
