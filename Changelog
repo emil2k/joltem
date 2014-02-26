@@ -1,4 +1,5 @@
-2014-02-19  emil
+2014-02-26  emil
+    * Version 1.2.0
     * Defaulting to demanded impact on solutions after 7 days.
     * Archiving of solutions after 30 days.
     * Removed vote ratio and freezing of impact.
@@ -6,8 +7,6 @@
     * Improvements to activity feed.
     * New Relic integration for application, servers, nginx, postgresql,
       redis, and a custom plug in to monitor git server.
-
--- on master
 
 2014-02-06  emil
     * Version 1.1.0
