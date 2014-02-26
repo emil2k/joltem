@@ -8,16 +8,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'joltem.settings.local')
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
+from django.conf import settings
 NEW_RELIC_CONFIG_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    'configuration', 'newrelic.ini')
+    settings.CONFIGURATION_DIR, 'newrelic.ini')
 
 if os.path.exists(NEW_RELIC_CONFIG_FILE):
     import newrelic.agent
     newrelic.agent.initialize(NEW_RELIC_CONFIG_FILE)
     application = newrelic.agent.WSGIApplicationWrapper(application)
 
-from django.conf import settings
 if settings.DEBUG:
     from werkzeug.debug import DebuggedApplication
     from django.views import debug

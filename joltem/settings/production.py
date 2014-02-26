@@ -18,6 +18,7 @@ SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
 SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
+CONFIGURATION_DIR = op.join(op.dirname(PROJECT_ROOT), 'configuration')
 
 # New relic default settings
 NEW_RELIC_LICENSE_KEY = 'not secret'
