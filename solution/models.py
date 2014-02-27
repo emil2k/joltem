@@ -35,7 +35,7 @@ class Solution(Voteable, Commentable, Updatable):
     model_name = "solution"
 
     # Optional custom title to solution
-    title = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True, null=True)
     # Description of solution for all involved
     description = models.TextField(null=True, blank=True)
     # Whether solution was marked completed
