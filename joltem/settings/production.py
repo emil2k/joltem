@@ -88,7 +88,14 @@ NOTIFICATION_TYPES('vote_updated')
 
 # Markdown support
 INSTALLED_APPS += 'django_markdown',
+# MARKDOWN_SET_NAME = 'markdown'
 MARKDOWN_EXTENSIONS = 'extra', 'codehilite'
+MARKDOWN_EXTENSION_CONFIGS = {
+    'codehilite': {
+        'linenums': False
+    }
+}
+MARKDOWN_PREVIEW_TEMPLATE = "joltem/markdown.html"
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',
