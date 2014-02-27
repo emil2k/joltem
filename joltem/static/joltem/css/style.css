@@ -217,6 +217,9 @@ td.line_number {
         repeat;
 }
 
+.markItUp { width: 100% !important; }
+.markItUpEditor { width: 100% !important; }
+
 /* Pygments tango theme */
 .codehilite .hll { background-color: #ffffcc }
 .codehilite .c { color: #8f5902; font-style: italic } /* Comment */
@@ -287,4 +290,3 @@ td.line_number {
 .codehilite .vg { color: #000000 } /* Name.Variable.Global */
 .codehilite .vi { color: #000000 } /* Name.Variable.Instance */
 .codehilite .il { color: #0000cf; font-weight: bold } /* Literal.Number.Integer.Long */
-.linenos { vertical-align: 0 !important }
