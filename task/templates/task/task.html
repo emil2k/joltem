@@ -1,6 +1,12 @@
 {% extends 'project/base.html' %}
 {% load django_markdown %}
+
 {% block title %}{{ task.title }} - Joltem{% endblock %}
+
+{% block scripts %}
+    {% include "joltem/commenting_scripts.html" %}
+{% endblock %}
+
 {% block project_content %}
     <div class="row hidden-desktop hidden-tablet">
         <div class="span8">
@@ -174,7 +180,4 @@
         <hr/>
     {% endif %}
     {% include "joltem/commenting.html" %}
-    {% block scripts %}
-        {% include "joltem/commenting_scripts.html" %}
-    {% endblock %}
 {% endblock %}
