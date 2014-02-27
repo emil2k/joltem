@@ -33,7 +33,7 @@ class PythonServersTest(TestCase):
 
     def test_django_wsgi_file_exists(self):
         wsgi_file_path_expected = os.path.join(
-            settings.PROJECT_ROOT, 'joltem/wsgi.py'
+            settings.PROJECT_ROOT, 'wsgi.py'
         )
         self.assertTrue(os.path.exists(wsgi_file_path_expected))
 
