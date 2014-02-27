@@ -1,6 +1,13 @@
 {% extends 'project/base.html' %}
 {% load django_markdown %}
 {% block title %}New Solution - Joltem{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% markdown_media %}
+    {% markdown_editor "textarea" %}
+{% endblock %}
+
 {% block project_content %}
     <div class="row">
         <div class="span8">
