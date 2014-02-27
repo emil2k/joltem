@@ -1,0 +1,12 @@
+{% extends "joltem/head.html" %}
+
+{% load django_markdown %}
+
+{% block styles %}
+<style type="text/css" media="screen">
+    body { margin: 20px 10px; }
+</style>
+    
+{% endblock %}
+
+{% block body %} {{ content|markdown }} {% endblock %}
