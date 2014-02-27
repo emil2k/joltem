@@ -496,7 +496,7 @@ class MyReviewSolutionsView(SolutionBaseListView):
     tab = 'solutions_my_review'
     is_personal = True
     filters = {
-        'is_completed': True, 'is_closed': False,
+        'is_completed': True, 'is_closed': False, 'is_archived': False,
         'owner__ne': lambda s: s.request.user,
         'vote_set__voter__ne': lambda s: s.request.user}
     order_by = ('-time_completed',)
