@@ -1,4 +1,4 @@
-{% load static %}
+{% load static django_markdown %}
 <script src="{% static 'joltem/js/jquery.jeditable.min.js' %}"></script>
 <script>
     function edit_comment(comment_id){
@@ -52,3 +52,5 @@
         });
     });
 </script>
+{% markdown_media %}
+{% markdown_editor "new_comment" %}
