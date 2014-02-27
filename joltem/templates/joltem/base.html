@@ -1,168 +1,102 @@
+{% extends 'joltem/head.html' %}
+
 {% load static from staticfiles %}
 {% load filters %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>{% block title %}Joltem{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block description %}{% endblock %}">
-    <meta name="author" content="">
 
-    {# Load minified files in production #}
-    {% if DEBUG %}
-        <link href="{% static 'joltem/css/bootstrap.css' %}" rel="stylesheet" media="screen">
-        <link href="{% static 'joltem/css/bootstrap-responsive.css' %}" rel="stylesheet">
-        <link href="{% static 'joltem/css/font-awesome.css' %}" rel="stylesheet">
-    {% else %}
-        <link href="{% static 'joltem/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-        <link href="{% static 'joltem/css/bootstrap-responsive.min.css' %}" rel="stylesheet">
-        <link href="{% static 'joltem/css/font-awesome.min.css' %}" rel="stylesheet">
-    {% endif %}
-    <link href="{% static 'joltem/css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'joltem/css/bootstrap3-port.css' %}" rel="stylesheet">
-    <link rel="icon" type="image/png" href="{% static 'joltem/img/favicon.ico' %}">
-
-    <style>
-        .brand {
-            padding: 5px 10px 5px 30px !important;
-        }
-        @media (max-width: 767px) {
-            .span1,.span2,.span3,.span4,.span5,.span6,.span7,.span8,.span9,.span10,.span11,.span12 {
-                margin-bottom: 10px;
-            }
-        }
-
-        @media (min-width: 980px) {
-            body {
-                padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-            }
-
-            a.anchor-fix {
-                position: relative;
-                top:-60px;
-                display: block;
-                height: 0;
-                width:0;
-            }
-        }
-    </style>
-</head>
-
-<body class="{% block body_class %}{% endblock %}">
-{% block navbar %}
-<div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-        <div class="container">
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/joltem-brand.png' %}" alt="Joltem" /></a>{% endblock %}
-            <ul class="nav pull-right" style="margin:0px;">
-                {% if user.is_authenticated %}
-                    <li>
-                        <a href="{% url 'notifications' %}">
-                            {% with count=user.notifications %}
-                                <span class="notification-counter {% if count > 0 %}notifications-some{% else %}notifications-none{% endif %}">{{ count }}</span>
-                            {% endwith %}
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-            <div class="nav-collapse collapse">
-                <ul class="nav">
-                    {% block nav %}{% endblock %}
-                </ul>
-                <ul class="nav pull-right">
-                    <li><a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore <i class="fa fa-globe"></i></a></li>
-                    <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
-                    {% if user.is_authenticated %}
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                Hello, {{ user.first_name }} <b class="fa fa-caret-down"></b>
-                            </a>
-                            <ul class="dropdown-menu pull-right">
-                                <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
-                                <li class="divider"></li>
-                                <li><a href="{% url 'sign_out' %}">Sign Out</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign in</a></li>
-                        <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign up</a></li>
-                    {% endif %}
-                </ul>
-            </div><!--/.nav-collapse -->
+{% block body %}
+    {% block navbar %}
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    {% block brand %}<a class="brand" href="{% url 'home' %}"><img src="{% static 'joltem/img/joltem-brand.png' %}" alt="Joltem" /></a>{% endblock %}
+                    <ul class="nav pull-right" style="margin:0px;">
+                        {% if user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'notifications' %}">
+                                    {% with count=user.notifications %}
+                                        <span class="notification-counter {% if count > 0 %}notifications-some{% else %}notifications-none{% endif %}">{{ count }}</span>
+                                    {% endwith %}
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            {% block nav %}{% endblock %}
+                        </ul>
+                        <ul class="nav pull-right">
+                            <li><a href="http://www.reddit.com/r/joltem/" title="Explore projects in our subreddit.">Explore <i class="fa fa-globe"></i></a></li>
+                            <li class="{{ nav_tab|active:"help"}}"><a href="{% url 'help:index' %}">Help</a></li>
+                            {% if user.is_authenticated %}
+                                <li class="dropdown">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        Hello, {{ user.first_name }} <b class="fa fa-caret-down"></b>
+                                    </a>
+                                    <ul class="dropdown-menu pull-right">
+                                        <li class="{{ nav_tab|active:"account"}}"><a href="{% url 'account' %}">Account</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="{% url 'sign_out' %}">Sign Out</a></li>
+                                    </ul>
+                                </li>
+                            {% else %}
+                                <li class="{{ nav_tab|active:"in"}}"><a href="{% url 'sign_in' %}">Sign in</a></li>
+                                <li class="{{ nav_tab|active:"up"}}"><a href="{% url 'sign_up' %}">Sign up</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>[>/.nav-collapse <]
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-{% endblock %}
-{% block message %}
-    {% if not user.is_authenticated %}
-        <div class="anonymous">
-            <a href="#" class="hide-anonymous" onclick="$('.anonymous').toggle(); return false;"><i class="fa fa-times"></i></a>
-            <h3>an open incubator.</h3>
-            <p class="tagline">openly collaborate to build and launch a startup <i class="fa fa-rocket"></i></p>
-            <p>
-                <a class="btn" href="{% url 'sign_up' %}"><b>sign up</b></a>
-                <a class="btn" href="{% url 'help:index' %}"><b>more info</b></a>
-            </p>
-        </div>
-    {% endif %}
-{% endblock %}
-<div class="container">
-    {% for message in messages %}
-    <div class="alert alert-success">
-        <a class="close" data-dismiss="alert">&times;</a>
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% block content %}{% endblock %}
-</div> <!-- /container -->
-
-{% block footer %}
-<div id="footer">
+    {% endblock %}
+    {% block message %}
+        {% if not user.is_authenticated %}
+            <div class="anonymous">
+                <a href="#" class="hide-anonymous" onclick="$('.anonymous').toggle(); return false;"><i class="fa fa-times"></i></a>
+                <h3>an open incubator.</h3>
+                <p class="tagline">openly collaborate to build and launch a startup <i class="fa fa-rocket"></i></p>
+                <p>
+                    <a class="btn" href="{% url 'sign_up' %}"><b>sign up</b></a>
+                    <a class="btn" href="{% url 'help:index' %}"><b>more info</b></a>
+                </p>
+            </div>
+        {% endif %}
+    {% endblock %}
     <div class="container">
-        <hr/>
-        <div class="text-center">
-            <h4 class="muted">
-                <a class="muted" href="http://joltem.tumblr.com/"><i class="fa fa-tumblr"></i></a>
-                &nbsp;&nbsp;
-                <a class="muted" href="https://twitter.com/thejolted"><i class="fa fa-twitter"></i></a>
-                &nbsp;&nbsp;
-                <a class="muted" href="https://plus.google.com/+Joltem"><i class="fa fa-google-plus"></i></a>
-                &nbsp;&nbsp;
-                <a class="muted" href="https://www.facebook.com/joltem"><i class="fa fa-facebook"></i></a>
-            </h4>
-            <small class="muted">
-                <p>2013 &copy; Joltem</p>
-                <p><i class="fa fa-beer"></i> 1.2.0</p>
-            </small>
+        {% for message in messages %}
+        <div class="alert alert-success">
+            <a class="close" data-dismiss="alert">&times;</a>
+            {{ message }}
         </div>
-    </div>
-</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </div> [> /container <]
+
+    {% block footer %}
+        <div id="footer">
+            <div class="container">
+                <hr/>
+                <div class="text-center">
+                    <h4 class="muted">
+                        <a class="muted" href="http://joltem.tumblr.com/"><i class="fa fa-tumblr"></i></a>
+                        &nbsp;&nbsp;
+                        <a class="muted" href="https://twitter.com/thejolted"><i class="fa fa-twitter"></i></a>
+                        &nbsp;&nbsp;
+                        <a class="muted" href="https://plus.google.com/+Joltem"><i class="fa fa-google-plus"></i></a>
+                        &nbsp;&nbsp;
+                        <a class="muted" href="https://www.facebook.com/joltem"><i class="fa fa-facebook"></i></a>
+                    </h4>
+                    <small class="muted">
+                        <p>2013 &copy; Joltem</p>
+                        <p><i class="fa fa-beer"></i> 1.2.0</p>
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    
 {% endblock %}
-
-{% if DEBUG %}
-    <script src="{% static 'joltem/js/jquery.js' %}"></script>
-    <script src="{% static 'joltem/js/bootstrap.js' %}"></script>
-{% else %}
-    <script src="{% static 'joltem/js/jquery.min.js' %}"></script>
-    <script src="{% static 'joltem/js/bootstrap.min.js' %}"></script>
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'UA-487998-17', 'joltem.com');
-        ga('send', 'pageview');
-    </script>
-{% endif %}
-<script src="{% static 'joltem/js/retina.js' %}"></script>
-
-{% block scripts %}{% endblock %}
-</body>
-</html>
