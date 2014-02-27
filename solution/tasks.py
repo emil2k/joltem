@@ -12,7 +12,7 @@ def archive_solutions():
     """ Archive solutions after a time period. """
     frontier = now() - timedelta(seconds=settings.SOLUTION_LIFE_PERIOD_SECONDS)
     for solution in Solution.objects.select_related('owner').filter(
-            time_completed__lte=frontier):
+            time_completed__lte=frontier, is_archived=False):
         archive_solution.delay(solution)
 
 

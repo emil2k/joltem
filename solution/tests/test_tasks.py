@@ -21,19 +21,23 @@ class SolutionTasksTest(TestCase):
             'solution.solution', task=mixer.RANDOM, time_completed=frontier)
         s3 = mixer.blend(
             'solution.solution', task=mixer.RANDOM, time_completed=frontier)
+        s4 = mixer.blend(
+            'solution.solution', task=mixer.RANDOM, time_completed=frontier,
+            is_archived=True)
         self.assertFalse(s1.is_archived)
         self.assertFalse(s2.is_archived)
         self.assertFalse(s3.is_archived)
 
         from solution.tasks import archive_solutions
         archive_solutions.delay()
-        s1, s2, s3 = Solution.objects.all()
+        s1, s2, s3, s4 = Solution.objects.all()
         self.assertFalse(s1.is_archived)
         self.assertTrue(s2.is_archived)
         self.assertTrue(s3.is_archived)
 
         self.assertTrue(s2.owner.notification_set.all())
         self.assertTrue(s3.owner.notification_set.all())
+        self.assertFalse(s4.owner.notification_set.all())
         notify = s2.owner.notification_set.get()
         self.assertEqual(
             notify.get_text(), 'Solution "%s" was archived' % s2.default_title)
