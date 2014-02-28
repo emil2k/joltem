@@ -7,7 +7,7 @@ class CommentHolder:
 
     def __init__(self, comment, user):
         self.comment = comment
-        self.url = comment.get_comment_url()
+        self.url = comment.get_absolute_url()
         self.is_author = user.id == comment.owner_id
 
     @classmethod

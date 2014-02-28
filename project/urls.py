@@ -21,4 +21,5 @@ urlpatterns = patterns(
     url(r'^solution/', include('solution.urls', namespace='solution')),
     url(r'^search/', views.ProjectSearchView.as_view(),
         name='search'),
+    url(r'^feed/', views.ProjectActivityFeed(), name='project-feed'),
 )

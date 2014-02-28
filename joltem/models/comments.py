@@ -4,6 +4,7 @@ import logging
 
 from django.db import models
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.contrib.contenttypes import generic, models as content_type_models
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
@@ -39,13 +40,12 @@ class Comment(Owned, ProjectContext, Updatable):
     def __unicode__(self):
         return u'Comment by %s' % self.owner
 
-    def get_comment_url(self):
+    def get_absolute_url(self):
         """ Get anchor link to this comment.
 
         :return str:
 
         """
-        from django.core.urlresolvers import reverse
         from solution.models import Solution
         # Depends on the commentable type
         anchor = lambda path: path + \
@@ -68,7 +68,7 @@ class Comment(Owned, ProjectContext, Updatable):
         """
         return dict(
             owner_id=self.owner_id, owner_name=self.owner.first_name,
-            url=self.get_comment_url())
+            url=self.get_absolute_url())
 
 
 class Commentable(Notifying, Owned, ProjectContext):
