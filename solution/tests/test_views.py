@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django_webtest import WebTest
 
-from joltem.libs import mixer
+from joltem.libs import mixer, load_model
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
@@ -554,7 +554,7 @@ class SolutionViewTest(BaseSolutionViewTest):
         self.assertEqual(comment.owner, self.solution.owner)
 
         # Should not update time when comment has posted
-        solution = models.load_model(self.solution)
+        solution = load_model(self.solution)
         self.assertEqual(solution.time_updated, updated_at)
 
     def test_solution_vote_post(self):
@@ -565,7 +565,7 @@ class SolutionViewTest(BaseSolutionViewTest):
             'voteable_type': 1})
 
         # Should not update time when comment has posted
-        solution = models.load_model(solution)
+        solution = load_model(solution)
         self.assertEqual(solution.time_updated, updated_at)
 
     def test_solution_comment_edit_delete(self):
@@ -603,7 +603,7 @@ class SolutionEditView(BaseSolutionViewTest):
             'description': 'new description'
         })
         self.assertTrue(response.status_code, 302)
-        reloaded = models.load_model(self.solution)
+        reloaded = load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
 
@@ -613,7 +613,7 @@ class SolutionEditView(BaseSolutionViewTest):
             'title': 'another new title',
             'description': 'another new description'
         })
-        reloaded = models.load_model(self.solution)
+        reloaded = load_model(self.solution)
         self.assertEqual(reloaded.title, 'new title')
         self.assertEqual(reloaded.description, 'new description')
 
@@ -734,6 +734,7 @@ class SolutionListsCaching(TestCase):
     def setUp(self):
         """ Imports to properly setup lists meta class. """
         self.project = mixer.blend('project.project')
+        cache.clear()
 
     def mock_view(self, view, user):
         """ Prepare a mock view instance, with a mock request and user.
@@ -774,11 +775,21 @@ class SolutionListsCaching(TestCase):
         v = self.mock_view(views.MyReviewSolutionsView, bill)
         s = mixer.blend('solution.solution', project=self.project)
         s.mark_complete(1)
-        self.assertEqual(v.get_tab_counts(is_personal=True)
-                         .get('solutions_my_review'), 1)
+        self.assertEqual(
+            v.get_tab_counts(is_personal=True) .get('solutions_my_review'), 1)
         s.put_vote(bill, True)
-        self.assertEqual(v.get_tab_counts(is_personal=True)
-                         .get('solutions_my_review'), 0)
+        self.assertEqual(
+            v.get_tab_counts(is_personal=True) .get('solutions_my_review'), 0)
+
+    def test_cached_review_count(self):
+        bill = mixer.blend('joltem.user', username='bill')
+        v = self.mock_view(views.MyReviewSolutionsView, bill)
+        counts = v.get_cached_tab_counts(is_personal=True)
+        self.assertEqual(counts['solutions_my_review'], 0)
+        s = mixer.blend('solution.solution', project=self.project)
+        s.mark_complete(1)
+        counts = v.get_cached_tab_counts(is_personal=True)
+        self.assertEqual(counts['solutions_my_review'], 1)
 
     def test_review_anonymous(self):
         """ Test access as anonymous user.

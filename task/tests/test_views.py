@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django_webtest import WebTest
 from django.core.urlresolvers import reverse
-from joltem.libs import mixer
+from joltem.libs import mixer, load_model
 from joltem.libs.mock import models, requests
 from joltem.libs.tests import ViewTestMixin
 from project.tests.test_views import BaseProjectViewTest, BaseProjectPermissionsTestCase
@@ -391,7 +391,7 @@ class TaskViewTest(BaseTaskViewTest):
         self._post(views.TaskView.as_view(), {'comment': 'comment'})
         comments = self.task.comment_set.all()
         self.assertTrue(comments)
-        _task = models.load_model(self.task)
+        _task = load_model(self.task)
         self.assertEqual(_task.time_updated, self.task.time_updated)
 
 
