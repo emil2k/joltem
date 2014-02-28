@@ -4,6 +4,7 @@
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django_markdown.utils import markdown
 from django.contrib.syndication.views import Feed
 from django.db.models import Q
 from django.http import Http404
@@ -618,16 +619,14 @@ class ProjectActivityFeed(Feed):
 
     def item_description(self, item):
         """ Return item description. """
-        import markdown
-        # TODO: Enable markdown when solution 103 will be merged
         if item.model_name == 'task':
-            return markdown.markdown(item.description or '')
+            return markdown(item.description or '')
 
         if item.model_name == 'solution':
-            return markdown.markdown(item.description or '')
+            return markdown(item.description or '')
 
         if item.model_name == 'comment':
-            return markdown.markdown(item.comment or '')
+            return markdown(item.comment or '')
 
         return unicode(item)
 
