@@ -1,6 +1,13 @@
 {% extends 'project/base.html' %}
-{% load markup %}
+{% load django_markdown %}
 {% block title %}New Solution - Joltem{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% markdown_media %}
+    {% markdown_editor "textarea" %}
+{% endblock %}
+
 {% block project_content %}
     <div class="row">
         <div class="span8">
@@ -13,7 +20,7 @@
                 <div class="alert alert-info">This solution will be placed under this <strong>parent solution</strong>.</div>
                 <h4>{{ solution.default_title }} <span class="muted">by {{ solution.owner.first_name }}</span></h4>
                 {% if solution.description %}
-                    {{ solution.description|markdown:'tables,fenced_code' }}
+                    {{ solution.description|markdown }}
                 {% else %}
                     <p class="muted">Parent solution has no description.</p>
                 {% endif %}
@@ -22,7 +29,7 @@
             {% if task %}
                 <div class="alert alert-info">This solution will be placed under this <strong>parent task</strong>.</div>
                 <h4>{{ task.title }}</h4>
-                {{ task.description|markdown:'tables,fenced_code' }}
+                {{ task.description|markdown }}
                 <hr/>
             {% endif %}
             <form method="post">

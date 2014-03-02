@@ -1,4 +1,5 @@
-{% load markup %}
+{% load django_markdown %}
+
 {% for comment_holder in comments %}
     {% with comment=comment_holder.comment %}
         <a name="comment-{{ comment.id }}" class="anchor-fix"></a>
@@ -22,7 +23,7 @@
                     <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
                 </p>
                 <div id="comment-edit-{{ comment.id }}" class="comment {% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">
-                    {{ comment.comment|markdown:"tables,fenced_code" }}
+                    {{ comment.comment|markdown }}
                 </div>
                 {% if comment_holder.is_author %}
                     <span class="muted" id="activate-comment-edit-{{ comment.id }}">
@@ -40,7 +41,7 @@
         {% if user.is_authenticated %}
             <form method="post">
                 {% csrf_token %}
-                <textarea class="input-block-level" rows=5 name="comment" placeholder="Add a comment."></textarea>
+                <textarea class="input-block-level" rows=5 name="comment" placeholder="Add a comment." id="new_comment"></textarea>
                 <button class="btn" type="submit">Comment</button>
             </form>
         {% else %}

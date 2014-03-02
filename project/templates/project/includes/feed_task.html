@@ -1,4 +1,4 @@
-{% load markup %}
+{% load django_markdown %}
 <hr class="hidden-tablet hidden-desktop"/>
 <div class="row">
     <div class="offset1 span6">
@@ -16,7 +16,7 @@
         {% if not task.is_closed %}
             {% if not task.is_reviewed or task.is_accepted %}
                 {% if task.description %}
-                    <div class="muted feed-description">{{ task.description|markdown:"tables,fenced_code" }}</div>
+                    <div class="muted feed-description">{{ task.description|markdown }}</div>
                 {% else %}
                     <div class="muted feed-description"><p>Task has not been described yet.</p></div>
                 {% endif %}

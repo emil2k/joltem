@@ -1,4 +1,4 @@
-{% load markup %}
+{% load django_markdown %}
 <hr class="hidden-tablet hidden-desktop"/>
 <div class="row">
     <div class="span1 text-center hidden-phone">
@@ -21,7 +21,7 @@
         </p>
         {% if not solution.is_closed and not solution.is_archived %}
             {% if solution.description %}
-                <div class="muted feed-description">{{ solution.description|markdown:"tables,fenced_code" }}</div>
+                <div class="muted feed-description">{{ solution.description|markdown }}</div>
             {% else %}
                 <div class="muted feed-description"><p>Solution has not been described yet.</p></div>
             {% endif %}

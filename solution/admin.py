@@ -3,6 +3,7 @@
 
 from django.contrib import admin
 from django.contrib.contenttypes.generic import GenericTabularInline
+from django_markdown.admin import MarkdownModelAdmin
 
 from .models import Solution
 from joltem.models import Vote
@@ -16,7 +17,7 @@ class _VoteInlideAdmin(GenericTabularInline):
     raw_id_fields = 'voter',
 
 
-class _SolutionAdmin(admin.ModelAdmin):
+class _SolutionAdmin(MarkdownModelAdmin):
 
     list_display = 'default_title', 'is_completed', 'is_closed', 'is_archived'
     inlines = _VoteInlideAdmin,
