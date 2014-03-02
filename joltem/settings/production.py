@@ -62,13 +62,13 @@ DATABASES = {
     }
 }
 
-SESSION_ENGINE = 'redis_sessions.session'
-SESSION_REDIS_URL = 'redis://localhost:6379/0'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
-CACHES['default']['BACKEND'] = 'redis_cache.RedisCache'
-CACHES['default']['LOCATION'] = 'localhost:6379'
+CACHES['default']['BACKEND'] = 'redis_cache.cache.RedisCache'
+CACHES['default']['LOCATION'] = 'localhost:6379:1'
 CACHES['default']['OPTIONS'] = {
-    'DB': 1, 'PASSWORD': '', 'PARSER_CLASS': 'redis.connection.HiredisParser'}
+    'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+    'PARSER_CLASS': 'redis.connection.HiredisParser'}
 CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
 SECRET_KEY = 'imsosecret'

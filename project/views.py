@@ -148,7 +148,7 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :returns: Key's string
 
         """
-        return "%s:tabs" % self.project.pk
+        return "project:%s:tabs" % self.project.pk
 
     @cached_property
     def personal_tab_counts_cache_key(self):
@@ -157,7 +157,7 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :returns: Key's string
 
         """
-        return "%s:%s:tabs" % (self.project.pk, self.user.pk)
+        return "project:%s:user:%s:tabs" % (self.project.pk, self.user.pk)
 
     def get_context_data(self, **kwargs):
         """ Get context data for templates.
