@@ -1,41 +1,10 @@
-{% load django_markdown %}
-
 {% for comment_holder in comments %}
-    {% with comment=comment_holder.comment %}
-        <a name="comment-{{ comment.id }}" class="anchor-fix"></a>
-        <div class="row">
-            <div class="row hidden-desktop hidden-tablet">
-                <div class="span8">
-                    <img class="img-rounded pull-right" src="{{ comment.owner.gravatar }}?s=50" /></p>
-                    <h4><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a></h4>
-                </div>
-            </div>
-            <div class="span2 text-center hidden-phone">
-                <p>
-                    <img class="img-rounded" src="{{ comment.owner.gravatar }}?s=75" /><br/>
-                </p>
-                <p>
-                    <b><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a></b><br/>
-                </p>
-            </div>
-            <div class="span8">
-                <p>
-                    <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
-                </p>
-                <div id="comment-edit-{{ comment.id }}" class="comment {% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">
-                    {{ comment.comment|markdown }}
-                </div>
-                {% if comment_holder.is_author %}
-                    <span class="muted" id="activate-comment-edit-{{ comment.id }}">
-                        <a class="muted" href="{{ comment_holder.url }}" onclick="edit_comment({{ comment.id }}); return true;">edit</a> -
-                        <a class="muted" href="{{ comment_holder.url }}" onclick="delete_comment({{ comment.id }}); return false;">delete</a>
-                    </span>
-                {% endif %}
-            </div>
-        </div>
+    {% with comment=comment_holder.comment editable=comment_holder.is_author  %}
+        {% include 'joltem/includes/comment_inline.html'%}
     {% endwith %}
     <hr/>
 {% endfor %}
+
 <div class="row">
     <div class="offset2 span8">
         {% if user.is_authenticated %}

@@ -27,10 +27,19 @@ class TestJoltemViews(TestCase):
         self.client.login(username=self.user.username, password='test')
         profiled = mixer.blend('joltem.user', username='bill1978',
                                first_name='Billy', last_name="Bob")
-        response = self.client.get(reverse('user',
-                                           args=[profiled.username]))
+        comment = mixer.blend('joltem.comment', owner=profiled)
+        solution1 = mixer.blend(
+            'solution.solution', owner=profiled, title=mixer.RANDOM)
+        solution2 = mixer.blend(
+            'solution.solution', owner=profiled, is_completed=True,
+            is_closed=True, task=mixer.RANDOM)
+        response = self.client.get(reverse(
+            'user', args=[profiled.username]))
         self.assertContains(response, 'Billy')
         self.assertContains(response, '<title>Billy Bob - Joltem</title>')
+        self.assertContains(response, solution1.title)
+        self.assertContains(response, solution2.default_title)
+        self.assertContains(response, comment.comment)
 
     def test_notifications(self):
         for _ in range(2):

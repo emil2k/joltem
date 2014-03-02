@@ -1,0 +1,28 @@
+{% load django_markdown %}
+
+<a name="comment-{{ comment.pk }}" class="anchor-fix"></a>
+<div class="row">
+    {% if not hide_author %}
+        <div class="span2 text-center hidden-phone">
+            <p><img class="img-rounded" src="{{ comment.owner.gravatar }}?s=75" /><br/></p>
+            <p>
+                <b><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a></b><br/>
+            </p>
+        </div>
+    {% endif %}
+    <div class="span8">
+        <p>
+            <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
+        </p>
+        <div id="comment-edit-{{ comment.id }}" class="comment {% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">
+            {{ comment.comment|markdown }}
+        </div>
+        {% if editable %}
+            <span class="muted" id="activate-comment-edit-{{ comment.id }}">
+                <a class="muted" href="{{ comment_holder.url }}" onclick="edit_comment({{ comment.id }}); return true;">edit</a> -
+                <a class="muted" href="{{ comment_holder.url }}" onclick="delete_comment({{ comment.id }}); return false;">delete</a>
+            </span>
+        {% endif %}
+    </div>
+</div>
+
