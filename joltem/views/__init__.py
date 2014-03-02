@@ -1,6 +1,8 @@
 # coding: utf-8
 """ Joltem views. """
 from collections import defaultdict
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (
@@ -67,6 +69,23 @@ class UserView(DetailView):
     slug_url_kwarg = 'username'
     template_name = 'joltem/user.html'
     context_object_name = 'profile_user'
+
+    def get_context_data(self, **kwargs):
+        """ Prepare user feeds.
+
+        :returns: Context dictionary
+
+        """
+        ctx = super(UserView, self).get_context_data(**kwargs)
+        user = self.object
+        comments = Paginator(user.comment_set.order_by('-time_commented'), 10)
+        solutions = Paginator(user.solution_set.filter(
+            Q(is_completed=True) | Q(is_completed=False, is_closed=False)
+        ).order_by('is_completed', '-time_updated'), 10)
+        cpage = comments.page(int(self.request.GET.get('cpage', 1)))
+        spage = solutions.page(int(self.request.GET.get('spage', 1)))
+        ctx.update(dict(cpage=cpage, spage=spage))
+        return ctx
 
 
 class CommentView(View):

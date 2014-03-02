@@ -1,19 +1,15 @@
 """ Joltem URLS. """
-
-from django.conf.urls import patterns, include, url
+from django.conf import settings
+from django.conf.urls import include, url
+from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 
-from joltem import views
+from . import views
 from project.views import ProjectCreateView
 
 
-from django.contrib import admin
-admin.autodiscover()
-
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
-    url(r'^admin/', include(admin.site.urls)),
     url(r'^intro/', login_required(
         views.IntroductionView.as_view()), name='intro'),
     url(r'^notifications/(?P<notification_id>([0-9])+)/', login_required(
@@ -30,13 +26,18 @@ urlpatterns = patterns(
     url(r'^new/$', login_required(ProjectCreateView.as_view()), name='new'),
     url(r'^(?P<project_id>\d+)/', include(
         'project.urls', namespace='project')),
-)
+]
 
-from django.conf import settings
+# Django-markdown support
+urlpatterns += [url(r'^markdown/', include('django_markdown.urls'))]
+
+# Django admin
+admin.autodiscover()
+urlpatterns += [url(r'^admin/', include(admin.site.urls))]
+
+# Staticfiles
 if settings.DEBUG:
     from django.conf.urls.static import static
 
     urlpatterns += static(
         settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-# lint_ignore=E1120

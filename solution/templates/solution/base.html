@@ -1,8 +1,13 @@
 {% extends 'project/base.html' %}
 {% load static from staticfiles %}
-{% load filters %}
-{% load markup %}
+{% load filters django_markdown %}
+
 {% block title %}{{ solution.default_title }} - Joltem{% endblock %}
+
+{% block scripts %}
+    {% include "joltem/commenting_scripts.html" %}
+{% endblock %}
+
 {% block project_content %}
     <ul class="nav nav-tabs">
         <li class="{{ solution_tab|active:"solution" }}"><a href="{% url 'project:solution:solution' project.id solution.id %}">Solution</a></li>
@@ -12,8 +17,4 @@
         {% endif %}
     </ul>
     {% block solution_content %}{% endblock %}
-    {% block scripts %}
-        {% include "joltem/commenting_scripts.html" %}
-        {% block solution_scripts %}{% endblock %}
-    {% endblock %}
 {% endblock %}

@@ -32,6 +32,7 @@ class User(AbstractUser):
     notify_by_email = models.PositiveSmallIntegerField(
         default=NOTIFY_CHOICES.disable, choices=NOTIFY_CHOICES)
     time_notified = models.DateTimeField(default=timezone.now)
+    about = models.TextField(blank=True)
 
     def update(self):
         """ Update user stats.

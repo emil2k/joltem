@@ -1,10 +1,10 @@
 """ Solution related tests. """
 from django.test import TestCase
 
-from joltem.libs import mixer
+from joltem.libs import mixer, load_model
 from joltem.libs.mock.models import (
     get_mock_user, get_mock_project, get_mock_task, get_mock_solution,
-    load_project_impact, load_model)
+    load_project_impact)
 from joltem.models.votes import VOTEABLE_THRESHOLD
 from project.models import Impact
 

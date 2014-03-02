@@ -18,13 +18,14 @@ SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
 SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
 ALLOWED_HOSTS = [
     ".joltem.com", ".joltem.com.", ".joltem.local", ".joltem.local."]
+CONFIGURATION_DIR = op.join(op.dirname(PROJECT_ROOT), 'configuration')
 
 # New relic default settings
 NEW_RELIC_LICENSE_KEY = 'not secret'
 NEW_RELIC_REPORT_DURATION = 30
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'joltem.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 ROOT_URLCONF = 'joltem.urls'
 
@@ -33,9 +34,6 @@ LANGUAGE_CODE = 'en-us'
 
 MIDDLEWARE_CLASSES += 'django.middleware.csrf.CsrfViewMiddleware',
 INSTALLED_APPS += (
-
-    # Contrib
-    'markup_deprecated',
 
     # Vendors
     'mathfilters',
@@ -64,13 +62,13 @@ DATABASES = {
     }
 }
 
-SESSION_ENGINE = 'redis_sessions.session'
-SESSION_REDIS_URL = 'redis://localhost:6379/0'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
-CACHES['default']['BACKEND'] = 'redis_cache.RedisCache'
-CACHES['default']['LOCATION'] = 'localhost:6379'
+CACHES['default']['BACKEND'] = 'redis_cache.cache.RedisCache'
+CACHES['default']['LOCATION'] = 'localhost:6379:1'
 CACHES['default']['OPTIONS'] = {
-    'DB': 1, 'PASSWORD': '', 'PARSER_CLASS': 'redis.connection.HiredisParser'}
+    'CLIENT_CLASS': 'redis_cache.client.DefaultClient',
+    'PARSER_CLASS': 'redis.connection.HiredisParser'}
 CACHES['default']['KEY_PREFIX'] = '_'.join((PROJECT_NAME, ENVIRONMENT_NAME))
 
 SECRET_KEY = 'imsosecret'
@@ -87,6 +85,17 @@ NOTIFICATION_TYPES('task_posted')
 NOTIFICATION_TYPES('task_rejected')
 NOTIFICATION_TYPES('vote_added')
 NOTIFICATION_TYPES('vote_updated')
+
+# Markdown support
+INSTALLED_APPS += 'django_markdown',
+# MARKDOWN_SET_NAME = 'markdown'
+MARKDOWN_EXTENSIONS = 'extra', 'codehilite'
+MARKDOWN_EXTENSION_CONFIGS = {
+    'codehilite': {
+        'linenums': False
+    }
+}
+MARKDOWN_PREVIEW_TEMPLATE = "joltem/markdown.html"
 
 # Haystack settings
 INSTALLED_APPS += 'haystack',

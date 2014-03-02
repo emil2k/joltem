@@ -4,11 +4,9 @@
 <div class="row hidden-desktop hidden-tablet">
     <div class="span8">
         <img class="img-rounded pull-right" src="{{ user.gravatar }}?s=50"/>
-        <h4><a href="#">{{ user.first_name }}</a></h4>
+        <h4><a href="{% url 'user' user.username %}">{{ user.first_name }}</a></h4>
         <p>
-            <strong>{{ user.impact }}</strong>
-            impact on
-            <strong>{{ user.completed }}</strong> solutions.
+        <a href="url"><strong>{{ user.impact }}</strong> impact on <strong>{{ user.completed }}</strong> solutions.</a>
         </p>
         <hr class="clearfix"/>
     </div>
@@ -20,7 +18,7 @@
     </div>
     <div class="span6">
         <h4 class="text-info">
-            {{ user.impact }} impact on {{ user.completed }} completed solution{{ user.completed|pluralize }}.
+            <a href="{% url 'user' user.username %}">{{ user.impact }} impact on {{ user.completed }} completed solution{{ user.completed|pluralize }}.</a>
         </h4>
         <small class="muted">Joined {{ user.date_joined|date }}</small>
         <p>
@@ -62,6 +60,8 @@
             {% include 'joltem/includes/form_field.html' with field=form.gravatar_email help_html='Optional, for avatar, <a href="http://gravatar.com" target="_blank">more info</a> <i class="fa fa-globe"></i>' %}
 
             {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
+
+            {% include 'joltem/includes/form_field.html' with field=form.about help_html='Optional, markdown supported.' %}
 
             <div class="control-group">
                 <div class="controls">

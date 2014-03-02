@@ -1,16 +1,49 @@
 {% extends 'joltem/base.html' %}
+{% load django_markdown %}
 {% block title %}{{ profile_user.first_name }} {{ profile_user.last_name }} - Joltem{% endblock %}
 {% block content %}
     <div class="row">
-        <div class="span12">
-            <img class="img-rounded pull-right" src="{{ profile_user.gravatar }}?s=50" />
-            <h4>{{ profile_user.first_name }}</h4>
+        <div class="span3">
+            <img class="img-rounded" src="{{ profile_user.gravatar }}" />
+            <h4>{{ profile_user.first_name }} {{ profile_user.last_name }}</h4>
             <p><b>{{ profile_user.impact }}</b> impact <b>{{ profile_user.completed }}</b> solutions</p>
-            <hr class="clearfix"/>
+            <hr>
+            {{ profile_user.about|markdown }}
         </div>
-    </div>
-    <div class="alert alert">
-        <strong>To do : </strong>
-        a page with information about the user his work history, roles in various projects, provided solutions, amount of impact earned ...
+        <div class="span4">
+            <h3><i class="fa fa-comment"></i> Activity feed</h3>
+            {% for comment in cpage %}
+                <p>
+                    <small><a href="{{ comment.get_comment_url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
+                </p>
+                <div class="muted feed-description"> {{ comment.comment|markdown }} </div>
+            {% empty %}
+                <p class="alert alert">
+                    <i class="fa fa-bullhorn"></i>
+                    There has been no activity for this user.
+                </p>
+            {% endfor %}
+            {% with page_obj=cpage is_paginated=cpage.has_other_pages page_name="cpage" %}
+                {% include 'joltem/includes/pagination.html'%}
+            {% endwith %}
+        </div>
+        <div class="span4">
+            <h3><i class="fa fa-check"></i> Solutions</h3>
+            {% for solution in spage %}
+                <p>
+                    <small><a href="{% url 'project:solution:solution' solution.project.id solution.id %}" class="muted">{{ solution.time_updated|date }} @ {{ solution.time_updated|time }}</a></small>
+                    {% if solution.is_completed %} <span class="label label-success">completed</span> {% endif %}
+                <h5> {{ solution.default_title }} </h5>
+                </p>
+            {% empty %}
+                <p class="alert alert">
+                    <i class="fa fa-bullhorn"></i>
+                    There has been no solutions for this user.
+                </p>
+            {% endfor %}
+            {% with page_obj=spage is_paginated=spage.has_other_pages page_name="spage" %}
+                {% include 'joltem/includes/pagination.html'%}
+            {% endwith %}
+        </div>
     </div>
 {% endblock %}

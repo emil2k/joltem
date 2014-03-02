@@ -1,10 +1,10 @@
-{% load markup %}
+{% load django_markdown %}
 <hr class="hidden-tablet hidden-desktop"/>
 <div class="row">
     <div class="offset1 span6">
         <p>
             <i class="fa fa-tasks"></i>
-            <a class="muted" href="{% url 'project:task:task' task.project.id task.id %}">{{ task.title }}</a>
+            <a class="muted" href="{{ task.get_absolute_url }}">{{ task.title }}</a>
             {% if task.is_closed %}
                 <span class="label label-info">closed</span>
             {% elif not task.is_reviewed%}
@@ -16,7 +16,7 @@
         {% if not task.is_closed %}
             {% if not task.is_reviewed or task.is_accepted %}
                 {% if task.description %}
-                    <div class="muted feed-description">{{ task.description|markdown:"tables,fenced_code" }}</div>
+                    <div class="muted feed-description">{{ task.description|markdown }}</div>
                 {% else %}
                     <div class="muted feed-description"><p>Task has not been described yet.</p></div>
                 {% endif %}

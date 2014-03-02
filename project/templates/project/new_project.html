@@ -1,6 +1,13 @@
 {% extends 'joltem/base.html' %}
-{% load widget_tweaks %}
+{% load widget_tweaks django_markdown %}
 {% block title %}Create Project - Joltem{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% markdown_media %}
+    {% markdown_editor "#id_description " %}
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="span8">
@@ -17,7 +24,6 @@
                             <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
                         {% endif %}
                         {% render_field form.description class="input-block-level" placeholder=form.description.label %}
-
                         <hr/>
                     </div>
                 </div>

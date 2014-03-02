@@ -4,6 +4,7 @@ import logging
 
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
+from django.core.cache import cache
 
 logger = logging.getLogger('django')
 
@@ -55,6 +56,8 @@ class ProjectContext(models.Model):
         if self.project_id is None:
             raise ImproperlyConfigured(
                 "Project foreign key field must be set in implementing class.")
+        if hasattr(cache, 'delete_pattern'):
+            cache.delete_pattern('project:%s:*' % self.project_id)
         super(ProjectContext, self).save(**kwargs)
 
 

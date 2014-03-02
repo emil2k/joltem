@@ -60,11 +60,12 @@ class GeneralSettingsForm(forms.ModelForm):
     email = forms.EmailField(label=_('Email'))
     gravatar_email = forms.EmailField(label=_('Gravatar'), required=False)
     notify_by_email = forms.ChoiceField(choices=User.NOTIFY_CHOICES)
+    about = forms.CharField(widget=forms.Textarea())
 
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'gravatar_email',
-                  'notify_by_email')
+                  'notify_by_email', 'about')
 
 
 class SSHKeyForm(forms.ModelForm):

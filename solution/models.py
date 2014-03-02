@@ -2,6 +2,7 @@
 import logging
 from django.conf import settings
 from django.core import serializers
+from django.core.urlresolvers import reverse
 from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
@@ -35,7 +36,7 @@ class Solution(Voteable, Commentable, Updatable):
     model_name = "solution"
 
     # Optional custom title to solution
-    title = models.TextField(null=True, blank=True)
+    title = models.CharField(max_length=200, blank=True, null=True)
     # Description of solution for all involved
     description = models.TextField(null=True, blank=True)
     # Whether solution was marked completed
@@ -274,16 +275,18 @@ class Solution(Voteable, Commentable, Updatable):
 
     def get_notification_url(self, notification):
         """ Return notification target url. """
-        from django.core.urlresolvers import reverse
         if settings.NOTIFICATION_TYPES.vote_added == notification.type \
             or settings.NOTIFICATION_TYPES.vote_updated == notification.type \
             or settings.NOTIFICATION_TYPES.solution_evaluation_changed \
                 == notification.type:
             return reverse("project:solution:review",
-                           args=[self.project.id, self.id])
-        else:
-            return reverse("project:solution:solution",
-                           args=[self.project.id, self.id])
+                           args=[self.project_id, self.id])
+        return self.get_absolute_url()
+
+    def get_absolute_url(self):
+        """ Return target url. """
+        return reverse("project:solution:solution",
+                       args=[self.project_id, self.id])
 
     def get_notification_kwargs(self, notification=None, **kwargs):
         """ Precache notification kwargs.

@@ -1,6 +1,6 @@
 {% extends 'project/base.html' %}
 {% load filters %}
-{% load markup %}
+{% load django_markdown %}
 {% block title %}{{ project.title }} - Overview - Joltem{% endblock %}
 {% block project_content %}
     <div class="row">
@@ -46,7 +46,7 @@
             </div>
             <div class="row">
                 <div class="span6">
-                    {{ project.description|markdown:"tables,fenced_code" }}
+                    {{ project.description|markdown }}
                 </div>
                 <div class="span3 text-center">
                     <p><i class="fa fa-money fa-3x text-info"></i></p>

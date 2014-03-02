@@ -4,6 +4,8 @@
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
+from django_markdown.utils import markdown
+from django.contrib.syndication.views import Feed
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -148,7 +150,7 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :returns: Key's string
 
         """
-        return "%s:tabs" % self.project.pk
+        return "project:%s:tabs" % self.project.pk
 
     @cached_property
     def personal_tab_counts_cache_key(self):
@@ -157,7 +159,7 @@ class ProjectBaseListView(ProjectBaseView, ListView):
         :returns: Key's string
 
         """
-        return "%s:%s:tabs" % (self.project.pk, self.user.pk)
+        return "project:%s:user:%s:tabs" % (self.project.pk, self.user.pk)
 
     def get_context_data(self, **kwargs):
         """ Get context data for templates.
@@ -553,3 +555,81 @@ class ProjectKeysDeleteView(ProjectBaseView, DeleteView):
         """
         return reverse('project:keys', kwargs=dict(
             project_id=self.project.id))
+
+
+class ProjectActivityFeed(Feed):
+
+    """ Support RSS whichi project activity. """
+
+    def title(self):
+        """ Get feed title.
+
+        :returns: A title string.
+
+        """
+        return u"%s — Activity Feed" % self.project.title.capitalize()
+
+    def link(self):
+        """ Get feed link.
+
+        :returns: A link string.
+
+        """
+        return reverse('project:project', args=[self.project.id])
+
+    def description(self):
+        """ Get feed description.
+
+        :returns: A description string.
+
+        """
+        return self.project.description
+
+    def get_object(self, request, *args, **kwargs):
+        """ Load current project.
+
+        :returns: A project
+
+        """
+        project_id = kwargs.get('project_id')
+        self.project = get_object_or_404(Project, pk=project_id)
+        return self.project
+
+    def items(self):
+        """ Get feed items.
+
+        :returns: A objects list
+
+        """
+        overview = self.project.get_overview()
+        return overview.get('feed', [])
+
+    def item_title(self, item):
+        """ Return item title. """
+        if item.model_name == 'task':
+            return item.title
+        if item.model_name == 'solution':
+            return item.default_title
+        if item.model_name == 'comment':
+            return '%s commented on %s "%s"' % (
+                item.owner.first_name, item.commentable.model_name,
+                item.commentable.title or item.commentable.default_title
+            )
+        return unicode(item)
+
+    def item_description(self, item):
+        """ Return item description. """
+        if item.model_name == 'task':
+            return markdown(item.description or '')
+
+        if item.model_name == 'solution':
+            return markdown(item.description or '')
+
+        if item.model_name == 'comment':
+            return markdown(item.comment or '')
+
+        return unicode(item)
+
+    def item_pubdate(self, item):
+        """ Return item date. """
+        return item.time_updated
