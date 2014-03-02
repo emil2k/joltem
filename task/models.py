@@ -1,6 +1,7 @@
 """ Task's models.  """
 
 from django.db import models
+from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core import serializers
 from django.conf import settings
@@ -254,7 +255,14 @@ class Task(Commentable, Updatable):
         :return str:
 
         """
-        from django.core.urlresolvers import reverse
+        return self.get_absolute_url()
+
+    def get_absolute_url(self):
+        """ Get the task URL.
+
+        :return str:
+
+        """
         return reverse("project:task:task", args=[self.project.id, self.id])
 
     def get_notification_kwargs(self, notification=None, **kwargs):

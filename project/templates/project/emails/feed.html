@@ -12,7 +12,7 @@
                 <p>
                     {{ comment.comment }}
                     by <a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a>
-                    <a href="http://joltem.com/{{ comment.get_comment_url }}">Click it! »</a>
+                    <a href="http://joltem.com/{{ comment.get_absolute_url }}">Click it! »</a>
                 </p>
                 {% endfor %} {% endif %}
 

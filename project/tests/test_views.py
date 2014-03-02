@@ -356,3 +356,19 @@ class TestProjectKeysView(TestCase):
         self.assertTrue(keys[1] in ssh_keys)
         self.assertFalse(keys[0] in ssh_keys)
         self.assertEqual(self.project.authentication_set.count(), 1)
+
+
+class TestProjectFeed(TestCase):
+
+    def test_feed(self):
+        project = mixer.blend('project.project')
+        uri = reverse(
+            'project:project-feed', kwargs=dict(project_id=project.pk))
+        bill = mixer.blend('joltem.user')
+        task = mixer.blend('task.task', project=project)
+        task.mark_reviewed(bill, 1)
+        solution = mixer.blend('solution.solution', project=project, task=task)
+        solution.mark_complete(1)
+        solution.add_comment(bill, 'comment')
+        response = self.client.get(uri)
+        self.assertContains(response, task.title)

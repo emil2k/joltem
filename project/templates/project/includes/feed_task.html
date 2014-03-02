@@ -4,7 +4,7 @@
     <div class="offset1 span6">
         <p>
             <i class="fa fa-tasks"></i>
-            <a class="muted" href="{% url 'project:task:task' task.project.id task.id %}">{{ task.title }}</a>
+            <a class="muted" href="{{ task.get_absolute_url }}">{{ task.title }}</a>
             {% if task.is_closed %}
                 <span class="label label-info">closed</span>
             {% elif not task.is_reviewed%}
