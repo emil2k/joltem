@@ -22,7 +22,7 @@ class Migration(DataMigration):
         :return:
 
         """
-        for solution in Solution.objects.all():
+        for solution in orm.Solution.objects.all():
             solution.vote_set.clear()
             solution.impact = 0
             solution.acceptance = None
