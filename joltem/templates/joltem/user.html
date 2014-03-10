@@ -23,16 +23,16 @@
             </div>
         </div>
         <div class="span4">
-            <h3><i class="fa fa-comment"></i> Activity feed</h3>
+            <h4><i class="fa fa-comments"></i> Recent comments</h4>
             {% for comment in cpage %}
                 <p>
-                    <small><a href="{{ comment.get_comment_url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
+                    <small><a href="{{ comment.get_absolute_url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
                 </p>
                 <div class="muted feed-description"> {{ comment.comment|markdown }} </div>
             {% empty %}
                 <p class="alert alert">
                     <i class="fa fa-bullhorn"></i>
-                    There has been no activity for this user.
+                    There are no comments by this user.
                 </p>
             {% endfor %}
             {% with page_obj=cpage is_paginated=cpage.has_other_pages page_name="cpage" %}
@@ -40,17 +40,24 @@
             {% endwith %}
         </div>
         <div class="span4">
-            <h3><i class="fa fa-check"></i> Solutions</h3>
+            <h4><i class="fa fa-briefcase"></i> Recent solutions</h4>
             {% for solution in spage %}
                 <p>
                     <small><a href="{% url 'project:solution:solution' solution.project.id solution.id %}" class="muted">{{ solution.time_updated|date }} @ {{ solution.time_updated|time }}</a></small>
                     {% if solution.is_completed %} <span class="label label-success">completed</span> {% endif %}
-                <h5> {{ solution.default_title }} </h5>
+                <div class="muted feed-description">
+                    <strong>{{ solution.default_title }}</strong>
+                    {% if solution.description %}
+                        {{ solutions.description|markdown }}
+                    {% else %}
+                        <p>Solution not described yet.</p>
+                    {% endif %}
+                </div>
                 </p>
             {% empty %}
                 <p class="alert alert">
                     <i class="fa fa-bullhorn"></i>
-                    There has been no solutions for this user.
+                    There are no solutions by this user.
                 </p>
             {% endfor %}
             {% with page_obj=spage is_paginated=spage.has_other_pages page_name="spage" %}
