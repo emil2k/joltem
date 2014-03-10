@@ -6,7 +6,7 @@
         <img class="img-rounded pull-right" src="{{ user.gravatar }}?s=50"/>
         <h4><a href="{% url 'user' user.username %}">{{ user.first_name }}</a></h4>
         <p>
-        <a href="url"><strong>{{ user.impact }}</strong> impact on <strong>{{ user.completed }}</strong> solutions.</a>
+        <strong>{{ user.impact }}</strong> impact on <strong>{{ user.completed }}</strong> solutions.
         </p>
         <hr class="clearfix"/>
     </div>
