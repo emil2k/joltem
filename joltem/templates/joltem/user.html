@@ -2,13 +2,25 @@
 {% load django_markdown %}
 {% block title %}{{ profile_user.first_name }} {{ profile_user.last_name }} - Joltem{% endblock %}
 {% block content %}
+    <div class="row hidden-desktop hidden-tablet">
+        <div class="span12">
+            <img class="img-rounded pull-right" src="{{ profile_user.gravatar }}?s=50"/>
+            <h4><a href="{% url 'user' profile_user.username %}">{{ profile_user.first_name }}</a></h4>
+            <p>
+                <strong>{{ profile_user.impact }}</strong> impact on <strong>{{ profile_user.completed }}</strong> solutions.
+            </p>
+            <hr class="clearfix"/>
+        </div>
+    </div>
     <div class="row">
-        <div class="span3">
-            <img class="img-rounded" src="{{ profile_user.gravatar }}" />
+        <div class="span4 hidden-phone text-center">
+            <img class="img-rounded" src="{{ profile_user.gravatar }}?s=200" />
             <h4>{{ profile_user.first_name }} {{ profile_user.last_name }}</h4>
             <p><b>{{ profile_user.impact }}</b> impact <b>{{ profile_user.completed }}</b> solutions</p>
             <hr>
-            {{ profile_user.about|markdown }}
+            <div>
+                {{ profile_user.about|markdown }}
+            </div>
         </div>
         <div class="span4">
             <h3><i class="fa fa-comment"></i> Activity feed</h3>
