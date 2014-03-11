@@ -17,6 +17,7 @@ psycopg2==2.5.1
 pyasn1==0.1.7
 pycrypto==2.6.1
 pygit2==0.19.1
+Pygments==1.6
 redis==2.8.0
 requests==2.2.1
 South==0.8.2

@@ -95,6 +95,8 @@ MARKDOWN_EXTENSION_CONFIGS = {
         'linenums': False
     }
 }
+MARKDOWN_SET_PATH = 'joltem'
+MARKDOWN_SET_NAME = 'markdown'
 MARKDOWN_PREVIEW_TEMPLATE = "joltem/markdown.html"
 
 # Haystack settings
