@@ -592,7 +592,8 @@ class ProjectActivityFeed(Feed):
 
         """
         project_id = kwargs.get('project_id')
-        self.project = get_object_or_404(Project, pk=project_id)
+        self.project = get_object_or_404(
+            Project, pk=project_id, is_private=False)
         return self.project
 
     def items(self):
