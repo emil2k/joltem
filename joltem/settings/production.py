@@ -127,11 +127,6 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=24),
         'args': (),
     },
-    'activity-feed': {
-        'task': 'project.tasks.prepare_activity_feeds',
-        'schedule': timedelta(hours=24),
-        'args': (),
-    },
     'archive-solution': {
         'task': 'solution.tasks.archive_solutions',
         'schedule': timedelta(hours=4),

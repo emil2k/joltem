@@ -16,6 +16,7 @@ from joltem.celery import app
 
 PERIOD = 60 * 60 * 24
 
+# TODO : These tasks have been disabled, because they don't abide by the notification settings.
 
 @app.task(ignore_result=True)
 def prepare_activity_feeds():
