@@ -533,6 +533,20 @@ class EmailNotificationTestCase(TestCase):
         task.add_comment(self.mike, "Mike waz here.")
         self.assertFalse(mail.outbox)
 
+    def assertMessageSent(self, to, subject, expected=True):
+        """ Assert whether message sent or not sent.
+
+        :param to: email of recipient
+        :param subject: email subject
+        :param expected: whether assertion is received or not.
+        """
+        received = False
+        for m in mail.outbox:
+            if m.subject == subject and m.recipients() == [to]:
+                received = True
+                break
+        self.assertEqual(received, expected)
+
     def test_immediately(self):
         task = mixer.blend(
             'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
@@ -555,28 +569,30 @@ class EmailNotificationTestCase(TestCase):
         notification.save()
         self.assertFalse(mail.outbox)
 
-    def test_digest(self):
-        task1 = mixer.blend(
-            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.daily)
+    def _test_digest(self, setting, expected):
+        """ Test digest receiving based on notification setting.
 
-        task2 = mixer.blend(
-            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.daily)
+        :param setting: notification setting.
+        :param expected: whether message received.
+        :return:
 
-        task1.add_comment(self.mike, "Comment")
-        task1.add_comment(task2.owner, "Comment")
-        task2.add_comment(self.mike, "Comment")
-        task2.add_comment(task1.owner, "Comment")
-
-        self.assertFalse(mail.outbox)
-
+        """
+        task = mixer.blend(
+            'task.task', owner__notify_by_email=setting)
+        task.add_comment(self.mike, "Mike's comment.")
         from joltem.tasks import daily_digest
         daily_digest.delay()
+        self.assertMessageSent(task.owner.email,
+                               "[joltem.com] Daily digest", expected)
 
-        self.assertEqual(len(mail.outbox), 2)
+    def test_digest_positive(self):
+        """ Test that users w/ daily setting get digest. """
+        self._test_digest(User.NOTIFY_CHOICES.daily, True)
 
-        m1 = mail.outbox.pop()
-        m2 = mail.outbox.pop()
-        self.assertNotEqual(m1.to, m2.to)
-        self.assertTrue("Joltem" in m1.body)
-        self.assertEqual(m1.subject, "[joltem.com] Daily digest")
-        self.assertTrue('\n\n' in m1.body)
+    def test_digest_immediate(self):
+        """ Test that users w/ immediate setting don't get digest. """
+        self._test_digest(User.NOTIFY_CHOICES.immediately, False)
+
+    def test_digest_disabled(self):
+        """ Test that users w/ disabled setting don't get digest. """
+        self._test_digest(User.NOTIFY_CHOICES.disable, False)
