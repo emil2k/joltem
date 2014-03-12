@@ -533,7 +533,7 @@ class EmailNotificationTestCase(TestCase):
         task.add_comment(self.mike, "Mike waz here.")
         self.assertFalse(mail.outbox)
 
-    def test_immedeately(self):
+    def test_immediately(self):
         task = mixer.blend(
             'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
         comment = task.add_comment(self.mike, "Mike are here.")
@@ -555,7 +555,7 @@ class EmailNotificationTestCase(TestCase):
         notification.save()
         self.assertFalse(mail.outbox)
 
-    def test_diggest(self):
+    def test_digest(self):
         task1 = mixer.blend(
             'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.daily)
 
@@ -569,8 +569,8 @@ class EmailNotificationTestCase(TestCase):
 
         self.assertFalse(mail.outbox)
 
-        from joltem.tasks import daily_diggest
-        daily_diggest.delay()
+        from joltem.tasks import daily_digest
+        daily_digest.delay()
 
         self.assertEqual(len(mail.outbox), 2)
 
@@ -578,5 +578,5 @@ class EmailNotificationTestCase(TestCase):
         m2 = mail.outbox.pop()
         self.assertNotEqual(m1.to, m2.to)
         self.assertTrue("Joltem" in m1.body)
-        self.assertEqual(m1.subject, "[joltem.com] Daily diggest")
+        self.assertEqual(m1.subject, "[joltem.com] Daily digest")
         self.assertTrue('\n\n' in m1.body)
