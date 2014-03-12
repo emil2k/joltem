@@ -11,7 +11,9 @@
         </div>
     {% endif %}
     <div class="span8">
-        <p>
+        <p class="clearfix">
+            <img class="img-rounded pull-right hidden-desktop hidden-tablet" src="{{ comment.owner.gravatar }}?s=50" />
+            <b class="hidden-desktop hidden-tablet"><a href="{% url 'user' comment.owner.username %}">{{ comment.owner.first_name }}</a><br/></b>
             <small><a href="{{ comment_holder.url }}" class="muted">{{ comment.time_commented|date }} @ {{ comment.time_commented|time }}</a></small>
         </p>
         <div id="comment-edit-{{ comment.id }}" class="comment {% if comment_holder.is_author %}editable_comment{% endif %}" data-id="{{ comment.id }}" data-loadurl="{% url 'comment' comment.id %}">

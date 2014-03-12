@@ -5,21 +5,25 @@
     <hr/>
 {% endfor %}
 
-<div class="row">
-    <div class="offset2 span8">
-        {% if user.is_authenticated %}
-            <form method="post">
-                {% csrf_token %}
-                <textarea class="input-block-level" rows=5 name="comment" placeholder="Add a comment." id="new_comment"></textarea>
-                <button class="btn" type="submit">Comment</button>
-            </form>
-        {% else %}
-            <div class="text-warning text-center">
-                <p>
-                    <i class="fa fa-comments-o fa-5x"></i><br/>
-                    <a href="{% url 'sign_in' %}">Sign in</a> to participate in discussion.
-                </p>
-            </div>
-        {% endif %}
+{% if not disable_comment %}
+
+    <div class="row">
+        <div class="offset2 span8">
+            {% if user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    <textarea class="input-block-level" rows=5 name="comment" placeholder="Add a comment." id="new_comment"></textarea>
+                    <button class="btn" type="submit">Comment</button>
+                </form>
+            {% else %}
+                <div class="text-warning text-center">
+                    <p>
+                        <i class="fa fa-comments-o fa-5x"></i><br/>
+                        <a href="{% url 'sign_in' %}">Sign in</a> to participate in discussion.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
     </div>
-</div>
+    
+{% endif %}

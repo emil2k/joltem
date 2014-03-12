@@ -19,8 +19,8 @@ def send_async_email(message, recipient_list, subject="Joltem"):
 
 
 @app.task(ignore_result=True)
-def daily_diggest():
-    """ Send daily diggest to users.
+def daily_digest():
+    """ Send daily digest to users.
 
     :return celery.group:
 
@@ -32,10 +32,10 @@ def daily_diggest():
             time_notified__lt=F('notification__time_notified'),
             notification__is_cleared=False,
             notify_by_email=User.NOTIFY_CHOICES.daily)):
-        tasks.append(send_diggest_to_user.si(user.id))
+        tasks.append(send_digest_to_user.si(user.id))
 
-    diggests = group(tasks)
-    return diggests.delay()
+    digests = group(tasks)
+    return digests.delay()
 
 
 DAILY_TEMPLATE_HTML = 'joltem/emails/daily.html'
@@ -43,15 +43,15 @@ DAILY_TEMPLATE_TXT = 'joltem/emails/daily.txt'
 
 
 @app.task(ignore_result=True)
-def send_diggest_to_user(user_id):
-    """ Send diggest to user.
+def send_digest_to_user(user_id):
+    """ Send digest to user.
 
     :return None:
 
     """
     from joltem.models import Notification, User, timezone
 
-    subject = "[joltem.com] Daily diggest"
+    subject = "[joltem.com] Daily digest"
 
     user = User.objects.get(pk=user_id)
     notifies = Notification.objects.select_related('notifying').filter(

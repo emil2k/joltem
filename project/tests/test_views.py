@@ -372,3 +372,8 @@ class TestProjectFeed(TestCase):
         solution.add_comment(bill, 'comment')
         response = self.client.get(uri)
         self.assertContains(response, task.title)
+
+        project.is_private = True
+        project.save()
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 404)

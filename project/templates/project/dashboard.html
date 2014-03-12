@@ -3,7 +3,7 @@
 {% block title %}{{ project.title }} - Dashboard - Joltem{% endblock %}
 {% block extra_head %}
     {{ block.super }}
-    <link href="{% url "project:project-feed" project_id=project.pk %}" rel="alternate" type="application/rss+xml" title="{{ project.title }}" />
+    <link href="{% url 'project:project-feed' project_id=project.pk %}" rel="alternate" type="application/rss+xml" title="{{ project.title }}" />
 {% endblock %}
 {% block project_content %}
     <div class="row">
@@ -21,22 +21,25 @@
                     </form>
                 </div>
                 <div class="span3 text-center">
-                    {% if user.is_authenticated %}
                         <form method="POST" accept-charset="utf-8" enctype="multipart/form-data">
                             {% csrf_token %}
                             <input type="hidden" name="subscribe" value="{{ subscribe|is_false:"true" }}"/>
                             <div class="btn-group">
-                                {% if not subscribe %}
-                                    <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
-                                {% else %}
-                                    <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                {% if user.is_authenticated %}
+                                    {% if not subscribe %}
+                                        <button class="btn" title="Watch project." type="submit"><i class="fa fa-eye"></i> watch</button>
+                                    {% else %}
+                                        <button class="btn" title="Unwatch project." type="submit"><i class="fa fa-eye-slash"></i> unwatch</button>
+                                    {% endif %}
+                                    {% if is_admin %}
+                                        <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                    {% endif %}
                                 {% endif %}
-                                {% if is_admin %}
-                                    <a class="btn" title="Settings." href="{% url 'project:settings' project.id %}"><i class="fa fa-gear"></i> settings</a>
+                                {% if not project.is_private %}
+                                    <a class="btn" href="{% url 'project:project-feed' project_id=project.pk %}"><i class="fa fa-rss"></i></a>
                                 {% endif %}
                             </div>
                         </form>
-                    {% endif %}
                 </div>
             </div>
             {% for item in feed %}
