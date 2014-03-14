@@ -1,12 +1,12 @@
 {% for comment_holder in comments %}
+    <hr/>
     {% with comment=comment_holder.comment editable=comment_holder.is_author  %}
         {% include 'joltem/includes/comment_inline.html'%}
     {% endwith %}
-    <hr/>
 {% endfor %}
 
 {% if not disable_comment %}
-
+    <hr/>
     <div class="row">
         <div class="offset2 span8">
             {% if user.is_authenticated %}

@@ -85,7 +85,6 @@
                 </form>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
-            <hr/>
         </div>
         <div class="span2 muted text-right hidden-phone">
             {{ solution.time_posted|timesince }} ago.
@@ -131,7 +130,6 @@
         {% endfor %}
     </form>
 
-    <hr/>
     {% include "joltem/commenting.html" with disable_comment=solution.is_archived %}
 
     {% if not solution.is_archived and user.is_authenticated %}
