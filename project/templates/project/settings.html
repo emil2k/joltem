@@ -30,6 +30,18 @@
                     {% render_field form.description class="input-block-level" placeholder=form.description.label %}
                 </p>
 
+                <label class="radio">
+                    {% render_field form.is_private.0.tag %}
+                    <i class="fa fa-group"></i>
+                    <strong>Open</strong>
+                </label>
+                <label class="radio">
+                    {% render_field form.is_private.1.tag %}
+                    <i class="fa fa-lock"></i>
+                    <strong>Private</strong>
+                </label>
+                <br />
+
                 <p>
                     <button class="btn btn-success" name='submit_settings' value="1">Save</button>
                 </p>
