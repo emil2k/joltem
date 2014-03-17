@@ -3,6 +3,7 @@ import logging
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from taggit.managers import TaggableManager
 
 from .notifications import Notification, Notifying  # noqa
 from .votes import Vote, Voteable  # noqa
@@ -16,7 +17,20 @@ logger = logging.getLogger('django')
 
 class User(AbstractUser):
 
-    """ Implement Joltem User functionality. """
+    """ Model for Joltem authenticated users.
+
+    :param gravatar_email:
+    :param gravatar_hash:
+    :param impact: cumulative total impact earned, saved for caching.
+    :param completed: count of completed solutions, saved for caching.
+    :param notifications: count of uncleared notifications, saved for caching.
+    :param notify_by_email: setting for frequency of delivering notification
+        emails.
+    :param time_notified: last time of notifying user.
+    :param about: small optional bio, supports markdown.
+    :param tags: skills the user has mentioned, used to match with tasks.
+
+    """
 
     NOTIFY_CHOICES = Choices(
         (0, "disable"),
@@ -33,6 +47,8 @@ class User(AbstractUser):
         default=NOTIFY_CHOICES.disable, choices=NOTIFY_CHOICES)
     time_notified = models.DateTimeField(default=timezone.now)
     about = models.TextField(blank=True)
+    # Relations
+    tags = TaggableManager()
 
     def update(self):
         """ Update user stats.

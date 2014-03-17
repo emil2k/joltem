@@ -61,6 +61,8 @@
 
             {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
 
+            {% include 'joltem/includes/form_field.html' with field=form.tags help_html='Optional, skills, technologies, .' %}
+
             {% include 'joltem/includes/form_field.html' with field=form.about help_html='Optional, markdown supported.' %}
 
             <div class="control-group">

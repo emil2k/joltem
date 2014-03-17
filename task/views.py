@@ -292,7 +292,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
         task.parent = self.parent_solution
         task.owner = self.user
         task.save()
-
+        form.save_m2m()
         return redirect('project:task:task', project_id=self.project.id,
                         task_id=task.id)
 

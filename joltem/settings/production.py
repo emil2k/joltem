@@ -39,6 +39,7 @@ INSTALLED_APPS += (
     'mathfilters',
     'south',
     'widget_tweaks',
+    'taggit',
 
     # Project
     'joltem',

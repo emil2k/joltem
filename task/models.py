@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core import serializers
 from django.conf import settings
 from django.core.cache import cache
+from taggit.managers import TaggableManager
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
@@ -38,6 +39,7 @@ class Task(Commentable, Updatable):
     owner -- the user responsible for administrating the task.
     project -- the project the task belongs to.
     parent -- if task is a subtask to a solution, this is the parent solution.
+    tags -- tags associated with the task.
 
     """
 
@@ -73,6 +75,7 @@ class Task(Commentable, Updatable):
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
+    tags = TaggableManager()
 
     def __unicode__(self):
         return self.title

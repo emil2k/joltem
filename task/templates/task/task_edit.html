@@ -42,6 +42,12 @@
                 <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
             {% endif %}
 
+            {% render_field form.tags  class="input-block-level" placeholder=form.tags.label %}
+
+            {% if form.tags.errors %}
+                <div class="alert alert-error">{{ form.tags.errors|join:' ' }}</div>
+            {% endif %}
+
             {% if form.priority.errors %}
                 <div class="alert alert-error">{{ form.priority.errors|join:' ' }}</div>
             {% endif %}
