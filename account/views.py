@@ -186,11 +186,11 @@ class GeneralSettingsView(BaseAccountView, UpdateView):
         :return HttpResponse:
 
         """
-        response = super(GeneralSettingsView, self).form_valid(form)
-        user = form.instance
+        user = form.save(commit=False)
         user.gravatar = form.cleaned_data['gravatar_email']
         user.save()
-        return response
+        form.save_m2m()
+        return redirect('account')
 
     def get_context_data(self, **kwargs):
         """ Load information about connected OAuth.

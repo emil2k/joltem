@@ -13,6 +13,7 @@ from .forms import TaskCreateForm, TaskEditForm
 from .models import Task, Vote
 from joltem.holders import CommentHolder
 from joltem.views.generic import VoteableView, CommentableView
+from joltem.utils import list_string_join
 from project.models import Impact
 from project.views import ProjectBaseView, ProjectBaseListView
 from solution.models import Solution
@@ -83,6 +84,7 @@ class TaskView(VoteableView, CommentableView, TemplateView, TaskBaseView):
 
         """
         kwargs["is_editor"] = self.is_editor
+        kwargs["tags_list_string"] = list_string_join(self.task.tags.names())
         accept_votes_qs = self.task.vote_set.filter(is_accepted=True)
         reject_votes_qs = self.task.vote_set.filter(is_accepted=False)
         impact_total = lambda qs: qs.aggregate(
@@ -292,7 +294,7 @@ class TaskCreateView(ProjectBaseView, CreateView):
         task.parent = self.parent_solution
         task.owner = self.user
         task.save()
-
+        form.save_m2m()
         return redirect('project:task:task', project_id=self.project.id,
                         task_id=task.id)
 

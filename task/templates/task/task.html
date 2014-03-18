@@ -36,6 +36,9 @@
                     {% endif %}
                 </small>
             </h4>
+            <p class="muted">
+                <i class="fa fa-tags"></i> {% if tags_list_string %}{{ tags_list_string }}{% else %}no tags{% endif %}
+            </p>
             {% if task.description %}
                 {{ task.description|markdown }}
             {% else %}
@@ -148,7 +151,6 @@
                         </p>
                     </div>
                 </div>
-                <hr/>
             {% endif %}
         </div>
         <div class="span2 muted text-right hidden-phone">

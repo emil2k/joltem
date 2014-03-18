@@ -10,6 +10,7 @@ from project.views import ProjectCreateView
 
 urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
+    url(r'^tags/$', views.TagsView.as_view(), name='tags'),
     url(r'^intro/', login_required(
         views.IntroductionView.as_view()), name='intro'),
     url(r'^notifications/(?P<notification_id>([0-9])+)/', login_required(

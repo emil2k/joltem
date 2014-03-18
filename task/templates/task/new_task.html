@@ -8,6 +8,7 @@
     {{ block.super }}
     {% markdown_media %}
     {% markdown_editor "textarea" %}
+    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="task-tags" %}
 {% endblock %}
 
 {% block project_content %}
@@ -40,6 +41,12 @@
 
             {% if form.description.errors %}
                 <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
+            {% endif %}
+
+            {% render_field form.tags id="task-tags" class="input-block-level" placeholder=form.tags.label %}
+
+            {% if form.tags.errors %}
+                <div class="alert alert-error">{{ form.tags.errors|join:' ' }}</div>
             {% endif %}
 
             {% if form.priority.errors %}

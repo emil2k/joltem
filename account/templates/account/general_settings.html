@@ -1,5 +1,14 @@
 {% extends 'account/base.html' %}
 
+{% load widget_tweaks django_markdown %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% markdown_media %}
+    {% markdown_editor "textarea" %}
+    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="user-tags" %}
+{% endblock %}
+
 {% block account_content %}
 <div class="row hidden-desktop hidden-tablet">
     <div class="span8">
@@ -43,7 +52,7 @@
 
 <div class="row">
     <div class="span10">
-        <form action="" method="post" class="form-horizontal" id="account-general-settings-form">
+        <form action="" method="post" class="form-horizontal" id="account-general-settings-form" >
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="alert alert-error">
@@ -61,13 +70,16 @@
 
             {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
 
-            {% include 'joltem/includes/form_field.html' with field=form.about help_html='Optional, markdown supported.' %}
-
-            <div class="control-group">
-                <div class="controls">
-                    <button type="submit" class="btn btn-success">Save</button>
-                </div>
-            </div>
+            <hr/>
+            <p><strong>Skills</strong> <small class="help-inline">Technologies, languages, and any other skills.</small> </p>
+            {% render_field form.tags id="user-tags" class="input-block-level" placeholder=form.tags.label %}
+            <p>
+                <strong>About</strong><small class="help-inline">A few words about yourself, markdown supported.</small>
+            </p>
+            {% render_field form.about class="input-block-level" rows="5" placeholder=form.about.label %}
+            <p>
+                <button type="submit" class="btn btn-success">Save</button>
+            </p>
         </form>
     </div>
 </div>
