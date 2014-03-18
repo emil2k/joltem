@@ -8,15 +8,7 @@
     {{ block.super }}
     {% markdown_media %}
     {% markdown_editor "textarea" %}
-    {% include 'joltem/includes/tag-scripts.html' %}
-    <script type="text/javascript">
-        jQuery(document).ready(function() {
-            jQuery("#task-tags").tagit({
-                caseSensitive: false,
-                availableTags: ["c++", "java", "php", "javascript", "ruby", "python", "c"]
-            });
-        });
-    </script>
+    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="task-tags" %}
 {% endblock %}
 
 {% block project_content %}

@@ -1,5 +1,6 @@
 # coding: utf-8
 """ Joltem views. """
+
 from collections import defaultdict
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -7,8 +8,10 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (
     TemplateView, RedirectView, View, DetailView, ListView)
+import json
 
 from joltem.models import Notification, Comment, User
+from joltem.models.utils import Tag
 from joltem.views.generic import RequestBaseView
 
 
@@ -86,6 +89,26 @@ class UserView(DetailView):
         spage = solutions.page(int(self.request.GET.get('spage', 1)))
         ctx.update(dict(cpage=cpage, spage=spage))
         return ctx
+
+
+class TagsView(View):
+
+    """ View for loading tags for autocomplete. """
+
+    @staticmethod
+    def get(request):
+        """ Return tags list.
+
+        In JSON for autocomplete source.
+
+        :param request:
+        :return:
+
+        """
+        term = request.GET.get('term').lower()
+        data = json.dumps([tag.name
+                           for tag in Tag.objects.filter(name__contains=term)])
+        return HttpResponse(data, mimetype='application/json')
 
 
 class CommentView(View):

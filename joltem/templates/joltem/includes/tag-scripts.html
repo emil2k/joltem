@@ -8,3 +8,15 @@
     <link href="{% static 'joltem/css/flick/jquery-ui.min.css' %}" rel="stylesheet" type="text/css">
     <script src="{% static 'joltem/js/tag-it.min.js' %}"></script>
 {% endif %}
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery("#{{ tag_input_id }}").tagit({
+            caseSensitive: false,
+            autocomplete: {
+                delay: 200,
+                minLength: 2,
+                source: "{% url 'tags' %}"
+            }
+        });
+    });
+</script>
