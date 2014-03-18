@@ -1,0 +1,10 @@
+{% load static from staticfiles %}
+<link href="{% static 'joltem/css/jquery.tagit.css' %}" rel="stylesheet" type="text/css">
+{# Load minified files in production #}
+{% if DEBUG %}
+    <link href="{% static 'joltem/css/flick/jquery-ui.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'joltem/js/tag-it.js' %}"></script>
+{% else %}
+    <link href="{% static 'joltem/css/flick/jquery-ui.min.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'joltem/js/tag-it.min.js' %}"></script>
+{% endif %}

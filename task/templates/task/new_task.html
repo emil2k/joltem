@@ -8,6 +8,15 @@
     {{ block.super }}
     {% markdown_media %}
     {% markdown_editor "textarea" %}
+    {% include 'joltem/includes/tag-scripts.html' %}
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+            jQuery("#task-tags").tagit({
+                caseSensitive: false,
+                availableTags: ["c++", "java", "php", "javascript", "ruby", "python", "c"]
+            });
+        });
+    </script>
 {% endblock %}
 
 {% block project_content %}
@@ -42,7 +51,7 @@
                 <div class="alert alert-error">{{ form.description.errors|join:' ' }}</div>
             {% endif %}
 
-            {% render_field form.tags  class="input-block-level" placeholder=form.tags.label %}
+            {% render_field form.tags id="task-tags" class="input-block-level" placeholder=form.tags.label %}
 
             {% if form.tags.errors %}
                 <div class="alert alert-error">{{ form.tags.errors|join:' ' }}</div>
