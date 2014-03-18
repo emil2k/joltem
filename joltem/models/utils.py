@@ -1,4 +1,38 @@
-""" Joltem model uitls. """
+""" Joltem model utils. """
+from django.db import models
+from django.utils import timezone
+from taggit.models import TagBase, GenericTaggedItemBase
+
+
+class Tag(TagBase):
+
+    """ A custom tag for Joltem.
+
+    Forces tags to lowercase.
+
+    """
+
+    class Meta:
+        app_label = "joltem"
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.lower()
+        super(Tag, self).save(*args, **kwargs)
+
+
+class TaggedItem(GenericTaggedItemBase):
+
+    """ A custom through model for django-taggit
+
+    Utilizes custom Tag object.
+
+    """
+
+    class Meta:
+        app_label = "joltem"
+
+    tag = models.ForeignKey(Tag, related_name="tagged_items")
+    time_tagged = models.DateTimeField(default=timezone.now)
 
 
 class Choices(object):

@@ -10,6 +10,7 @@ from taggit.managers import TaggableManager
 
 from joltem.models import Commentable
 from joltem.models.generic import Updatable
+from joltem.models.utils import TaggedItem
 
 
 class Task(Commentable, Updatable):
@@ -75,7 +76,7 @@ class Task(Commentable, Updatable):
     project = models.ForeignKey('project.Project')
     parent = models.ForeignKey(
         'solution.Solution', null=True, blank=True, related_name="subtask_set")
-    tags = TaggableManager()
+    tags = TaggableManager(through=TaggedItem, blank=True)
 
     def __unicode__(self):
         return self.title

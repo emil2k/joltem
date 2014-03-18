@@ -9,7 +9,7 @@ from .notifications import Notification, Notifying  # noqa
 from .votes import Vote, Voteable  # noqa
 from .comments import Comment, Commentable  # noqa
 
-from .utils import Choices
+from .utils import Choices, TaggedItem
 
 
 logger = logging.getLogger('django')
@@ -48,7 +48,8 @@ class User(AbstractUser):
     time_notified = models.DateTimeField(default=timezone.now)
     about = models.TextField(blank=True)
     # Relations
-    tags = TaggableManager()
+    tags = TaggableManager(through=TaggedItem, blank=True)
+
 
     def update(self):
         """ Update user stats.
