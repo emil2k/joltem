@@ -4,16 +4,50 @@
 
 {% block scripts %}
     {{ block.super }}
-    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="user-tags" %}
+    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="user-tags" tag_placeholder="Enter your skills." %}
 {% endblock %}
 
 {% block content %}
-    <h3>Tags</h3>
+    <h2 class="text-center">Almost there, {{ user.first_name }}, list your skills.</h2>
     <form action="" method="post" class="form-horizontal" id="account-general-settings-form" >
         {% csrf_token %}
-        {% render_field form.tags id="user-tags" class="input-block-level" placeholder=form.tags.label %}
-        <p>
+        <div class="row">
+            <div class="offset3 span6 text-center">
+                <p>
+                    We use these tags to connect you with groups who need your skills. Here are some examples :
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="offset3 span2 text-center">
+                <p>
+                    <i class="fa fa-code fa-3x"></i><br/>
+                    <small class="muted">python, django, ruby, html5, spaghetti</small>
+                </p>
+            </div>
+            <div class="span2 text-center">
+                <p>
+                    <i class="fa fa-bullhorn fa-3x"></i><br/>
+                    <small class="muted">marketing, copywriting, seo, email, kittens</small>
+                </p>
+            </div>
+            <div class="span2 text-center">
+                <p>
+                    <i class="fa fa-globe fa-3x"></i><br/>
+                    <small class="muted">english, russian, german, portuguese, sonar</small>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="offset3 span6">
+                <p>
+                    {% render_field form.tags id="user-tags" %}
+                </p>
+            </div>
+        </div>
+        <p class="text-center">
             <button type="submit" class="btn btn-success">Save</button>
         </p>
     </form>
+
 {% endblock %}

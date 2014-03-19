@@ -109,7 +109,7 @@ class SignUpView(ExtraContextMixin, CreateView):
 
     form_class = SignUpForm
     template_name = 'registration/sign_up.html'
-    success_url = reverse_lazy('tags-init')
+    success_url = reverse_lazy('tags-setup')
 
     @method_decorator(user_passes_test(
         test_func=lambda user: user.is_anonymous(),
