@@ -5,12 +5,12 @@
 {% block content %}
     <div class="row">
         <div class="span12 text-center">
-            <h2>Welcome, let's get started.</h2>
+            <h2>Great! You're set, {{ user.first_name }}.</h2>
         </div>
     </div>
     <hr/>
     <div class="row">
-        <div class="span4 text-center">
+        <div class="span6 text-center">
             <a href="{% url 'help:index' %}">
                 <i class="fa fa-file-text fa-5x"></i><br/>
                 <h3>Read Help Section</h3>
@@ -18,20 +18,13 @@
             <p>To get accustomed with how we work here.</p>
             <hr class="hidden-desktop hidden-tablet"/>
         </div>
-        <div class="span4 text-center">
+        <div class="span6 text-center">
             <a href="{% url 'account_keys' %}">
                 <i class="fa fa-key fa-5x"></i><br/>
                 <h3>Add SSH Key</h3>
             </a>
             <p>To access repositories from the command line.</p>
             <hr class="hidden-desktop hidden-tablet"/>
-        </div>
-        <div class="span4 text-center">
-            <a href="{% url 'new' %}">
-                <i class="fa fa-flash fa-5x"></i><br/>
-                <h3>Create a Project</h3>
-            </a>
-            <p>To begin collaborating with others.</p>
         </div>
     </div>
 {% endblock %}

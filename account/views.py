@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 
-from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
+from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm, TagsForm
 from .models import User, OAuth
 from joltem.views.generic import ValidUserMixin, ExtraContextMixin
 
@@ -109,7 +109,7 @@ class SignUpView(ExtraContextMixin, CreateView):
 
     form_class = SignUpForm
     template_name = 'registration/sign_up.html'
-    success_url = reverse_lazy('intro')
+    success_url = reverse_lazy('tags-setup')
 
     @method_decorator(user_passes_test(
         test_func=lambda user: user.is_anonymous(),
@@ -155,6 +155,23 @@ class SignUpView(ExtraContextMixin, CreateView):
             initial.setdefault('first_name', oauth.get('first_name'))
             initial.setdefault('last_name', oauth.get('last_name'))
         return kwargs
+
+
+class TagsView(UpdateView):
+
+    """ Updates user's tags. """
+
+    form_class = TagsForm
+    template_name = 'account/tags.html'
+    success_url = reverse_lazy('intro')
+
+    def get_object(self):
+        """ Return current user.
+
+        :return User:
+
+        """
+        return self.request.user
 
 
 class BaseAccountView(ValidUserMixin, ExtraContextMixin):
