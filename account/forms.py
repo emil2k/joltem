@@ -68,6 +68,15 @@ class GeneralSettingsForm(forms.ModelForm):
                   'notify_by_email', 'about', 'tags')
 
 
+class TagsForm(forms.ModelForm):
+
+    """ Form for editing user tags. """
+
+    class Meta:
+        model = User
+        fields = ('tags',)
+
+
 class SSHKeyForm(forms.ModelForm):
 
     """ Control SSH keys. """

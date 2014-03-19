@@ -2,10 +2,11 @@
 
 from django.conf.urls import patterns, url
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 from account.views import (
-    SignUpView, GeneralSettingsView, SSHKeyCreateView, SSHKeyDeleteView,
-    authomatic_login
+    SignUpView, TagsView, GeneralSettingsView, SSHKeyCreateView,
+    SSHKeyDeleteView, authomatic_login
 )
 
 
@@ -27,6 +28,8 @@ urlpatterns = patterns(
     url(r'^sign-up/$', SignUpView.as_view(),
         {'extra_context': {'nav_tab': 'up'}},
         'sign_up'),
+
+    url(r'^tags/$', login_required(TagsView.as_view()), name='tags-setup'),
 
     url(r'^sign-in/(\w+)/?$', authomatic_login, name='oauth'),
 
