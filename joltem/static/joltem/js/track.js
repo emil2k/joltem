@@ -60,6 +60,27 @@ TRACK = {
         edit : function (label){
             TRACK._track_event(this.category, "Edit", label, 0, false);
         }
+    },
+    solution: {
+        category: "Solution",
+        create : function (label){
+            TRACK._track_event(this.category, "Create", label, 0, false);
+        },
+        close : function (label){
+            TRACK._track_event(this.category, "Close", label, 0, false);
+        },
+        reopen : function (label){
+            TRACK._track_event(this.category, "Reopen", label, 0, false);
+        },
+        complete : function (label){
+            TRACK._track_event(this.category, "Complete", label, 0, false);
+        },
+        incomplete : function (label){
+            TRACK._track_event(this.category, "Incomplete", label, 0, false);
+        },
+        edit : function (label){
+            TRACK._track_event(this.category, "Edit", label, 0, false);
+        }
     }
 }
 
