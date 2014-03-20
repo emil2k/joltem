@@ -39,7 +39,7 @@
             </div>
         {% endif %}
 
-        <form action="" method="post" id="account-ssh-keys-form">
+        <form action="" method="post" id="account-ssh-keys-form" onsubmit="TRACK.authentication.create($('#id_name').val());">
             {% csrf_token %}
 
             <small class="help-block">

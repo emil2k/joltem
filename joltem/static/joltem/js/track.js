@@ -46,6 +46,15 @@ TRACK = {
             TRACK._track_event(this.category, "Create", label, 0, false);
         }
     },
+    authentication: {
+        category : "Authentications",
+        create : function (label){
+            TRACK._track_event(this.category, "Create", label, 0, false);
+        },
+        delete : function (label){
+            TRACK._track_event(this.category, "Delete", label, 0, false);
+        }
+    },
     task: {
         category : "Tasks",
         create : function (label){
@@ -89,4 +98,3 @@ TRACK = {
         }
     }
 }
-
