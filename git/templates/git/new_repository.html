@@ -2,7 +2,7 @@
 {% load widget_tweaks %}
 {% block title %}New Repository - Joltem{% endblock %}
 {% block repositories_content %}
-    <form method="post">
+    <form method="post" onsubmit="TRACK.repository.create($('#id_name').val());">
         {% csrf_token %}
         <div class="row">
             <div class="span8">

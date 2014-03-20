@@ -40,6 +40,12 @@ TRACK = {
             TRACK._track_event(this.category, "Edit", label, 0, false);
         }
     },
+    repository: {
+        category : "Repositories",
+        create : function (label){
+            TRACK._track_event(this.category, "Create", label, 0, false);
+        }
+    },
     task: {
         category : "Tasks",
         create : function (label){
