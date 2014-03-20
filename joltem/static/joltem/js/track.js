@@ -39,6 +39,27 @@ TRACK = {
         edit : function (label){
             TRACK._track_event(this.category, "Edit", label, 0, false);
         }
+    },
+    task: {
+        category : "Tasks",
+        create : function (label){
+            TRACK._track_event(this.category, "Create", label, 0, false);
+        },
+        close : function (label){
+            TRACK._track_event(this.category, "Close", label, 0, false);
+        },
+        reopen : function (label){
+            TRACK._track_event(this.category, "Reopen", label, 0, false);
+        },
+        accept : function (label){
+            TRACK._track_event(this.category, "Accept", label, 0, false);
+        },
+        reject : function (label){
+            TRACK._track_event(this.category, "Reject", label, 0, false);
+        },
+        edit : function (label){
+            TRACK._track_event(this.category, "Edit", label, 0, false);
+        }
     }
 }
 

@@ -21,7 +21,7 @@
             </div>
         {% endif %}
 
-        <form action="" method="post" id="task-edit-form">
+        <form action="" method="post" id="task-edit-form" onsubmit="TRACK.task.edit($('id_title').val());">
             {% csrf_token %}
             {% if parent_solution %}
             <div class="alert alert-info">

@@ -21,7 +21,7 @@
             </div>
         {% endif %}
 
-        <form action="" method="post" id="task-create-form">
+        <form action="" method="post" id="task-create-form" onsubmit="TRACK.task.create($('#id_title').val());">
             {% csrf_token %}
 
             {% if parent_solution %}
