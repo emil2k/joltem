@@ -16,7 +16,7 @@
                     {{ form.non_field_errors|join:' ' }}
                 </div>
             {% endif %}
-            <form method="post">
+            <form method="post" onsubmit="TRACK.project.edit($('#id_title').val());">
                 {% csrf_token %}
                 <p>
                     <strong>Title & Description</strong>

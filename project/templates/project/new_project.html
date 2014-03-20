@@ -11,7 +11,7 @@
 {% block content %}
     <div class="row">
         <div class="span8">
-            <form method="post">
+            <form method="post" onsubmit="TRACK.project.create($('#id_title').val());">
                 {% csrf_token %}
                 <div class="row">
                     <div class="span8">
