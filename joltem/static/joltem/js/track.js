@@ -29,6 +29,9 @@ TRACK = {
         category : "Users",
         sign_up : function (label){
             TRACK._track_event(this.category, "Sign Up", label, 0, false);
+        },
+        tagged : function(label){
+            TRACK._track_event(this.category, "Tagged", label, 0, false);
         }
     },
     project: {
