@@ -12,9 +12,9 @@
 {% block project_content %}
     <div class="row">
         <div class="span8">
-            <form method="post">
+            <form method="post" onsubmit="TRACK.solution.edit($('#id_title').val());">
                 {% csrf_token %}
-                <input class="input-block-level" type="text" name="title" placeholder="Optional. A title that describes your solution." value="{{ solution.title }}"/>
+                <input class="input-block-level" id="id_title" type="text" name="title" placeholder="Optional. A title that describes your solution." value="{{ solution.title }}"/>
                 <textarea class="input-block-level" rows=10 name="description" placeholder="Optional. Briefly describe how you plan to solve the task and if you have any experience pertinent to the task.">{{ solution.description }}</textarea>
                 <button class="btn btn-success" type="submit">Edit</button>
             </form>

@@ -53,9 +53,18 @@
                         {% endif %}
                         {% if is_editor %}
                             {% if not task.is_closed %}
-                                <button class="btn" type="submit" name="close" value="1" onclick="return confirm('Are you sure you want to close the task?\nPeople won\'t be able to post solutions to the task.');">close</button>
+                                <script>
+                                    close_task = function(){
+                                        var r = confirm('Are you sure you want to close the task?\nPeople won\'t be able to post solutions to the task.');
+                                        if(r){
+                                            TRACK.task.close('{{ task.title|escapejs }}')
+                                        }
+                                        return r
+                                    }
+                                </script>
+                                <button class="btn" type="submit" name="close" value="1" onclick="return close_task();">close</button>
                             {% else %}
-                                <button class="btn" type="submit" name="reopen" value="1">reopen</button>
+                                <button class="btn" type="submit" name="reopen" value="1" onclick="TRACK.task.reopen('{{ task.title|escapejs }}');">reopen</button>
                             {% endif %}
                         {% endif %}
                         {% if is_editor %}
@@ -105,14 +114,14 @@
                                 {% csrf_token %}
                                 <div class="btn-group">
                                     {% if vote and vote.is_accepted %}
-                                        <button class="btn btn-success" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
+                                        <button class="btn btn-success" onclick="TRACK.task.accept('{{ task.title|escapejs }}')" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
                                     {% else %}
-                                        <button class="btn" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
+                                        <button class="btn" onclick="TRACK.task.accept('{{ task.title|escapejs }}')" type="submit" name="accept" value="1"><i class="fa fa-check"></i></button>
                                     {% endif %}
                                     {% if vote and not vote.is_accepted %}
-                                        <button class="btn btn-danger" type="submit" name="reject" value="1"><i class="fa fa-times"></i></button>
+                                        <button class="btn btn-danger" onclick="TRACK.task.reject('{{ task.title|escapejs }}')" type="submit" name="reject" value="1"><i class="fa fa-times"></i></button>
                                     {% else %}
-                                        <button class="btn" type="submit" name="reject" value="1"><i class="fa fa-times"></i></button>
+                                        <button class="btn" onclick="TRACK.task.reject('{{ task.title|escapejs }}')" type="submit" name="reject" value="1"><i class="fa fa-times"></i></button>
                                     {% endif %}
                                 </div>
                             </form>
