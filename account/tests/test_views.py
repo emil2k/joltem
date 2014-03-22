@@ -47,7 +47,7 @@ class SignUpTest(WebTest):
         form['password2'] = '123'
         response = form.submit()
 
-        expected_redirect_url = '/intro/'
+        expected_redirect_url = '/account/tags/'
 
         self.assertRedirects(response, expected_redirect_url)
 
