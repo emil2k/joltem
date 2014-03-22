@@ -1,4 +1,5 @@
 {% extends "joltem/emails/base.txt" %}
+{% block title %}Notification{% endblock %}
 {% block content %}
 {{ notification.get_text|safe }} (http://joltem.com{% url "notification_redirect" notification.id %})
 {% endblock %}

@@ -59,6 +59,7 @@ def send_digest_to_user(user_id):
 
     msg = _prepare_msg(
         subject, DAILY_TEMPLATE_TXT, DAILY_TEMPLATE_HTML, dict(
+            host=settings.URL,
             user=user,
             notifies=notifies,
         ), [user.email]
@@ -84,6 +85,7 @@ def send_immediately_to_user(notification_id):
     msg = _prepare_msg(
         subject, 'joltem/emails/immediately.txt',
         'joltem/emails/immediately.html', dict(
+            host=settings.URL,
             user=notification.user,
             notification=notification,
         ), [notification.user.email]

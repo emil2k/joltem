@@ -549,7 +549,8 @@ class EmailNotificationTestCase(TestCase):
 
     def test_immediately(self):
         task = mixer.blend(
-            'task.task', owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
+            'task.task', title="Bug on index page.",
+            owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
         comment = task.add_comment(self.mike, "Mike are here.")
         self.assertTrue(mail.outbox)
 
@@ -578,8 +579,11 @@ class EmailNotificationTestCase(TestCase):
 
         """
         task = mixer.blend(
-            'task.task', owner__notify_by_email=setting)
+            'task.task', owner__notify_by_email=setting, title="Daily digest.")
+        task2 = mixer.blend(
+            'task.task', owner=task.owner, title="Improve email templates.")
         task.add_comment(self.mike, "Mike's comment.")
+        task2.add_comment(self.mike, "Mike's comment.")
         from joltem.tasks import daily_digest
         daily_digest.delay()
         self.assertMessageSent(task.owner.email,
