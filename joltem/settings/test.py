@@ -24,6 +24,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Celery
 CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 # Haystack
 HAYSTACK_CONNECTIONS['default']['PATH'] = '/tmp/whoosh'

@@ -1,11 +1,11 @@
-{% block title %}Dear {{ user.first_name }},{% endblock %}
+{% block title %}{% endblock %}
 
-
+---
 
 {% block content %}{% endblock %}
 
 
-Joltem Support
-______________________________________________________________________
+---
+
 support@joltem.com | http://joltem.com
 
