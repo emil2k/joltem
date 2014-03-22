@@ -6,9 +6,9 @@ from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, View
 
 from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm, TagsForm
 from .models import User, OAuth
@@ -172,6 +172,30 @@ class TagsView(UpdateView):
 
         """
         return self.request.user
+
+
+class UnsubscribeView(View):
+
+    """ View allowing the user to unsubscribe from all emails. """
+
+    def get(self, request, username, token):
+        """ Handle GET request to unsubscribe.
+
+        :param request:
+        :param username:
+        :param token:
+        :return:
+
+        """
+        user = get_object_or_404(User, username=username, is_active=True)
+        if ( (request.user.is_authenticated() and request.user == user) \
+                 or user.check_token(token)):
+            user.can_contact = False
+            user.save()
+            ok = True
+        else:
+            ok = False
+        return render(request, 'account/unsubscribe.html', { 'ok': ok })
 
 
 class BaseAccountView(ValidUserMixin, ExtraContextMixin):

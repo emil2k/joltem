@@ -1,0 +1,13 @@
+{% extends 'joltem/base.html' %}
+{% block content %}
+    {% if ok %}
+        <div class="alert alert-success">
+            <strong>Unsubscription succeeded</strong>, you won't receive any more emails. Contact support if you continue to receive emails.
+        </div>
+    {% else %}
+        <div class="alert alert-error">
+            <strong>Unsubscription failed</strong> for some reason, please contact support.
+        </div>
+    {% endif %}
+{% endblock %}
+{% block message %}{% endblock %}

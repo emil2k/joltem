@@ -4,6 +4,7 @@ from .production import *
 
 
 ENVIRONMENT_NAME = "test"
+URL = 'joltem.local'
 
 # Databases
 DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
