@@ -60,7 +60,7 @@ class GeneralSettingsForm(forms.ModelForm):
     email = forms.EmailField(label=_('Email'))
     gravatar_email = forms.EmailField(label=_('Gravatar'), required=False)
     notify_by_email = forms.ChoiceField(choices=User.NOTIFY_CHOICES)
-    about = forms.CharField(widget=forms.Textarea())
+    about = forms.CharField(widget=forms.Textarea(), required=False)
 
     class Meta:
         model = User
