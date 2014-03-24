@@ -562,6 +562,10 @@ class EmailNotificationTestCase(TestCase):
                 task.title
             ) in m.body)
 
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username in m.body)
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username \
+                in m.alternatives[0][0])  # html alternative
+
             task.notify_comment_added(comment)
             self.assertFalse(mail.outbox)
 
@@ -596,6 +600,11 @@ class EmailNotificationTestCase(TestCase):
         daily_digest.delay()
         self.assertMessageSent(task.owner.email,
                                "[joltem.com] Daily digest", expected)
+        if expected:
+            m = mail.outbox.pop()
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username in m.body)
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username \
+                in m.alternatives[0][0])  # html alternative
 
     def test_digest_positive(self):
         """ Test that users w/ daily setting get digest. """

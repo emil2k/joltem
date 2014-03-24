@@ -1,11 +1,15 @@
 {% block title %}{% endblock %}
-
----
+===
 
 {% block content %}{% endblock %}
 
-
 ---
+support@joltem.com | http://{{ host }}
 
-support@joltem.com | http://joltem.com
+===
 
+Unsubscribe from all emails :
+http://{{ host }}{{ user.unsubscribe }}
+
+Update subscription preferences :
+http://{{ host }}{% url 'account' %}
