@@ -6,7 +6,7 @@ from django.core import mail
 from django.conf import settings
 
 from git.models import Authentication
-from joltem.libs import mixer
+from joltem.libs import mixer, load_model
 from joltem.libs.tests import ViewTestMixin
 from joltem.models import User
 
@@ -642,3 +642,27 @@ class AccountPasswordResetTest(TestCase):
         ))
         response = self.client.get(uri)
         self.assertContains(response, 'password')
+
+
+class UnsubscribeTest(TestCase):
+
+    """ Test unsubscribe view. """
+
+    def setUp(self):
+        self.user = mixer.blend('joltem.user')
+
+    def test_unsubscribe(self):
+        """ Test that unsubscribe link works. """
+        response = self.client.get(self.user.unsubscribe)
+        self.assertContains(response, "Unsubscription succeeded",
+                            status_code=200)
+        self.assertFalse(load_model(self.user).can_contact)
+
+    def test_invalid_unsubscribe(self):
+        """ Test that invalid unsubscribe link does not work. """
+        uri = reverse('unsubscribe', kwargs=dict(
+            username=self.user.username, token='notAtoken'))
+        response = self.client.get(uri)
+        self.assertContains(response, "Unsubscription failed",
+                            status_code=200)
+        self.assertTrue(load_model(self.user).can_contact)

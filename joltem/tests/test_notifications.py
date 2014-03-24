@@ -528,11 +528,6 @@ class EmailNotificationTestCase(TestCase):
     def setUp(self):
         self.mike = mixer.blend(User)
 
-    def test_disabled(self):
-        task = mixer.blend('task.task')
-        task.add_comment(self.mike, "Mike waz here.")
-        self.assertFalse(mail.outbox)
-
     def assertMessageSent(self, to, subject, expected=True):
         """ Assert whether message sent or not sent.
 
@@ -547,39 +542,56 @@ class EmailNotificationTestCase(TestCase):
                 break
         self.assertEqual(received, expected)
 
-    def test_immediately(self):
-        task = mixer.blend(
-            'task.task', title="Bug on index page.",
-            owner__notify_by_email=User.NOTIFY_CHOICES.immediately)
-        comment = task.add_comment(self.mike, "Mike are here.")
-        self.assertTrue(mail.outbox)
+    def _test_immediately(self, expected, can_contact=True):
+        """ Test immediate message sent based on notification settings.
 
-        m = mail.outbox.pop()
-        self.assertEqual(m.recipients(), [task.owner.email])
-        self.assertEqual(m.subject, '[joltem.com] comment_added')
-
-        self.assertTrue('%s commented on your task "%s"' % (
-            self.mike.first_name,
-            task.title
-        ) in m.body)
-
-        task.notify_comment_added(comment)
-        self.assertFalse(mail.outbox)
-
-        [notification] = task.owner.notification_set.all()
-        notification.save()
-        self.assertFalse(mail.outbox)
-
-    def _test_digest(self, setting, expected):
-        """ Test digest receiving based on notification setting.
-
-        :param setting: notification setting.
-        :param expected: whether message received.
-        :return:
+        :param can_contact:
 
         """
         task = mixer.blend(
-            'task.task', owner__notify_by_email=setting, title="Daily digest.")
+            'task.task', title="Bug on index page.",
+            owner__notify_by_email=User.NOTIFY_CHOICES.immediately,
+            owner__can_contact=can_contact)
+        comment = task.add_comment(self.mike, "Mike are here.")
+        self.assertMessageSent(task.owner.email, '[joltem.com] comment_added',
+                               expected)
+        if expected:
+            m = mail.outbox.pop()
+            self.assertTrue('%s commented on your task "%s"' % (
+                self.mike.first_name,
+                task.title
+            ) in m.body)
+
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username in m.body)
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username \
+                in m.alternatives[0][0])  # html alternative
+
+            task.notify_comment_added(comment)
+            self.assertFalse(mail.outbox)
+
+            [notification] = task.owner.notification_set.all()
+            notification.save()
+            self.assertFalse(mail.outbox)
+
+    def test_immediately(self):
+        """ Test immediate message. """
+        self._test_immediately(True)
+
+    def test_immediately_cant_contact(self):
+        """ Test immediate message not sent to those can't contact. """
+        self._test_immediately(False, can_contact=False)
+
+    def _test_digest(self, expected, notify_by_email, can_contact=True):
+        """ Test digest receiving based on notification setting.
+
+        :param expected: whether message received.
+        :param notify_by_email:
+        :param can_contact:
+
+        """
+        task = mixer.blend(
+            'task.task', owner__notify_by_email=notify_by_email,
+            owner__can_contact=can_contact, title="Daily digest.")
         task2 = mixer.blend(
             'task.task', owner=task.owner, title="Improve email templates.")
         task.add_comment(self.mike, "Mike's comment.")
@@ -588,15 +600,24 @@ class EmailNotificationTestCase(TestCase):
         daily_digest.delay()
         self.assertMessageSent(task.owner.email,
                                "[joltem.com] Daily digest", expected)
+        if expected:
+            m = mail.outbox.pop()
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username in m.body)
+            self.assertTrue('/unsubscribe/%s/' % task.owner.username \
+                in m.alternatives[0][0])  # html alternative
 
     def test_digest_positive(self):
         """ Test that users w/ daily setting get digest. """
-        self._test_digest(User.NOTIFY_CHOICES.daily, True)
+        self._test_digest(True, User.NOTIFY_CHOICES.daily)
 
     def test_digest_immediate(self):
         """ Test that users w/ immediate setting don't get digest. """
-        self._test_digest(User.NOTIFY_CHOICES.immediately, False)
+        self._test_digest(False, User.NOTIFY_CHOICES.immediately)
 
     def test_digest_disabled(self):
         """ Test that users w/ disabled setting don't get digest. """
-        self._test_digest(User.NOTIFY_CHOICES.disable, False)
+        self._test_digest(False, User.NOTIFY_CHOICES.disable)
+
+    def test_digest_cant_contact(self):
+        """ Test that daily digest not sent to those can't contact. """
+        self._test_digest(False, User.NOTIFY_CHOICES.daily, False)

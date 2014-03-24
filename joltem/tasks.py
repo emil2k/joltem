@@ -29,6 +29,7 @@ def daily_digest():
 
     tasks = []
     for user in set(User.objects.filter(
+            can_contact=True,
             time_notified__lt=F('notification__time_notified'),
             notification__is_cleared=False,
             notify_by_email=User.NOTIFY_CHOICES.daily)):
@@ -76,21 +77,19 @@ def send_digest_to_user(user_id):
 def send_immediately_to_user(notification_id):
     """ Send notification immediately. """
     from joltem.models import Notification
-
     notification = Notification.objects.select_related('user').get(
         pk=notification_id)
-
-    subject = "[joltem.com] %s" % notification.type
-
-    msg = _prepare_msg(
-        subject, 'joltem/emails/immediately.txt',
-        'joltem/emails/immediately.html', dict(
-            host=settings.URL,
-            user=notification.user,
-            notification=notification,
-        ), [notification.user.email]
-    )
-    msg.send()
+    if notification.user.can_contact:
+        subject = "[joltem.com] %s" % notification.type
+        msg = _prepare_msg(
+            subject, 'joltem/emails/immediately.txt',
+            'joltem/emails/immediately.html', dict(
+                host=settings.URL,
+                user=notification.user,
+                notification=notification,
+            ), [notification.user.email]
+        )
+        msg.send()
 
 
 def _prepare_msg(
