@@ -638,7 +638,7 @@ class MeetingInvitationTest(TestCase):
         self.assertEqual(expected, bool(mail.outbox))
         if expected:
             m = mail.outbox.pop()
-            self.assertEqual(m.subject, "Meeting Invitation")
+            self.assertEqual(m.subject, "Hangout Invitation")
             self.assertEqual(m.recipients(), [user.email])
             self.assertTrue(load_model(user).sent_meeting_invitation)
 

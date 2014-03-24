@@ -94,7 +94,7 @@ def send_meeting_invitation_to_user(user_id):
 
     """
     from joltem.models import User
-    subject = "Meeting Invitation"
+    subject = "Hangout Invitation"
     user = User.objects.get(pk=user_id)
     msg = _prepare_msg(
         subject,
@@ -103,7 +103,7 @@ def send_meeting_invitation_to_user(user_id):
         dict(
             host=settings.URL,
             user=user
-        ), [user.email]
+        ), [user.email], from_email=settings.PERSONAL_FROM_EMAIL
     )
     msg.send()
     user.sent_meeting_invitation = True
