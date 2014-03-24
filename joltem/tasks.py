@@ -26,7 +26,6 @@ def daily_digest():
 
     """
     from joltem.models import User
-
     tasks = []
     for user in set(User.objects.filter(
             can_contact=True,
@@ -39,37 +38,76 @@ def daily_digest():
     return digests.delay()
 
 
-DAILY_TEMPLATE_HTML = 'joltem/emails/daily.html'
-DAILY_TEMPLATE_TXT = 'joltem/emails/daily.txt'
-
-
 @app.task(ignore_result=True)
 def send_digest_to_user(user_id):
-    """ Send digest to user.
+    """ Send daily digest to user.
 
-    :return None:
+    :param user_id:
+    :return:
 
     """
     from joltem.models import Notification, User, timezone
-
     subject = "[joltem.com] Daily digest"
-
     user = User.objects.get(pk=user_id)
     notifies = Notification.objects.select_related('notifying').filter(
         user=user, is_cleared=False, time_notified__gt=user.time_notified)
-
     msg = _prepare_msg(
-        subject, DAILY_TEMPLATE_TXT, DAILY_TEMPLATE_HTML, dict(
+        subject, 'joltem/emails/daily.txt', 'joltem/emails/daily.html', dict(
             host=settings.URL,
             user=user,
             notifies=notifies,
         ), [user.email]
     )
     msg.send()
-
     user.time_notified = timezone.now()
     user.save()
+    return True
 
+
+@app.task(ignore_result=True)
+def meeting_invitation():
+    """ Prepare and send invitation to initiation meeting for new members.
+
+    An email is to all new members inviting them to a weekly Google Hangout
+    where they can meet other members and get answers to any of their
+    questions.
+
+    :return:
+
+    """
+    from joltem.models import User
+    tasks = []
+    for user in set(User.objects.filter(
+            can_contact=True,
+            sent_meeting_invitation=False)):
+        tasks.append(send_meeting_invitation_to_user.si(user.id))
+    invitations = group(tasks)
+    return invitations.delay()
+
+
+@app.task(ignore_result=True)
+def send_meeting_invitation_to_user(user_id):
+    """ Send meeting invitation email to the user specified.
+
+    :param user_id:
+    :return:
+
+    """
+    from joltem.models import User
+    subject = "Meeting Invitation"
+    user = User.objects.get(pk=user_id)
+    msg = _prepare_msg(
+        subject,
+        'joltem/emails/meeting_invitation.txt',
+        'joltem/emails/meeting_invitation.html',
+        dict(
+            host=settings.URL,
+            user=user
+        ), [user.email]
+    )
+    msg.send()
+    user.sent_meeting_invitation = True
+    user.save()
     return True
 
 
@@ -95,6 +133,17 @@ def send_immediately_to_user(notification_id):
 def _prepare_msg(
         subject, txt_template, html_template, context, to_emails,
         from_email=settings.NOTIFY_FROM_EMAIL):
+    """ Prepare email message with HTML alternative.
+
+    :param subject:
+    :param txt_template:
+    :param html_template:
+    :param context:
+    :param to_emails:
+    :param from_email:
+    :return EmailMultiAlternatives: instance of email message.
+
+    """
 
     context = Context(context)
     txt = get_template(txt_template).render(context)

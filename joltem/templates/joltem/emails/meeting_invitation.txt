@@ -1,0 +1,5 @@
+{% extends "joltem/emails/base.txt" %}
+{% block title %}Meeting Invitation{% endblock %}
+{% block content %}
+    # TODO meeting invitation text
+{% endblock %}

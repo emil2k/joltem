@@ -128,6 +128,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=24),
         'args': (),
     },
+    'meeting-invitation': {
+        'task': 'joltem.tasks.meeting_invitation',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
     'archive-solution': {
         'task': 'solution.tasks.archive_solutions',
         'schedule': timedelta(hours=4),

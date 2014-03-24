@@ -6,7 +6,7 @@ from django.core import mail
 from django.conf import settings
 from django.test import TestCase, testcases
 
-from ..libs.mix import mixer
+from ..libs import mixer, load_model
 from ..libs.mock.models import (get_mock_project, get_mock_task,
                                 get_mock_solution, get_mock_user)
 from ..models import User, Notification
@@ -621,3 +621,36 @@ class EmailNotificationTestCase(TestCase):
     def test_digest_cant_contact(self):
         """ Test that daily digest not sent to those can't contact. """
         self._test_digest(False, User.NOTIFY_CHOICES.daily, False)
+
+
+class MeetingInvitationTest(TestCase):
+
+    """ Test the sending of meeting invitation to new members. """
+
+    def _test_invitation(self, expected, sent=False, can_contact=True):
+        """ Test meeting invitation. """
+        from joltem.tasks import meeting_invitation
+        user = mixer.blend('joltem.user',
+                           sent_meeting_invitation=sent,
+                           can_contact=can_contact)
+        self.assertFalse(mail.outbox)
+        meeting_invitation.delay()
+        self.assertEqual(expected, bool(mail.outbox))
+        if expected:
+            m = mail.outbox.pop()
+            self.assertEqual(m.subject, "Meeting Invitation")
+            self.assertEqual(m.recipients(), [user.email])
+            self.assertTrue(load_model(user).sent_meeting_invitation)
+
+
+    def test_simple(self):
+        """ Test simple case of meeting invitation. """
+        self._test_invitation(True, sent=False, can_contact=True)
+
+    def test_sent(self):
+        """ Test already sent meeting invitation. """
+        self._test_invitation(False, sent=True, can_contact=True)
+
+    def test_cant_contact(self):
+        """ Test that email doesn't go to people w/ cant contact. """
+        self._test_invitation(False, sent=False, can_contact=False)
