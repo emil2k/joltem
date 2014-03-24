@@ -13,6 +13,7 @@ LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'joltem.User'
 AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
+PERSONAL_FROM_EMAIL = 'emil@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
 SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
 SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
@@ -126,6 +127,11 @@ CELERYBEAT_SCHEDULE = {
     'daily-digest': {
         'task': 'joltem.tasks.daily_digest',
         'schedule': timedelta(hours=24),
+        'args': (),
+    },
+    'meeting-invitation': {
+        'task': 'joltem.tasks.meeting_invitation',
+        'schedule': timedelta(hours=4),
         'args': (),
     },
     'archive-solution': {

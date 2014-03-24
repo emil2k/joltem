@@ -1,0 +1,15 @@
+{% extends "joltem/emails/base.txt" %}
+{% block title %}Meeting Invitation{% endblock %}
+{% block content %}
+Hi {{ user.first_name }},
+
+Thank you for signing up for Joltem. I want to personally invite you to our weekly Google Hangout. The Hangout is a perfect place to get your questions answered, give feedback, and introduce yourself.
+
+We are trying to build a community that can undertake projects together without the limits of borders. While our numbers are currently small the Hangout is the best way to get your voice heard. I highly encourage you to participate.
+
+All our Hangouts events are listed on our Google+ page at :
+https://plus.google.com/+Joltem/
+
+See you there,
+Emil
+{% endblock %}
