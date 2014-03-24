@@ -77,6 +77,8 @@
 
             {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
 
+            {% include 'joltem/includes/form_field.html' with field=form.can_contact help_html="Uncheck to disable all emails, including notifications." %}
+
             <hr/>
             <p><strong>Skills</strong> <small class="help-inline">Technologies, languages, and any other skills.</small> </p>
             {% if form.tags.errors %}
