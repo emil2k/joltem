@@ -3,9 +3,6 @@
 
 {% block content %}{% endblock %}
 
----
-support@joltem.com | http://{{ host }}
-
 ===
 
 Unsubscribe from all emails :
