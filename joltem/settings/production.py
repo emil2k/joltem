@@ -1,4 +1,5 @@
 """ Project's settings. """
+from celery.schedules import crontab
 from datetime import timedelta
 
 from .core import *
@@ -132,6 +133,11 @@ CELERYBEAT_SCHEDULE = {
     'meeting-invitation': {
         'task': 'joltem.tasks.meeting_invitation',
         'schedule': timedelta(hours=4),
+        'args': (),
+    },
+    'distribute-tasks': {
+        'task': 'joltem.tasks.distribute_tasks',
+        'schedule': crontab(day_of_week=6, hour=7, minute=0),  # saturday 7 am
         'args': (),
     },
     'archive-solution': {

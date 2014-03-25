@@ -27,6 +27,7 @@ class User(AbstractUser):
     :param completed: count of completed solutions, saved for caching.
     :param notifications: count of uncleared notifications, saved for caching.
     :param can_contact: whether can send emails to user.
+    :param can_distribute_tasks: whether can send emails with open tasks.
     :param notify_by_email: setting for frequency of delivering notification
         emails.
     :param time_notified: last time of notifying user.
@@ -47,6 +48,7 @@ class User(AbstractUser):
     completed = models.IntegerField(default=0)
     notifications = models.IntegerField(default=0)
     can_contact = models.BooleanField(default=True)
+    can_distribute_tasks = models.BooleanField(default=True)
     notify_by_email = models.PositiveSmallIntegerField(
         default=NOTIFY_CHOICES.disable, choices=NOTIFY_CHOICES)
     time_notified = models.DateTimeField(default=timezone.now)

@@ -654,3 +654,147 @@ class MeetingInvitationTest(TestCase):
     def test_cant_contact(self):
         """ Test that email doesn't go to people w/ cant contact. """
         self._test_invitation(False, sent=False, can_contact=False)
+
+
+class DistributeTaskTest(TestCase):
+
+    """ Testing of distributing tasks via email. """
+
+    def test_task_configuration(self):
+        """ Test task configuration.
+
+        Make sure only mentioned once and runs at expected time,
+        once a week.
+
+        """
+        matches = [ v for k, v in settings.CELERYBEAT_SCHEDULE.items() \
+          if v.get('task') == 'joltem.tasks.distribute_tasks']
+        self.assertEqual(len(matches), 1)
+        crontab = matches.pop().get('schedule')
+        self.assertEqual(crontab.day_of_week, set([6]))
+        self.assertEqual(crontab.hour, set([7]))
+        self.assertEqual(crontab.minute, set([0]))
+
+    def _mock_user(self, can_contact=True, can_distribute_tasks=True,
+                   tags=('python',)):
+        """ Mock a user for this test case.
+
+        :param user_tags:
+        :return User:
+
+        """
+        user = mixer.blend('joltem.user', can_contact=can_contact,
+                           can_distribute_tasks=can_distribute_tasks)
+        user.tags.add(*tags)
+        return user
+
+    def _mock_task(self, is_closed=False, is_accepted=True, is_private=False,
+                   tags=('python',)):
+        """ Mock a task for this test case.
+
+        :param is_closed:
+        :param is_accepted:
+        :param is_private:
+        :return Task:
+
+        """
+        task = mixer.blend(
+            'task.task', is_closed=is_closed, is_accepted=is_accepted,
+            project__is_private=is_private, title="Email distribution email")
+        task.tags.add(*tags)
+        return task
+
+    def _test_distribute_task(self, expected, can_contact=True,
+                              can_distribute_tasks=True, user=None,
+                              user_tags=('python',), make_task=True):
+        """ Test task distribution.
+
+        :param expected:
+        :param can_contact:
+        :param can_distribute_tasks:
+        :param user: for overriding the user creation.
+        :param user_tags: override the user's tasks, default is (python, ).
+        :param make_task: will create an open task on a public project
+            with user's tags.
+        :return:
+
+        """
+        from joltem.tasks import distribute_tasks
+        if user is None:
+            user = self._mock_user(can_contact, can_distribute_tasks, user_tags)
+        if make_task:
+            self._mock_task(is_closed=False, is_accepted=True,
+                            is_private=False, tags=user_tags)
+        self.assertFalse(mail.outbox)
+        distribute_tasks.delay()
+        self.assertEqual(bool(mail.outbox), expected)
+        if expected:
+            m = mail.outbox.pop()
+            self.assertEqual(m.subject, "Open Tasks")
+            self.assertEqual(m.recipients(), [user.email])
+
+    def test_simple(self):
+        """ Test simple task distribution. """
+        self._test_distribute_task(True,
+                                   can_contact=True, can_distribute_tasks=True)
+
+    def test_not_matching(self):
+        """ Test when tags not matching between user and tags. """
+        user = self._mock_user(tags=('ios',))
+        task = self._mock_task(tags=('python','django'))
+        self._test_distribute_task(False, user=user, make_task=False)
+
+
+    def test_cant_contact(self):
+        """ Test disabling task distribution to cant_contact. """
+        self._test_distribute_task(False,
+                                   can_contact=False, can_distribute_tasks=True)
+
+    def test_cant_distribute_tasks(self):
+        """ Test disabling task distribution to cant_distribute_tasks. """
+        self._test_distribute_task(False,
+                                   can_contact=True, can_distribute_tasks=False)
+
+    def test_closed(self):
+        """ Test closed task not distributed. """
+        task = self._mock_task(is_closed=True)
+        self._test_distribute_task(False, make_task=False)
+
+    def test_rejected(self):
+        """ Test rejected task not distributed. """
+        task = self._mock_task(is_accepted=False)
+        self._test_distribute_task(False, make_task=False)
+
+    def test_private(self):
+        """ Test private project task not distributed. """
+        self._mock_task(is_private=True, tags=('apple',))
+        self._test_distribute_task(False, make_task=False,
+                                   user_tags=('ios', 'apple'))
+
+    def test_private_invitee(self):
+        """ Test private project task distributed to invitees. """
+        user = self._mock_user(tags=('python',))
+        task = self._mock_task(is_private=True, tags=('python','django'))
+        task.project.invitee_set.add(user)
+        self._test_distribute_task(True, user=user, make_task=False)
+
+    def test_private_admin(self):
+        """ Test private project task distributed to admins. """
+        user = self._mock_user(tags=('python',))
+        task = self._mock_task(is_private=True, tags=('python','django'))
+        task.project.admin_set.add(user)
+        self._test_distribute_task(True, user=user, make_task=False)
+
+    def test_private_manager(self):
+        """ Test private project task distributed to managers. """
+        user = self._mock_user(tags=('python',))
+        task = self._mock_task(is_private=True, tags=('python','django'))
+        task.project.manager_set.add(user)
+        self._test_distribute_task(True, user=user, make_task=False)
+
+    def test_private_developer(self):
+        """ Test private project task distributed to developers. """
+        user = self._mock_user(tags=('python',))
+        task = self._mock_task(is_private=True, tags=('python','django'))
+        task.project.developer_set.add(user)
+        self._test_distribute_task(True, user=user, make_task=False)
