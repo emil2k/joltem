@@ -12,10 +12,22 @@ from .celery import app
 
 
 @app.task(ignore_result=True)
-def send_async_email(message, recipient_list, subject="Joltem"):
-    """ Send email asynchronously. """
-
-    send_mail(subject, message, settings.NOTIFY_FROM_EMAIL, recipient_list)
+def send_immediately_to_user(notification_id):
+    """ Send notification immediately. """
+    from joltem.models import Notification
+    notification = Notification.objects.select_related('user').get(
+        pk=notification_id)
+    if notification.user.can_contact:
+        subject = "[joltem.com] %s" % notification.type
+        msg = _prepare_msg(
+            subject, 'joltem/emails/immediately.txt',
+            'joltem/emails/immediately.html', dict(
+                host=settings.URL,
+                user=notification.user,
+                notification=notification,
+            ), [notification.user.email]
+        )
+        msg.send()
 
 
 @app.task(ignore_result=True)
@@ -112,22 +124,6 @@ def send_meeting_invitation_to_user(user_id):
 
 
 @app.task(ignore_result=True)
-def send_immediately_to_user(notification_id):
-    """ Send notification immediately. """
-    from joltem.models import Notification
-    notification = Notification.objects.select_related('user').get(
-        pk=notification_id)
-    if notification.user.can_contact:
-        subject = "[joltem.com] %s" % notification.type
-        msg = _prepare_msg(
-            subject, 'joltem/emails/immediately.txt',
-            'joltem/emails/immediately.html', dict(
-                host=settings.URL,
-                user=notification.user,
-                notification=notification,
-            ), [notification.user.email]
-        )
-        msg.send()
 
 
 def _prepare_msg(
