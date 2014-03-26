@@ -9,7 +9,7 @@
             <tbody>
                 <tr>
                     <td>
-                        <p>{{ notification.get_text }}.</p>
+                        <p>{{ notification.get_text }}</p>
                     </td>
                     {% url "notification_redirect" notification.id as notification_redirect %}
                     <td><a href="http://{{ host }}{{ notification_redirect }}" target="_blank">>></a></td>

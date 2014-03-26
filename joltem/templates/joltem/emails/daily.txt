@@ -1,6 +1,6 @@
 {% extends "joltem/emails/base.txt" %}
 {% block title %}Daily Digest{% endblock %}
 {% block content %}
-{% for notification in notifies %}- {{ notification.get_text|safe }} (http://joltem.com{% url "notification_redirect" notification.id %})
+{% for notification in notifies %}- {{ notification.get_text|safe }} (http://{{ host }} {% url "notification_redirect" notification.id %})
 {% endfor %}
 {% endblock %}

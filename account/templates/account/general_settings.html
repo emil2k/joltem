@@ -79,6 +79,8 @@
 
             {% include 'joltem/includes/form_field.html' with field=form.can_contact help_html="Uncheck to disable all emails, including notifications." %}
 
+            {% include 'joltem/includes/form_field.html' with field=form.can_distribute_tasks help_html="Uncheck to disable emails with open tasks matching your skills." %}
+
             <hr/>
             <p><strong>Skills</strong> <small class="help-inline">Technologies, languages, and any other skills.</small> </p>
             {% if form.tags.errors %}
@@ -86,14 +88,18 @@
                     {{ form.tags.errors|join:' ' }}
                 </div>
             {% endif %}
-            {% render_field form.tags id="user-tags" class="input-block-level" placeholder=form.tags.label %}
+            <p>
+                {% render_field form.tags id="user-tags" class="input-block-level" placeholder=form.tags.label %}
+            </p>
             <p><strong>About</strong><small class="help-inline">A few words about yourself, markdown supported.</small></p>
             {% if form.about.errors %}
                 <div class="alert alert-error">
                     {{ form.about.errors|join:' ' }}
                 </div>
             {% endif %}
-            {% render_field form.about class="input-block-level" rows="5" placeholder=form.about.label %}
+            <p>
+                {% render_field form.about class="input-block-level" rows="5" placeholder=form.about.label %}
+            </p>
             <p>
                 <button type="submit" class="btn btn-success">Save</button>
             </p>
