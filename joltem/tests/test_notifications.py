@@ -180,8 +180,8 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
             self.jill, jill_task, settings.NOTIFICATION_TYPES.task_posted)
         self.assertNotificationNotReceived(
             ted, jill_task, settings.NOTIFICATION_TYPES.task_posted)
-        self.assertNotificationNotReceived(self.bob, jill_task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            self.bob, jill_task, settings.NOTIFICATION_TYPES.task_posted)
 
         task = get_mock_task(self.project, self.bob, solution=parent_solution,
                              is_reviewed=True, is_accepted=False)
@@ -189,10 +189,10 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
             self.jill, task, settings.NOTIFICATION_TYPES.task_posted,
             "Bob posted a task on your solution \"%s\"" %
             parent_solution.default_title)
-        self.assertNotificationNotReceived(ted, task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
-        self.assertNotificationNotReceived(self.bob, task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            ted, task, settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            self.bob, task, settings.NOTIFICATION_TYPES.task_posted)
 
     def test_task_posted_no_parent(self):
         """ Test notifications when task is posted without parents.
@@ -212,10 +212,10 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
                                         settings.NOTIFICATION_TYPES.task_posted,
                                         "Jill posted a task")
         # Don't notify yourself
-        self.assertNotificationNotReceived(self.jill, jill_task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
-        self.assertNotificationNotReceived(self.bob, jill_task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            self.jill, jill_task, settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            self.bob, jill_task, settings.NOTIFICATION_TYPES.task_posted)
 
         task = get_mock_task(self.project, self.bob,
                              is_reviewed=True, is_accepted=False)
@@ -225,8 +225,8 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
         self.assertNotificationReceived(self.jill, task,
                                         settings.NOTIFICATION_TYPES.task_posted,
                                         "Bob posted a task")
-        self.assertNotificationNotReceived(self.bob, task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
+        self.assertNotificationNotReceived(
+            self.bob, task, settings.NOTIFICATION_TYPES.task_posted)
 
     def test_task_accepted(self):
         """ Test notifications when a regular task.
@@ -241,38 +241,8 @@ class TasksNotificationTestCase(BaseNotificationTestCase):
         solution = get_mock_solution(self.project, self.bob, task=parent_task)
         task = get_mock_task(self.project, self.bob, solution=solution,
                              is_reviewed=True, is_accepted=False)
-        self.assertNotificationNotReceived(self.bob, task,
-                                           settings.NOTIFICATION_TYPES.task_posted)
-
-        # todo Mark it accepted now
-        # task.mark_accepted(self.jill)
-        # self.assertNotificationReceived(
-        #     self.bob, task, settings.NOTIFICATION_TYPES.task_accepted,
-        #     "Your task \"%s\" was accepted" % task.title)
-
-    @testcases.skipIf(True, 'disabled')
-    def test_task_accepted_suggested(self):
-        """ Test notifications when a suggested task is accepted. """
-        solution = get_mock_solution(self.project, self.jill,
-                                     title="Paint it Blue")
-        task = get_mock_task(self.project, self.bob, solution=solution,
-                             is_reviewed=True, is_accepted=False)
-        self.assertNotificationNotReceived(self.bob, task,
-                                           settings.NOTIFICATION_TYPES.task_accepted)
-        self.assertNotificationNotReceived(self.jill, task,
-                                           settings.NOTIFICATION_TYPES.task_accepted)
-        task.mark_accepted(self.jill)
-        self.assertNotificationReceived(self.bob, task,
-                                        settings.NOTIFICATION_TYPES.task_accepted,
-                                        "Your task \"%s\" was accepted" %
-                                        task.title)
-        self.assertNotificationNotReceived(self.jill, task,
-                                           settings.NOTIFICATION_TYPES.task_accepted)
-        task.mark_unaccepted()  # should be removed now
-        self.assertNotificationNotReceived(self.bob, task,
-                                           settings.NOTIFICATION_TYPES.task_accepted)
-        self.assertNotificationNotReceived(self.jill, task,
-                                           settings.NOTIFICATION_TYPES.task_accepted)
+        self.assertNotificationNotReceived(
+            self.bob, task, settings.NOTIFICATION_TYPES.task_posted)
 
 
 class SolutionNotificationTestCase(BaseNotificationTestCase):
@@ -286,12 +256,14 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution = get_mock_solution(self.project, self.bob, task=task)
         solution.mark_complete(5)
         self.assertNotificationReceived(
-            self.jill, solution, settings.NOTIFICATION_TYPES.solution_marked_complete,
+            self.jill, solution,
+            settings.NOTIFICATION_TYPES.solution_marked_complete,
             "Solution \"%s\" was marked complete" % solution.default_title)
         # Now mark incomplete and the notification should be gone
         solution.mark_incomplete()
         self.assertNotificationNotReceived(
-            self.jill, solution, settings.NOTIFICATION_TYPES.solution_marked_complete)
+            self.jill, solution,
+            settings.NOTIFICATION_TYPES.solution_marked_complete)
 
     def test_solution_complete_for_closed_task(self):
         """ Test notification that solution complete to a closed task owner.
@@ -304,7 +276,8 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution = get_mock_solution(self.project, self.bob, task=task)
         solution.mark_complete(5)
         self.assertNotificationNotReceived(
-            self.jill, solution, settings.NOTIFICATION_TYPES.solution_marked_complete)
+            self.jill, solution,
+            settings.NOTIFICATION_TYPES.solution_marked_complete)
 
     def test_solution_complete_same_owner(self):
         """ Test notification to a task owner.
@@ -318,7 +291,8 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution = get_mock_solution(self.project, self.jill, task=task)
         solution.mark_complete(5)
         self.assertNotificationNotReceived(
-            self.jill, solution, settings.NOTIFICATION_TYPES.solution_marked_complete)
+            self.jill, solution,
+            settings.NOTIFICATION_TYPES.solution_marked_complete)
 
     def test_solution_posted_with_parent_task(self):
         """ Test notifications that a solution has been posted.
@@ -334,8 +308,9 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
                              is_reviewed=True, is_accepted=True)
         jill_solution = get_mock_solution(self.project, self.jill, task=task)
         # Don't notify yourself
-        self.assertNotificationNotReceived(self.jill, jill_solution,
-                                           settings.NOTIFICATION_TYPES.solution_posted)
+        self.assertNotificationNotReceived(
+            self.jill, jill_solution,
+            settings.NOTIFICATION_TYPES.solution_posted)
         solution = get_mock_solution(self.project, self.bob, task=task)
         self.assertNotificationReceived(
             self.jill, solution, settings.NOTIFICATION_TYPES.solution_posted,
@@ -361,8 +336,9 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         jill_solution = get_mock_solution(self.project, self.jill,
                                           solution=parent_solution)
         # Don't notify yourself
-        self.assertNotificationNotReceived(self.jill, jill_solution,
-                                           settings.NOTIFICATION_TYPES.solution_posted)
+        self.assertNotificationNotReceived(
+            self.jill, jill_solution,
+            settings.NOTIFICATION_TYPES.solution_posted)
         solution = get_mock_solution(self.project, self.bob,
                                      solution=parent_solution)
         self.assertNotificationReceived(
@@ -390,19 +366,20 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         jill_solution = get_mock_solution(self.project, self.jill)
         # Don't notify yourself
         self.assertNotificationNotReceived(
-            self.jill, jill_solution, settings.NOTIFICATION_TYPES.solution_posted)
-        self.assertNotificationReceived(ted, jill_solution,
-                                        settings.NOTIFICATION_TYPES.solution_posted,
-                                        "Jill posted a solution")
+            self.jill, jill_solution,
+            settings.NOTIFICATION_TYPES.solution_posted)
+        self.assertNotificationReceived(
+            ted, jill_solution, settings.NOTIFICATION_TYPES.solution_posted,
+            "Jill posted a solution")
         solution = get_mock_solution(self.project, self.bob)
-        self.assertNotificationReceived(self.jill, solution,
-                                        settings.NOTIFICATION_TYPES.solution_posted,
-                                        "Bob posted a solution")
-        self.assertNotificationReceived(ted, solution,
-                                        settings.NOTIFICATION_TYPES.solution_posted,
-                                        "Bob posted a solution")
-        self.assertNotificationNotReceived(self.bob, solution,
-                                           settings.NOTIFICATION_TYPES.solution_posted)
+        self.assertNotificationReceived(
+            self.jill, solution, settings.NOTIFICATION_TYPES.solution_posted,
+            "Bob posted a solution")
+        self.assertNotificationReceived(
+            ted, solution, settings.NOTIFICATION_TYPES.solution_posted,
+            "Bob posted a solution")
+        self.assertNotificationNotReceived(
+            self.bob, solution, settings.NOTIFICATION_TYPES.solution_posted)
 
     # Comments on solutions
 
@@ -513,12 +490,14 @@ class SolutionNotificationTestCase(BaseNotificationTestCase):
         solution.put_vote(voter, True)
         solution.change_evaluation(10)
         self.assertNotificationReceived(
-            voter, solution, settings.NOTIFICATION_TYPES.solution_evaluation_changed,
+            voter, solution,
+            settings.NOTIFICATION_TYPES.solution_evaluation_changed,
             'Update your vote, the evaluation of "Bird House" was changed')
         solution.put_vote(voter, True)
         solution.change_evaluation(5)  # should create new notification
         self.assertReceivedNotificationCount(
-            voter, solution, settings.NOTIFICATION_TYPES.solution_evaluation_changed,
+            voter, solution,
+            settings.NOTIFICATION_TYPES.solution_evaluation_changed,
             'Update your vote, the evaluation of "Bird House" was changed',
             expected_count=2)
 
