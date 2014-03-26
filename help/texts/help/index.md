@@ -69,34 +69,6 @@ On completion of a solution, a peer review is initiated to evaluate the complete
 
 ---
 
-<a name="company" class="anchor-fix"></a>
-#### How is Joltem structured?
-
-The *Joltem* project itself is a proof of concept, an open company. 
-
-The company will be structured with *85%* of company's equity backing impact, the other *15%* is reserved for [Emil Davtyan][8] the founder and angel investor of the company.
-
-Annually on the anniversary of the public release of the site *25%* of non-exchanged impact will be available to exchange for equity.
-
-
-<a name="involved" class="anchor-fix"></a>
-#### How to get involved?
-
-You can follow our work without signing up, but if you want to contribute code or comment you will need to sign up.
-
-To contribute code :
-
-1. Sign up.
-2. Add a SSH key in *Account \> Keys*, so you can clone the repository.
-3. Clone the repository.
-4. Read the `README.md` document, on how to setup the code for local development ( we use [Vagrant][9] ).
-5. Post a solution to one of the open tasks.
-6. Rinse and repeat.
-
-If you experience a problem contact the development team at [dev@joltem.com][10] and someone will respond promptly.
-
----
-
 <a name="press" class="anchor-fix"></a>
 #### Writing about us?
 
