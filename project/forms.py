@@ -105,9 +105,13 @@ class ProjectSettingsForm(forms.ModelForm):
 
     """ Work with project's settings."""
 
+    is_private = forms.TypedChoiceField(
+        choices=((False, 'False'), (True, 'True')),
+        widget=forms.RadioSelect)
+
     class Meta:
         model = Project
-        fields = ('title', 'description')
+        fields = ('title', 'description', 'is_private')
 
     def clean_title(self):
         """ Strip whitespaces.

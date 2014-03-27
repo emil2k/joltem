@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test.testcases import TestCase
 
-from joltem.libs import mixer
+from joltem.libs import mixer, load_model
 from joltem.libs.mock import models, requests
 
 
@@ -234,10 +234,21 @@ class TestProjectSettingsView(TestCase):
         response = self.client.post(self.uri)
         self.assertEqual(response.status_code, expected_code)
 
+    def test_change_settings(self):
+        self.project.admin_set.add(self.user)
+        self.client.login(username=self.user.username, password='test')
+        self.client.post(self.uri, data=dict(
+            title='new title',
+            is_private=True,
+            submit_settings=True
+        ))
+        project = load_model(self.project)
+        self.assertEqual(project.title, 'new title')
+        self.assertEqual(project.is_private, True)
+
     def test_admin(self):
         """ Test GET with admin. """
         self.project.admin_set.add(self.user)
-        self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(200)
         self._test_post(302)
@@ -245,7 +256,6 @@ class TestProjectSettingsView(TestCase):
     def test_manager(self):
         """ Test GET with manager. """
         self.project.manager_set.add(self.user)
-        self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(404)
         self._test_post(404)
@@ -253,7 +263,6 @@ class TestProjectSettingsView(TestCase):
     def test_developer(self):
         """ Test GET with developer. """
         self.project.developer_set.add(self.user)
-        self.project.save()
         self.client.login(username=self.user.username, password='test')
         self._test_get(404)
         self._test_post(404)

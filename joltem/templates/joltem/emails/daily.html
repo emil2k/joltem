@@ -1,17 +1,18 @@
 {% extends "joltem/emails/base.html" %}
 
-{% block title %}Joltem Daily Digest{% endblock %}
+{% block title %}Daily Digest{% endblock %}
 {% block subtitle %}{% endblock %}
 
 {% block content %}
     {% for notification in notifies %}
-        <table class="twelve columns callout">
+        <table>
             <tbody>
                 <tr>
-                    <td class="panel">
-                        <p>{{ notification.get_text }}. <a href="http://joltem.com{% url "notification_redirect" notification.id %}">Click it! »</a></p>
+                    <td>
+                        <p>{{ notification.get_text }}</p>
                     </td>
-                    <td class="expander"></td>
+                    {% url "notification_redirect" notification.id as notification_redirect %}
+                    <td><a href="http://{{ host }}{{ notification_redirect }}" target="_blank">>></a></td>
                 </tr>
             </tbody>
         </table>

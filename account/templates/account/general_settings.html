@@ -1,5 +1,14 @@
 {% extends 'account/base.html' %}
 
+{% load widget_tweaks django_markdown %}
+
+{% block scripts %}
+    {{ block.super }}
+    {% markdown_media %}
+    {% markdown_editor "textarea" %}
+    {% include 'joltem/includes/tag-scripts.html' with tag_input_id="user-tags" %}
+{% endblock %}
+
 {% block account_content %}
 <div class="row hidden-desktop hidden-tablet">
     <div class="span8">
@@ -43,7 +52,14 @@
 
 <div class="row">
     <div class="span10">
-        <form action="" method="post" class="form-horizontal" id="account-general-settings-form">
+        <script>
+            track_first_tags = function(){
+                if(FIRST_TAGS_ADDED){  // boolean defined and set in tag-scripts.html
+                    TRACK.users.tagged('{{ user.username|escapejs }}');
+                }
+            }
+        </script>
+        <form action="" method="post" class="form-horizontal" id="account-general-settings-form" onsubmit="track_first_tags();">
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="alert alert-error">
@@ -61,13 +77,32 @@
 
             {% include 'joltem/includes/form_field.html' with field=form.notify_by_email %}
 
-            {% include 'joltem/includes/form_field.html' with field=form.about help_html='Optional, markdown supported.' %}
+            {% include 'joltem/includes/form_field.html' with field=form.can_contact help_html="Uncheck to disable all emails, including notifications." %}
 
-            <div class="control-group">
-                <div class="controls">
-                    <button type="submit" class="btn btn-success">Save</button>
+            {% include 'joltem/includes/form_field.html' with field=form.can_distribute_tasks help_html="Uncheck to disable emails with open tasks matching your skills." %}
+
+            <hr/>
+            <p><strong>Skills</strong> <small class="help-inline">Technologies, languages, and any other skills.</small> </p>
+            {% if form.tags.errors %}
+                <div class="alert alert-error">
+                    {{ form.tags.errors|join:' ' }}
                 </div>
-            </div>
+            {% endif %}
+            <p>
+                {% render_field form.tags id="user-tags" class="input-block-level" placeholder=form.tags.label %}
+            </p>
+            <p><strong>About</strong><small class="help-inline">A few words about yourself, markdown supported.</small></p>
+            {% if form.about.errors %}
+                <div class="alert alert-error">
+                    {{ form.about.errors|join:' ' }}
+                </div>
+            {% endif %}
+            <p>
+                {% render_field form.about class="input-block-level" rows="5" placeholder=form.about.label %}
+            </p>
+            <p>
+                <button type="submit" class="btn btn-success">Save</button>
+            </p>
         </form>
     </div>
 </div>

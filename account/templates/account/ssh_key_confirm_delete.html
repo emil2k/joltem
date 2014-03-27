@@ -4,7 +4,7 @@
 <p class="text-info"><i class="fa fa-briefcase"></i> {{ object.name }}</p>
 <pre>{{ object.key }}</pre>
 
-<form action="" method="post" id="account-ssh-key-delete-form">
+<form action="" method="post" id="account-ssh-key-delete-form" onsubmit="TRACK.authentication.delete('{{ object.name|escapejs }}');">
     {% csrf_token %}
 
     <button type="submit" class="btn btn-danger">Delete SSH key</button>

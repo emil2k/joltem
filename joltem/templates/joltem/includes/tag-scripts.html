@@ -1,0 +1,40 @@
+{% load static from staticfiles %}
+<link href="{% static 'joltem/css/jquery.tagit.css' %}" rel="stylesheet" type="text/css">
+{# Load minified files in production #}
+{% if DEBUG %}
+    <link href="{% static 'joltem/css/flick/jquery-ui.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'joltem/js/tag-it.js' %}"></script>
+{% else %}
+    <link href="{% static 'joltem/css/flick/jquery-ui.min.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'joltem/js/tag-it.min.js' %}"></script>
+{% endif %}
+<script type="text/javascript">
+    var FIRST_TAGS_ADDED;  // access this variable for tracking
+    jQuery(document).ready(function() {
+        var tag_count = 0;
+        jQuery("#{{ tag_input_id }}").tagit({
+            caseSensitive: false,
+            placeholderText: "{{ tag_placeholder }}",
+            autocomplete: {
+                delay: 200,
+                minLength: 2,
+                source: "{% url 'tags' %}"
+            },
+            afterTagAdded: function(event, ui) {
+                if(ui.duringInitialization){
+                    FIRST_TAGS_ADDED = false;
+                }else if(FIRST_TAGS_ADDED === undefined){
+                    FIRST_TAGS_ADDED = true;
+                }
+                tag_count++;
+            },
+            afterTagRemoved: function(event, ui) {
+                tag_count--;
+                if (FIRST_TAGS_ADDED && tag_count === 0){
+                    FIRST_TAGS_ADDED = undefined;
+                }
+            }
+
+        });
+    });
+</script>

@@ -32,9 +32,9 @@
                 {{ task.description|markdown }}
                 <hr/>
             {% endif %}
-            <form method="post">
+            <form method="post" onsubmit="TRACK.solution.create($('#id_title').val());">
                 {% csrf_token %}
-                <input value="{{ title }}" class="input-block-level" type="text" name="title" placeholder="{% if task %}Optional. {% endif %}A title that describes your solution."/>
+                <input value="{{ title }}" id="id_title" class="input-block-level" type="text" name="title" placeholder="{% if task %}Optional. {% endif %}A title that describes your solution."/>
                 <textarea class="input-block-level" rows=10 name="description" placeholder="{% if task %}Optional. {% endif %}Briefly describe the solution.">{{ description }}</textarea>
                 <button class="btn btn-success" type="submit">Solve</button>
             </form>

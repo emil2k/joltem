@@ -36,6 +36,10 @@ urlpatterns = patterns(
         login_required(views.MyCompleteSolutionsView.as_view()),
         name='my_complete'),
 
+    url(r'^closed/my/$',
+        login_required(views.MyClosedSolutionsView.as_view()),
+        name='my_closed'),
+
     url(r'^incomplete/$',
         views.AllIncompleteSolutionsView.as_view(), name='all_incomplete'),
 

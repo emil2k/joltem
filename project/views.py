@@ -81,6 +81,7 @@ class ProjectBaseView(RequestBaseView):
         """
         kwargs[u'project'] = self.project
         kwargs[u'is_admin'] = self.is_admin
+        kwargs[u'is_manager'] = self.is_manager
         kwargs[u'project_tab'] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
 
@@ -384,13 +385,11 @@ class ProjectSettingsView(TemplateView, ProjectBaseView):
         """
         context = self.get_context_data(**kwargs)
         if 'submit_settings' in request.POST:
-            form = ProjectSettingsForm(request.POST)
+            form = ProjectSettingsForm(request.POST, instance=self.project)
             if not form.is_valid():
                 context['form'] = form
                 return self.render_to_response(context)
-            self.project.title = form.cleaned_data['title']
-            self.project.description = form.cleaned_data['description']
-            self.project.save()
+            self.project = form.save()
 
         elif 'submit_add_admin' in request.POST \
                 or 'submit_remove_admin' in request.POST:

@@ -4,6 +4,7 @@ from .production import *
 
 
 ENVIRONMENT_NAME = "test"
+URL = 'joltem.local'
 
 # Databases
 DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
@@ -24,6 +25,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # Celery
 CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
 # Haystack
 HAYSTACK_CONNECTIONS['default']['PATH'] = '/tmp/whoosh'

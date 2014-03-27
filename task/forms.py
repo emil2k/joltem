@@ -17,7 +17,8 @@ class TaskCreateForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = ('title', 'description', 'priority', 'project', 'owner',)
+        fields = ('title', 'description', 'priority', 'project', 'owner',
+                  'tags')
 
     def clean_title(self):
         """ Strip whitespaces from title.
@@ -39,7 +40,7 @@ class TaskEditForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = ('title', 'description', 'priority',)
+        fields = ('title', 'description', 'priority', 'tags')
 
     def clean_title(self):
         """ Strip whitespaces from title.

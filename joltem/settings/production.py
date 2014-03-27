@@ -1,4 +1,5 @@
 """ Project's settings. """
+from celery.schedules import crontab
 from datetime import timedelta
 
 from .core import *
@@ -13,6 +14,7 @@ LOGIN_REDIRECT_URL = 'home'
 AUTH_USER_MODEL = 'joltem.User'
 AUTH_SERVICE_USERNAMES = ['joltem']
 BASE_FROM_EMAIL = 'support@joltem.com'
+PERSONAL_FROM_EMAIL = 'emil@joltem.com'
 NOTIFY_FROM_EMAIL = BASE_FROM_EMAIL
 SOLUTION_LIFE_PERIOD_SECONDS = 60 * 60 * 24 * 30
 SOLUTION_REVIEW_PERIOD_SECONDS = 60 * 60 * 24 * 7
@@ -39,6 +41,7 @@ INSTALLED_APPS += (
     'mathfilters',
     'south',
     'widget_tweaks',
+    'taggit',
 
     # Project
     'joltem',
@@ -79,6 +82,7 @@ NOTIFICATION_TYPES('comment_added')
 NOTIFICATION_TYPES('solution_archived')
 NOTIFICATION_TYPES('solution_evaluation_changed')
 NOTIFICATION_TYPES('solution_marked_complete')
+NOTIFICATION_TYPES('solution_marked_closed')
 NOTIFICATION_TYPES('solution_posted')
 NOTIFICATION_TYPES('task_accepted')
 NOTIFICATION_TYPES('task_posted')
@@ -127,8 +131,23 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=24),
         'args': (),
     },
+    'meeting-invitation': {
+        'task': 'joltem.tasks.meeting_invitation',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+    'distribute-tasks': {
+        'task': 'joltem.tasks.distribute_tasks',
+        'schedule': crontab(day_of_week=6, hour=7, minute=0),  # saturday 7 am
+        'args': (),
+    },
     'archive-solution': {
         'task': 'solution.tasks.archive_solutions',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+    'review-solution': {
+        'task': 'solution.tasks.review_solutions',
         'schedule': timedelta(hours=4),
         'args': (),
     },

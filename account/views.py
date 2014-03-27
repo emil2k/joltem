@@ -6,11 +6,11 @@ from django.contrib.auth import authenticate, REDIRECT_FIELD_NAME, login
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, View
 
-from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm
+from .forms import SignUpForm, GeneralSettingsForm, SSHKeyForm, TagsForm
 from .models import User, OAuth
 from joltem.views.generic import ValidUserMixin, ExtraContextMixin
 
@@ -109,7 +109,7 @@ class SignUpView(ExtraContextMixin, CreateView):
 
     form_class = SignUpForm
     template_name = 'registration/sign_up.html'
-    success_url = reverse_lazy('intro')
+    success_url = reverse_lazy('tags-setup')
 
     @method_decorator(user_passes_test(
         test_func=lambda user: user.is_anonymous(),
@@ -157,6 +157,47 @@ class SignUpView(ExtraContextMixin, CreateView):
         return kwargs
 
 
+class TagsView(UpdateView):
+
+    """ Updates user's tags. """
+
+    form_class = TagsForm
+    template_name = 'account/tags.html'
+    success_url = reverse_lazy('intro')
+
+    def get_object(self):
+        """ Return current user.
+
+        :return User:
+
+        """
+        return self.request.user
+
+
+class UnsubscribeView(View):
+
+    """ View allowing the user to unsubscribe from all emails. """
+
+    def get(self, request, username, token):
+        """ Handle GET request to unsubscribe.
+
+        :param request:
+        :param username:
+        :param token:
+        :return:
+
+        """
+        user = get_object_or_404(User, username=username, is_active=True)
+        if ( (request.user.is_authenticated() and request.user == user) \
+                 or user.check_token(token)):
+            user.can_contact = False
+            user.save()
+            ok = True
+        else:
+            ok = False
+        return render(request, 'account/unsubscribe.html', { 'ok': ok })
+
+
 class BaseAccountView(ValidUserMixin, ExtraContextMixin):
 
     """Provides ``login_required`` decorator and extra context acceptance. """
@@ -186,11 +227,11 @@ class GeneralSettingsView(BaseAccountView, UpdateView):
         :return HttpResponse:
 
         """
-        response = super(GeneralSettingsView, self).form_valid(form)
-        user = form.instance
+        user = form.save(commit=False)
         user.gravatar = form.cleaned_data['gravatar_email']
         user.save()
-        return response
+        form.save_m2m()
+        return redirect('account')
 
     def get_context_data(self, **kwargs):
         """ Load information about connected OAuth.

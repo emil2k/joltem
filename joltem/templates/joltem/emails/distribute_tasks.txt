@@ -1,0 +1,6 @@
+{% extends "joltem/emails/base.txt" %}
+{% block title %}Open Tasks{% endblock %}
+{% block content %}
+{% for task in tasks %}- {{ task.title|safe }} (http://{{ host }}{% url "project:task:task" task.project_id task.id %})
+{% endfor %}
+{% endblock %}

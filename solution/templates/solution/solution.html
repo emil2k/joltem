@@ -34,18 +34,30 @@
                     <div class="btn-group">
                         {% if solution.is_closed %}
                             {% if is_owner %}
-                                <button class="btn" type="submit" name="reopen" value="1">reopen</button>
+                                <button class="btn" onclick="TRACK.solution.reopen('{{ solution.default_title|escapejs }}');" type="submit" name="reopen" value="1">reopen</button>
                             {% endif %}
                         {% elif solution.is_completed %}
                             {% if is_owner %}
                                 <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
-                                <button class="btn" type="submit" name="incomplete" value="1">mark incomplete</button>
+                                <button class="btn" onclick="TRACK.solution.incomplete('{{ solution.default_title|escapejs }}');" type="submit" name="incomplete" value="1">mark incomplete</button>
                             {% endif %}
                         {% else %}
                             {% if is_owner %}
                                 <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
-                                <button class="btn" type="submit" name="close" value="1"  onclick="return confirm('Are you sure you want to close the solution?\nThis means you are not going to complete the solution.');">close</button>
-                            {% else %}
+                            {% endif %}
+                            {% if is_owner or is_manager or is_admin %}
+                                <script>
+                                    close_solution = function() {
+                                        r = confirm('Are you sure you want to close the solution?\nThis means you are not going to complete the solution.');
+                                        if(r){
+                                            TRACK.solution.close('{{ solution.default_title|escapejs }}');
+                                        }
+                                        return r;
+                                    }
+                                </script>
+                                <button class="btn" type="submit" name="close" value="1"  onclick="return close_solution();">close</button>
+                            {% endif %}
+                            {% if not is_owner %}
                                 <a class="btn btn-success" href="{% url 'project:solution:new' project.id solution.id %}">suggest solution</a>
                             {% endif %}
                             <a class="btn btn-success" href="{% url 'project:task:new' project.id solution.id %}">create task</a>
@@ -56,6 +68,10 @@
             {% if solution.is_completed %}
                 <div class="alert alert-info">
                     <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
+                </div>
+            {% elif solution.is_closed %}
+                <div class="alert alert-danger">
+                    <b>This solution was closed</b> on {{ solution.time_closed|date }}{% if solution.owner != solution.closer %} by <a href="{% url 'user' solution.closer.username %}">{{ solution.closer.first_name }}</a>{% endif %}.
                 </div>
             {% endif %}
             {% if solution.task %}
@@ -77,7 +93,7 @@
                         <i class="fa fa-check"></i> Is the solution <a href="#" onclick="$('#compensation').show(); $('#compensation-q').hide();  return false;">complete</a>?
                     </strong>
                 </div>
-                <form method="post" id="compensation" class="compensation">
+                <form method="post" id="compensation" class="compensation" onsubmit="TRACK.solution.complete('{{ solution.default_title|escapejs }}');">
                     {% csrf_token %}
                     <p>How much <a href="{% url 'help:index' %}#impact" title="What is impact?">impact</a> do you want for the solution? <a href="{% url 'help:index' %}#review"><i class="fa fa-info-circle"> More info about bargaining.</i></a></p>
                     <p><input type="number" min="0" max="10000" size="5" name="compensation_value" placeholder="amount of impact"/></p>
@@ -85,7 +101,6 @@
                 </form>
             {% endif %}
             <span class="hidden-desktop hidden-tablet muted text-center">{{ solution.time_posted|timesince }} ago.</span>
-            <hr/>
         </div>
         <div class="span2 muted text-right hidden-phone">
             {{ solution.time_posted|timesince }} ago.
@@ -131,7 +146,6 @@
         {% endfor %}
     </form>
 
-    <hr/>
     {% include "joltem/commenting.html" with disable_comment=solution.is_archived %}
 
     {% if not solution.is_archived and user.is_authenticated %}

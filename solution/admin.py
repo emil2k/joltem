@@ -21,5 +21,8 @@ class _SolutionAdmin(MarkdownModelAdmin):
 
     list_display = 'default_title', 'is_completed', 'is_closed', 'is_archived'
     inlines = _VoteInlideAdmin,
+    list_filter = 'project',
+    list_select_related = True
+    search_fields = 'title',
 
 admin.site.register(Solution, _SolutionAdmin)

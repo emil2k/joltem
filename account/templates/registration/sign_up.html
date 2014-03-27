@@ -12,7 +12,7 @@
         </div>
     </p>
     <hr/>
-    <form action="" method="post" class="form-horizontal" id="sign-up-form">
+    <form action="" method="post" class="form-horizontal" id="sign-up-form" onsubmit="TRACK.users.sign_up($('#id_username').val());">
     {% csrf_token %}
 
     {% if form.non_field_errors %}

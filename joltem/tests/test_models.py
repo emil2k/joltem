@@ -20,3 +20,8 @@ class UserModelTest(TestCase):
                          '0e3616fa71abd6c30910910d4d439470')
         self.assertEqual(self.user.gravatar,
                          'https://secure.gravatar.com/avatar/0e3616fa71abd6c30910910d4d439470')  # noqa
+
+    def test_token(self):
+        """ Test token used in unsubscribe link. """
+        token = self.user.make_token()
+        self.assertTrue(self.user.check_token(token))

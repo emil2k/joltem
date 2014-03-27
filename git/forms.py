@@ -1,7 +1,7 @@
 """ Repositories forms. """
-
 from django import forms
 from django.core.exceptions import ValidationError
+
 from git.models import Repository
 
 
@@ -47,6 +47,6 @@ class RepositoryActionForm(forms.Form):
 
         """
         repository_id = int(self.cleaned_data.get('repository_id'))
-        if Repository.objects.exists(id=repository_id):
+        if Repository.objects.filter(pk=repository_id).exists():
             return repository_id
         raise ValidationError("Repository does not exist.")

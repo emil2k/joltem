@@ -59,13 +59,27 @@ class GeneralSettingsForm(forms.ModelForm):
     first_name = forms.CharField(label=_('First name'), max_length=30)
     email = forms.EmailField(label=_('Email'))
     gravatar_email = forms.EmailField(label=_('Gravatar'), required=False)
+    can_contact = forms.BooleanField(label=_('Can we email you?'),
+                                     required=False)
+    can_distribute_tasks = forms.BooleanField(label=_('Should we notify you of open tasks?'),
+                                     required=False)
     notify_by_email = forms.ChoiceField(choices=User.NOTIFY_CHOICES)
-    about = forms.CharField(widget=forms.Textarea())
+    about = forms.CharField(widget=forms.Textarea(), required=False)
 
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'gravatar_email',
-                  'notify_by_email', 'about')
+                  'can_contact', 'can_distribute_tasks', 'notify_by_email',
+                  'about', 'tags')
+
+
+class TagsForm(forms.ModelForm):
+
+    """ Form for editing user tags. """
+
+    class Meta:
+        model = User
+        fields = ('tags',)
 
 
 class SSHKeyForm(forms.ModelForm):
