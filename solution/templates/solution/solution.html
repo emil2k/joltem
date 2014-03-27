@@ -69,6 +69,10 @@
                 <div class="alert alert-info">
                     <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
                 </div>
+            {% elif solution.is_closed %}
+                <div class="alert alert-danger">
+                    <b>This solution was closed</b> on {{ solution.time_closed|date }}{% if solution.owner != solution.closer %} by <a href="{% url 'user' solution.closer.username %}">{{ solution.closer.first_name }}</a>{% endif %}.
+                </div>
             {% endif %}
             {% if solution.task %}
                 <div class="alert alert-info">
