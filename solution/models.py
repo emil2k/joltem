@@ -18,8 +18,7 @@ logger = logging.getLogger('joltem')
 
 class Solution(Voteable, Commentable, Updatable):
 
-    """
-    A solution is an execution of work.
+    """ A solution represents an execution of work.
 
     States :
     is_completed -- whether or not the solution has been marked
@@ -55,8 +54,10 @@ class Solution(Voteable, Commentable, Updatable):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     project = models.ForeignKey('project.Project')
     task = models.ForeignKey('task.Task', null=True, blank=True)
-    solution = models.ForeignKey('solution.Solution', null=True,
-                                 blank=True, related_name="solution_set")
+    solution = models.ForeignKey(
+        'solution.Solution', null=True, blank=True, related_name="solution_set")
+    closer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name='+')
 
     objects = PassThroughManager.for_queryset_class(SolutionQuerySet)()
 
@@ -202,9 +203,15 @@ class Solution(Voteable, Commentable, Updatable):
         self.save()
         self.notify_incomplete()
 
-    def mark_close(self):
-        """ Mark the solution closed. """
+    def mark_close(self, closer):
+        """ Mark the solution closed.
+
+        :param closer: user closing solution, track the user closing because
+            multiple people can close the solution for various reasons.
+
+        """
         self.is_closed = True
+        self.closer = closer
         self.time_closed = timezone.now()
         self.save()
 

@@ -81,6 +81,7 @@ class ProjectBaseView(RequestBaseView):
         """
         kwargs[u'project'] = self.project
         kwargs[u'is_admin'] = self.is_admin
+        kwargs[u'is_manager'] = self.is_manager
         kwargs[u'project_tab'] = self.project_tab
         return super(ProjectBaseView, self).get_context_data(**kwargs)
 
