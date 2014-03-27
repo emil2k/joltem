@@ -495,6 +495,17 @@ class MyCompleteSolutionsView(SolutionBaseListView):
         'owner': lambda s: s.request.user}
     order_by = ('-time_completed',)
 
+class MyClosedSolutionsView(SolutionBaseListView):
+
+    """ View for viewing a list of your closed solutions. """
+
+    tab = 'solutions_my_closed'
+    is_personal = True
+    filters = {
+        'is_closed': True,
+        'owner': lambda s: s.request.user}
+    order_by = ('-time_closed',)
+
 
 class MyReviewSolutionsView(SolutionBaseListView):
 
