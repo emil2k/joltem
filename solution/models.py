@@ -214,12 +214,15 @@ class Solution(Voteable, Commentable, Updatable):
         self.closer = closer
         self.time_closed = timezone.now()
         self.save()
+        self.notify_closed()
 
     def mark_open(self):
         """ Mark the solution opened, for reopening. """
         self.is_closed = False
+        self.closer = None
         self.time_closed = None
         self.save()
+        self.notify_open()
 
     def mark_archived(self):
         """ Mark the solution archived. """
@@ -268,6 +271,23 @@ class Solution(Voteable, Commentable, Updatable):
             self.notify(self.task.owner,
                         settings.NOTIFICATION_TYPES.solution_marked_complete,
                         True, kwargs={"role": "task_owner"})
+
+    def notify_closed(self):
+        """ Send out closed notifications.
+
+        Notify the solution owner if they are not the closer.
+
+        """
+        if self.closer \
+                and self.closer_id != self.owner_id:
+            self.notify(self.owner,
+                        settings.NOTIFICATION_TYPES.solution_marked_closed,
+                        True)
+
+    def notify_open(self):
+        """ Removed closed notifications. """
+        self.delete_notifications(
+            self.owner, settings.NOTIFICATION_TYPES.solution_marked_closed)
 
     def notify_incomplete(self):
         """ Remove completion notifications. """
