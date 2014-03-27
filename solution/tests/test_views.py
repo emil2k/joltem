@@ -330,7 +330,7 @@ class SolutionViewOwnerTest(TestCase):
             and suggest solution
 
         """
-        self.solution.mark_close()
+        self.solution.mark_close(mixer.blend('joltem.user'))
         self.assertTrue(self.solution.is_closed)
         response = self.client.get(self.path)
         self.assertContains(response, 'reopen</button>')
@@ -404,7 +404,7 @@ class SolutionViewUserTest(TestCase):
         Invisible : all
 
         """
-        self.solution.mark_close()
+        self.solution.mark_close(mixer.blend('joltem.user'))
         self.assertTrue(self.solution.is_closed)
         response = self.client.get(self.path)
         self.assertNotContains(response, 'edit</a>')
@@ -475,7 +475,7 @@ class SolutionViewAnonymousTest(TestCase):
         Invisible : all
 
         """
-        self.solution.mark_close()
+        self.solution.mark_close(mixer.blend('joltem.user'))
         self.assertTrue(self.solution.is_closed)
         response = self.client.get(self.path)
         self.assertNotContains(response, 'edit</a>')
@@ -528,7 +528,7 @@ class SolutionViewTest(BaseSolutionViewTest):
 
     def test_solution_view_post_reopen(self):
         """ Test reopen solution. """
-        self.solution.mark_close()
+        self.solution.mark_close(mixer.blend('joltem.user'))
         self._test_solution_view_action('reopen')
         self.assertFalse(self.solution.is_closed)
 

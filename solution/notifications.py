@@ -126,6 +126,25 @@ class SolutionMarkedComplete(_NotifyInterface):
         return "Solution \"%s\" was marked complete" % notifying.default_title
 
 
+class SolutionMarkedClosed(_NotifyInterface):
+
+    """ Notify that solution was marked closed."""
+
+    ntype = settings.NOTIFICATION_TYPES.solution_marked_closed
+    model = 'solution.solution'
+
+    def get_text(self, notifying=None, user=None):
+        """ Get text for current notification.
+
+        :returns: A text
+
+        """
+        if notifying is None:
+            notifying = self.notification.notifying
+        return "%s closed your solution \"%s\"" % \
+               (notifying.closer.first_name, notifying.default_title)
+
+
 class SolutionPosted(_NotifyInterface):
 
     """ Notify about solution was marked complete."""

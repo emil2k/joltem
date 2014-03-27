@@ -131,34 +131,41 @@ class SolutionView(VoteableView, CommentableView, TemplateView,
                 'project:solution:solution', project_id=self.project.id,
                 solution_id=self.solution.id)
 
-        if self.solution.is_owner(self.user) and not (
+        if not (
             'comment' in request.POST
             or 'comment_id' in request.POST
             or 'voteable_id' in request.POST
         ):
-            # Mark solution complete
-            if request.POST.get('complete')\
-                    and request.POST.get('compensation_value')\
+            # Owner only
+            if self.solution.is_owner(self.user):
+                # Mark solution complete
+                if request.POST.get('complete')\
+                        and request.POST.get('compensation_value')\
+                        and not self.solution.is_completed \
+                        and not self.solution.is_closed:
+                    compensation = int(request.POST.get('compensation_value'))
+                    self.solution.mark_complete(compensation)
+
+                # Mark solution incomplete
+                if request.POST.get('incomplete') \
+                    and self.solution.is_completed \
+                        and not self.solution.is_closed:
+                    self.solution.mark_incomplete()
+
+                # Reopen solution
+                if request.POST.get('reopen') and self.solution.is_closed:
+                    self.solution.mark_open()
+
+            # Owner, managers, and admins only
+            if self.solution.is_owner(self.user) \
+                or self.solution.project.is_manager(self.user.id) \
+                or self.solution.project.is_admin(self.user.id):
+
+                # Close solution
+                if request.POST.get('close') \
                     and not self.solution.is_completed \
-                    and not self.solution.is_closed:
-                compensation = int(request.POST.get('compensation_value'))
-                self.solution.mark_complete(compensation)
-
-            # Mark solution incomplete
-            if request.POST.get('incomplete') \
-                and self.solution.is_completed \
-                    and not self.solution.is_closed:
-                self.solution.mark_incomplete()
-
-            # Close solution
-            if request.POST.get('close') \
-                and not self.solution.is_completed \
-                    and not self.solution.is_closed:
-                self.solution.mark_close()
-
-            # Reopen solution
-            if request.POST.get('reopen') and self.solution.is_closed:
-                self.solution.mark_open()
+                        and not self.solution.is_closed:
+                    self.solution.mark_close(self.user)
 
             return redirect('project:solution:solution',
                             project_id=self.project.id,
@@ -487,6 +494,17 @@ class MyCompleteSolutionsView(SolutionBaseListView):
         'is_completed': True, 'is_closed': False,
         'owner': lambda s: s.request.user}
     order_by = ('-time_completed',)
+
+class MyClosedSolutionsView(SolutionBaseListView):
+
+    """ View for viewing a list of your closed solutions. """
+
+    tab = 'solutions_my_closed'
+    is_personal = True
+    filters = {
+        'is_closed': True,
+        'owner': lambda s: s.request.user}
+    order_by = ('-time_closed',)
 
 
 class MyReviewSolutionsView(SolutionBaseListView):

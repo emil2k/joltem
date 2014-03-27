@@ -2,6 +2,7 @@
     * Tagging of users and tasks.
     * Improved email templates.
     * One-click unsubscribe added to emails.
+    * Allow admins and managers to close incomplete solutions.
     * Fixed impact defaulting bug.
 
 -- on master
