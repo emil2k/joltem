@@ -12,7 +12,7 @@
                         <p>{{ task.title }}.</p>
                     </td>
                     {% url "project:task:task" task.project_id task.id as task_url %}
-                    <td><a href="http://{{ host }}{{ task_url }}" target="_blank">>></a></td>
+                    <td><a href="http://{{ host }}{{ task_url }}?utm_source=task%20distribution&utm_medium=email&utm_campaign=task%20distribution" target="_blank">>></a></td>
                 </tr>
             </tbody>
         </table>
