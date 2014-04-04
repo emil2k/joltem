@@ -108,9 +108,27 @@ class Commentable(Notifying, Owned, ProjectContext):
         self.notify_comment_added(comment)
         return comment
 
+    def delete_comment(self, comment):
+        """ Delete a comment, handles removal of notifications.
+
+        Remove the comment added notification for any user who has no more
+        comments to view other then their own.
+
+        :param comment:
+
+        """
+        old_followers = self.followers
+        comment.delete()
+        new_followers = self.followers
+        unnotify = old_followers.difference(new_followers)
+        if len(new_followers) == 1:
+            unnotify.add(*new_followers)
+        for user in unnotify:
+            self.delete_notifications(
+                user, settings.NOTIFICATION_TYPES.comment_added)
+
     def notify_comment_added(self, comment):
         """ Notify other commentators of comment, and owner of notifying. """
-
         for user in self.followers:
             if user == comment.owner:
                 continue

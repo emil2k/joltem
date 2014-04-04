@@ -152,7 +152,7 @@ class CommentableView(RequestBaseView):
                 if not comment.is_owner(request.user):
                     return HttpResponseForbidden("Not your comment.")
                 if comment_delete:
-                    comment.delete()
+                    commentable.delete_comment(comment)
                     return HttpResponse("Comment deleted")
                 elif comment_edit:
                     comment.comment = comment_edit
