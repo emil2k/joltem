@@ -1,4 +1,5 @@
 """ Tests for notifications. """
+from django.core.urlresolvers import reverse
 import time
 
 from django.contrib.contenttypes.generic import ContentType
@@ -167,6 +168,19 @@ class CommentNotificationTestCase(NotificationTestCase):
         self.assertNotificationReceived(
             s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
             'Bill commented on your solution "My Solution"')
+
+    def test_not_found(self):
+        """ Test a notification that is not found.
+
+        Can happen when a comment is deleted and it's notification is deleted.
+        Should return text that activity can not be found.
+
+        """
+        user = mixer.blend('joltem.user', password='test')
+        self.client.login(username=user.username, password='test')
+        response = self.client.get(reverse('notification_redirect',
+                                kwargs=dict(notification_id=3434)))
+        self.assertContains(response, "Activity not found")
 
 
 class TasksNotificationTestCase(BaseNotificationTestCase):

@@ -4,7 +4,7 @@
 from collections import defaultdict
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import (
     TemplateView, RedirectView, View, DetailView, ListView)
@@ -185,7 +185,7 @@ class NotificationsView(RequestBaseView, ListView):
         return notifications
 
 
-class NotificationRedirectView(RedirectView):
+class NotificationRedirectView(TemplateView):
 
     """ A notification redirect.
 
@@ -193,18 +193,16 @@ class NotificationRedirectView(RedirectView):
 
     """
 
-    permanent = False
-    query_string = False
+    template_name = "joltem/notification_not_found.html"
 
-    def get_redirect_url(self, notification_id):
-        """ Get redirect to notification.
-
-        :return str:
-
-        """
-        notification = get_object_or_404(Notification, id=notification_id)
-        notification.mark_cleared()
-        return notification.notifying.get_notification_url(notification)
+    def get(self, request, notification_id):
+        try:
+            n = Notification.objects.get(id=notification_id)
+        except Notification.DoesNotExist:
+            return self.render_to_response(context=None)
+        else:
+            n.mark_cleared()
+            return HttpResponseRedirect(n.notifying.get_notification_url(n))
 
 
 class IntroductionView(TemplateView, RequestBaseView):
