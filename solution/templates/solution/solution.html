@@ -67,7 +67,7 @@
             {% endif %}
             {% if solution.is_completed %}
                 <div class="alert alert-info">
-                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if solution.is_archived %}, and it has been archived{% elif not is_owner%}, please review it{% endif %}.
                 </div>
             {% elif solution.is_closed %}
                 <div class="alert alert-danger">
