@@ -24,8 +24,9 @@ class Migration(DataMigration):
                     & Q(commentable_id=n.notifying_id)
                     & ~Q(owner_id=n.user_id)).exists():
                 n.delete()
-                n.user.notifications -= 1
-                n.user.save()
+                if not n.is_cleared:
+                    n.user.notifications -= 1
+                    n.user.save()
 
     def backwards(self, orm):
         """ Empty. """
