@@ -121,6 +121,54 @@ class CommonNotificationTestCase(BaseNotificationTestCase):
         self.assertEqual(self.bob.notifications, 0)
 
 
+class CommentNotificationTestCase(NotificationTestCase):
+
+    """ Test comment notifications. """
+
+    def test_owner(self):
+        """ Test notifying owner when comment added. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        bill = mixer.blend('joltem.user', first_name="Bill")
+        s.add_comment(bill, "Bill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Bill commented on your solution "My Solution"')
+
+    def test_commentator(self):
+        """ Test not notifying commentator of their comment. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        s.add_comment(s.owner, "Bill was here.")
+        self.assertNotificationNotReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added)
+
+    def test_delete_comment(self):
+        """ Test comment deletion, and removal of notifications. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        jill = mixer.blend('joltem.user', first_name="Jill")
+        jill_comment = s.add_comment(jill, "Jill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Jill commented on your solution "My Solution"')
+        s.delete_comment(jill_comment)
+        self.assertNotificationNotReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added)
+
+    def test_delete_comment_keep_notification(self):
+        """ Test comment deleted but notification should be kept. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        bill = mixer.blend('joltem.user', first_name="Bill")
+        jill = mixer.blend('joltem.user', first_name="Jill")
+        s.add_comment(bill, "Bill was here.")
+        jill_comment = s.add_comment(jill, "Jill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Jill and Bill commented on your solution "My Solution"')
+        s.delete_comment(jill_comment)
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Bill commented on your solution "My Solution"')
+
+
 class TasksNotificationTestCase(BaseNotificationTestCase):
 
     """ Test task related notifications. """
