@@ -109,7 +109,7 @@
                     </div>
                     <div class="span7">
                         <label class="text-warning" for="id_agree">
-                            <span class="pull-right">{% render_field form.agree %}</span> <strong>I understand</strong> that initial ownership and impact exchange parameters <b>cannot</b> be changed after project creation. The ability to change whether a project is private <b>cannot be changed <em>at the moment</em></b>, but will be added at a later time.
+                            <span class="pull-right">{% render_field form.agree %}</span> <strong>I understand</strong> that initial ownership and impact exchange parameters <b>cannot</b> be changed after project creation.
                         </label>
                         {% if form.agree.errors %}
                             <div class="alert alert-error">{{ form.agree.errors|join:' ' }}</div>
