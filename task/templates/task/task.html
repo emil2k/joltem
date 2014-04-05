@@ -53,6 +53,7 @@
                         {% endif %}
                         {% if is_editor %}
                             {% if not task.is_closed %}
+                                <button class="btn" type="submit" name="close" value="1" onclick="return close_task();">close</button>
                                 <script>
                                     close_task = function(){
                                         var r = confirm('Are you sure you want to close the task?\nPeople won\'t be able to post solutions to the task.');
@@ -62,7 +63,6 @@
                                         return r
                                     }
                                 </script>
-                                <button class="btn" type="submit" name="close" value="1" onclick="return close_task();">close</button>
                             {% else %}
                                 <button class="btn" type="submit" name="reopen" value="1" onclick="TRACK.task.reopen('{{ task.title|escapejs }}');">reopen</button>
                             {% endif %}

@@ -1,4 +1,5 @@
 """ Tests for notifications. """
+from django.core.urlresolvers import reverse
 import time
 
 from django.contrib.contenttypes.generic import ContentType
@@ -119,6 +120,67 @@ class CommonNotificationTestCase(BaseNotificationTestCase):
         self.assertFalse(self.bob.notification_set.filter(is_cleared=False))
         self.bob = type(self.bob).objects.get(pk=self.bob.pk)
         self.assertEqual(self.bob.notifications, 0)
+
+
+class CommentNotificationTestCase(NotificationTestCase):
+
+    """ Test comment notifications. """
+
+    def test_owner(self):
+        """ Test notifying owner when comment added. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        bill = mixer.blend('joltem.user', first_name="Bill")
+        s.add_comment(bill, "Bill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Bill commented on your solution "My Solution"')
+
+    def test_commentator(self):
+        """ Test not notifying commentator of their comment. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        s.add_comment(s.owner, "Bill was here.")
+        self.assertNotificationNotReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added)
+
+    def test_delete_comment(self):
+        """ Test comment deletion, and removal of notifications. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        jill = mixer.blend('joltem.user', first_name="Jill")
+        jill_comment = s.add_comment(jill, "Jill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Jill commented on your solution "My Solution"')
+        s.delete_comment(jill_comment)
+        self.assertNotificationNotReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added)
+
+    def test_delete_comment_keep_notification(self):
+        """ Test comment deleted but notification should be kept. """
+        s = mixer.blend('solution.solution', title="My Solution")
+        bill = mixer.blend('joltem.user', first_name="Bill")
+        jill = mixer.blend('joltem.user', first_name="Jill")
+        s.add_comment(bill, "Bill was here.")
+        jill_comment = s.add_comment(jill, "Jill was here.")
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Jill and Bill commented on your solution "My Solution"')
+        s.delete_comment(jill_comment)
+        self.assertNotificationReceived(
+            s.owner, s, settings.NOTIFICATION_TYPES.comment_added,
+            'Bill commented on your solution "My Solution"')
+
+    def test_not_found(self):
+        """ Test a notification that is not found.
+
+        Can happen when a comment is deleted and it's notification is deleted.
+        Should return text that activity can not be found.
+
+        """
+        user = mixer.blend('joltem.user', password='test')
+        self.client.login(username=user.username, password='test')
+        response = self.client.get(reverse('notification_redirect',
+                                kwargs=dict(notification_id=3434)))
+        self.assertContains(response, "Activity not found")
 
 
 class TasksNotificationTestCase(BaseNotificationTestCase):

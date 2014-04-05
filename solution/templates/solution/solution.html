@@ -46,6 +46,7 @@
                                 <a href="{% url 'project:solution:solution_edit' project.id solution.id %}" class="btn">edit</a>
                             {% endif %}
                             {% if is_owner or is_manager or is_admin %}
+                                <button class="btn" type="submit" name="close" value="1"  onclick="return close_solution();">close</button>
                                 <script>
                                     close_solution = function() {
                                         r = confirm('Are you sure you want to close the solution?\nThis means you are not going to complete the solution.');
@@ -55,7 +56,6 @@
                                         return r;
                                     }
                                 </script>
-                                <button class="btn" type="submit" name="close" value="1"  onclick="return close_solution();">close</button>
                             {% endif %}
                             {% if not is_owner %}
                                 <a class="btn btn-success" href="{% url 'project:solution:new' project.id solution.id %}">suggest solution</a>
@@ -67,7 +67,7 @@
             {% endif %}
             {% if solution.is_completed %}
                 <div class="alert alert-info">
-                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if not solution.is_archived and not is_owner %}, please review it{% else %}, and it has been archived{% endif %}.
+                    <b>This solution was completed</b> on {{ solution.time_completed|date }}{% if solution.is_archived %}, and it has been archived{% elif not is_owner%}, please review it{% endif %}.
                 </div>
             {% elif solution.is_closed %}
                 <div class="alert alert-danger">
