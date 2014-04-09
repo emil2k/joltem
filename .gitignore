@@ -23,6 +23,8 @@ _trial_temp
 coverage.xml
 gateway/id_rsa
 gateway/id_rsa.pub
+gateway/gateway_id_rsa
+gateway/gateway_id_rsa.pub
 joltem/settings/chefenv.py
 joltem/settings/local.py
 nosetests.xml

@@ -16,5 +16,3 @@ SECRET_KEY = 'some secret key'
 STATIC_ROOT = '{{ pillar['website_static_dir'] }}'
 
 GATEWAY_PORT = 222
-GATEWAY_PRIVATE_KEY_FILE_PATH = '{{ pillar['gitserver_private_key_path'] }}'
-GATEWAY_PUBLIC_KEY_FILE_PATH = '{{ pillar['gitserver_public_key_path'] }}'

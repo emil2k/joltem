@@ -3,8 +3,6 @@ ssh secret:
     - managed
     - name: {{ pillar['gitserver_private_key_path'] }}
     - source: salt://gitserver/id_rsa
-    - user: joltem
-    - group: joltem
     - mode: 600
 
 ssh public:
@@ -12,9 +10,7 @@ ssh public:
     - managed
     - name: {{ pillar['gitserver_public_key_path'] }}
     - source: salt://gitserver/id_rsa.pub
-    - user: joltem
-    - group: joltem
-    - mode: 644
+    - mode: 600
 
 supervisored twisted:
   pkg:
