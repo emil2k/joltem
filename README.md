@@ -1,4 +1,25 @@
-# Getting started
+# Joltem
+
+[An open
+incubator.](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724)
+
+---
+
+Joltem, short for "jolt them", was an attempt to make an open incubator. A place
+where people could come together and start a business. The project is no longer
+being maintained, feel free to fork it and put it to use.
+
+## Related articles
+
+- [The Broken Startup
+  Process](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724)
+- [Проблема старта](https://habrahabr.ru/post/214769/)
+- [Building a Git
+  Server](https://medium.com/joltem-an-open-incubator/building-a-git-server-1dfb89adca1d)
+- [Fork and Pull
+  Alternative](https://medium.com/coders-on-coding/fork-and-pull-alternative-c88d1154f1c6)
+
+## Development
 
 This is a guide on how to setup the project in your local environment for development.
 
