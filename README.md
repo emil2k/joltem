@@ -1,9 +1,4 @@
-# Joltem
-
-[An open
-incubator.](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724)
-
----
+# Joltem - [An open incubator](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724)
 
 Joltem, short for "jolt them", was an attempt to make an open incubator. A place
 where people could come together and start a business. The project is no longer
@@ -12,8 +7,7 @@ being maintained, feel free to fork it and put it to use.
 ## Related articles
 
 - [The Broken Startup
-  Process](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724)
-- [Проблема старта](https://habrahabr.ru/post/214769/)
+  Process](https://medium.com/@forEmil/the-broken-startup-process-4c42cf1a9724) / [Проблема старта](https://habrahabr.ru/post/214769/)
 - [Building a Git
   Server](https://medium.com/joltem-an-open-incubator/building-a-git-server-1dfb89adca1d)
 - [Fork and Pull
